@@ -1,0 +1,40 @@
+{
+  "name": "fuyou-app",
+  "version": "1.0.0",
+  "description": "扶養管理アプリ - 学生アルバイト向けの自動扶養管理サービス",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "lint:frontend": "cd frontend && npm run lint",
+    "format:frontend": "cd frontend && npm run format",
+    "typecheck:frontend": "cd frontend && npm run typecheck",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2"
+  },
+  "lint-staged": {
+    "frontend/**/*.{js,jsx,ts,tsx}": [
+      "cd frontend && npm run lint:fix",
+      "cd frontend && npm run format"
+    ],
+    "**/*.{json,css,md}": [
+      "npx prettier --write"
+    ]
+  },
+  "keywords": [
+    "扶養",
+    "アルバイト",
+    "学生",
+    "税務",
+    "自動化"
+  ],
+  "author": "JunP1ayer"
+}

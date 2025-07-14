@@ -1,0 +1,50 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Claude Code Review
+        uses: anthropics/claude-code-review@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # 最小限のプロンプト: バグと脆弱性のみコメント
+          review-prompt: |
+            コードをレビューして、以下の項目のみコメントしてください：
+            
+            1. **バグ・エラーの可能性**
+            2. **セキュリティ脆弱性**
+            3. **TypeScript型エラー**
+            4. **React/Material-UIのベストプラクティス違反**
+            
+            以下は**コメント不要**：
+            - コードスタイル・フォーマット
+            - 命名規則
+            - パフォーマンス最適化
+            - リファクタリング提案
+            
+            重要な問題のみ簡潔にコメントしてください。
+          
+          # 言語とフレームワークの指定
+          project-context: |
+            プロジェクト: 扶養管理アプリ
+            技術スタック: React + TypeScript + Material-UI v5
+            バックエンド: Python + FastAPI (今後実装)
+            
+          max-comments: 10
+          focus-files: |
+            frontend/src/**/*.{ts,tsx}
+            backend/**/*.py

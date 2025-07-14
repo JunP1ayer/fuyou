@@ -1,0 +1,79 @@
+name: バグ報告
+description: バグの報告と修正依頼
+title: "[BUG] "
+labels: ["bug", "priority:high"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 バグ報告
+        発見されたバグの詳細を報告してください。
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 重要度
+      description: バグの影響範囲と重要度
+      options:
+        - "🔴 Critical (アプリが使用不可)"
+        - "🟠 High (主要機能に影響)"
+        - "🟡 Medium (一部機能に影響)"
+        - "🟢 Low (軽微な問題)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: 発生環境
+      description: バグが発生した環境
+      options:
+        - "Development (ローカル開発)"
+        - "Staging (テスト環境)"
+        - "Production (本番環境)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: 再現手順
+      description: バグを再現するための詳細な手順
+      placeholder: |
+        1. ログインページにアクセス
+        2. メールアドレスに「test@example.com」を入力
+        3. パスワードフィールドをクリック
+        4. エラーが発生
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: 期待される動作
+      description: 正常に動作した場合の期待される結果
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: 実際の動作
+      description: 実際に発生した問題
+    validations:
+      required: true
+
+  - type: textarea
+    id: error_logs
+    attributes:
+      label: エラーログ
+      description: ブラウザのConsoleエラーやサーバーログ
+      render: shell
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: 追加情報
+      description: スクリーンショット、ブラウザ情報など

@@ -1,0 +1,90 @@
+name: 機能開発
+description: 新機能の実装タスク
+title: "[FEATURE] "
+labels: ["enhancement", "MVP"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🚀 新機能開発タスク
+        MVP開発における新機能の実装要求です。
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 優先度
+      description: この機能の開発優先度
+      options:
+        - "🔴 高 (MVP必須機能)"
+        - "🟡 中 (MVP推奨機能)"
+        - "🟢 低 (将来実装)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: 対象コンポーネント
+      description: 実装対象の技術スタック
+      options:
+        - "Frontend (React + TypeScript + MUI)"
+        - "Backend (Python + FastAPI)"
+        - "Database (PostgreSQL)"
+        - "API Integration (銀行連携)"
+        - "Infrastructure (CI/CD)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 機能概要
+      description: 実装する機能の詳細説明
+      placeholder: |
+        例：
+        - ユーザーが年収上限を設定できる機能
+        - 現在の収入進捗をダッシュボードで表示
+        - 上限接近時のアラート機能
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: 受け入れ条件
+      description: 実装完了の判定基準
+      placeholder: |
+        - [ ] ユーザーは扶養上限額を入力できる
+        - [ ] 入力値が適切にバリデーションされる
+        - [ ] データがデータベースに保存される
+        - [ ] TypeScript型チェックが通る
+        - [ ] ESLintエラーがない
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_notes
+    attributes:
+      label: 技術的メモ
+      description: 実装時の技術的考慮事項
+      placeholder: |
+        - 使用するMUIコンポーネント
+        - API設計
+        - データベーススキーマ変更
+        - セキュリティ考慮事項
+
+  - type: dropdown
+    id: estimate
+    attributes:
+      label: 実装見積もり
+      description: 開発にかかる予想時間
+      options:
+        - "0.5日 (4時間以内)"
+        - "1日 (8時間)"
+        - "2-3日"
+        - "1週間"
+        - "2週間以上"
+    validations:
+      required: true
