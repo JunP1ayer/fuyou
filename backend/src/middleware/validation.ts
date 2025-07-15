@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { createError } from './errorHandler';
+import { authService } from '../services/authService';
 
 export const validateRequest = (schema: z.ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -78,4 +79,21 @@ export const validateParams = (schema: z.ZodSchema) => {
       next(error);
     }
   };
+};
+
+// Authentication middleware
+export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await authService.getCurrentUser(req);
+    req.user = user;
+    next();
+  } catch (error) {
+    const statusCode = (error as any).statusCode || 401;
+    const message = (error as any).message || 'Authentication failed';
+    
+    return res.status(statusCode).json({
+      success: false,
+      error: { message }
+    });
+  }
 };

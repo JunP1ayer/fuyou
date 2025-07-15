@@ -1,5 +1,24 @@
 import { z } from 'zod';
 
+// User-related types (先に定義)
+export interface AuthUser {
+  id: string;
+  email: string;
+  fullName: string;
+  isStudent: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Express型拡張
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthUser;
+    }
+  }
+}
+
 // Common response types
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -70,6 +89,11 @@ export const CalculateDeductionSchema = z.object({
   includeProjections: z.boolean().default(false),
 });
 
+export const ProjectIncomeSchema = z.object({
+  targetAmount: z.number().positive().optional(),
+  projectionMonths: z.number().int().min(1).max(12).default(12),
+});
+
 // Export type definitions
 export type RegisterRequest = z.infer<typeof RegisterSchema>;
 export type LoginRequest = z.infer<typeof LoginSchema>;
@@ -80,16 +104,9 @@ export type GetIncomesRequest = z.infer<typeof GetIncomesSchema>;
 export type CreateDependentRequest = z.infer<typeof CreateDependentSchema>;
 export type UpdateDependentRequest = z.infer<typeof UpdateDependentSchema>;
 export type CalculateDeductionRequest = z.infer<typeof CalculateDeductionSchema>;
+export type ProjectIncomeRequest = z.infer<typeof ProjectIncomeSchema>;
 
-// User-related types
-export interface AuthUser {
-  id: string;
-  email: string;
-  fullName: string;
-  isStudent: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+// User-related types (moved to top)
 
 export interface AuthToken {
   token: string;
