@@ -1,26 +1,66 @@
+// Load environment variables FIRST
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load environment variables from .env file
+const envPath = path.join(process.cwd(), '.env');
+dotenv.config({ path: envPath });
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
 import { authRoutes } from './routes/auth';
 import { userRoutes } from './routes/users';
 import { incomeRoutes } from './routes/incomes';
 import { calculationRoutes } from './routes/calculations';
-
-// Load environment variables
-dotenv.config();
+import { csvRoutes } from './routes/csv';
+import { alertRoutes } from './routes/alerts';
+import { demoRoutes } from './routes/demo';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+
+// CORS configuration with proper origin handling
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) => {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://172.26.93.180:3000',
+      'http://localhost:5173',
+      'http://172.26.93.180:5173',
+      'http://localhost:3002',
+      'http://172.26.93.180:3002',
+      'http://localhost:3003',
+      'http://172.26.93.180:3003',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3002',
+      'http://127.0.0.1:3003'
+    ];
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      logger.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -50,6 +90,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/incomes', incomeRoutes);
 app.use('/api/calculations', calculationRoutes);
+app.use('/api/csv', csvRoutes);
+app.use('/api/alerts', alertRoutes);
+app.use('/api/demo', demoRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -68,6 +111,13 @@ if (process.env.NODE_ENV !== 'test') {
     logger.info(`🚀 Server is running on port ${PORT}`);
     logger.info(`🏥 Health check: http://localhost:${PORT}/health`);
     logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(`🔐 CORS_ORIGIN: ${process.env.CORS_ORIGIN || 'not set'}`);
+    logger.info(`🌐 JWT_SECRET: ${process.env.JWT_SECRET ? 'set' : 'not set'}`);
+    logger.info(`🔑 SUPABASE_URL: ${process.env.SUPABASE_URL ? 'set' : 'not set'}`);
+    
+    // Debug: Show current working directory
+    logger.info(`📁 Current working directory: ${process.cwd()}`);
+    logger.info(`📁 Environment file path: ${envPath}`);
   });
 }
 

@@ -1,8 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/errorHandler';
-import { validateRequest, requireAuth } from '../middleware/validation';
+import { validateSchema, requireAuth } from '../middleware/validation';
 import { CalculateDeductionSchema, ProjectIncomeSchema } from '../types/api';
 import { FuyouCalculationService } from '../services/calculationService';
+import { EnhancedCalculationService } from '../services/enhancedCalculationService';
 import { supabase } from '../utils/supabase';
 
 const router = Router();
@@ -11,7 +12,7 @@ const router = Router();
 router.post(
   '/deduction',
   requireAuth,
-  validateRequest(CalculateDeductionSchema),
+  validateSchema(CalculateDeductionSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user!.id;
     const { year, includeProjections } = req.body;
@@ -136,7 +137,7 @@ router.get(
 router.post(
   '/projection',
   requireAuth,
-  validateRequest(ProjectIncomeSchema),
+  validateSchema(ProjectIncomeSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user!.id;
     const { targetAmount, projectionMonths = 12 } = req.body;
@@ -181,6 +182,94 @@ router.post(
       success: true,
       data: projectionAnalysis,
     });
+  })
+);
+
+// GET /api/calculations/enhanced - Enhanced calculation with 2025 tax system
+router.get(
+  '/enhanced',
+  asyncHandler(async (req: Request, res: Response) => {
+    try {
+      // For demo purposes, use a temporary user ID
+      const userId = 'csv-user-temp';
+      const year = parseInt(req.query.year as string) || new Date().getFullYear();
+      
+      const enhancedService = new EnhancedCalculationService();
+      
+      // Default user profile for students
+      const userProfile = {
+        isStudent: true,
+        age: 20,
+        isMarried: false,
+        hasSpouse: false
+      };
+      
+      const result = await enhancedService.calculateEnhancedDeduction(userId, year, userProfile);
+      
+      res.json({
+        success: true,
+        data: result
+      });
+      
+    } catch (error) {
+      console.error('Enhanced calculation error:', error);
+      res.status(500).json({
+        success: false,
+        error: { message: error instanceof Error ? error.message : 'Calculation failed' }
+      });
+    }
+  })
+);
+
+// GET /api/calculations/working-optimization
+router.get(
+  '/working-optimization',
+  asyncHandler(async (req: Request, res: Response) => {
+    try {
+      const userId = 'csv-user-temp';
+      const hourlyRate = parseInt(req.query.hourlyRate as string) || 1000;
+      
+      const enhancedService = new EnhancedCalculationService();
+      const optimization = await enhancedService.generateWorkingOptimization(userId, hourlyRate);
+      
+      res.json({
+        success: true,
+        data: optimization
+      });
+      
+    } catch (error) {
+      console.error('Working optimization error:', error);
+      res.status(500).json({
+        success: false,
+        error: { message: error instanceof Error ? error.message : 'Optimization failed' }
+      });
+    }
+  })
+);
+
+// GET /api/calculations/income-analysis
+router.get(
+  '/income-analysis',
+  asyncHandler(async (req: Request, res: Response) => {
+    try {
+      const userId = 'csv-user-temp';
+      const year = parseInt(req.query.year as string) || new Date().getFullYear();
+      
+      const enhancedService = new EnhancedCalculationService();
+      const analysis = await enhancedService.analyzeIncomeBySource(userId, year);
+      
+      res.json({
+        success: true,
+        data: analysis
+      });
+      
+    } catch (error) {
+      console.error('Income analysis error:', error);
+      res.status(500).json({
+        success: false,
+        error: { message: error instanceof Error ? error.message : 'Analysis failed' }
+      });
+    }
   })
 );
 

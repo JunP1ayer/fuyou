@@ -53,7 +53,17 @@ export const ChangePasswordSchema = z.object({
   newPassword: z.string().min(8, 'New password must be at least 8 characters'),
 });
 
-// Income schemas
+// Income categories enum
+export enum IncomeCategory {
+  PART_TIME_JOB = 'part_time_job',
+  TEMPORARY_WORK = 'temporary_work', 
+  FREELANCE = 'freelance',
+  SCHOLARSHIP = 'scholarship',
+  FAMILY_SUPPORT = 'family_support',
+  OTHER = 'other'
+}
+
+// Enhanced Income schemas
 export const CreateIncomeSchema = z.object({
   amount: z.number().positive('Amount must be positive'),
   source: z.string().min(1, 'Source is required'),
@@ -62,6 +72,12 @@ export const CreateIncomeSchema = z.object({
     (date) => !isNaN(Date.parse(date)),
     'Invalid date format'
   ),
+  category: z.nativeEnum(IncomeCategory).default(IncomeCategory.OTHER),
+  jobSourceId: z.string().uuid().optional(),
+  isAutoDetected: z.boolean().default(false),
+  detectionConfidence: z.number().min(0).max(1).optional(),
+  transactionId: z.string().optional(),
+  rawDescription: z.string().optional(),
 });
 
 export const UpdateIncomeSchema = CreateIncomeSchema.partial();
@@ -74,19 +90,55 @@ export const GetIncomesSchema = z.object({
   source: z.string().optional(),
 });
 
-// Dependent schemas
+// Job Source schemas
+export const CreateJobSourceSchema = z.object({
+  name: z.string().min(1, 'Job source name is required'),
+  category: z.nativeEnum(IncomeCategory),
+  hourlyRate: z.number().positive().optional(),
+  expectedMonthlyHours: z.number().int().positive().optional(),
+  bankAccountInfo: z.record(z.any()).optional(),
+  isActive: z.boolean().default(true),
+});
+
+export const UpdateJobSourceSchema = CreateJobSourceSchema.partial();
+
+// Enhanced Dependent schemas
 export const CreateDependentSchema = z.object({
-  annualLimit: z.number().positive('Annual limit must be positive').default(1030000),
+  annualLimit: z.number().positive('Annual limit must be positive').default(1500000), // 2025年学生特定扶養控除
   currentYear: z.number().int().min(2020).max(2100),
   alertThreshold: z.number().min(0).max(1).default(0.8),
+  limitType: z.enum(['student_dependent', 'basic_dependent', 'social_insurance', 'spouse_special', 'custom']).default('student_dependent'),
 });
 
 export const UpdateDependentSchema = CreateDependentSchema.partial();
 
-// Calculation schemas
+// Smart Alert schemas
+export const CreateSmartAlertSchema = z.object({
+  alertType: z.enum(['monthly_target', 'yearly_projection', 'limit_approach', 'new_income_detected', 'schedule_optimization']),
+  severity: z.enum(['info', 'warning', 'critical']),
+  title: z.string().min(1, 'Alert title is required'),
+  message: z.string().min(1, 'Alert message is required'),
+  actionSuggestion: z.string().optional(),
+  expiresAt: z.string().refine(
+    (date) => !isNaN(Date.parse(date)),
+    'Invalid expiration date format'
+  ).optional(),
+});
+
+// Enhanced Calculation schemas
 export const CalculateDeductionSchema = z.object({
   year: z.number().int().min(2020).max(2100).default(new Date().getFullYear()),
   includeProjections: z.boolean().default(false),
+  limitType: z.enum(['student_dependent', 'basic_dependent', 'social_insurance', 'spouse_special', 'custom']).optional(),
+  customLimitAmount: z.number().positive().optional(),
+});
+
+// Bank Connection schemas (Phase 3)
+export const CreateBankConnectionSchema = z.object({
+  bankName: z.string().min(1, 'Bank name is required'),
+  accountType: z.enum(['checking', 'savings', 'other']).default('checking'),
+  autoSyncEnabled: z.boolean().default(true),
+  syncFrequencyHours: z.number().int().positive().default(24),
 });
 
 export const ProjectIncomeSchema = z.object({
@@ -101,10 +153,14 @@ export type ChangePasswordRequest = z.infer<typeof ChangePasswordSchema>;
 export type CreateIncomeRequest = z.infer<typeof CreateIncomeSchema>;
 export type UpdateIncomeRequest = z.infer<typeof UpdateIncomeSchema>;
 export type GetIncomesRequest = z.infer<typeof GetIncomesSchema>;
+export type CreateJobSourceRequest = z.infer<typeof CreateJobSourceSchema>;
+export type UpdateJobSourceRequest = z.infer<typeof UpdateJobSourceSchema>;
 export type CreateDependentRequest = z.infer<typeof CreateDependentSchema>;
 export type UpdateDependentRequest = z.infer<typeof UpdateDependentSchema>;
+export type CreateSmartAlertRequest = z.infer<typeof CreateSmartAlertSchema>;
 export type CalculateDeductionRequest = z.infer<typeof CalculateDeductionSchema>;
 export type ProjectIncomeRequest = z.infer<typeof ProjectIncomeSchema>;
+export type CreateBankConnectionRequest = z.infer<typeof CreateBankConnectionSchema>;
 
 // User-related types (moved to top)
 
@@ -115,7 +171,21 @@ export interface AuthToken {
   user: AuthUser;
 }
 
-// Income-related types
+// Job Source types
+export interface JobSourceResponse {
+  id: string;
+  userId: string;
+  name: string;
+  category: IncomeCategory;
+  hourlyRate?: number;
+  expectedMonthlyHours?: number;
+  bankAccountInfo?: Record<string, any>;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Enhanced Income types
 export interface IncomeResponse {
   id: string;
   userId: string;
@@ -123,6 +193,13 @@ export interface IncomeResponse {
   source: string;
   description: string | null;
   incomeDate: string;
+  category: IncomeCategory;
+  jobSourceId?: string;
+  jobSource?: JobSourceResponse;
+  isAutoDetected: boolean;
+  detectionConfidence?: number;
+  transactionId?: string;
+  rawDescription?: string;
   createdAt: string;
 }
 
@@ -136,16 +213,58 @@ export interface IncomeStats {
   }>;
 }
 
-// Calculation-related types
+// Smart Alert types
+export interface SmartAlertResponse {
+  id: string;
+  userId: string;
+  alertType: string;
+  severity: 'info' | 'warning' | 'critical';
+  title: string;
+  message: string;
+  actionSuggestion?: string;
+  relatedCalculationId?: string;
+  isRead: boolean;
+  isDismissed: boolean;
+  triggeredAt: string;
+  expiresAt?: string;
+}
+
+// Enhanced Calculation types
+export interface FuyouLimit2025 {
+  type: 'student_dependent' | 'basic_dependent' | 'social_insurance' | 'spouse_special' | 'custom';
+  amount: number;
+  name: string;
+  description: string;
+  effectiveDate: string;
+}
+
 export interface DeductionCalculation {
   year: number;
   totalIncome: number;
-  annualLimit: number;
-  remainingAmount: number;
-  deductionRate: number;
+  applicableLimits: FuyouLimit2025[];
+  selectedLimit: FuyouLimit2025;
+  remainingCapacity: number;
+  monthlyTargetIncome: number;
   projectedYearEndIncome?: number;
+  riskLevel: 'safe' | 'warning' | 'danger';
   isOverLimit: boolean;
   alertTriggered: boolean;
+  calculationDate: string;
+}
+
+// Bank Connection types (Phase 3)
+export interface BankConnectionResponse {
+  id: string;
+  userId: string;
+  bankName: string;
+  accountType: 'checking' | 'savings' | 'other';
+  maskedAccountNumber?: string;
+  isActive: boolean;
+  autoSyncEnabled: boolean;
+  lastSyncDate?: string;
+  syncFrequencyHours: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TaxBracket {

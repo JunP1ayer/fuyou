@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/errorHandler';
-import { validateRequest } from '../middleware/validation';
+import { validateSchema } from '../middleware/validation';
 import { RegisterSchema, LoginSchema, ChangePasswordSchema } from '../types/api';
 import { authService } from '../services/authService';
 
@@ -9,7 +9,7 @@ const router = Router();
 // POST /api/auth/register
 router.post(
   '/register',
-  validateRequest(RegisterSchema),
+  validateSchema(RegisterSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const result = await authService.register(req.body);
     res.status(201).json({
@@ -23,7 +23,7 @@ router.post(
 // POST /api/auth/login
 router.post(
   '/login',
-  validateRequest(LoginSchema),
+  validateSchema(LoginSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const result = await authService.login(req.body);
     res.json({
@@ -61,7 +61,7 @@ router.get(
 // POST /api/auth/change-password
 router.post(
   '/change-password',
-  validateRequest(ChangePasswordSchema),
+  validateSchema(ChangePasswordSchema),
   asyncHandler(async (req: Request, res: Response) => {
     await authService.changePassword(req, req.body);
     res.json({

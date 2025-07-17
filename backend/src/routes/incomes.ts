@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/errorHandler';
-import { validateRequest, validateQuery, requireAuth } from '../middleware/validation';
+import { validateSchema, validateQuery, requireAuth } from '../middleware/validation';
 import { CreateIncomeSchema, UpdateIncomeSchema, GetIncomesSchema } from '../types/api';
 import { supabase } from '../utils/supabase';
 import { FuyouCalculationService } from '../services/calculationService';
@@ -65,7 +65,7 @@ router.get(
 router.post(
   '/',
   requireAuth,
-  validateRequest(CreateIncomeSchema),
+  validateSchema(CreateIncomeSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user!.id;
     const { amount, source, description, incomeDate } = req.body;
@@ -131,7 +131,7 @@ router.get(
 router.put(
   '/:id',
   requireAuth,
-  validateRequest(UpdateIncomeSchema),
+  validateSchema(UpdateIncomeSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user!.id;
     const incomeId = req.params.id;
@@ -272,6 +272,52 @@ router.get(
         year,
       },
     });
+  })
+);
+
+// GET /api/incomes/recent - Get recent incomes for dashboard
+router.get(
+  '/recent',
+  asyncHandler(async (req: Request, res: Response) => {
+    try {
+      const userId = 'csv-user-temp'; // For demo purposes
+      const limit = parseInt(req.query.limit as string) || 5;
+      
+      const { data: incomes, error } = await supabase
+        .from('incomes')
+        .select('*')
+        .eq('user_id', userId)
+        .order('income_date', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        throw error;
+      }
+
+      // Transform data to match frontend types
+      const transformedIncomes = (incomes || []).map(income => ({
+        id: income.id,
+        amount: income.amount,
+        date: income.income_date,
+        category: 'part_time_job', // Default category for CSV imports
+        description: income.description || `${income.source} からの収入`,
+        isAutoDetected: income.metadata?.confidence ? true : false,
+        detectionConfidence: income.metadata?.confidence || 0,
+        createdAt: income.created_at
+      }));
+
+      res.json({
+        success: true,
+        data: transformedIncomes
+      });
+
+    } catch (error) {
+      console.error('Recent incomes error:', error);
+      res.status(500).json({
+        success: false,
+        error: { message: error instanceof Error ? error.message : 'Failed to fetch recent incomes' }
+      });
+    }
   })
 );
 

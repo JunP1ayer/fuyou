@@ -18,6 +18,7 @@ class AuthService {
         email: data.email,
         password: data.password,
         options: {
+          emailRedirectTo: undefined, // Disable email confirmation for demo
           data: {
             full_name: data.fullName,
             is_student: data.isStudent,
