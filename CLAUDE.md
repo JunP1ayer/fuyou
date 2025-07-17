@@ -1,116 +1,183 @@
-# CLAUDE.md - プロジェクト設定ファイル
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## 📋 プロジェクト概要
 
 **扶養管理アプリ (Fuyou Management App)**
-学生アルバイト向けの自動扶養管理サービス。銀行口座連携により収入を自動追跡し、扶養控除の範囲内での労働をサポートします。
+学生アルバイト向けの扶養控除管理システム。2つの主要機能：
+1. **CSV入力版** - 銀行明細CSVから収入データを自動取得・分析
+2. **シフト管理機能** - 手動シフト登録と収入予測（Phase 1実装中）
 
 ## 🛠️ 技術スタック
 
-- **フロントエンド**: React + TypeScript + Material-UI v5
-- **バックエンド**: Python + FastAPI
-- **データベース**: PostgreSQL
-- **銀行連携**: Moneytree LINK API (予定)
-- **デプロイ**: Vercel (frontend) + Railway (backend)
+### フロントエンド
+- **React 18** + **TypeScript** + **Material-UI v5**
+- **Vite** (開発・ビルド)
+- **認証**: Supabase Auth + Demo認証システム
 
-## 🚀 主要コマンド
+### バックエンド  
+- **Node.js** + **Express** + **TypeScript**
+- **Supabase** (PostgreSQL + 認証)
+- **CSV処理**: Multer + CSV-Parser
+- **バリデーション**: Zod
+
+## 🚀 主要開発コマンド
 
 ### 開発サーバー起動
-
 ```bash
-# フロントエンド開発サーバー
+# フロントエンド (http://localhost:3000)
 npm run dev:frontend
 
-# バックエンド開発サーバー (今後実装)
+# バックエンド (http://localhost:3001)  
 npm run dev:backend
 ```
 
-### ビルド・テスト
-
+### ビルド・品質チェック
 ```bash
-# フロントエンドビルド
+# フロントエンド
 npm run build:frontend
-
-# リント・フォーマット
-npm run lint:frontend
-npm run format:frontend
-
-# 型チェック
 npm run typecheck:frontend
+npm run lint:frontend
+
+# バックエンド
+npm run build:backend
+cd backend && npm run lint
 ```
 
-### コード品質チェック
-
+### テスト
 ```bash
-# 全体的な品質チェック (hooks.mjs)
-node .claude/hooks.mjs
+# バックエンドテスト
+cd backend && npm run test
+cd backend && npm run test:watch
+
+# データベース接続テスト
+cd backend && npm run test:db
 ```
 
-## 📁 プロジェクト構成
+## 🏗️ アーキテクチャ概要
 
+### 認証システム
+- **Demo認証**: 開発用、Base64エンコードされたJWTトークン
+- **Supabase認証**: 本番用、Row Level Security (RLS) 対応
+- **ミドルウェア**: `requireAuthOrDemo` でデモ/本番両対応
+
+### API設計パターン
+- **ルート**: `/api/{feature}` (例: `/api/shifts`, `/api/csv`)
+- **レスポンス**: `{ success: boolean, data?: any, error?: any }`
+- **バリデーション**: Zod スキーマ + `validateSchema` ミドルウェア
+- **エラーハンドリング**: `asyncHandler` + `createError`
+
+### フロントエンド状態管理
+- **認証**: React Context (`AuthContext`) + Custom Hook (`useAuth`)
+- **API通信**: 集約サービス (`apiService`) + TypeScript型定義
+- **UI状態**: ローカルstate + useCallback パフォーマンス最適化
+
+## 📂 重要なファイル構成
+
+### バックエンド主要ファイル
 ```
-fuyou-app/
-├── frontend/           # React フロントエンド
-│   ├── src/
-│   │   ├── components/ # UIコンポーネント (MUI使用)
-│   │   ├── pages/      # ページコンポーネント
-│   │   ├── hooks/      # カスタムフック
-│   │   ├── utils/      # ユーティリティ関数
-│   │   └── types/      # TypeScript型定義
-│   └── package.json
-├── backend/            # FastAPI バックエンド (今後実装)
-├── database/           # データベーススキーマ・マイグレーション
-├── .claude/           # Claude Code設定
-│   ├── hooks.mjs      # 品質チェックスクリプト
-│   └── commands/      # カスタムコマンド
-├── .husky/            # Git hooks
-└── .github/           # GitHub Actions CI/CD
+backend/src/
+├── app.ts                    # Express アプリケーション設定
+├── routes/                   # API エンドポイント
+│   ├── shifts.ts            # シフト管理 (Phase 1)
+│   ├── csv.ts               # CSV処理
+│   ├── demo.ts              # デモ認証
+│   └── calculations.ts      # 扶養計算
+├── services/                 # ビジネスロジック
+│   ├── shiftService.ts      # シフト CRUD操作
+│   ├── csvParserService.ts  # CSV解析
+│   └── enhancedCalculationService.ts  # 2025年制度対応計算
+├── middleware/
+│   ├── validation.ts        # バリデーション + 認証
+│   └── errorHandler.ts      # エラーハンドリング
+└── types/api.ts             # API型定義 (Zod スキーマ)
 ```
+
+### フロントエンド主要ファイル
+```
+frontend/src/
+├── components/
+│   ├── shifts/              # シフト管理UI (Phase 1)
+│   │   └── ShiftCalendar.tsx
+│   ├── CSVUpload.tsx        # CSV アップロード
+│   ├── Dashboard.tsx        # メインダッシュボード
+│   └── FuyouStatusCard.tsx  # 扶養ステータス表示
+├── types/
+│   ├── shift.ts             # シフト関連型定義
+│   └── fuyou.ts             # 扶養管理型定義
+├── services/api.ts          # API通信サービス
+└── contexts/AuthContext.tsx # 認証管理
+```
+
+## 💾 データベース設計
+
+### 主要テーブル
+- **shifts** - シフト情報 (Phase 1で新規作成)
+- **incomes** - 収入データ
+- **csv_uploads** - CSV処理履歴  
+- **fuyou_calculations** - 扶養計算履歴
+
+### 重要な設計原則
+- **RLS有効**: 全テーブルで Row Level Security
+- **UUID主キー**: セキュリティ向上
+- **タイムスタンプ**: created_at/updated_at 自動更新
+- **型安全**: TypeScript型とSupabase型の整合性
 
 ## 🔧 開発ルール
 
-### コーディング規約
+### TypeScript
+- **strict mode**: any型禁止、型安全性重視
+- **import順序**: 外部ライブラリ → 相対パス → 型定義
+- **命名規則**: PascalCase (コンポーネント) / camelCase (関数・変数)
 
-- **UI**: 必ずMaterial-UI v5のコンポーネントを使用
-- **型安全性**: TypeScriptを活用し、any型は禁止
-- **命名規則**: コンポーネントはPascalCase、関数はcamelCase
-- **ファイル構成**: 機能別にディレクトリを分割
+### Material-UI使用方針
+- **必須使用**: 全UIコンポーネントでMUI v5を使用
+- **テーマ**: Material Design 3準拠
+- **アイコン**: @mui/icons-material 使用
 
-### Git運用
+### API設計
+- **RESTful**: 一貫したエンドポイント設計
+- **認証**: Bearer Token (Demo/Supabase両対応)
+- **バリデーション**: Zod スキーマでリクエスト/レスポンス検証
 
-- **ブランチ**: `feature/機能名` または `fix/バグ名`
-- **コミット**: [Conventional Commits](https://www.conventionalcommits.org/) 形式
-- **プルリクエスト**: 必須、レビュー後マージ
+## 🎯 現在の実装状況
+
+### ✅ 完了済み
+- CSV入力による収入データ取得・分析
+- 2025年制度対応扶養計算エンジン
+- デモ認証システム
+- Material-UI ダッシュボード
+
+### 🔄 Phase 1 実装中
+- シフト管理機能 (手動シフト登録)
+- シフトカレンダー表示
+- 収入予測との連携
+
+### 📋 今後の計画  
+- **Phase 2**: OCR シフト表自動解析
+- **Phase 3**: 銀行API連携
+
+## 🚦 開発時の注意点
 
 ### 品質保証
+- **pre-commit hooks**: Prettier, ESLint, TypeScript チェック
+- **Git commits**: Conventional Commits 形式
+- **型チェック**: 必ず `npm run typecheck:frontend` 実行
 
-- **pre-commit**: Prettier, ESLint, TypeScript, 機密ファイルチェック
-- **CI/CD**: GitHub Actions による自動テスト・ビルド
-- **型チェック**: `npm run typecheck:frontend` 必須
+### セキュリティ
+- 機密情報 (.env, API keys) はコミット禁止
+- ファイルアップロード時の厳格な検証
+- RLS ポリシーでデータアクセス制御
 
-## 🎯 MVP目標機能
+### パフォーマンス
+- React: useCallback/useMemo でレンダリング最適化
+- API: 必要最小限のデータ取得
+- 大量データ処理: ページネーション実装
 
-1. ユーザー認証 (メール・パスワード)
-2. 銀行口座連携
-3. 収入自動識別・分類
-4. 扶養限度額計算エンジン
-5. ダッシュボード (進捗可視化)
-6. アラート機能 (上限接近通知)
+## 🎨 UI/UX 設計原則
 
-## 🔒 セキュリティ
-
-- 機密情報 (.env, API keys) のコミット禁止
-- OAuth認証によるBank API接続
-- 個人情報の適切な暗号化・保護
-
-## 📈 開発マイルストーン
-
-- **Phase 1**: MVP基本機能 (1-2ヶ月)
-- **Phase 2**: UI/UX改善・テスト強化
-- **Phase 3**: 本格運用・スケール対応
-
-## 🌐 今後の展開
-
-- 海外展開 (アメリカ学生ローン管理)
-- B2B版 (企業向け扶養管理)
-- AI予測機能 (収入最適化提案)
+- **レスポンシブデザイン**: モバイルファースト
+- **アクセシビリティ**: ARIA属性、キーボード操作対応
+- **ユーザーフィードバック**: ローディング、エラー状態の明確な表示
+- **色彩設計**: 緑(安全)、黄(警告)、赤(危険) の直感的な色分け

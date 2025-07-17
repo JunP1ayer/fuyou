@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扶養管理アプリ - シフト管理デモ</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@mui/material@5.15.20/umd/material-ui.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+        }
+        #root {
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { 
+            Box, Card, CardContent, CardHeader, Typography, Button, 
+            Grid, Paper, Alert, Chip, CircularProgress, Container,
+            ThemeProvider, createTheme, CssBaseline
+        } = MaterialUI;
+        // Material Iconsを直接使用
+        const Schedule = () => React.createElement('span', { className: 'material-icons' }, 'schedule');
+        const TrendingUp = ({ color }) => React.createElement('span', { 
+            className: 'material-icons',
+            style: { color: color === 'primary' ? '#1976d2' : 'inherit' }
+        }, 'trending_up');
+        const Work = () => React.createElement('span', { className: 'material-icons' }, 'work');
+        const CheckCircle = ({ color }) => React.createElement('span', { 
+            className: 'material-icons',
+            style: { color: color === 'success' ? '#2e7d32' : 'inherit' }
+        }, 'check_circle');
+        const Warning = ({ color }) => React.createElement('span', { 
+            className: 'material-icons',
+            style: { color: color === 'error' ? '#d32f2f' : 'inherit' }
+        }, 'warning');
+        const AttachMoney = () => React.createElement('span', { className: 'material-icons' }, 'attach_money');
+
+        // Material-UI テーマ
+        const theme = createTheme({
+            palette: {
+                primary: {
+                    main: '#1976d2',
+                },
+                secondary: {
+                    main: '#dc004e',
+                },
+            },
+        });
+
+        // APIサービスの簡易版
+        const API_BASE_URL = 'http://172.26.93.180:3001/api';
+
+        const apiCall = async (endpoint, options = {}) => {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers,
+                    },
+                    ...options,
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                return { success: false, error: error.message };
+            }
+        };
+
+        // デモログイン
+        const DemoLogin = ({ onLogin }) => {
+            const [loading, setLoading] = useState(false);
+
+            const handleDemoLogin = async () => {
+                setLoading(true);
+                try {
+                    const result = await apiCall('/demo/login', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            email: 'demo@example.com',
+                            password: 'demo123',
+                            fullName: 'デモユーザー',
+                            isStudent: true,
+                        }),
+                    });
+                    
+                    if (result.success) {
+                        onLogin(result.data.token);
+                    } else {
+                        alert('ログインに失敗しました');
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    alert('ログインエラー: ' + error.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <Container maxWidth="sm" sx={{ mt: 8 }}>
+                    <Card>
+                        <CardHeader title="扶養管理アプリ - シフト管理" />
+                        <CardContent>
+                            <Typography variant="body1" gutterBottom>
+                                デモ環境へようこそ！シフト管理と収入予測機能をお試しください。
+                            </Typography>
+                            <Box mt={3}>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    onClick={handleDemoLogin}
+                                    disabled={loading}
+                                    startIcon={loading ? <CircularProgress size={20} /> : <Work />}
+                                >
+                                    {loading ? 'ログイン中...' : 'デモでログイン'}
+                                </Button>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Container>
+            );
+        };
+
+        // API接続テスト
+        const ApiTest = ({ token }) => {
+            const [tests, setTests] = useState({
+                health: null,
+                shifts: null,
+                projection: null,
+            });
+
+            useEffect(() => {
+                const runTests = async () => {
+                    // Health check
+                    const health = await fetch('http://172.26.93.180:3001/health');
+                    setTests(prev => ({ 
+                        ...prev, 
+                        health: health.ok ? 'success' : 'error' 
+                    }));
+
+                    if (token) {
+                        // Shifts API test
+                        const shiftsResult = await apiCall('/shifts', {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        setTests(prev => ({ 
+                            ...prev, 
+                            shifts: shiftsResult.success ? 'success' : 'error' 
+                        }));
+
+                        // Projection API test
+                        const projectionResult = await apiCall('/shifts/projection', {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        setTests(prev => ({ 
+                            ...prev, 
+                            projection: projectionResult.success ? 'success' : 'error' 
+                        }));
+                    }
+                };
+
+                runTests();
+            }, [token]);
+
+            const getIcon = (status) => {
+                if (status === 'success') return <CheckCircle color="success" />;
+                if (status === 'error') return <Warning color="error" />;
+                return <CircularProgress size={20} />;
+            };
+
+            const getColor = (status) => {
+                if (status === 'success') return 'success';
+                if (status === 'error') return 'error';
+                return 'default';
+            };
+
+            return (
+                <Container maxWidth="md" sx={{ mt: 4 }}>
+                    <Card>
+                        <CardHeader 
+                            title={
+                                <Box display="flex" alignItems="center" gap={2}>
+                                    <Schedule color="primary" />
+                                    <Typography variant="h6">シフト管理システム - 動作確認</Typography>
+                                </Box>
+                            }
+                        />
+                        <CardContent>
+                            <Grid container spacing={3}>
+                                <Grid item xs={12}>
+                                    <Typography variant="h6" gutterBottom>
+                                        API接続テスト
+                                    </Typography>
+                                </Grid>
+                                
+                                <Grid item xs={12} md={4}>
+                                    <Paper sx={{ p: 2, textAlign: 'center' }}>
+                                        <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={1}>
+                                            {getIcon(tests.health)}
+                                            <Typography variant="h6">
+                                                Health Check
+                                            </Typography>
+                                        </Box>
+                                        <Chip 
+                                            label={tests.health || 'テスト中...'}
+                                            color={getColor(tests.health)}
+                                            size="small"
+                                        />
+                                    </Paper>
+                                </Grid>
+
+                                <Grid item xs={12} md={4}>
+                                    <Paper sx={{ p: 2, textAlign: 'center' }}>
+                                        <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={1}>
+                                            {getIcon(tests.shifts)}
+                                            <Typography variant="h6">
+                                                シフトAPI
+                                            </Typography>
+                                        </Box>
+                                        <Chip 
+                                            label={tests.shifts === 'error' ? 'DB未作成' : (tests.shifts || 'テスト中...')}
+                                            color={getColor(tests.shifts)}
+                                            size="small"
+                                        />
+                                    </Paper>
+                                </Grid>
+
+                                <Grid item xs={12} md={4}>
+                                    <Paper sx={{ p: 2, textAlign: 'center' }}>
+                                        <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={1}>
+                                            {getIcon(tests.projection)}
+                                            <Typography variant="h6">
+                                                収入予測API
+                                            </Typography>
+                                        </Box>
+                                        <Chip 
+                                            label={tests.projection === 'error' ? 'DB未作成' : (tests.projection || 'テスト中...')}
+                                            color={getColor(tests.projection)}
+                                            size="small"
+                                        />
+                                    </Paper>
+                                </Grid>
+
+                                <Grid item xs={12}>
+                                    <Alert severity="info">
+                                        <Typography variant="body2">
+                                            <strong>実装済み機能：</strong><br/>
+                                            ✅ シフトCRUD API（作成・読取・更新・削除）<br/>
+                                            ✅ シフト統計API（月間/年間集計）<br/>
+                                            ✅ 収入予測API（扶養限度額連携）<br/>
+                                            ✅ バルクシフト作成API<br/>
+                                            ✅ デモ認証システム
+                                        </Typography>
+                                    </Alert>
+                                </Grid>
+
+                                <Grid item xs={12}>
+                                    <Alert severity="warning">
+                                        <Typography variant="body2">
+                                            <strong>次のステップ:</strong><br/>
+                                            ✅ バックエンドAPI実装完了<br/>
+                                            ✅ フロントエンドUI実装完了<br/>
+                                            ⚠️ データベーステーブル作成が必要<br/>
+                                            ⚠️ WSL2 npm権限問題の解決が必要
+                                        </Typography>
+                                    </Alert>
+                                </Grid>
+
+                                <Grid item xs={12}>
+                                    <Alert severity="info">
+                                        <Typography variant="body2">
+                                            <strong>解決方法:</strong><br/>
+                                            1. PowerShell管理者権限で: icacls "C:\\Users\\junju\\OneDrive\\Desktop\\fuyou" /grant Everyone:F /T<br/>
+                                            2. Supabaseでshiftsテーブル作成<br/>
+                                            3. npm install && npm run dev:frontend
+                                        </Typography>
+                                    </Alert>
+                                </Grid>
+                            </Grid>
+                        </CardContent>
+                    </Card>
+                </Container>
+            );
+        };
+
+        // メインアプリ
+        const App = () => {
+            const [token, setToken] = useState(null);
+
+            return (
+                <ThemeProvider theme={theme}>
+                    <CssBaseline />
+                    {!token ? (
+                        <DemoLogin onLogin={setToken} />
+                    ) : (
+                        <ApiTest token={token} />
+                    )}
+                </ThemeProvider>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

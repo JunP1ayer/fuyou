@@ -125,8 +125,8 @@ export const requireAuthOrDemo = async (req: Request, res: Response, next: NextF
     // Check if it's a demo token (Base64 encoded JSON)
     try {
       const decodedData = JSON.parse(Buffer.from(token, 'base64').toString());
-      if (decodedData.user && decodedData.user.id === 'demo-user-123') {
-        // It's a valid demo token
+      if (decodedData.user && decodedData.user.id && decodedData.user.email) {
+        // It's a valid demo token (any UUID format)
         req.user = {
           id: decodedData.user.id,
           email: decodedData.user.email,

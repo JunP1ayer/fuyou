@@ -18,6 +18,7 @@ import { calculationRoutes } from './routes/calculations';
 import { csvRoutes } from './routes/csv';
 import { alertRoutes } from './routes/alerts';
 import { demoRoutes } from './routes/demo';
+import { shiftRoutes } from './routes/shifts';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -93,6 +94,7 @@ app.use('/api/calculations', calculationRoutes);
 app.use('/api/csv', csvRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/demo', demoRoutes);
+app.use('/api/shifts', shiftRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

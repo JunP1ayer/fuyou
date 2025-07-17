@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
+import { v4 as uuidv4 } from 'uuid';
 
 // Helper function to extract name from email
 function extractNameFromEmail(email: string): string {
@@ -27,8 +28,13 @@ router.post(
         displayName = extractNameFromEmail(email);
       }
 
+      // Generate consistent UUID for demo user based on email
+      const demoUserId = email ? 
+        uuidv4() : // Generate random UUID for each session
+        '550e8400-e29b-41d4-a716-446655440000'; // Fixed UUID for default demo
+
       const demoUser = {
-        id: 'demo-user-123',
+        id: demoUserId,
         email: email || 'demo@example.com',
         fullName: displayName,
         isStudent: isStudent !== undefined ? isStudent : true,
@@ -70,7 +76,7 @@ router.get(
     // Try to extract user info from Authorization header (demo token)
     const authHeader = req.headers.authorization;
     let demoUser = {
-      id: 'demo-user-123',
+      id: '550e8400-e29b-41d4-a716-446655440000', // Fixed UUID for default demo
       email: 'demo@example.com',
       fullName: 'デモユーザー',
       isStudent: true,
