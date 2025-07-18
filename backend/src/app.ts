@@ -20,6 +20,7 @@ import { alertRoutes } from './routes/alerts';
 import { demoRoutes } from './routes/demo';
 import { shiftRoutes } from './routes/shifts';
 import ocrRoutes from './routes/ocr';
+import { optimizationRoutes } from './routes/optimization';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -97,6 +98,7 @@ app.use('/api/alerts', alertRoutes);
 app.use('/api/demo', demoRoutes);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/ocr', ocrRoutes);
+app.use('/api/optimization', optimizationRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
