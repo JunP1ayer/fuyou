@@ -96,3 +96,13 @@ temp/
 *.njsproj
 *.sln
 *.sw?
+
+# Google Cloud credentials
+config/google-vision-key.json
+config/*.json
+
+# Test files
+test-*.html
+test-*.js
+test-*.jpg
+test-*.png

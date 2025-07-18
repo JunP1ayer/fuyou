@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **扶養管理アプリ (Fuyou Management App)**
 学生アルバイト向けの扶養控除管理システム。2つの主要機能：
 1. **CSV入力版** - 銀行明細CSVから収入データを自動取得・分析
-2. **シフト管理機能** - 手動シフト登録と収入予測（Phase 1実装中）
+2. **シフト管理機能** - 手動シフト登録と収入予測（Phase 1完成）
 
 ## 🛠️ 技術スタック
 
@@ -98,16 +98,22 @@ backend/src/
 ```
 frontend/src/
 ├── components/
-│   ├── shifts/              # シフト管理UI (Phase 1)
-│   │   └── ShiftCalendar.tsx
-│   ├── CSVUpload.tsx        # CSV アップロード
-│   ├── Dashboard.tsx        # メインダッシュボード
-│   └── FuyouStatusCard.tsx  # 扶養ステータス表示
+│   ├── shifts/                      # シフト管理UI (Phase 1完成)
+│   │   ├── ShiftCalendar.tsx       # メインカレンダー表示
+│   │   ├── ShiftFormDialog.tsx     # シフト新規登録
+│   │   ├── ShiftEditDialog.tsx     # シフト編集
+│   │   └── EarningsProjectionCard.tsx # 収入予測表示
+│   ├── CSVUpload.tsx               # CSV アップロード
+│   ├── Dashboard.tsx               # メインダッシュボード
+│   ├── FuyouStatusCard.tsx         # 扶養ステータス表示
+│   ├── AlertsPanel.tsx             # アラート表示
+│   └── IncomeHistoryCard.tsx       # 収入履歴表示
 ├── types/
-│   ├── shift.ts             # シフト関連型定義
-│   └── fuyou.ts             # 扶養管理型定義
-├── services/api.ts          # API通信サービス
-└── contexts/AuthContext.tsx # 認証管理
+│   ├── shift.ts                    # シフト関連型定義
+│   └── fuyou.ts                    # 扶養管理型定義
+├── services/api.ts                 # API通信サービス（全エンドポイント対応）
+├── contexts/AuthContext.tsx        # 認証管理
+└── utils/                          # ユーティリティ関数
 ```
 
 ## 💾 データベース設計
@@ -143,20 +149,41 @@ frontend/src/
 
 ## 🎯 現在の実装状況
 
-### ✅ 完了済み
+### ✅ 完了済み (Phase 1完成)
 - CSV入力による収入データ取得・分析
 - 2025年制度対応扶養計算エンジン
-- デモ認証システム
-- Material-UI ダッシュボード
-
-### 🔄 Phase 1 実装中
-- シフト管理機能 (手動シフト登録)
-- シフトカレンダー表示
-- 収入予測との連携
+- デモ認証システム（UUID対応、WSL2最適化）
+- Material-UI ダッシュボード（タブ式ナビゲーション）
+- **シフト管理機能** (手動シフト登録・編集・削除)
+- **シフトカレンダー表示** (月間ビュー、日別詳細表示)
+- **収入予測機能** (年収予測、扶養限度額警告、リスク評価)
+- **WSL2開発環境** (Vite 7.x対応、複数回避策実装)
+- **包括的API設計** (Shifts, Projections, Stats全対応)
 
 ### 📋 今後の計画  
 - **Phase 2**: OCR シフト表自動解析
 - **Phase 3**: 銀行API連携
+- **Phase 4**: 最適化アルゴリズム（労働時間最適化提案）
+- **Phase 5**: モバイルアプリ化
+
+## 🛠️ WSL2開発環境対応
+
+### Vite開発サーバー問題
+- **問題**: Vite 7.0.4がWSL2で正常にバインドされない
+- **対策**: 複数の回避策スクリプトを実装
+  - `workaround-dev.cjs` - プロキシ経由でのサーバー起動
+  - `fix-vite-wsl.cjs` - Express プロキシサーバー
+  - `downgrade-vite.cjs` - Vite 5.xへのダウングレード
+
+### npm権限問題
+- **問題**: WSL2でnpm installに管理者権限が必要
+- **対策**: 既存workaroundスクリプトの活用
+- **推奨**: PowerShell管理者権限での実行
+
+### API接続設定
+- **WSL2 IP**: `172.26.93.180:3001` (動的IP対応)
+- **認証**: UUID形式のデモトークン
+- **テスト**: `demo.html` での接続確認
 
 ## 🚦 開発時の注意点
 
