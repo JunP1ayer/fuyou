@@ -1,6 +1,6 @@
 // Simple API service without external dependencies for now
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://172.26.93.180:3001/api';
+  import.meta.env.VITE_API_URL || 'http://172.26.93.180:3001/api';
 
 interface RequestOptions {
   method?: string;
@@ -123,9 +123,11 @@ class ApiService {
 
   // Shift management endpoints
   async getShifts(token: string, filters?: Record<string, unknown>) {
-    const queryParams = filters ? new URLSearchParams(filters as Record<string, string>).toString() : '';
+    const queryParams = filters
+      ? new URLSearchParams(filters as Record<string, string>).toString()
+      : '';
     const endpoint = `/shifts${queryParams ? `?${queryParams}` : ''}`;
-    
+
     return this.request(endpoint, {
       method: 'GET',
       headers: {
@@ -144,7 +146,11 @@ class ApiService {
     });
   }
 
-  async updateShift(token: string, shiftId: string, shiftData: Record<string, unknown>) {
+  async updateShift(
+    token: string,
+    shiftId: string,
+    shiftData: Record<string, unknown>
+  ) {
     return this.request(`/shifts/${shiftId}`, {
       method: 'PUT',
       headers: {
@@ -167,9 +173,9 @@ class ApiService {
     const queryParams = new URLSearchParams();
     if (year) queryParams.append('year', year.toString());
     if (month) queryParams.append('month', month.toString());
-    
+
     const endpoint = `/shifts/stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    
+
     return this.request(endpoint, {
       method: 'GET',
       headers: {
@@ -310,7 +316,9 @@ class ApiService {
   // Enhanced calculation endpoints
   async getEnhancedCalculation(token?: string, year?: number) {
     const queryString = year ? `?year=${year}` : '';
-    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+    const headers: Record<string, string> = token
+      ? { Authorization: `Bearer ${token}` }
+      : {};
     return this.request(`/calculations/enhanced${queryString}`, {
       headers,
     });
@@ -318,7 +326,9 @@ class ApiService {
 
   async getWorkingOptimization(token?: string, hourlyRate?: number) {
     const queryString = hourlyRate ? `?hourlyRate=${hourlyRate}` : '';
-    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+    const headers: Record<string, string> = token
+      ? { Authorization: `Bearer ${token}` }
+      : {};
     return this.request(`/calculations/working-optimization${queryString}`, {
       headers,
     });
@@ -326,7 +336,9 @@ class ApiService {
 
   async getIncomeAnalysis(token?: string, year?: number) {
     const queryString = year ? `?year=${year}` : '';
-    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+    const headers: Record<string, string> = token
+      ? { Authorization: `Bearer ${token}` }
+      : {};
     return this.request(`/calculations/income-analysis${queryString}`, {
       headers,
     });
@@ -395,6 +407,37 @@ class ApiService {
 
   async getCSVStats() {
     return this.request('/csv/stats');
+  }
+
+  // OCR endpoints
+  async uploadImageForOCR(token: string, imageFile: File) {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+
+    const url = `${this.baseURL}/ocr/upload`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'OCR processing failed');
+    }
+
+    return data;
+  }
+
+  async getOCRUsage(token: string) {
+    return this.request('/ocr/usage', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }
 }
 

@@ -5,9 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 📋 プロジェクト概要
 
 **扶養管理アプリ (Fuyou Management App)**
-学生アルバイト向けの扶養控除管理システム。2つの主要機能：
+学生アルバイト向けの扶養控除管理システム。主要機能：
 1. **CSV入力版** - 銀行明細CSVから収入データを自動取得・分析
 2. **シフト管理機能** - 手動シフト登録と収入予測（Phase 1完成）
+3. **OCR機能** - シフト表画像からの自動データ抽出（Phase 2完成）
 
 ## 🛠️ 技術スタック
 
@@ -20,6 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Node.js** + **Express** + **TypeScript**
 - **Supabase** (PostgreSQL + 認証)
 - **CSV処理**: Multer + CSV-Parser
+- **OCR処理**: Google Cloud Vision API + Multer
 - **バリデーション**: Zod
 
 ## 🚀 主要開発コマンド
@@ -82,16 +84,21 @@ backend/src/
 ├── routes/                   # API エンドポイント
 │   ├── shifts.ts            # シフト管理 (Phase 1)
 │   ├── csv.ts               # CSV処理
+│   ├── ocr.ts               # OCR処理 (Phase 2)
 │   ├── demo.ts              # デモ認証
 │   └── calculations.ts      # 扶養計算
 ├── services/                 # ビジネスロジック
 │   ├── shiftService.ts      # シフト CRUD操作
 │   ├── csvParserService.ts  # CSV解析
+│   ├── ocrService.ts        # OCR処理 (Google Vision API)
 │   └── enhancedCalculationService.ts  # 2025年制度対応計算
 ├── middleware/
 │   ├── validation.ts        # バリデーション + 認証
+│   ├── uploadMiddleware.ts  # ファイルアップロード処理
 │   └── errorHandler.ts      # エラーハンドリング
-└── types/api.ts             # API型定義 (Zod スキーマ)
+└── types/
+    ├── api.ts               # API型定義 (Zod スキーマ)
+    └── ocr.ts               # OCR専用型定義
 ```
 
 ### フロントエンド主要ファイル
@@ -107,10 +114,15 @@ frontend/src/
 │   ├── Dashboard.tsx               # メインダッシュボード
 │   ├── FuyouStatusCard.tsx         # 扶養ステータス表示
 │   ├── AlertsPanel.tsx             # アラート表示
-│   └── IncomeHistoryCard.tsx       # 収入履歴表示
+│   ├── IncomeHistoryCard.tsx       # 収入履歴表示
+│   ├── OCRUpload.tsx               # OCR画像アップロード (Phase 3完成)
+│   ├── OCRProcessor.tsx            # OCR処理UI (Phase 3完成)
+│   ├── OCRResultEditor.tsx         # OCR結果編集 (Phase 3完成)
+│   └── OCRShiftManager.tsx         # OCR統合管理 (Phase 3完成)
 ├── types/
 │   ├── shift.ts                    # シフト関連型定義
-│   └── fuyou.ts                    # 扶養管理型定義
+│   ├── fuyou.ts                    # 扶養管理型定義
+│   └── ocr.ts                      # OCR型定義 (Phase 3完成)
 ├── services/api.ts                 # API通信サービス（全エンドポイント対応）
 ├── contexts/AuthContext.tsx        # 認証管理
 └── utils/                          # ユーティリティ関数
@@ -149,7 +161,7 @@ frontend/src/
 
 ## 🎯 現在の実装状況
 
-### ✅ 完了済み (Phase 1完成)
+### ✅ 完了済み (Phase 1-3完成)
 - CSV入力による収入データ取得・分析
 - 2025年制度対応扶養計算エンジン
 - デモ認証システム（UUID対応、WSL2最適化）
@@ -157,14 +169,15 @@ frontend/src/
 - **シフト管理機能** (手動シフト登録・編集・削除)
 - **シフトカレンダー表示** (月間ビュー、日別詳細表示)
 - **収入予測機能** (年収予測、扶養限度額警告、リスク評価)
+- **OCR機能** (Google Cloud Vision API統合、レート制限付き)
 - **WSL2開発環境** (Vite 7.x対応、複数回避策実装)
-- **包括的API設計** (Shifts, Projections, Stats全対応)
+- **包括的API設計** (Shifts, Projections, Stats, OCR全対応)
+- **フロントエンドOCR UI** (画像アップロード、処理UI、結果編集、シフト統合)
 
 ### 📋 今後の計画  
-- **Phase 2**: OCR シフト表自動解析
-- **Phase 3**: 銀行API連携
-- **Phase 4**: 最適化アルゴリズム（労働時間最適化提案）
-- **Phase 5**: モバイルアプリ化
+- **Phase 4**: 銀行API連携
+- **Phase 5**: 最適化アルゴリズム（労働時間最適化提案）
+- **Phase 6**: モバイルアプリ化
 
 ## 🛠️ WSL2開発環境対応
 
@@ -193,9 +206,15 @@ frontend/src/
 - **型チェック**: 必ず `npm run typecheck:frontend` 実行
 
 ### セキュリティ
-- 機密情報 (.env, API keys) はコミット禁止
-- ファイルアップロード時の厳格な検証
-- RLS ポリシーでデータアクセス制御
+- **機密情報**: .env, API keys はコミット禁止
+- **Google Cloud認証**: `backend/config/google-vision-key.json` は .gitignore で除外済み
+- **ファイルアップロード**: 厳格な検証（5MB制限、MIME型チェック）
+- **RLS**: 全テーブルで Row Level Security 適用
+
+### OCR機能の注意点
+- **レート制限**: 15分10回、1時間20回の制限実装済み
+- **コスト管理**: Google Cloud予算アラート設定必須
+- **認証キー**: 環境変数 `GOOGLE_APPLICATION_CREDENTIALS` で管理
 
 ### パフォーマンス
 - React: useCallback/useMemo でレンダリング最適化
