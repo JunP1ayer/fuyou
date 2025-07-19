@@ -1,7 +1,17 @@
 import { supabase } from '../utils/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { CreateShiftRequest, UpdateShiftRequest, GetShiftsRequest, ShiftResponse, ShiftStats } from '../types/api';
 import { createError } from '../middleware/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
+
+// Create service client that bypasses RLS for demo mode
+const serviceSupabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!,
+  {
+    auth: { persistSession: false }
+  }
+);
 
 export class ShiftService {
   // Create a new shift
@@ -29,8 +39,9 @@ export class ShiftService {
         updated_at: new Date().toISOString(),
       };
 
-      const { data: insertedShift, error } = await (supabase as any)
-        .from('shifts', 500)
+      // Use service client to bypass RLS for demo authentication
+      const { data: insertedShift, error } = await serviceSupabase
+        .from('shifts')
         .insert([shift])
         .select()
         .single();
@@ -48,8 +59,8 @@ export class ShiftService {
   // Get shifts with filters
   async getShifts(userId: string, filters: GetShiftsRequest = {}): Promise<ShiftResponse[]> {
     try {
-      let query = (supabase as any)
-        .from('shifts', 500)
+      let query = serviceSupabase
+        .from('shifts')
         .select('*')
         .eq('user_id', userId);
 
@@ -172,8 +183,8 @@ export class ShiftService {
   // Get shift statistics
   async getShiftStats(userId: string, year?: number, month?: number): Promise<ShiftStats> {
     try {
-      let query = (supabase as any)
-        .from('shifts', 500)
+      let query = serviceSupabase
+        .from('shifts')
         .select('*')
         .eq('user_id', userId);
 

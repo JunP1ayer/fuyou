@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   Typography,
-  Grid,
   Table,
   TableBody,
   TableCell,
@@ -32,6 +31,7 @@ import {
   LinearProgress,
   CircularProgress,
 } from '@mui/material';
+import Grid2 from '@mui/material/Grid2';
 import {
   ExpandMore,
   ExpandLess,
@@ -66,7 +66,10 @@ interface OptimizationResultsPanelProps {
   onUpdate: () => void;
 }
 
-export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResultsPanelProps) {
+export function OptimizationResultsPanel({
+  runs,
+  onUpdate,
+}: OptimizationResultsPanelProps) {
   const { user } = useAuth();
   const [selectedRun, setSelectedRun] = useState<OptimizationRun | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -174,7 +177,9 @@ export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResults
 
   const completedRuns = runs.filter(run => run.status === 'completed');
   const failedRuns = runs.filter(run => run.status === 'failed');
-  const runningRuns = runs.filter(run => run.status === 'running' || run.status === 'pending');
+  const runningRuns = runs.filter(
+    run => run.status === 'running' || run.status === 'pending'
+  );
 
   return (
     <Box>
@@ -185,29 +190,35 @@ export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResults
       )}
 
       {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={3}>
+      <Grid2 container spacing={3} sx={{ mb: 3 }}>
+        <Grid2 xs={12} md={3}>
           <Card>
             <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
                 <Box>
                   <Typography color="textSecondary" gutterBottom>
                     総実行回数
                   </Typography>
-                  <Typography variant="h4">
-                    {runs.length}
-                  </Typography>
+                  <Typography variant="h4">{runs.length}</Typography>
                 </Box>
                 <History color="primary" />
               </Stack>
             </CardContent>
           </Card>
-        </Grid>
+        </Grid2>
 
-        <Grid item xs={12} md={3}>
+        <Grid2 xs={12} md={3}>
           <Card>
             <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
                 <Box>
                   <Typography color="textSecondary" gutterBottom>
                     成功実行
@@ -220,12 +231,16 @@ export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResults
               </Stack>
             </CardContent>
           </Card>
-        </Grid>
+        </Grid2>
 
-        <Grid item xs={12} md={3}>
+        <Grid2 xs={12} md={3}>
           <Card>
             <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
                 <Box>
                   <Typography color="textSecondary" gutterBottom>
                     実行中
@@ -238,26 +253,33 @@ export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResults
               </Stack>
             </CardContent>
           </Card>
-        </Grid>
+        </Grid2>
 
-        <Grid item xs={12} md={3}>
+        <Grid2 xs={12} md={3}>
           <Card>
             <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
                 <Box>
                   <Typography color="textSecondary" gutterBottom>
                     成功率
                   </Typography>
                   <Typography variant="h4">
-                    {runs.length > 0 ? Math.round((completedRuns.length / runs.length) * 100) : 0}%
+                    {runs.length > 0
+                      ? Math.round((completedRuns.length / runs.length) * 100)
+                      : 0}
+                    %
                   </Typography>
                 </Box>
                 <Analytics color="primary" />
               </Stack>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </Grid2>
+      </Grid2>
 
       {/* Runs Table */}
       <Card>
@@ -265,7 +287,7 @@ export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResults
           <Typography variant="h6" gutterBottom>
             実行履歴
           </Typography>
-          
+
           {runs.length === 0 ? (
             <Alert severity="info">
               まだ最適化を実行していません。最適化実行タブから新しい最適化を開始できます。
@@ -285,7 +307,7 @@ export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResults
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {runs.map((run) => (
+                  {runs.map(run => (
                     <React.Fragment key={run.id}>
                       <TableRow>
                         <TableCell>
@@ -298,8 +320,13 @@ export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResults
                           {getAlgorithmLabel(run.algorithmUsed)}
                         </TableCell>
                         <TableCell>
-                          {new Date(run.timePeriodStart).toLocaleDateString('ja-JP')} 〜{' '}
-                          {new Date(run.timePeriodEnd).toLocaleDateString('ja-JP')}
+                          {new Date(run.timePeriodStart).toLocaleDateString(
+                            'ja-JP'
+                          )}{' '}
+                          〜{' '}
+                          {new Date(run.timePeriodEnd).toLocaleDateString(
+                            'ja-JP'
+                          )}
                         </TableCell>
                         <TableCell>
                           <Chip
@@ -309,7 +336,8 @@ export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResults
                           />
                         </TableCell>
                         <TableCell>
-                          {run.status === 'running' || run.status === 'pending' ? (
+                          {run.status === 'running' ||
+                          run.status === 'pending' ? (
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               <LinearProgress
                                 variant="determinate"
@@ -332,7 +360,11 @@ export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResults
                               size="small"
                               onClick={() => handleToggleExpand(run.id)}
                             >
-                              {expandedRuns.has(run.id) ? <ExpandLess /> : <ExpandMore />}
+                              {expandedRuns.has(run.id) ? (
+                                <ExpandLess />
+                              ) : (
+                                <ExpandMore />
+                              )}
                             </IconButton>
                             {run.status === 'completed' && (
                               <IconButton
@@ -349,42 +381,66 @@ export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResults
 
                       {/* Expanded Row */}
                       <TableRow>
-                        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
-                          <Collapse in={expandedRuns.has(run.id)} timeout="auto" unmountOnExit>
+                        <TableCell
+                          style={{ paddingBottom: 0, paddingTop: 0 }}
+                          colSpan={7}
+                        >
+                          <Collapse
+                            in={expandedRuns.has(run.id)}
+                            timeout="auto"
+                            unmountOnExit
+                          >
                             <Box sx={{ margin: 1 }}>
-                              <Typography variant="h6" gutterBottom component="div">
+                              <Typography
+                                variant="h6"
+                                gutterBottom
+                                component="div"
+                              >
                                 実行詳細
                               </Typography>
-                              <Grid container spacing={2}>
-                                <Grid item xs={12} md={6}>
-                                  <Typography variant="body2" color="textSecondary">
+                              <Grid2 container spacing={2}>
+                                <Grid2 xs={12} md={6}>
+                                  <Typography
+                                    variant="body2"
+                                    color="textSecondary"
+                                  >
                                     実行メッセージ
                                   </Typography>
                                   <Typography variant="body2">
                                     {run.message}
                                   </Typography>
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                  <Typography variant="body2" color="textSecondary">
+                                </Grid2>
+                                <Grid2 xs={12} md={6}>
+                                  <Typography
+                                    variant="body2"
+                                    color="textSecondary"
+                                  >
                                     推定完了時刻
                                   </Typography>
                                   <Typography variant="body2">
                                     {run.estimatedCompletion
-                                      ? new Date(run.estimatedCompletion).toLocaleString('ja-JP')
+                                      ? new Date(
+                                          run.estimatedCompletion
+                                        ).toLocaleString('ja-JP')
                                       : 'N/A'}
                                   </Typography>
-                                </Grid>
+                                </Grid2>
                                 {run.completedAt && (
-                                  <Grid item xs={12} md={6}>
-                                    <Typography variant="body2" color="textSecondary">
+                                  <Grid2 xs={12} md={6}>
+                                    <Typography
+                                      variant="body2"
+                                      color="textSecondary"
+                                    >
                                       完了時刻
                                     </Typography>
                                     <Typography variant="body2">
-                                      {new Date(run.completedAt).toLocaleString('ja-JP')}
+                                      {new Date(run.completedAt).toLocaleString(
+                                        'ja-JP'
+                                      )}
                                     </Typography>
-                                  </Grid>
+                                  </Grid2>
                                 )}
-                              </Grid>
+                              </Grid2>
                             </Box>
                           </Collapse>
                         </TableCell>
@@ -405,13 +461,14 @@ export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResults
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle>
-          最適化結果詳細
-        </DialogTitle>
+        <DialogTitle>最適化結果詳細</DialogTitle>
         <DialogContent>
           {selectedRun && (
             <Box>
-              <Tabs value={currentTab} onChange={(_, value) => setCurrentTab(value)}>
+              <Tabs
+                value={currentTab}
+                onChange={(_, value) => setCurrentTab(value)}
+              >
                 <Tab label="概要" />
                 <Tab label="推奨シフト" />
                 <Tab label="改善提案" />
@@ -436,9 +493,7 @@ export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResults
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDetailsOpen(false)}>
-            閉じる
-          </Button>
+          <Button onClick={() => setDetailsOpen(false)}>閉じる</Button>
         </DialogActions>
       </Dialog>
     </Box>
@@ -448,8 +503,8 @@ export function OptimizationResultsPanel({ runs, onUpdate }: OptimizationResults
 // Tab Components
 function OptimizationOverviewTab({ run }: { run: OptimizationRun }) {
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={6}>
+    <Grid2 container spacing={3}>
+      <Grid2 xs={12} md={6}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -460,17 +515,13 @@ function OptimizationOverviewTab({ run }: { run: OptimizationRun }) {
                 <Typography variant="body2" color="textSecondary">
                   目標
                 </Typography>
-                <Typography variant="body1">
-                  {run.objectiveType}
-                </Typography>
+                <Typography variant="body1">{run.objectiveType}</Typography>
               </Box>
               <Box>
                 <Typography variant="body2" color="textSecondary">
                   アルゴリズム
                 </Typography>
-                <Typography variant="body1">
-                  {run.algorithmUsed}
-                </Typography>
+                <Typography variant="body1">{run.algorithmUsed}</Typography>
               </Box>
               <Box>
                 <Typography variant="body2" color="textSecondary">
@@ -484,9 +535,9 @@ function OptimizationOverviewTab({ run }: { run: OptimizationRun }) {
             </Stack>
           </CardContent>
         </Card>
-      </Grid>
+      </Grid2>
 
-      <Grid item xs={12} md={6}>
+      <Grid2 xs={12} md={6}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -524,8 +575,8 @@ function OptimizationOverviewTab({ run }: { run: OptimizationRun }) {
             </Stack>
           </CardContent>
         </Card>
-      </Grid>
-    </Grid>
+      </Grid2>
+    </Grid2>
   );
 }
 
@@ -537,11 +588,9 @@ function OptimizationShiftsTab({ run }: { run: OptimizationRun }) {
       <Typography variant="h6" gutterBottom>
         推奨シフトスケジュール
       </Typography>
-      
+
       {optimizedShifts.length === 0 ? (
-        <Alert severity="info">
-          推奨シフトデータがありません。
-        </Alert>
+        <Alert severity="info">推奨シフトデータがありません。</Alert>
       ) : (
         <TableContainer component={Paper} variant="outlined">
           <Table>
@@ -557,23 +606,17 @@ function OptimizationShiftsTab({ run }: { run: OptimizationRun }) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {optimizedShifts.map((shift) => (
+              {optimizedShifts.map(shift => (
                 <TableRow key={shift.id}>
                   <TableCell>
                     {new Date(shift.date).toLocaleDateString('ja-JP')}
                   </TableCell>
-                  <TableCell>
-                    {shift.jobSourceName}
-                  </TableCell>
+                  <TableCell>{shift.jobSourceName}</TableCell>
                   <TableCell>
                     {shift.startTime} - {shift.endTime}
                   </TableCell>
-                  <TableCell>
-                    {shift.duration}時間
-                  </TableCell>
-                  <TableCell>
-                    ¥{shift.hourlyRate.toLocaleString()}
-                  </TableCell>
+                  <TableCell>{shift.duration}時間</TableCell>
+                  <TableCell>¥{shift.hourlyRate.toLocaleString()}</TableCell>
                   <TableCell>
                     ¥{shift.expectedIncome.toLocaleString()}
                   </TableCell>
@@ -600,17 +643,19 @@ function OptimizationRecommendationsTab({ run }: { run: OptimizationRun }) {
       <Typography variant="h6" gutterBottom>
         改善提案
       </Typography>
-      
+
       {recommendations.length === 0 ? (
-        <Alert severity="info">
-          改善提案がありません。
-        </Alert>
+        <Alert severity="info">改善提案がありません。</Alert>
       ) : (
         <Stack spacing={2}>
-          {recommendations.map((rec) => (
+          {recommendations.map(rec => (
             <Card key={rec.id}>
               <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="flex-start"
+                >
                   <Box>
                     <Typography variant="subtitle1" gutterBottom>
                       {rec.title}
@@ -620,22 +665,36 @@ function OptimizationRecommendationsTab({ run }: { run: OptimizationRun }) {
                     </Typography>
                   </Box>
                   <Chip
-                    label={rec.priority === 'high' ? '高' : rec.priority === 'medium' ? '中' : '低'}
-                    color={rec.priority === 'high' ? 'error' : rec.priority === 'medium' ? 'warning' : 'success'}
+                    label={
+                      rec.priority === 'high'
+                        ? '高'
+                        : rec.priority === 'medium'
+                          ? '中'
+                          : '低'
+                    }
+                    color={
+                      rec.priority === 'high'
+                        ? 'error'
+                        : rec.priority === 'medium'
+                          ? 'warning'
+                          : 'success'
+                    }
                     size="small"
                   />
                 </Stack>
-                
+
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="body2" color="textSecondary">
                     予想効果
                   </Typography>
                   <Stack direction="row" spacing={2}>
                     <Typography variant="body2">
-                      収入変化: {rec.impact.incomeChange > 0 ? '+' : ''}¥{rec.impact.incomeChange.toLocaleString()}
+                      収入変化: {rec.impact.incomeChange > 0 ? '+' : ''}¥
+                      {rec.impact.incomeChange.toLocaleString()}
                     </Typography>
                     <Typography variant="body2">
-                      時間変化: {rec.impact.hoursChange > 0 ? '+' : ''}{rec.impact.hoursChange}時間
+                      時間変化: {rec.impact.hoursChange > 0 ? '+' : ''}
+                      {rec.impact.hoursChange}時間
                     </Typography>
                   </Stack>
                 </Box>
@@ -656,10 +715,10 @@ function OptimizationMetricsTab({ run }: { run: OptimizationRun }) {
       <Typography variant="h6" gutterBottom>
         実行指標
       </Typography>
-      
+
       {metrics ? (
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
+        <Grid2 container spacing={3}>
+          <Grid2 xs={12} md={4}>
             <Card>
               <CardContent>
                 <Typography variant="h6" color="primary">
@@ -670,9 +729,9 @@ function OptimizationMetricsTab({ run }: { run: OptimizationRun }) {
                 </Typography>
               </CardContent>
             </Card>
-          </Grid>
-          
-          <Grid item xs={12} md={4}>
+          </Grid2>
+
+          <Grid2 xs={12} md={4}>
             <Card>
               <CardContent>
                 <Typography variant="h6" color="primary">
@@ -683,9 +742,9 @@ function OptimizationMetricsTab({ run }: { run: OptimizationRun }) {
                 </Typography>
               </CardContent>
             </Card>
-          </Grid>
-          
-          <Grid item xs={12} md={4}>
+          </Grid2>
+
+          <Grid2 xs={12} md={4}>
             <Card>
               <CardContent>
                 <Typography variant="h6" color="primary">
@@ -696,12 +755,10 @@ function OptimizationMetricsTab({ run }: { run: OptimizationRun }) {
                 </Typography>
               </CardContent>
             </Card>
-          </Grid>
-        </Grid>
+          </Grid2>
+        </Grid2>
       ) : (
-        <Alert severity="info">
-          実行指標データがありません。
-        </Alert>
+        <Alert severity="info">実行指標データがありません。</Alert>
       )}
     </Box>
   );

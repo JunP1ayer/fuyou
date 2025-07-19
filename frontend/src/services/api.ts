@@ -31,7 +31,8 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
-      const data: { error?: { message: string }, data?: T } = await response.json();
+      const data: { error?: { message: string }; data?: T } =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(data.error?.message || 'API request failed');
@@ -409,6 +410,49 @@ class ApiService {
     return this.request('/csv/stats');
   }
 
+  // Real-time Income Data
+  async getMonthlyIncome(token: string, year: number, month: number) {
+    const params = new URLSearchParams({
+      year: year.toString(),
+      month: month.toString(),
+    });
+
+    return this.request(`/incomes/monthly?${params}`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  async getWeeklyIncome(token: string) {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay()); // 週の開始（日曜日）
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6); // 週の終了（土曜日）
+
+    const params = new URLSearchParams({
+      startDate: startOfWeek.toISOString().split('T')[0],
+      endDate: endOfWeek.toISOString().split('T')[0],
+    });
+
+    return this.request(`/incomes/range?${params}`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
+  async getDailyIncomeAverage(token: string, year: number, month: number) {
+    const params = new URLSearchParams({
+      year: year.toString(),
+      month: month.toString(),
+    });
+
+    return this.request(`/incomes/daily-average?${params}`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+
   // OCR endpoints
   async uploadImageForOCR(token: string, imageFile: File) {
     const formData = new FormData();
@@ -432,6 +476,31 @@ class ApiService {
     return data;
   }
 
+  async uploadImageForNaturalLanguageOCR(token: string, imageFile: File, userName?: string) {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    if (userName) {
+      formData.append('userName', userName);
+    }
+
+    const url = `${this.baseURL}/ocr/natural-language`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'Natural language OCR processing failed');
+    }
+
+    return data;
+  }
+
   async getOCRUsage(token: string) {
     return this.request('/ocr/usage', {
       headers: {
@@ -441,7 +510,7 @@ class ApiService {
   }
 
   // Phase 4: Optimization endpoints
-  
+
   // Constraints management
   async createOptimizationConstraint(token: string, constraint: any) {
     return this.request('/optimization/constraints', {
@@ -462,7 +531,11 @@ class ApiService {
     });
   }
 
-  async updateOptimizationConstraint(token: string, constraintId: string, updates: any) {
+  async updateOptimizationConstraint(
+    token: string,
+    constraintId: string,
+    updates: any
+  ) {
     return this.request(`/optimization/constraints/${constraintId}`, {
       method: 'PUT',
       headers: {
@@ -632,6 +705,72 @@ class ApiService {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ constraints }),
+    });
+  }
+
+  // Job Sources endpoints
+  async getJobSources(token: string, includeInactive = false) {
+    const queryString = includeInactive ? '?includeInactive=true' : '';
+    return this.request(`/job-sources${queryString}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async createJobSource(token: string, data: {
+    name: string;
+    category: 'part_time_job' | 'temporary_work' | 'freelance' | 'scholarship' | 'family_support' | 'other';
+    hourlyRate?: number;
+    expectedMonthlyHours?: number;
+    bankAccountInfo?: {
+      bankName?: string;
+      accountType?: string;
+      accountNumber?: string;
+    };
+  }) {
+    return this.request('/job-sources', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateJobSource(token: string, id: string, data: any) {
+    return this.request(`/job-sources/${id}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteJobSource(token: string, id: string) {
+    return this.request(`/job-sources/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getJobSourceCategories(token: string) {
+    return this.request('/job-sources/meta/categories', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  // OCR Debug endpoint
+  async getOCRDebugInfo(token: string) {
+    return this.request('/ocr/debug', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
   }
 }

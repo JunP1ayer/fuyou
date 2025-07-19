@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>シフト管理 - 扶養対応版</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@mui/material@5.15.20/umd/material-ui.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: #FFFFFF;
+        -webkit-font-smoothing: antialiased;
+      }
+      
+      /* シフトボード準拠のシンプルスタイル */
+      .calendar-cell {
+        aspect-ratio: 1;
+        border: 1px solid #E0E0E0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        cursor: pointer;
+        background: #FFFFFF;
+        transition: background 0.2s ease;
+      }
+      
+      .calendar-cell:hover {
+        background: #F5F5F5;
+      }
+      
+      .calendar-cell.today {
+        background: #E3F2FD;
+      }
+      
+      .calendar-cell.disabled {
+        cursor: default;
+        opacity: 0.3;
+      }
+      
+      .calendar-cell.disabled:hover {
+        background: #FFFFFF;
+      }
+      
+      /* シフトボードの緑のポッチ */
+      .shift-dot {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4CAF50;
+      }
+      
+      .shift-dot.warning {
+        background: #FF9800;
+      }
+      
+      .shift-dot.danger {
+        background: #F44336;
+      }
+      
+      /* BottomSheet風の詳細表示 */
+      .bottom-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #FFFFFF;
+        border-top: 1px solid #E0E0E0;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        transform: translateY(100%);
+        transition: transform 0.3s ease-out;
+        z-index: 1000;
+      }
+      
+      .bottom-sheet.show {
+        transform: translateY(0);
+      }
+      
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.3);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease-out;
+        z-index: 999;
+      }
+      
+      .overlay.show {
+        opacity: 1;
+        visibility: visible;
+      }
+      
+      /* シンプルなボタンスタイル */
+      .primary-button {
+        width: 100%;
+        padding: 12px;
+        background: #4CAF50;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+      
+      .primary-button:hover {
+        background: #45A049;
+      }
+      
+      .primary-button:active {
+        background: #3D8B40;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useCallback } = React;
+      const { Box, Typography, Grid, Button, TextField, MenuItem, Select, FormControl } = MaterialUI;
+
+      // シフトボード完全クローン + 最小限扶養機能
+      const ShiftBoardCloneFuyou = () => {
+        // ローカルストレージからデータ読み込み
+        const loadData = (key, defaultValue) => {
+          try {
+            const saved = localStorage.getItem(key);
+            return saved ? JSON.parse(saved) : defaultValue;
+          } catch {
+            return defaultValue;
+          }
+        };
+
+        const [shifts, setShifts] = useState(() => loadData('shifts', []));
+        const [selectedDate, setSelectedDate] = useState(null);
+        const [showDetail, setShowDetail] = useState(false);
+        const [yearlyTotal, setYearlyTotal] = useState(() => loadData('yearlyTotal', 0));
+        const [shiftHistory, setShiftHistory] = useState(() => loadData('shiftHistory', []));
+
+        // データ保存
+        useEffect(() => {
+          localStorage.setItem('shifts', JSON.stringify(shifts));
+        }, [shifts]);
+
+        useEffect(() => {
+          localStorage.setItem('yearlyTotal', JSON.stringify(yearlyTotal));
+        }, [yearlyTotal]);
+
+        useEffect(() => {
+          localStorage.setItem('shiftHistory', JSON.stringify(shiftHistory));
+        }, [shiftHistory]);
+
+        // 扶養限度額（固定値）
+        const FUYOU_LIMIT = 1030000;
+
+        // カレンダー生成
+        const generateCalendar = () => {
+          const today = new Date();
+          const year = today.getFullYear();
+          const month = today.getMonth();
+          const firstDay = new Date(year, month, 1).getDay();
+          const daysInMonth = new Date(year, month + 1, 0).getDate();
+          
+          const calendar = [];
+          
+          for (let i = 0; i < firstDay; i++) {
+            calendar.push(null);
+          }
+          
+          for (let day = 1; day <= daysInMonth; day++) {
+            calendar.push(day);
+          }
+          
+          return calendar;
+        };
+
+        // 日付フォーマット
+        const formatDate = (day) => {
+          const today = new Date();
+          const year = today.getFullYear();
+          const month = String(today.getMonth() + 1).padStart(2, '0');
+          return `${year}-${month}-${String(day).padStart(2, '0')}`;
+        };
+
+        // シフト存在チェック
+        const getShiftsForDate = (day) => {
+          if (!day) return [];
+          const dateStr = formatDate(day);
+          return shifts.filter(shift => shift.date === dateStr);
+        };
+
+        // 月間給料計算
+        const calculateMonthlyEarnings = () => {
+          const today = new Date();
+          const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+          return shifts
+            .filter(shift => shift.date.startsWith(currentMonth))
+            .reduce((sum, shift) => sum + shift.earnings, 0);
+        };
+
+        // 扶養リスク判定
+        const calculateFuyouRisk = () => {
+          const remaining = FUYOU_LIMIT - yearlyTotal;
+          const percentage = (yearlyTotal / FUYOU_LIMIT) * 100;
+          
+          if (percentage > 95) return 'danger';
+          if (percentage > 90) return 'warning';
+          return 'safe';
+        };
+
+        // 日付クリック
+        const handleDateClick = (day) => {
+          if (!day) return;
+          setSelectedDate(day);
+          setShowDetail(true);
+        };
+
+        // 詳細を閉じる
+        const handleCloseDetail = () => {
+          setShowDetail(false);
+          setTimeout(() => setSelectedDate(null), 300);
+        };
+
+        // シフト追加フォーム
+        const ShiftAddForm = ({ date, onAdd, onCancel }) => {
+          const [startTime, setStartTime] = useState('10:00');
+          const [endTime, setEndTime] = useState('18:00');
+          const [workplace, setWorkplace] = useState('');
+          const [hourlyWage, setHourlyWage] = useState(1000);
+
+          // 履歴から選択
+          const selectFromHistory = (historyItem) => {
+            setStartTime(historyItem.startTime);
+            setEndTime(historyItem.endTime);
+            setWorkplace(historyItem.workplace);
+            setHourlyWage(historyItem.hourlyWage);
+          };
+
+          // 給料計算
+          const calculateEarnings = () => {
+            const start = new Date(`2000-01-01T${startTime}`);
+            const end = new Date(`2000-01-01T${endTime}`);
+            const hours = (end - start) / (1000 * 60 * 60);
+            return Math.round(hours * hourlyWage);
+          };
+
+          // シフト追加
+          const handleSubmit = () => {
+            const newShift = {
+              id: Date.now(),
+              date: formatDate(date),
+              startTime,
+              endTime,
+              workplace,
+              hourlyWage,
+              earnings: calculateEarnings()
+            };
+
+            // シフト追加
+            setShifts(prev => [...prev, newShift]);
+            
+            // 年間合計更新
+            setYearlyTotal(prev => prev + newShift.earnings);
+            
+            // 履歴に追加（重複チェック）
+            const historyKey = `${startTime}-${endTime}-${workplace}`;
+            if (!shiftHistory.some(h => `${h.startTime}-${h.endTime}-${h.workplace}` === historyKey)) {
+              setShiftHistory(prev => [{
+                startTime,
+                endTime,
+                workplace,
+                hourlyWage
+              }, ...prev].slice(0, 5)); // 最新5件のみ保持
+            }
+
+            onCancel();
+          };
+
+          return (
+            <Box sx={{ p: 3 }}>
+              <Typography sx={{ fontSize: 18, fontWeight: 500, mb: 3 }}>
+                {date}日のシフト追加
+              </Typography>
+
+              {/* 履歴から選択 */}
+              {shiftHistory.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography sx={{ fontSize: 14, color: '#666', mb: 1 }}>
+                    履歴から選択
+                  </Typography>
+                  {shiftHistory.map((item, index) => (
+                    <Box
+                      key={index}
+                      onClick={() => selectFromHistory(item)}
+                      sx={{
+                        p: 1.5,
+                        mb: 1,
+                        border: '1px solid #E0E0E0',
+                        borderRadius: 1,
+                        cursor: 'pointer',
+                        '&:hover': { background: '#F5F5F5' }
+                      }}
+                    >
+                      <Typography sx={{ fontSize: 14 }}>
+                        {item.startTime}-{item.endTime} {item.workplace}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: '#666' }}>
+                        時給¥{item.hourlyWage}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+
+              {/* 新規入力 */}
+              <Box sx={{ mb: 2 }}>
+                <Typography sx={{ fontSize: 14, color: '#666', mb: 1 }}>
+                  時間
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  <TextField
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    size="small"
+                    sx={{ flex: 1 }}
+                  />
+                  <Typography>〜</Typography>
+                  <TextField
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    size="small"
+                    sx={{ flex: 1 }}
+                  />
+                </Box>
+              </Box>
+
+              <Box sx={{ mb: 2 }}>
+                <Typography sx={{ fontSize: 14, color: '#666', mb: 1 }}>
+                  勤務先
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={workplace}
+                  onChange={(e) => setWorkplace(e.target.value)}
+                  placeholder="例: コンビニ"
+                  size="small"
+                />
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography sx={{ fontSize: 14, color: '#666', mb: 1 }}>
+                  時給
+                </Typography>
+                <TextField
+                  type="number"
+                  value={hourlyWage}
+                  onChange={(e) => setHourlyWage(Number(e.target.value))}
+                  size="small"
+                  InputProps={{
+                    startAdornment: '¥'
+                  }}
+                />
+              </Box>
+
+              {/* 予定給料表示 */}
+              <Box sx={{ mb: 3, p: 2, background: '#F5F5F5', borderRadius: 1 }}>
+                <Typography sx={{ fontSize: 14, color: '#666' }}>
+                  予定給料
+                </Typography>
+                <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+                  ¥{calculateEarnings().toLocaleString()}
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <button 
+                  className="primary-button"
+                  onClick={handleSubmit}
+                  disabled={!workplace}
+                >
+                  追加
+                </button>
+                <Button 
+                  fullWidth 
+                  variant="outlined" 
+                  onClick={onCancel}
+                  sx={{ borderColor: '#E0E0E0', color: '#666' }}
+                >
+                  キャンセル
+                </Button>
+              </Box>
+            </Box>
+          );
+        };
+
+        const calendar = generateCalendar();
+        const monthlyEarnings = calculateMonthlyEarnings();
+        const fuyouRisk = calculateFuyouRisk();
+        const remaining = FUYOU_LIMIT - yearlyTotal;
+        const percentage = (yearlyTotal / FUYOU_LIMIT) * 100;
+
+        return (
+          <Box sx={{ 
+            background: '#FFFFFF',
+            minHeight: '100vh'
+          }}>
+            {/* ヘッダー */}
+            <Box sx={{ 
+              p: 2, 
+              borderBottom: '1px solid #E0E0E0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <Typography sx={{ fontSize: 18, fontWeight: 500, color: '#333' }}>
+                {new Date().getFullYear()}年{new Date().getMonth() + 1}月
+              </Typography>
+              <Typography sx={{ fontSize: 14, color: '#666' }}>
+                シフト管理
+              </Typography>
+            </Box>
+            
+            {/* カレンダー */}
+            <Box sx={{ p: 2 }}>
+              {/* 曜日ヘッダー */}
+              <Grid container>
+                {['日', '月', '火', '水', '木', '金', '土'].map((day, i) => (
+                  <Grid item xs key={i}>
+                    <Box sx={{ 
+                      textAlign: 'center', 
+                      py: 0.5,
+                      fontSize: 12,
+                      color: i === 0 ? '#FF5252' : i === 6 ? '#2196F3' : '#666'
+                    }}>
+                      {day}
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+              
+              {/* 日付グリッド */}
+              <Grid container>
+                {calendar.map((day, index) => {
+                  const isToday = day === new Date().getDate();
+                  const dayShifts = getShiftsForDate(day);
+                  const hasShift = dayShifts.length > 0;
+                  
+                  return (
+                    <Grid item xs key={index}>
+                      <Box
+                        className={`calendar-cell ${isToday ? 'today' : ''} ${!day ? 'disabled' : ''}`}
+                        onClick={() => handleDateClick(day)}
+                      >
+                        {day && (
+                          <>
+                            <Typography sx={{ 
+                              fontSize: 14, 
+                              color: '#333',
+                              fontWeight: isToday ? 500 : 400
+                            }}>
+                              {day}
+                            </Typography>
+                            
+                            {/* シフトボードの緑のポッチ */}
+                            {hasShift && (
+                              <div className={`shift-dot ${fuyouRisk}`} />
+                            )}
+                          </>
+                        )}
+                      </Box>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            </Box>
+            
+            {/* 給料表示 */}
+            <Box sx={{ p: 2, borderTop: '1px solid #E0E0E0' }}>
+              <Typography sx={{ fontSize: 14, color: '#666', mb: 1 }}>
+                今月の給料
+              </Typography>
+              <Typography sx={{ fontSize: 24, fontWeight: 500, color: '#333' }}>
+                ¥{monthlyEarnings.toLocaleString()}
+              </Typography>
+              
+              {/* 扶養情報（90%以上の時のみ表示） */}
+              {percentage >= 90 && (
+                <Typography sx={{ 
+                  fontSize: 12, 
+                  color: fuyouRisk === 'danger' ? '#F44336' : '#FF9800',
+                  mt: 0.5
+                }}>
+                  扶養まで: あと¥{remaining.toLocaleString()}
+                </Typography>
+              )}
+            </Box>
+            
+            {/* オーバーレイ */}
+            <div 
+              className={`overlay ${showDetail ? 'show' : ''}`}
+              onClick={handleCloseDetail}
+            />
+            
+            {/* シフト詳細（BottomSheet） */}
+            <div className={`bottom-sheet ${showDetail ? 'show' : ''}`}>
+              {selectedDate && (
+                <>
+                  {getShiftsForDate(selectedDate).length === 0 ? (
+                    <ShiftAddForm 
+                      date={selectedDate}
+                      onAdd={() => {}}
+                      onCancel={handleCloseDetail}
+                    />
+                  ) : (
+                    <Box sx={{ p: 3 }}>
+                      <Typography sx={{ fontSize: 18, fontWeight: 500, mb: 2 }}>
+                        {selectedDate}日のシフト
+                      </Typography>
+                      
+                      {getShiftsForDate(selectedDate).map(shift => (
+                        <Box key={shift.id} sx={{ 
+                          p: 2, 
+                          mb: 1, 
+                          border: '1px solid #E0E0E0',
+                          borderRadius: 1
+                        }}>
+                          <Typography sx={{ fontSize: 16, fontWeight: 500 }}>
+                            {shift.startTime} - {shift.endTime}
+                          </Typography>
+                          <Typography sx={{ fontSize: 14, color: '#666' }}>
+                            {shift.workplace}
+                          </Typography>
+                          <Typography sx={{ fontSize: 14, color: '#4CAF50', fontWeight: 500 }}>
+                            ¥{shift.earnings.toLocaleString()}
+                          </Typography>
+                        </Box>
+                      ))}
+                      
+                      <Button 
+                        fullWidth 
+                        variant="outlined"
+                        onClick={handleCloseDetail}
+                        sx={{ mt: 2, borderColor: '#E0E0E0', color: '#666' }}
+                      >
+                        閉じる
+                      </Button>
+                    </Box>
+                  )}
+                </>
+              )}
+            </div>
+          </Box>
+        );
+      };
+
+      ReactDOM.render(<ShiftBoardCloneFuyou />, document.getElementById('root'));
+    </script>
+  </body>
+</html>

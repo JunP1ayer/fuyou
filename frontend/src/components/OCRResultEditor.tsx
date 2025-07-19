@@ -30,7 +30,7 @@ import {
   Tooltip,
   Badge,
 } from '@mui/material';
-import { Grid } from '@mui/material';
+import Grid2 from '@mui/material/Grid2';
 import {
   ExpandMore,
   Edit,
@@ -86,9 +86,7 @@ const COMMON_LOCATIONS = [
   '東口店',
 ];
 
-const COMMON_HOURLY_RATES = [
-  900, 950, 1000, 1100, 1200, 1300, 1400, 1500,
-];
+const COMMON_HOURLY_RATES = [900, 950, 1000, 1100, 1200, 1300, 1400, 1500];
 
 export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
   ocrResult,
@@ -97,14 +95,18 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
   onCancel,
   onEditComplete,
 }) => {
-  const [extractedText, setExtractedText] = useState(ocrResult.data?.extractedText || '');
+  const [extractedText, setExtractedText] = useState(
+    ocrResult.data?.extractedText || ''
+  );
   const [parsedShifts, setParsedShifts] = useState<ParsedShift[]>([]);
   const [editingShift, setEditingShift] = useState<string | null>(null);
   const [showOriginalImage, setShowOriginalImage] = useState(true);
   const [showBoundingBoxes, setShowBoundingBoxes] = useState(false);
   const [autoParseEnabled, setAutoParseEnabled] = useState(true);
   const [parseError, setParseError] = useState<string | null>(null);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
 
   // 初期解析
   useEffect(() => {
@@ -118,17 +120,23 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
     try {
       const shifts: ParsedShift[] = [];
       const lines = text.split('\n').filter(line => line.trim());
-      
+
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        
+
         // 日付パターンの検出
-        const dateMatch = line.match(/(\d{1,2}\/\d{1,2}|\d{4}-\d{1,2}-\d{1,2}|\d{1,2}日)/);
+        const dateMatch = line.match(
+          /(\d{1,2}\/\d{1,2}|\d{4}-\d{1,2}-\d{1,2}|\d{1,2}日)/
+        );
         if (dateMatch) {
-          const timeMatch = line.match(/(\d{1,2}):(\d{2})\s*[-~]\s*(\d{1,2}):(\d{2})/);
+          const timeMatch = line.match(
+            /(\d{1,2}):(\d{2})\s*[-~]\s*(\d{1,2}):(\d{2})/
+          );
           const rateMatch = line.match(/(\d{3,4})円/);
-          const locationMatch = line.match(/(店|支店|本店|駅前|新宿|渋谷|池袋|中央|南口|北口|西口|東口)/);
-          
+          const locationMatch = line.match(
+            /(店|支店|本店|駅前|新宿|渋谷|池袋|中央|南口|北口|西口|東口)/
+          );
+
           if (timeMatch) {
             const shift: ParsedShift = {
               id: `shift-${Date.now()}-${i}`,
@@ -137,7 +145,11 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
               endTime: `${timeMatch[3].padStart(2, '0')}:${timeMatch[4]}`,
               hourlyRate: rateMatch ? parseInt(rateMatch[1]) : 1000,
               location: locationMatch ? locationMatch[0] : '本店',
-              confidence: calculateConfidence(dateMatch[0], timeMatch[0], rateMatch?.[0]),
+              confidence: calculateConfidence(
+                dateMatch[0],
+                timeMatch[0],
+                rateMatch?.[0]
+              ),
               edited: false,
               source: 'auto',
             };
@@ -145,7 +157,7 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
           }
         }
       }
-      
+
       setParsedShifts(shifts);
       setParseError(null);
     } catch (error) {
@@ -156,7 +168,7 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
   // 日付文字列の正規化
   const normalizeDateString = (dateStr: string): string => {
     const currentYear = new Date().getFullYear();
-    
+
     if (dateStr.includes('/')) {
       const [month, day] = dateStr.split('/');
       return `${currentYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
@@ -167,47 +179,53 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
       const currentMonth = new Date().getMonth() + 1;
       return `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${day.padStart(2, '0')}`;
     }
-    
+
     return dateStr;
   };
 
   // 信頼度の計算
-  const calculateConfidence = (dateStr: string, timeStr: string, rateStr?: string): number => {
+  const calculateConfidence = (
+    dateStr: string,
+    timeStr: string,
+    rateStr?: string
+  ): number => {
     let confidence = 0.5;
-    
-    if (dateStr.match(/\d{1,2}\/\d{1,2}|\d{4}-\d{1,2}-\d{1,2}/)) confidence += 0.2;
-    if (timeStr.match(/\d{1,2}:\d{2}\s*[-~]\s*\d{1,2}:\d{2}/)) confidence += 0.2;
+
+    if (dateStr.match(/\d{1,2}\/\d{1,2}|\d{4}-\d{1,2}-\d{1,2}/))
+      confidence += 0.2;
+    if (timeStr.match(/\d{1,2}:\d{2}\s*[-~]\s*\d{1,2}:\d{2}/))
+      confidence += 0.2;
     if (rateStr) confidence += 0.1;
-    
+
     return Math.min(confidence, 1.0);
   };
 
   // シフトの編集
   const handleEditShift = (shiftId: string, updates: Partial<ParsedShift>) => {
-    setParsedShifts(prev => prev.map(shift => 
-      shift.id === shiftId 
-        ? { ...shift, ...updates, edited: true }
-        : shift
-    ));
+    setParsedShifts(prev =>
+      prev.map(shift =>
+        shift.id === shiftId ? { ...shift, ...updates, edited: true } : shift
+      )
+    );
     validateShift(shiftId, updates);
   };
 
   // バリデーション
   const validateShift = (shiftId: string, shift: Partial<ParsedShift>) => {
     const errors: Record<string, string> = {};
-    
+
     if (shift.date && !isValidDate(shift.date)) {
       errors[`${shiftId}-date`] = '有効な日付を入力してください';
     }
-    
+
     if (shift.startTime && shift.endTime && shift.startTime >= shift.endTime) {
       errors[`${shiftId}-time`] = '終了時間は開始時間より後に設定してください';
     }
-    
+
     if (shift.hourlyRate && shift.hourlyRate < 800) {
       errors[`${shiftId}-rate`] = '時給は800円以上を設定してください';
     }
-    
+
     setValidationErrors(prev => ({ ...prev, ...errors }));
   };
 
@@ -253,7 +271,7 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
     if (Object.keys(validationErrors).length > 0) {
       return;
     }
-    
+
     const shifts: CreateShiftData[] = parsedShifts.map(shift => ({
       jobSourceName: shift.location,
       date: shift.date,
@@ -264,16 +282,18 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
       description: `OCR自動登録 (信頼度: ${Math.round(shift.confidence * 100)}%)`,
       isConfirmed: shift.confidence > 0.8,
     }));
-    
+
     onSave?.(shifts);
-    onEditComplete?.(parsedShifts.map(shift => ({
-      date: shift.date,
-      startTime: shift.startTime,
-      endTime: shift.endTime,
-      hourlyRate: shift.hourlyRate,
-      location: shift.location,
-      confidence: shift.confidence,
-    })));
+    onEditComplete?.(
+      parsedShifts.map(shift => ({
+        date: shift.date,
+        startTime: shift.startTime,
+        endTime: shift.endTime,
+        hourlyRate: shift.hourlyRate,
+        location: shift.location,
+        confidence: shift.confidence,
+      }))
+    );
   };
 
   const getConfidenceColor = (confidence: number) => {
@@ -286,21 +306,24 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
 
   return (
     <Box>
-      <Grid container spacing={3}>
+      <Grid2 container spacing={3}>
         {/* 左側: 画像表示 */}
-        <Grid item xs={12} md={6}>
+        <Grid2 xs={12} md={6}>
           <Card>
             <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">
-                  元画像
-                </Typography>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
+                <Typography variant="h6">元画像</Typography>
                 <Box>
                   <FormControlLabel
                     control={
                       <Switch
                         checked={showOriginalImage}
-                        onChange={(e) => setShowOriginalImage(e.target.checked)}
+                        onChange={e => setShowOriginalImage(e.target.checked)}
                       />
                     }
                     label="画像表示"
@@ -310,7 +333,7 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                       control={
                         <Switch
                           checked={showBoundingBoxes}
-                          onChange={(e) => setShowBoundingBoxes(e.target.checked)}
+                          onChange={e => setShowBoundingBoxes(e.target.checked)}
                         />
                       }
                       label="境界線表示"
@@ -318,7 +341,7 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                   )}
                 </Box>
               </Box>
-              
+
               {showOriginalImage && (
                 <Box position="relative">
                   <CardMedia
@@ -333,12 +356,21 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                       borderColor: 'divider',
                     }}
                   />
-                  
+
                   {/* 境界ボックスのオーバーレイ */}
                   {showBoundingBoxes && ocrResult.data?.boundingBoxes && (
-                    <Box position="absolute" top={0} left={0} width="100%" height="100%">
+                    <Box
+                      position="absolute"
+                      top={0}
+                      left={0}
+                      width="100%"
+                      height="100%"
+                    >
                       {ocrResult.data.boundingBoxes.map((box, index) => (
-                        <Tooltip key={index} title={`${box.text} (${Math.round(box.confidence * 100)}%)`}>
+                        <Tooltip
+                          key={index}
+                          title={`${box.text} (${Math.round(box.confidence * 100)}%)`}
+                        >
                           <Box
                             position="absolute"
                             border="2px solid"
@@ -360,10 +392,10 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
               )}
             </CardContent>
           </Card>
-        </Grid>
+        </Grid2>
 
         {/* 右側: テキストとシフト編集 */}
-        <Grid item xs={12} md={6}>
+        <Grid2 xs={12} md={6}>
           {/* 抽出テキスト */}
           <Card sx={{ mb: 3 }}>
             <CardContent>
@@ -375,7 +407,7 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                 rows={6}
                 fullWidth
                 value={extractedText}
-                onChange={(e) => setExtractedText(e.target.value)}
+                onChange={e => setExtractedText(e.target.value)}
                 placeholder="抽出されたテキストを編集できます"
                 sx={{ mb: 2 }}
               />
@@ -392,7 +424,7 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                   control={
                     <Switch
                       checked={autoParseEnabled}
-                      onChange={(e) => setAutoParseEnabled(e.target.checked)}
+                      onChange={e => setAutoParseEnabled(e.target.checked)}
                     />
                   }
                   label="自動解析"
@@ -418,10 +450,19 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
           {/* 解析されたシフト */}
           <Card>
             <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                mb={2}
+              >
                 <Typography variant="h6">
                   解析されたシフト
-                  <Badge badgeContent={parsedShifts.length} color="primary" sx={{ ml: 1 }} />
+                  <Badge
+                    badgeContent={parsedShifts.length}
+                    color="primary"
+                    sx={{ ml: 1 }}
+                  />
                 </Typography>
                 <Button
                   onClick={addNewShift}
@@ -439,10 +480,15 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                 </Alert>
               ) : (
                 <List>
-                  {parsedShifts.map((shift) => (
+                  {parsedShifts.map(shift => (
                     <ListItem key={shift.id} sx={{ px: 0 }}>
                       <Box width="100%">
-                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          mb={1}
+                        >
                           <Box display="flex" alignItems="center" gap={1}>
                             <Chip
                               label={`信頼度: ${Math.round(shift.confidence * 100)}%`}
@@ -471,33 +517,41 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                             <Delete />
                           </IconButton>
                         </Box>
-                        
-                        <Grid container spacing={2}>
-                          <Grid item xs={12} sm={6}>
+
+                        <Grid2 container spacing={2}>
+                          <Grid2 xs={12} sm={6}>
                             <TextField
                               label="日付"
                               type="date"
                               value={shift.date}
-                              onChange={(e) => handleEditShift(shift.id, { date: e.target.value })}
+                              onChange={e =>
+                                handleEditShift(shift.id, {
+                                  date: e.target.value,
+                                })
+                              }
                               fullWidth
                               size="small"
                               error={!!validationErrors[`${shift.id}-date`]}
                               helperText={validationErrors[`${shift.id}-date`]}
                               InputLabelProps={{ shrink: true }}
                             />
-                          </Grid>
-                          <Grid item xs={12} sm={6}>
+                          </Grid2>
+                          <Grid2 xs={12} sm={6}>
                             <Autocomplete
                               options={COMMON_LOCATIONS}
                               freeSolo
                               value={shift.location}
                               onChange={(event, newValue) => {
-                                handleEditShift(shift.id, { location: newValue || '' });
+                                handleEditShift(shift.id, {
+                                  location: newValue || '',
+                                });
                               }}
                               onInputChange={(event, newInputValue) => {
-                                handleEditShift(shift.id, { location: newInputValue });
+                                handleEditShift(shift.id, {
+                                  location: newInputValue,
+                                });
                               }}
-                              renderInput={(params) => (
+                              renderInput={params => (
                                 <TextField
                                   {...params}
                                   label="勤務場所"
@@ -507,43 +561,55 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                               )}
                               size="small"
                             />
-                          </Grid>
-                          <Grid item xs={6}>
+                          </Grid2>
+                          <Grid2 xs={6}>
                             <TextField
                               label="開始時間"
                               type="time"
                               value={shift.startTime}
-                              onChange={(e) => handleEditShift(shift.id, { startTime: e.target.value })}
+                              onChange={e =>
+                                handleEditShift(shift.id, {
+                                  startTime: e.target.value,
+                                })
+                              }
                               fullWidth
                               size="small"
                               InputLabelProps={{ shrink: true }}
                             />
-                          </Grid>
-                          <Grid item xs={6}>
+                          </Grid2>
+                          <Grid2 xs={6}>
                             <TextField
                               label="終了時間"
                               type="time"
                               value={shift.endTime}
-                              onChange={(e) => handleEditShift(shift.id, { endTime: e.target.value })}
+                              onChange={e =>
+                                handleEditShift(shift.id, {
+                                  endTime: e.target.value,
+                                })
+                              }
                               fullWidth
                               size="small"
                               error={!!validationErrors[`${shift.id}-time`]}
                               helperText={validationErrors[`${shift.id}-time`]}
                               InputLabelProps={{ shrink: true }}
                             />
-                          </Grid>
-                          <Grid item xs={12}>
+                          </Grid2>
+                          <Grid2 xs={12}>
                             <Autocomplete
                               options={COMMON_HOURLY_RATES}
                               freeSolo
                               value={shift.hourlyRate}
                               onChange={(event, newValue) => {
-                                handleEditShift(shift.id, { hourlyRate: Number(newValue) || 0 });
+                                handleEditShift(shift.id, {
+                                  hourlyRate: Number(newValue) || 0,
+                                });
                               }}
                               onInputChange={(event, newInputValue) => {
-                                handleEditShift(shift.id, { hourlyRate: Number(newInputValue) || 0 });
+                                handleEditShift(shift.id, {
+                                  hourlyRate: Number(newInputValue) || 0,
+                                });
                               }}
-                              renderInput={(params) => (
+                              renderInput={params => (
                                 <TextField
                                   {...params}
                                   label="時給"
@@ -551,19 +617,23 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                                   size="small"
                                   fullWidth
                                   error={!!validationErrors[`${shift.id}-rate`]}
-                                  helperText={validationErrors[`${shift.id}-rate`]}
+                                  helperText={
+                                    validationErrors[`${shift.id}-rate`]
+                                  }
                                   InputProps={{
                                     ...params.InputProps,
                                     endAdornment: (
-                                      <InputAdornment position="end">円</InputAdornment>
+                                      <InputAdornment position="end">
+                                        円
+                                      </InputAdornment>
                                     ),
                                   }}
                                 />
                               )}
                               size="small"
                             />
-                          </Grid>
-                        </Grid>
+                          </Grid2>
+                        </Grid2>
                       </Box>
                     </ListItem>
                   ))}
@@ -571,16 +641,12 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
               )}
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </Grid2>
+      </Grid2>
 
       {/* アクションボタン */}
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-        <Button
-          onClick={onCancel}
-          variant="outlined"
-          startIcon={<Cancel />}
-        >
+        <Button onClick={onCancel} variant="outlined" startIcon={<Cancel />}>
           キャンセル
         </Button>
         <Button

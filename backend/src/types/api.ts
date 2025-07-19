@@ -162,6 +162,41 @@ export type CalculateDeductionRequest = z.infer<typeof CalculateDeductionSchema>
 export type ProjectIncomeRequest = z.infer<typeof ProjectIncomeSchema>;
 export type CreateBankConnectionRequest = z.infer<typeof CreateBankConnectionSchema>;
 
+// Shift schemas
+export const CreateShiftSchema = z.object({
+  jobSourceId: z.string().uuid().optional(),
+  jobSourceName: z.string().min(1, 'Job source name is required'),
+  date: z.string().refine(
+    (date) => !isNaN(Date.parse(date)),
+    'Invalid date format'
+  ),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)'),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)'),
+  hourlyRate: z.number().positive('Hourly rate must be positive'),
+  breakMinutes: z.number().int().min(0).default(0),
+  description: z.string().optional(),
+  isConfirmed: z.boolean().default(false),
+});
+
+export const UpdateShiftSchema = CreateShiftSchema.partial();
+
+export const GetShiftsSchema = z.object({
+  startDate: z.string().refine(
+    (date) => !isNaN(Date.parse(date)),
+    'Invalid start date format'
+  ).optional(),
+  endDate: z.string().refine(
+    (date) => !isNaN(Date.parse(date)),
+    'Invalid end date format'
+  ).optional(),
+  jobSourceId: z.string().uuid().optional(),
+  isConfirmed: z.boolean().optional(),
+});
+
+export type CreateShiftRequest = z.infer<typeof CreateShiftSchema>;
+export type UpdateShiftRequest = z.infer<typeof UpdateShiftSchema>;
+export type GetShiftsRequest = z.infer<typeof GetShiftsSchema>;
+
 // User-related types (moved to top)
 
 export interface AuthToken {
@@ -265,6 +300,43 @@ export interface BankConnectionResponse {
   syncFrequencyHours: number;
   createdAt: string;
   updatedAt: string;
+}
+
+// Shift response types
+export interface ShiftResponse {
+  id: string;
+  userId: string;
+  jobSourceId?: string;
+  jobSourceName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  hourlyRate: number;
+  breakMinutes: number;
+  workingHours: number;
+  calculatedEarnings: number;
+  description?: string;
+  isConfirmed: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ShiftStats {
+  totalShifts: number;
+  totalHours: number;
+  totalEarnings: number;
+  thisMonth: {
+    shifts: number;
+    hours: number;
+    earnings: number;
+  };
+  byJobSource: Array<{
+    jobSourceId?: string;
+    jobSourceName: string;
+    shifts: number;
+    hours: number;
+    earnings: number;
+  }>;
 }
 
 export interface TaxBracket {

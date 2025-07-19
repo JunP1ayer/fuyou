@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import { ocrService } from '../services/ocrService';
+import { naturalLanguageOCRService } from '../services/naturalLanguageOCRService';
 import { uploadConfig, validateImageFile } from '../middleware/uploadMiddleware';
 import { requireAuth } from '../middleware/validation';
 import { asyncHandler } from '../middleware/errorHandler';
@@ -96,6 +97,97 @@ router.post(
 );
 
 /**
+ * POST /api/ocr/natural-language
+ * 画像をアップロードしてChatGPT風の自然言語OCR処理を実行
+ */
+router.post(
+  '/natural-language',
+  ocrRateLimit,
+  userOcrLimit,
+  requireAuth,
+  uploadConfig.single('image'),
+  validateImageFile,
+  asyncHandler(async (req: Request, res: Response) => {
+    const startTime = Date.now();
+    
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'NO_FILE',
+            message: 'ファイルがアップロードされていません。',
+          },
+        });
+      }
+
+      const userName = req.body.userName || req.user?.fullName;
+      console.log(`自然言語OCR処理開始 - ユーザー: ${req.user?.id} (${userName}), ファイルサイズ: ${req.file.size} bytes`);
+
+      // Step 1: 従来のOCR処理でテキスト抽出
+      const ocrResult = await ocrService.extractTextFromImage(req.file.buffer);
+      
+      if (!ocrResult.success || !ocrResult.data?.extractedText) {
+        return res.status(422).json({
+          success: false,
+          error: {
+            code: 'OCR_FAILED',
+            message: '画像からテキストを抽出できませんでした。',
+          },
+          metadata: {
+            processingTimeMs: Date.now() - startTime,
+          },
+        });
+      }
+
+      // Step 2: 自然言語変換処理
+      const naturalLanguageResult = await naturalLanguageOCRService.processOCRText(
+        ocrResult.data.extractedText,
+        userName
+      );
+
+      const totalProcessingTime = Date.now() - startTime;
+      console.log(`自然言語OCR処理完了 - シフト抽出数: ${naturalLanguageResult.extractedShifts.length}, 処理時間: ${totalProcessingTime}ms`);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          naturalLanguageMessage: naturalLanguageResult.naturalLanguageMessage,
+          extractedShifts: naturalLanguageResult.extractedShifts,
+          confidence: naturalLanguageResult.confidence,
+          needsReview: naturalLanguageResult.needsReview,
+          originalOCRText: ocrResult.data.extractedText, // デバッグ用
+        },
+        metadata: {
+          processingTimeMs: totalProcessingTime,
+          ocrProcessingTimeMs: ocrResult.metadata?.processingTimeMs || 0,
+          nlpProcessingTimeMs: naturalLanguageResult.processingTimeMs,
+          extractedShiftCount: naturalLanguageResult.extractedShifts.length,
+          apiCallCount: ocrResult.metadata?.apiCallCount || 0,
+          estimatedCost: ocrResult.metadata?.estimatedCost || 0,
+        },
+      });
+
+    } catch (error: any) {
+      console.error('自然言語OCR API エラー:', error);
+      
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'サーバー内部エラーが発生しました。しばらく時間をおいてから再試行してください。',
+        },
+        metadata: {
+          processingTimeMs: Date.now() - startTime,
+          apiCallCount: 0,
+          estimatedCost: 0,
+        },
+      });
+    }
+  })
+);
+
+/**
  * GET /api/ocr/usage
  * OCR API使用状況を取得
  */
@@ -121,10 +213,45 @@ router.get(
 );
 
 /**
- * POST /api/ocr/test
- * OCR機能のテスト用エンドポイント (開発環境のみ)
+ * GET /api/ocr/debug
+ * OCR設定の詳細デバッグ情報 (開発環境のみ)
  */
 if (process.env.NODE_ENV === 'development') {
+  router.get(
+    '/debug',
+    requireAuth,
+    asyncHandler(async (req: Request, res: Response) => {
+      const openaiKeySet = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'sk-your-openai-api-key-here';
+      const googleKeySet = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+      
+      res.json({
+        success: true,
+        data: {
+          message: 'OCR Debug Information',
+          timestamp: new Date().toISOString(),
+          user: req.user?.id,
+          environment: process.env.NODE_ENV,
+          apiConfiguration: {
+            openaiApiKey: {
+              configured: !!process.env.OPENAI_API_KEY,
+              isPlaceholder: process.env.OPENAI_API_KEY === 'sk-your-openai-api-key-here',
+              isValid: openaiKeySet,
+              length: process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0,
+            },
+            googleVisionKey: {
+              configured: !!googleKeySet,
+              path: googleKeySet || 'Not set',
+            },
+          },
+          warnings: [
+            ...(!openaiKeySet ? ['OpenAI API キーが設定されていません。フォールバックモードで動作します。'] : []),
+            ...(!googleKeySet ? ['Google Cloud Vision API認証ファイルが設定されていません。'] : []),
+          ],
+        },
+      });
+    })
+  );
+
   router.post(
     '/test',
     requireAuth,

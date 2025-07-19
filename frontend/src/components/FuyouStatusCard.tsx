@@ -10,7 +10,12 @@ import {
   CircularProgress,
   Divider,
 } from '@mui/material';
-import { Warning, CheckCircle, Error as ErrorIcon, TrendingUp } from '@mui/icons-material';
+import {
+  Warning,
+  CheckCircle,
+  Error as ErrorIcon,
+  TrendingUp,
+} from '@mui/icons-material';
 import type { FuyouStatus, FuyouLimitType } from '../types/fuyou';
 import { apiService } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
@@ -34,7 +39,11 @@ export const FuyouStatusCard: React.FC<FuyouStatusCardProps> = ({
       setLoading(true);
       setError(null);
 
-      const response = await apiService.getEnhancedCalculation(token) as { success: boolean; data?: unknown; error?: any };
+      const response = (await apiService.getEnhancedCalculation(token)) as {
+        success: boolean;
+        data?: unknown;
+        error?: any;
+      };
 
       if (
         !('success' in response) ||
@@ -60,10 +69,14 @@ export const FuyouStatusCard: React.FC<FuyouStatusCardProps> = ({
           effectiveDate: '2025-01-01',
         })),
         selectedLimit: {
-          type: (calculation.recommendedLimit as Record<string, unknown>).type as FuyouLimitType,
-          amount: (calculation.recommendedLimit as Record<string, unknown>).amount as number,
-          name: (calculation.recommendedLimit as Record<string, unknown>).description as string,
-          description: (calculation.recommendedLimit as Record<string, unknown>).description as string,
+          type: (calculation.recommendedLimit as Record<string, unknown>)
+            .type as FuyouLimitType,
+          amount: (calculation.recommendedLimit as Record<string, unknown>)
+            .amount as number,
+          name: (calculation.recommendedLimit as Record<string, unknown>)
+            .description as string,
+          description: (calculation.recommendedLimit as Record<string, unknown>)
+            .description as string,
           effectiveDate: '2025-01-01',
         },
         remainingCapacity: calculation.remainingAmount as number,

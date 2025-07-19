@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   Typography,
-  Grid,
   TextField,
   Select,
   MenuItem,
@@ -18,6 +17,7 @@ import {
   Divider,
   Chip,
 } from '@mui/material';
+import Grid2 from '@mui/material/Grid2';
 import { Save, Notifications, Security, Settings } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { apiService } from '../../services/api';
@@ -42,19 +42,21 @@ export function OptimizationSettingsPanel({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const [settings, setSettings] = useState<UpdateUserOptimizationPreferencesRequest>({
-    preferredAlgorithm: preferences?.preferredAlgorithm || 'linear_programming',
-    optimizationGoal: preferences?.optimizationGoal || 'maximize_income',
-    riskTolerance: preferences?.riskTolerance || 'moderate',
-    timeHorizon: preferences?.timeHorizon || 'medium',
-    autoOptimize: preferences?.autoOptimize || false,
-    notificationSettings: preferences?.notificationSettings || {
-      newRecommendations: true,
-      weeklyReports: true,
-      monthlyReports: true,
-      riskAlerts: true,
-    },
-  });
+  const [settings, setSettings] =
+    useState<UpdateUserOptimizationPreferencesRequest>({
+      preferredAlgorithm:
+        preferences?.preferredAlgorithm || 'linear_programming',
+      optimizationGoal: preferences?.optimizationGoal || 'maximize_income',
+      riskTolerance: preferences?.riskTolerance || 'moderate',
+      timeHorizon: preferences?.timeHorizon || 'medium',
+      autoOptimize: preferences?.autoOptimize || false,
+      notificationSettings: preferences?.notificationSettings || {
+        newRecommendations: true,
+        weeklyReports: true,
+        monthlyReports: true,
+        riskAlerts: true,
+      },
+    });
 
   const handleSaveSettings = async () => {
     if (!user?.token) return;
@@ -75,30 +77,90 @@ export function OptimizationSettingsPanel({
   };
 
   const algorithmOptions = [
-    { value: 'linear_programming', label: '線形計画法', description: '高速で基本的な最適化に適している' },
-    { value: 'genetic_algorithm', label: '遺伝的アルゴリズム', description: '複雑な制約に対応可能' },
-    { value: 'simulated_annealing', label: '焼きなまし法', description: '局所最適解を避けやすい' },
-    { value: 'multi_objective_nsga2', label: 'NSGA-II', description: '多目的最適化に特化' },
+    {
+      value: 'linear_programming',
+      label: '線形計画法',
+      description: '高速で基本的な最適化に適している',
+    },
+    {
+      value: 'genetic_algorithm',
+      label: '遺伝的アルゴリズム',
+      description: '複雑な制約に対応可能',
+    },
+    {
+      value: 'simulated_annealing',
+      label: '焼きなまし法',
+      description: '局所最適解を避けやすい',
+    },
+    {
+      value: 'multi_objective_nsga2',
+      label: 'NSGA-II',
+      description: '多目的最適化に特化',
+    },
   ];
 
   const objectiveOptions = [
-    { value: 'maximize_income', label: '収入最大化', description: '扶養限度額内で最大収入を目指す' },
-    { value: 'minimize_hours', label: '労働時間最小化', description: '必要収入を最小時間で達成' },
-    { value: 'balance_sources', label: '収入源バランス', description: '複数の収入源を均等に活用' },
-    { value: 'minimize_risk', label: 'リスク最小化', description: '扶養限度額超過リスクを最小化' },
-    { value: 'multi_objective', label: '多目的最適化', description: '複数の目標を同時に最適化' },
+    {
+      value: 'maximize_income',
+      label: '収入最大化',
+      description: '扶養限度額内で最大収入を目指す',
+    },
+    {
+      value: 'minimize_hours',
+      label: '労働時間最小化',
+      description: '必要収入を最小時間で達成',
+    },
+    {
+      value: 'balance_sources',
+      label: '収入源バランス',
+      description: '複数の収入源を均等に活用',
+    },
+    {
+      value: 'minimize_risk',
+      label: 'リスク最小化',
+      description: '扶養限度額超過リスクを最小化',
+    },
+    {
+      value: 'multi_objective',
+      label: '多目的最適化',
+      description: '複数の目標を同時に最適化',
+    },
   ];
 
   const riskToleranceOptions = [
-    { value: 'conservative', label: '保守的', description: '扶養限度額に余裕を持つ' },
-    { value: 'moderate', label: '中程度', description: 'バランスの取れたリスク管理' },
-    { value: 'aggressive', label: '積極的', description: '限度額ギリギリまで活用' },
+    {
+      value: 'conservative',
+      label: '保守的',
+      description: '扶養限度額に余裕を持つ',
+    },
+    {
+      value: 'moderate',
+      label: '中程度',
+      description: 'バランスの取れたリスク管理',
+    },
+    {
+      value: 'aggressive',
+      label: '積極的',
+      description: '限度額ギリギリまで活用',
+    },
   ];
 
   const timeHorizonOptions = [
-    { value: 'short', label: '短期（1-3ヶ月）', description: '直近の最適化に集中' },
-    { value: 'medium', label: '中期（3-6ヶ月）', description: '季節変動を考慮' },
-    { value: 'long', label: '長期（6-12ヶ月）', description: '年間を通じた最適化' },
+    {
+      value: 'short',
+      label: '短期（1-3ヶ月）',
+      description: '直近の最適化に集中',
+    },
+    {
+      value: 'medium',
+      label: '中期（3-6ヶ月）',
+      description: '季節変動を考慮',
+    },
+    {
+      value: 'long',
+      label: '長期（6-12ヶ月）',
+      description: '年間を通じた最適化',
+    },
   ];
 
   return (
@@ -110,17 +172,26 @@ export function OptimizationSettingsPanel({
       )}
 
       {success && (
-        <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
+        <Alert
+          severity="success"
+          sx={{ mb: 3 }}
+          onClose={() => setSuccess(null)}
+        >
           {success}
         </Alert>
       )}
 
-      <Grid container spacing={3}>
+      <Grid2 container spacing={3}>
         {/* Basic Settings */}
-        <Grid item xs={12} md={6}>
+        <Grid2 xs={12} md={6}>
           <Card>
             <CardContent>
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                sx={{ mb: 2 }}
+              >
                 <Settings />
                 <Typography variant="h6">基本設定</Typography>
               </Stack>
@@ -130,17 +201,19 @@ export function OptimizationSettingsPanel({
                   <InputLabel>優先アルゴリズム</InputLabel>
                   <Select
                     value={settings.preferredAlgorithm}
-                    onChange={(e) =>
+                    onChange={e =>
                       setSettings({
                         ...settings,
                         preferredAlgorithm: e.target.value as AlgorithmType,
                       })
                     }
                   >
-                    {algorithmOptions.map((option) => (
+                    {algorithmOptions.map(option => (
                       <MenuItem key={option.value} value={option.value}>
                         <Box>
-                          <Typography variant="body1">{option.label}</Typography>
+                          <Typography variant="body1">
+                            {option.label}
+                          </Typography>
                           <Typography variant="body2" color="textSecondary">
                             {option.description}
                           </Typography>
@@ -154,17 +227,19 @@ export function OptimizationSettingsPanel({
                   <InputLabel>最適化目標</InputLabel>
                   <Select
                     value={settings.optimizationGoal}
-                    onChange={(e) =>
+                    onChange={e =>
                       setSettings({
                         ...settings,
                         optimizationGoal: e.target.value as ObjectiveType,
                       })
                     }
                   >
-                    {objectiveOptions.map((option) => (
+                    {objectiveOptions.map(option => (
                       <MenuItem key={option.value} value={option.value}>
                         <Box>
-                          <Typography variant="body1">{option.label}</Typography>
+                          <Typography variant="body1">
+                            {option.label}
+                          </Typography>
                           <Typography variant="body2" color="textSecondary">
                             {option.description}
                           </Typography>
@@ -178,17 +253,19 @@ export function OptimizationSettingsPanel({
                   <InputLabel>リスク許容度</InputLabel>
                   <Select
                     value={settings.riskTolerance}
-                    onChange={(e) =>
+                    onChange={e =>
                       setSettings({
                         ...settings,
                         riskTolerance: e.target.value as any,
                       })
                     }
                   >
-                    {riskToleranceOptions.map((option) => (
+                    {riskToleranceOptions.map(option => (
                       <MenuItem key={option.value} value={option.value}>
                         <Box>
-                          <Typography variant="body1">{option.label}</Typography>
+                          <Typography variant="body1">
+                            {option.label}
+                          </Typography>
                           <Typography variant="body2" color="textSecondary">
                             {option.description}
                           </Typography>
@@ -202,17 +279,19 @@ export function OptimizationSettingsPanel({
                   <InputLabel>最適化期間</InputLabel>
                   <Select
                     value={settings.timeHorizon}
-                    onChange={(e) =>
+                    onChange={e =>
                       setSettings({
                         ...settings,
                         timeHorizon: e.target.value as any,
                       })
                     }
                   >
-                    {timeHorizonOptions.map((option) => (
+                    {timeHorizonOptions.map(option => (
                       <MenuItem key={option.value} value={option.value}>
                         <Box>
-                          <Typography variant="body1">{option.label}</Typography>
+                          <Typography variant="body1">
+                            {option.label}
+                          </Typography>
                           <Typography variant="body2" color="textSecondary">
                             {option.description}
                           </Typography>
@@ -226,7 +305,7 @@ export function OptimizationSettingsPanel({
                   control={
                     <Switch
                       checked={settings.autoOptimize}
-                      onChange={(e) =>
+                      onChange={e =>
                         setSettings({
                           ...settings,
                           autoOptimize: e.target.checked,
@@ -239,13 +318,18 @@ export function OptimizationSettingsPanel({
               </Stack>
             </CardContent>
           </Card>
-        </Grid>
+        </Grid2>
 
         {/* Notification Settings */}
-        <Grid item xs={12} md={6}>
+        <Grid2 xs={12} md={6}>
           <Card>
             <CardContent>
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                sx={{ mb: 2 }}
+              >
                 <Notifications />
                 <Typography variant="h6">通知設定</Typography>
               </Stack>
@@ -254,8 +338,10 @@ export function OptimizationSettingsPanel({
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={settings.notificationSettings?.newRecommendations}
-                      onChange={(e) =>
+                      checked={
+                        settings.notificationSettings?.newRecommendations
+                      }
+                      onChange={e =>
                         setSettings({
                           ...settings,
                           notificationSettings: {
@@ -273,7 +359,7 @@ export function OptimizationSettingsPanel({
                   control={
                     <Switch
                       checked={settings.notificationSettings?.weeklyReports}
-                      onChange={(e) =>
+                      onChange={e =>
                         setSettings({
                           ...settings,
                           notificationSettings: {
@@ -291,7 +377,7 @@ export function OptimizationSettingsPanel({
                   control={
                     <Switch
                       checked={settings.notificationSettings?.monthlyReports}
-                      onChange={(e) =>
+                      onChange={e =>
                         setSettings({
                           ...settings,
                           notificationSettings: {
@@ -309,7 +395,7 @@ export function OptimizationSettingsPanel({
                   control={
                     <Switch
                       checked={settings.notificationSettings?.riskAlerts}
-                      onChange={(e) =>
+                      onChange={e =>
                         setSettings({
                           ...settings,
                           notificationSettings: {
@@ -325,54 +411,69 @@ export function OptimizationSettingsPanel({
               </Stack>
             </CardContent>
           </Card>
-        </Grid>
+        </Grid2>
 
         {/* Current Settings Display */}
-        <Grid item xs={12}>
+        <Grid2 xs={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 現在の設定
               </Typography>
-              
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={3}>
+
+              <Grid2 container spacing={2}>
+                <Grid2 xs={12} md={3}>
                   <Typography variant="body2" color="textSecondary">
                     優先アルゴリズム
                   </Typography>
                   <Chip
-                    label={algorithmOptions.find(a => a.value === settings.preferredAlgorithm)?.label}
+                    label={
+                      algorithmOptions.find(
+                        a => a.value === settings.preferredAlgorithm
+                      )?.label
+                    }
                     color="primary"
                     size="small"
                   />
-                </Grid>
+                </Grid2>
 
-                <Grid item xs={12} md={3}>
+                <Grid2 xs={12} md={3}>
                   <Typography variant="body2" color="textSecondary">
                     最適化目標
                   </Typography>
                   <Chip
-                    label={objectiveOptions.find(o => o.value === settings.optimizationGoal)?.label}
+                    label={
+                      objectiveOptions.find(
+                        o => o.value === settings.optimizationGoal
+                      )?.label
+                    }
                     color="secondary"
                     size="small"
                   />
-                </Grid>
+                </Grid2>
 
-                <Grid item xs={12} md={3}>
+                <Grid2 xs={12} md={3}>
                   <Typography variant="body2" color="textSecondary">
                     リスク許容度
                   </Typography>
                   <Chip
-                    label={riskToleranceOptions.find(r => r.value === settings.riskTolerance)?.label}
+                    label={
+                      riskToleranceOptions.find(
+                        r => r.value === settings.riskTolerance
+                      )?.label
+                    }
                     color={
-                      settings.riskTolerance === 'conservative' ? 'success' :
-                      settings.riskTolerance === 'moderate' ? 'warning' : 'error'
+                      settings.riskTolerance === 'conservative'
+                        ? 'success'
+                        : settings.riskTolerance === 'moderate'
+                          ? 'warning'
+                          : 'error'
                     }
                     size="small"
                   />
-                </Grid>
+                </Grid2>
 
-                <Grid item xs={12} md={3}>
+                <Grid2 xs={12} md={3}>
                   <Typography variant="body2" color="textSecondary">
                     自動最適化
                   </Typography>
@@ -381,12 +482,12 @@ export function OptimizationSettingsPanel({
                     color={settings.autoOptimize ? 'success' : 'default'}
                     size="small"
                   />
-                </Grid>
-              </Grid>
+                </Grid2>
+              </Grid2>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </Grid2>
+      </Grid2>
 
       {/* Save Button */}
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>

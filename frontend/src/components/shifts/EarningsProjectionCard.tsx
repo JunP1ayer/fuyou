@@ -8,11 +8,11 @@ import {
   LinearProgress,
   Chip,
   Alert,
-  Grid,
   Paper,
   CircularProgress,
   Tooltip,
 } from '@mui/material';
+import Grid2 from '@mui/material/Grid2';
 import {
   TrendingUp,
   TrendingDown,
@@ -51,7 +51,7 @@ export const EarningsProjectionCard: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const response = await apiService.getShiftProjection(token) as {
+      const response = (await apiService.getShiftProjection(token)) as {
         success: boolean;
         data?: EarningsProjection;
         error?: any;
@@ -66,7 +66,9 @@ export const EarningsProjectionCard: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to fetch projection:', err);
-      setError(err instanceof Error ? err.message : '収入予測の取得に失敗しました');
+      setError(
+        err instanceof Error ? err.message : '収入予測の取得に失敗しました'
+      );
     } finally {
       setLoading(false);
     }
@@ -124,7 +126,12 @@ export const EarningsProjectionCard: React.FC = () => {
     return (
       <Card>
         <CardContent>
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            minHeight={200}
+          >
             <CircularProgress />
           </Box>
         </CardContent>
@@ -177,7 +184,12 @@ export const EarningsProjectionCard: React.FC = () => {
       <CardContent>
         {/* 扶養限度額の使用状況 */}
         <Box mb={3}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={1}
+          >
             <Typography variant="body2" color="text.secondary">
               扶養限度額使用状況
             </Typography>
@@ -202,10 +214,16 @@ export const EarningsProjectionCard: React.FC = () => {
         </Box>
 
         {/* 統計情報 */}
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+        <Grid2 container spacing={2}>
+          <Grid2 xs={12} md={6}>
             <Paper sx={{ p: 2, textAlign: 'center' }}>
-              <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={1}>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                gap={1}
+                mb={1}
+              >
                 <CalendarToday fontSize="small" color="primary" />
                 <Typography variant="h6" color="primary">
                   {formatCurrency(projection.currentMonth)}
@@ -215,11 +233,17 @@ export const EarningsProjectionCard: React.FC = () => {
                 今月の収入
               </Typography>
             </Paper>
-          </Grid>
-          
-          <Grid item xs={12} md={6}>
+          </Grid2>
+
+          <Grid2 xs={12} md={6}>
             <Paper sx={{ p: 2, textAlign: 'center' }}>
-              <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={1}>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                gap={1}
+                mb={1}
+              >
                 <TrendingUp fontSize="small" color="primary" />
                 <Typography variant="h6" color="primary">
                   {formatCurrency(projection.projectedTotal)}
@@ -229,11 +253,17 @@ export const EarningsProjectionCard: React.FC = () => {
                 年間予測収入
               </Typography>
             </Paper>
-          </Grid>
+          </Grid2>
 
-          <Grid item xs={12} md={6}>
+          <Grid2 xs={12} md={6}>
             <Paper sx={{ p: 2, textAlign: 'center' }}>
-              <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={1}>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                gap={1}
+                mb={1}
+              >
                 <AttachMoney fontSize="small" color="secondary" />
                 <Typography variant="h6" color="secondary">
                   {formatCurrency(projection.dailyAverage)}
@@ -243,11 +273,17 @@ export const EarningsProjectionCard: React.FC = () => {
                 1日平均収入
               </Typography>
             </Paper>
-          </Grid>
+          </Grid2>
 
-          <Grid item xs={12} md={6}>
+          <Grid2 xs={12} md={6}>
             <Paper sx={{ p: 2, textAlign: 'center' }}>
-              <Box display="flex" alignItems="center" justifyContent="center" gap={1} mb={1}>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                gap={1}
+                mb={1}
+              >
                 <Warning fontSize="small" color="warning" />
                 <Typography variant="h6" color="warning">
                   {formatCurrency(projection.suggestedDailyTarget)}
@@ -257,39 +293,51 @@ export const EarningsProjectionCard: React.FC = () => {
                 推奨1日収入
               </Typography>
             </Paper>
-          </Grid>
-        </Grid>
+          </Grid2>
+        </Grid2>
 
         {/* アドバイス */}
         <Box mt={3}>
           {projection.riskLevel === 'danger' && (
             <Alert severity="error" sx={{ mb: 2 }}>
               <Typography variant="body2">
-                <strong>注意:</strong> 現在のペースでは扶養限度額を超過する可能性があります。
-                今月の目標収入を{formatCurrency(projection.suggestedDailyTarget * projection.remainingWorkingDays)}以下に抑えることをお勧めします。
-              </Typography>
-            </Alert>
-          )}
-          
-          {projection.riskLevel === 'warning' && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              <Typography variant="body2">
-                <strong>注意:</strong> 扶養限度額に近づいています。
-                残り{formatCurrency(projection.fuyouLimitRemaining)}まで働くことができます。
-              </Typography>
-            </Alert>
-          )}
-          
-          {projection.riskLevel === 'safe' && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              <Typography variant="body2">
-                <strong>良好:</strong> 現在のペースなら扶養範囲内で安全です。
-                残り{formatCurrency(projection.fuyouLimitRemaining)}まで働くことができます。
+                <strong>注意:</strong>{' '}
+                現在のペースでは扶養限度額を超過する可能性があります。
+                今月の目標収入を
+                {formatCurrency(
+                  projection.suggestedDailyTarget *
+                    projection.remainingWorkingDays
+                )}
+                以下に抑えることをお勧めします。
               </Typography>
             </Alert>
           )}
 
-          <Box display="flex" justifyContent="space-between" alignItems="center">
+          {projection.riskLevel === 'warning' && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <Typography variant="body2">
+                <strong>注意:</strong> 扶養限度額に近づいています。 残り
+                {formatCurrency(projection.fuyouLimitRemaining)}
+                まで働くことができます。
+              </Typography>
+            </Alert>
+          )}
+
+          {projection.riskLevel === 'safe' && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              <Typography variant="body2">
+                <strong>良好:</strong> 現在のペースなら扶養範囲内で安全です。
+                残り{formatCurrency(projection.fuyouLimitRemaining)}
+                まで働くことができます。
+              </Typography>
+            </Alert>
+          )}
+
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
             <Typography variant="caption" color="text.secondary">
               今月末予測: {formatCurrency(projection.projectedMonthEnd)}
             </Typography>

@@ -1,10 +1,10 @@
 export interface User {
   id: string;
-  email: string;
-  fullName: string;
-  isStudent: boolean;
-  createdAt: string;
-  updatedAt: string;
+  email?: string;
+  aud?: string;
+  token: string;
+  fullName?: string;
+  isStudent?: boolean;
 }
 
 export interface AuthToken {

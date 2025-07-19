@@ -18,7 +18,7 @@ import {
   Grow,
   Collapse,
 } from '@mui/material';
-import { Grid } from '@mui/material';
+import Grid2 from '@mui/material/Grid2';
 import {
   CloudUpload,
   Image as ImageIcon,
@@ -121,9 +121,9 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
 
   const fetchUsage = async () => {
     if (!token) return;
-    
+
     try {
-      const usageData = await apiService.getOCRUsage(token) as OCRUsageStats;
+      const usageData = (await apiService.getOCRUsage(token)) as OCRUsageStats;
       setUsage(usageData);
       onUsageUpdate?.(usageData);
     } catch (error) {
@@ -132,9 +132,11 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
   };
 
   const updateStep = (stepIndex: number, updates: Partial<ProcessingStep>) => {
-    setSteps(prev => prev.map((step, index) => 
-      index === stepIndex ? { ...step, ...updates } : step
-    ));
+    setSteps(prev =>
+      prev.map((step, index) =>
+        index === stepIndex ? { ...step, ...updates } : step
+      )
+    );
   };
 
   const startProcessing = async () => {
@@ -160,7 +162,7 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
 
       // 実際のOCR処理
       const ocrResult = await apiService.uploadImageForOCR(token, imageFile);
-      
+
       // Step 3: テキスト抽出完了
       updateStep(1, { completed: true, active: false });
       updateStep(2, { active: true });
@@ -184,12 +186,12 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
 
       setResult(ocrResult);
       onProcessingComplete?.(ocrResult);
-      
+
       // 使用状況を更新
       await fetchUsage();
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'OCR処理に失敗しました';
+      const errorMessage =
+        error instanceof Error ? error.message : 'OCR処理に失敗しました';
       setError(errorMessage);
       updateStep(currentStep, { error: errorMessage, active: false });
       onError?.(errorMessage);
@@ -221,8 +223,8 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
       {/* 処理状況ヘッダー */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={6}>
+          <Grid2 container spacing={2} alignItems="center">
+            <Grid2 xs={12} md={6}>
               <Typography variant="h6" gutterBottom>
                 OCR処理状況
               </Typography>
@@ -235,31 +237,42 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
                   )}
                 </Typography>
               </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Grid2>
+            <Grid2 size={{ xs: 12, md: 6 }}>
               {imageFile && (
                 <Box>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    {imageFile.name} ({(imageFile.size / 1024 / 1024).toFixed(1)}MB)
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    {imageFile.name} (
+                    {(imageFile.size / 1024 / 1024).toFixed(1)}MB)
                   </Typography>
                   <Button
                     onClick={startProcessing}
                     disabled={processing}
                     variant="contained"
-                    startIcon={processing ? <CircularProgress size={20} /> : <CloudUpload />}
+                    startIcon={
+                      processing ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <CloudUpload />
+                      )
+                    }
                   >
                     {processing ? '処理中...' : 'OCR処理開始'}
                   </Button>
                 </Box>
               )}
-            </Grid>
-          </Grid>
-          
+            </Grid2>
+          </Grid2>
+
           {processing && (
             <Box sx={{ mt: 2 }}>
-              <LinearProgress 
-                variant="determinate" 
-                value={progress} 
+              <LinearProgress
+                variant="determinate"
+                value={progress}
                 sx={{ height: 8, borderRadius: 4 }}
               />
             </Box>
@@ -275,7 +288,7 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
               <Typography variant="h6" gutterBottom>
                 処理ステップ
               </Typography>
-              
+
               <Stepper activeStep={currentStep} orientation="vertical">
                 {steps.map((step, index) => (
                   <Step key={step.id} completed={step.completed}>
@@ -316,9 +329,9 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
               <Typography variant="h6" gutterBottom>
                 OCR結果
               </Typography>
-              
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={4}>
+
+              <Grid2 container spacing={2}>
+                <Grid2 size={{ xs: 12, md: 4 }}>
                   <Box display="flex" gap={1} flexWrap="wrap">
                     <Chip
                       label={`信頼度: ${Math.round((result.data?.confidence || 0) * 100)}%`}
@@ -338,16 +351,27 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
                       />
                     )}
                   </Box>
-                </Grid>
-                
-                <Grid item xs={12} md={8}>
-                  <Paper sx={{ p: 2, bgcolor: 'grey.50', maxHeight: 200, overflow: 'auto' }}>
-                    <Typography variant="body2" style={{ whiteSpace: 'pre-wrap' }}>
-                      {result.data?.extractedText || 'テキストが抽出されませんでした'}
+                </Grid2>
+
+                <Grid2 size={{ xs: 12, md: 8 }}>
+                  <Paper
+                    sx={{
+                      p: 2,
+                      bgcolor: 'grey.50',
+                      maxHeight: 200,
+                      overflow: 'auto',
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      style={{ whiteSpace: 'pre-wrap' }}
+                    >
+                      {result.data?.extractedText ||
+                        'テキストが抽出されませんでした'}
                     </Typography>
                   </Paper>
-                </Grid>
-              </Grid>
+                </Grid2>
+              </Grid2>
             </CardContent>
           </Card>
         </Grow>
@@ -361,9 +385,9 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
               <Typography variant="h6" gutterBottom>
                 API使用状況
               </Typography>
-              
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={4}>
+
+              <Grid2 container spacing={2}>
+                <Grid2 size={{ xs: 12, md: 4 }}>
                   <Box textAlign="center">
                     <Typography variant="h4" color="primary">
                       {usage.data?.currentHourUsage || 0}
@@ -375,9 +399,9 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
                       上限: {usage.data?.limits.hourly || 20}回
                     </Typography>
                   </Box>
-                </Grid>
-                
-                <Grid item xs={12} md={4}>
+                </Grid2>
+
+                <Grid2 size={{ xs: 12, md: 4 }}>
                   <Box textAlign="center">
                     <Typography variant="h4" color="secondary">
                       {usage.data?.currentDayUsage || 0}
@@ -386,9 +410,9 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
                       今日の使用回数
                     </Typography>
                   </Box>
-                </Grid>
-                
-                <Grid item xs={12} md={4}>
+                </Grid2>
+
+                <Grid2 size={{ xs: 12, md: 4 }}>
                   <Box textAlign="center">
                     <Typography variant="h4" color="info.main">
                       {usage.data?.currentMonthUsage || 0}
@@ -400,8 +424,8 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
                       上限: {usage.data?.limits.monthly || 1000}回
                     </Typography>
                   </Box>
-                </Grid>
-              </Grid>
+                </Grid2>
+              </Grid2>
             </CardContent>
           </Card>
         </Collapse>

@@ -362,20 +362,17 @@ export class ConstraintService {
       const preferences = {
         id: uuidv4(),
         user_id: userId,
-        default_objective: data.defaultObjective || 'maximize_income',
-        optimization_frequency: data.optimizationFrequency || 'weekly',
-        auto_apply_suggestions: data.autoApplySuggestions || false,
-        notification_preferences: data.notificationPreferences || {
-          email: true,
-          inApp: true,
-          push: false,
-          optimizationComplete: true,
-          constraintViolation: true,
-          limitApproaching: true
+        preferred_algorithm: 'linear_programming',
+        optimization_goal: data.defaultObjective || 'maximize_income',
+        risk_tolerance: 'moderate',
+        time_horizon: 'medium',
+        auto_optimize: data.autoApplySuggestions || false,
+        notification_settings: data.notificationPreferences || {
+          new_recommendations: true,
+          weekly_reports: false,
+          monthly_reports: true,
+          risk_alerts: true
         },
-        tier_level: data.tierLevel || 'free',
-        monthly_optimization_runs: 0,
-        last_optimization_reset: new Date().toISOString().split('T')[0],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };

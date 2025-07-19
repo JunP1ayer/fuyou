@@ -4,10 +4,15 @@ import { authService } from '../services/authService';
 // Validation middleware factory
 export const validateSchema = (schema: any, property: 'body' | 'query' | 'params' = 'body') => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const { error } = schema.validate(req[property]);
-    
-    if (error) {
-      const errorMessage = error.details.map((detail: any) => detail.message).join(', ');
+    try {
+      // Use Zod parse method instead of validate
+      schema.parse(req[property]);
+      next();
+    } catch (error: any) {
+      const errorMessage = error.errors 
+        ? error.errors.map((err: any) => err.message).join(', ')
+        : error.message || 'Validation failed';
+      
       return res.status(400).json({
         success: false,
         error: {
@@ -16,8 +21,6 @@ export const validateSchema = (schema: any, property: 'body' | 'query' | 'params
         }
       });
     }
-    
-    next();
   };
 };
 

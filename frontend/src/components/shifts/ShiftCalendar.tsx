@@ -6,7 +6,6 @@ import {
   Typography,
   Box,
   IconButton,
-  Grid,
   Paper,
   Chip,
   Fab,
@@ -19,6 +18,7 @@ import {
   FormControl,
   InputLabel,
 } from '@mui/material';
+import Grid2 from '@mui/material/Grid2';
 import {
   ChevronLeft,
   ChevronRight,
@@ -32,10 +32,26 @@ import {
   CheckCircle,
   RadioButtonUnchecked,
 } from '@mui/icons-material';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, addMonths, subMonths, ja } from '../../utils/dateUtils';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isToday,
+  addMonths,
+  subMonths,
+  ja,
+} from '../../utils/dateUtils';
 import { apiService } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
-import type { Shift, ShiftStats, CalendarDate, ViewMode, EarningsProjection } from '../../types/shift';
+import type {
+  Shift,
+  ShiftStats,
+  CalendarDate,
+  ViewMode,
+  EarningsProjection,
+} from '../../types/shift';
 import { EarningsProjectionCard } from './EarningsProjectionCard';
 
 interface ShiftCalendarProps {
@@ -43,12 +59,14 @@ interface ShiftCalendarProps {
   onEditShift?: (shift: Shift) => void;
   onViewChange?: (mode: ViewMode) => void;
   initialDate?: Date;
+  compactMode?: boolean; // シフトボード型UI用のコンパクトモード
 }
 
 export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   onAddShift,
   onEditShift,
   onViewChange,
+  compactMode = false,
   initialDate = new Date(),
 }) => {
   const { token } = useAuth();
@@ -61,26 +79,35 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   // カレンダーの日付を生成
-  const generateCalendarDates = useCallback((date: Date): CalendarDate[] => {
-    const start = startOfMonth(date);
-    const end = endOfMonth(date);
-    const days = eachDayOfInterval({ start, end });
+  const generateCalendarDates = useCallback(
+    (date: Date): CalendarDate[] => {
+      const start = startOfMonth(date);
+      const end = endOfMonth(date);
+      const days = eachDayOfInterval({ start, end });
 
-    return days.map((day) => {
-      const dateStr = format(day, 'yyyy-MM-dd');
-      const dayShifts = shifts.filter(shift => shift.date === dateStr);
-      
-      return {
-        date: dateStr,
-        dayOfWeek: day.getDay(),
-        isToday: isToday(day),
-        isCurrentMonth: isSameMonth(day, date),
-        shifts: dayShifts,
-        totalEarnings: dayShifts.reduce((sum, shift) => sum + shift.calculatedEarnings, 0),
-        totalHours: dayShifts.reduce((sum, shift) => sum + shift.workingHours, 0),
-      };
-    });
-  }, [shifts]);
+      return days.map(day => {
+        const dateStr = format(day, 'yyyy-MM-dd');
+        const dayShifts = shifts.filter(shift => shift.date === dateStr);
+
+        return {
+          date: dateStr,
+          dayOfWeek: day.getDay(),
+          isToday: isToday(day),
+          isCurrentMonth: isSameMonth(day, date),
+          shifts: dayShifts,
+          totalEarnings: dayShifts.reduce(
+            (sum, shift) => sum + shift.calculatedEarnings,
+            0
+          ),
+          totalHours: dayShifts.reduce(
+            (sum, shift) => sum + shift.workingHours,
+            0
+          ),
+        };
+      });
+    },
+    [shifts]
+  );
 
   const calendarDates = generateCalendarDates(currentDate);
 
@@ -95,12 +122,15 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
       const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
       const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
 
-      const response = await apiService.getShifts(token, {
+      const response = (await apiService.getShifts(token, {
         startDate,
         endDate,
-      }) as { success: boolean; data?: Shift[]; error?: any };
+      })) as { success: boolean; data?: Shift[]; error?: any };
 
-      if (!('success' in response) || !(response as { success: boolean }).success) {
+      if (
+        !('success' in response) ||
+        !(response as { success: boolean }).success
+      ) {
         throw new Error('シフトデータの取得に失敗しました');
       }
 
@@ -109,21 +139,29 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
       setShifts(shiftsData);
 
       // 統計情報も取得
-      const statsResponse = await apiService.getShiftStats(
+      const statsResponse = (await apiService.getShiftStats(
         token,
         currentDate.getFullYear(),
         currentDate.getMonth() + 1
-      ) as { success: boolean; data?: ShiftStats; error?: any };
+      )) as { success: boolean; data?: ShiftStats; error?: any };
 
-      if (('success' in statsResponse) && (statsResponse as { success: boolean }).success) {
-        const statsData = statsResponse as { success: boolean; data?: ShiftStats };
+      if (
+        'success' in statsResponse &&
+        (statsResponse as { success: boolean }).success
+      ) {
+        const statsData = statsResponse as {
+          success: boolean;
+          data?: ShiftStats;
+        };
         if (statsData.data) {
           setStats(statsData.data);
         }
       }
     } catch (err) {
       console.error('Failed to fetch shifts:', err);
-      setError(err instanceof Error ? err.message : 'シフトデータの取得に失敗しました');
+      setError(
+        err instanceof Error ? err.message : 'シフトデータの取得に失敗しました'
+      );
     } finally {
       setLoading(false);
     }
@@ -214,35 +252,33 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
               <Select
                 value={viewMode}
                 label="表示"
-                onChange={(e) => handleViewModeChange(e.target.value as ViewMode)}
+                onChange={e => handleViewModeChange(e.target.value as ViewMode)}
               >
                 <MenuItem value="month">
                   <Box display="flex" alignItems="center" gap={1}>
-                    <ViewModule fontSize="small" />
-                    月
+                    <ViewModule fontSize="small" />月
                   </Box>
                 </MenuItem>
                 <MenuItem value="week">
                   <Box display="flex" alignItems="center" gap={1}>
-                    <ViewWeek fontSize="small" />
-                    週
+                    <ViewWeek fontSize="small" />週
                   </Box>
                 </MenuItem>
               </Select>
             </FormControl>
-            
+
             <Tooltip title="今月">
               <IconButton onClick={handleToday}>
                 <Today />
               </IconButton>
             </Tooltip>
-            
+
             <Tooltip title="前月">
               <IconButton onClick={handlePrevMonth}>
                 <ChevronLeft />
               </IconButton>
             </Tooltip>
-            
+
             <Tooltip title="次月">
               <IconButton onClick={handleNextMonth}>
                 <ChevronRight />
@@ -260,17 +296,21 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         )}
 
         {/* 統計情報と収入予測 */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid2 container spacing={2} sx={{ mb: 3 }}>
           {/* 統計情報 */}
           {stats && (
-            <Grid item xs={12} lg={8}>
+            <Grid2 xs={12} lg={8}>
               <Box>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                >
                   <TrendingUp />
                   月間統計
                 </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={6} md={3}>
+                <Grid2 container spacing={2}>
+                  <Grid2 xs={6} md={3}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
                       <Typography variant="h6" color="primary">
                         {stats.thisMonth.shifts}
@@ -279,8 +319,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                         今月のシフト数
                       </Typography>
                     </Paper>
-                  </Grid>
-                  <Grid item xs={6} md={3}>
+                  </Grid2>
+                  <Grid2 xs={6} md={3}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
                       <Typography variant="h6" color="primary">
                         {formatHours(stats.thisMonth.hours)}
@@ -289,8 +329,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                         今月の労働時間
                       </Typography>
                     </Paper>
-                  </Grid>
-                  <Grid item xs={6} md={3}>
+                  </Grid2>
+                  <Grid2 xs={6} md={3}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
                       <Typography variant="h6" color="primary">
                         {formatCurrency(stats.thisMonth.earnings)}
@@ -299,27 +339,30 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                         今月の収入
                       </Typography>
                     </Paper>
-                  </Grid>
-                  <Grid item xs={6} md={3}>
+                  </Grid2>
+                  <Grid2 xs={6} md={3}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
                       <Typography variant="h6" color="primary">
-                        {Math.round(stats.thisMonth.earnings / Math.max(stats.thisMonth.hours, 1))}
+                        {Math.round(
+                          stats.thisMonth.earnings /
+                            Math.max(stats.thisMonth.hours, 1)
+                        )}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         平均時給
                       </Typography>
                     </Paper>
-                  </Grid>
-                </Grid>
+                  </Grid2>
+                </Grid2>
               </Box>
-            </Grid>
+            </Grid2>
           )}
-          
+
           {/* 収入予測 */}
-          <Grid item xs={12} lg={4}>
+          <Grid2 item xs={12} lg={4}>
             <EarningsProjectionCard />
-          </Grid>
-        </Grid>
+          </Grid2>
+        </Grid2>
 
         {/* カレンダー */}
         <Box position="relative">
@@ -341,35 +384,42 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           )}
 
           {/* 曜日ヘッダー */}
-          <Grid container spacing={1} sx={{ mb: 1 }}>
+          <Grid2 container spacing={1} sx={{ mb: 1 }}>
             {getWeekDays().map((day, index) => (
-              <Grid item xs key={index}>
+              <Grid2 item xs key={index}>
                 <Box
                   textAlign="center"
                   py={1}
                   sx={{
                     fontWeight: 'bold',
-                    color: index === 0 ? 'error.main' : index === 6 ? 'primary.main' : 'text.primary',
+                    color:
+                      index === 0
+                        ? 'error.main'
+                        : index === 6
+                          ? 'primary.main'
+                          : 'text.primary',
                   }}
                 >
                   {day}
                 </Box>
-              </Grid>
+              </Grid2>
             ))}
-          </Grid>
+          </Grid2>
 
           {/* 日付グリッド */}
-          <Grid container spacing={1}>
-            {calendarDates.map((calendarDate) => (
-              <Grid item xs key={calendarDate.date}>
+          <Grid2 container spacing={1}>
+            {calendarDates.map(calendarDate => (
+              <Grid2 item xs key={calendarDate.date}>
                 <Paper
                   elevation={calendarDate.isToday ? 3 : 1}
                   sx={{
-                    minHeight: 120,
+                    minHeight: compactMode ? 80 : 120,
                     cursor: 'pointer',
                     position: 'relative',
                     border: calendarDate.isToday ? '2px solid' : '1px solid',
-                    borderColor: calendarDate.isToday ? 'primary.main' : 'divider',
+                    borderColor: calendarDate.isToday
+                      ? 'primary.main'
+                      : 'divider',
                     '&:hover': {
                       elevation: 3,
                       bgcolor: 'action.hover',
@@ -379,23 +429,32 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                 >
                   <Box p={1}>
                     {/* 日付 */}
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      mb={1}
+                    >
                       <Typography
                         variant="body2"
                         sx={{
                           fontWeight: calendarDate.isToday ? 'bold' : 'normal',
-                          color: calendarDate.dayOfWeek === 0 
-                            ? 'error.main' 
-                            : calendarDate.dayOfWeek === 6 
-                            ? 'primary.main' 
-                            : 'text.primary',
+                          color:
+                            calendarDate.dayOfWeek === 0
+                              ? 'error.main'
+                              : calendarDate.dayOfWeek === 6
+                                ? 'primary.main'
+                                : 'text.primary',
                         }}
                       >
                         {format(new Date(calendarDate.date), 'd')}
                       </Typography>
-                      
+
                       {calendarDate.shifts.length > 0 && (
-                        <Badge badgeContent={calendarDate.shifts.length} color="primary">
+                        <Badge
+                          badgeContent={calendarDate.shifts.length}
+                          color="primary"
+                        >
                           <Work fontSize="small" />
                         </Badge>
                       )}
@@ -403,41 +462,46 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
 
                     {/* シフト一覧 */}
                     <Box>
-                      {calendarDate.shifts.slice(0, 2).map((shift) => (
-                        <Chip
-                          key={shift.id}
-                          label={
-                            <Box display="flex" alignItems="center" gap={0.5}>
-                              {shift.isConfirmed ? (
-                                <CheckCircle sx={{ fontSize: 12 }} />
-                              ) : (
-                                <RadioButtonUnchecked sx={{ fontSize: 12 }} />
-                              )}
-                              <Typography variant="caption">
-                                {shift.startTime}-{shift.endTime}
-                              </Typography>
-                            </Box>
-                          }
-                          size="small"
-                          color={getShiftColor(shift) as 'success' | 'warning'}
-                          sx={{ 
-                            width: '100%', 
-                            mb: 0.5,
-                            '& .MuiChip-label': { 
-                              width: '100%', 
-                              textAlign: 'left' 
+                      {calendarDate.shifts
+                        .slice(0, compactMode ? 1 : 2)
+                        .map(shift => (
+                          <Chip
+                            key={shift.id}
+                            label={
+                              <Box display="flex" alignItems="center" gap={0.5}>
+                                {shift.isConfirmed ? (
+                                  <CheckCircle sx={{ fontSize: 12 }} />
+                                ) : (
+                                  <RadioButtonUnchecked sx={{ fontSize: 12 }} />
+                                )}
+                                <Typography variant="caption">
+                                  {shift.startTime}-{shift.endTime}
+                                </Typography>
+                              </Box>
                             }
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleShiftClick(shift);
-                          }}
-                        />
-                      ))}
-                      
-                      {calendarDate.shifts.length > 2 && (
+                            size="small"
+                            color={
+                              getShiftColor(shift) as 'success' | 'warning'
+                            }
+                            sx={{
+                              width: '100%',
+                              mb: 0.5,
+                              '& .MuiChip-label': {
+                                width: '100%',
+                                textAlign: 'left',
+                              },
+                            }}
+                            onClick={e => {
+                              e.stopPropagation();
+                              handleShiftClick(shift);
+                            }}
+                          />
+                        ))}
+
+                      {calendarDate.shifts.length > (compactMode ? 1 : 2) && (
                         <Typography variant="caption" color="text.secondary">
-                          +{calendarDate.shifts.length - 2} more
+                          +{calendarDate.shifts.length - (compactMode ? 1 : 2)}{' '}
+                          more
                         </Typography>
                       )}
                     </Box>
@@ -452,24 +516,26 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                     )}
                   </Box>
                 </Paper>
-              </Grid>
+              </Grid2>
             ))}
-          </Grid>
+          </Grid2>
         </Box>
 
-        {/* 新規シフト追加ボタン */}
-        <Fab
-          color="primary"
-          aria-label="add shift"
-          sx={{
-            position: 'fixed',
-            bottom: 16,
-            right: 16,
-          }}
-          onClick={() => onAddShift?.()}
-        >
-          <Add />
-        </Fab>
+        {/* 新規シフト追加ボタン（コンパクトモードでは非表示） */}
+        {!compactMode && (
+          <Fab
+            color="primary"
+            aria-label="add shift"
+            sx={{
+              position: 'fixed',
+              bottom: 16,
+              right: 16,
+            }}
+            onClick={() => onAddShift?.()}
+          >
+            <Add />
+          </Fab>
+        )}
       </CardContent>
     </Card>
   );

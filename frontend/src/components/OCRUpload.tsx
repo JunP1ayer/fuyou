@@ -15,11 +15,11 @@ import {
   Card,
   CardMedia,
   CardContent,
-  Grid,
   Chip,
   Divider,
   ButtonGroup,
 } from '@mui/material';
+import Grid2 from '@mui/material/Grid2';
 import {
   PhotoCamera,
   Upload,
@@ -33,13 +33,13 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { apiService } from '../services/api';
-import type { 
-  OCRResponse, 
-  ImageUploadState, 
-  OCRProcessingState, 
+import type {
+  OCRResponse,
+  ImageUploadState,
+  OCRProcessingState,
   ImageInputSource,
   CameraSettings,
-  ExtractedShiftData
+  ExtractedShiftData,
 } from '../types/ocr';
 
 interface OCRUploadProps {
@@ -70,7 +70,7 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
   const [dragActive, setDragActive] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
   const [ocrResult, setOCRResult] = useState<OCRResponse | null>(null);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -84,12 +84,15 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
   };
 
   // ファイル選択処理
-  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      processSelectedFile(file, 'file');
-    }
-  }, []);
+  const handleFileSelect = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        processSelectedFile(file, 'file');
+      }
+    },
+    []
+  );
 
   // ドラッグ&ドロップ処理
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -105,7 +108,7 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
-    
+
     const file = e.dataTransfer.files[0];
     if (file) {
       processSelectedFile(file, 'drag-drop');
@@ -116,21 +119,27 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
   const processSelectedFile = (file: File, source: ImageInputSource) => {
     // ファイル形式チェック
     if (!file.type.startsWith('image/')) {
-      setUploadState(prev => ({ ...prev, error: '画像ファイルを選択してください' }));
+      setUploadState(prev => ({
+        ...prev,
+        error: '画像ファイルを選択してください',
+      }));
       onError?.('画像ファイルを選択してください');
       return;
     }
 
     // サイズチェック (5MB制限)
     if (file.size > 5 * 1024 * 1024) {
-      setUploadState(prev => ({ ...prev, error: 'ファイルサイズは5MB以下にしてください' }));
+      setUploadState(prev => ({
+        ...prev,
+        error: 'ファイルサイズは5MB以下にしてください',
+      }));
       onError?.('ファイルサイズは5MB以下にしてください');
       return;
     }
 
     // プレビュー画像の生成
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
       setUploadState({
         file,
         preview: e.target?.result as string,
@@ -153,7 +162,7 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
         },
         audio: false,
       });
-      
+
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -161,7 +170,10 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
       setCameraOpen(true);
     } catch (error) {
       console.error('カメラの起動に失敗しました:', error);
-      setUploadState(prev => ({ ...prev, error: 'カメラの起動に失敗しました' }));
+      setUploadState(prev => ({
+        ...prev,
+        error: 'カメラの起動に失敗しました',
+      }));
       onError?.('カメラの起動に失敗しました');
     }
   };
@@ -181,19 +193,25 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
       const canvas = canvasRef.current;
       const video = videoRef.current;
       const ctx = canvas.getContext('2d');
-      
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
+
       ctx?.drawImage(video, 0, 0);
-      
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
-          processSelectedFile(file, 'camera');
-          stopCamera();
-        }
-      }, 'image/jpeg', cameraSettings.quality);
+
+      canvas.toBlob(
+        blob => {
+          if (blob) {
+            const file = new File([blob], 'camera-capture.jpg', {
+              type: 'image/jpeg',
+            });
+            processSelectedFile(file, 'camera');
+            stopCamera();
+          }
+        },
+        'image/jpeg',
+        cameraSettings.quality
+      );
     }
   };
 
@@ -216,10 +234,13 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
         }));
       }, 300);
 
-      const response = await apiService.uploadImageForOCR(token, uploadState.file);
-      
+      const response = await apiService.uploadImageForOCR(
+        token,
+        uploadState.file
+      );
+
       clearInterval(progressInterval);
-      
+
       setProcessingState({
         step: 'complete',
         progress: 100,
@@ -233,45 +254,49 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
 
       // シフトデータの抽出も試行
       if (response.success && response.data?.extractedText) {
-        const extractedShifts = extractShiftDataFromText(response.data.extractedText);
+        const extractedShifts = extractShiftDataFromText(
+          response.data.extractedText
+        );
         if (extractedShifts.length > 0) {
           onShiftDataExtracted?.(extractedShifts);
         }
       }
-
     } catch (error) {
       setProcessingState({
         step: 'error',
         progress: 0,
-        message: error instanceof Error ? error.message : 'OCR処理に失敗しました',
+        message:
+          error instanceof Error ? error.message : 'OCR処理に失敗しました',
         error: error instanceof Error ? error.message : 'Unknown error',
       });
-      onError?.(error instanceof Error ? error.message : 'OCR処理に失敗しました');
+      onError?.(
+        error instanceof Error ? error.message : 'OCR処理に失敗しました'
+      );
     }
   };
 
   // テキストからシフトデータを抽出（簡易版）
   const extractShiftDataFromText = (text: string): ExtractedShiftData[] => {
     const shifts: ExtractedShiftData[] = [];
-    
+
     // 簡単な日付と時間の抽出パターン
     const datePattern = /(\d{1,2})\/(\d{1,2})|(\d{4})-(\d{1,2})-(\d{1,2})/g;
     const timePattern = /(\d{1,2}):(\d{2})/g;
     const ratePattern = /(\d+)円/g;
-    
+
     let dateMatch;
     while ((dateMatch = datePattern.exec(text)) !== null) {
       const shift: ExtractedShiftData = {
         confidence: 0.7, // 仮の信頼度
       };
-      
+
       if (dateMatch[1] && dateMatch[2]) {
         shift.date = `2024-${dateMatch[2].padStart(2, '0')}-${dateMatch[1].padStart(2, '0')}`;
       }
-      
+
       shifts.push(shift);
     }
-    
+
     return shifts;
   };
 
@@ -323,7 +348,7 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
           onChange={handleFileSelect}
           style={{ display: 'none' }}
         />
-        
+
         {uploadState.preview ? (
           // 画像プレビュー表示
           <Box>
@@ -335,7 +360,11 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
                 alt="アップロード予定の画像"
               />
               <CardContent>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
                   <Typography variant="body2" color="text.secondary">
                     {uploadState.file?.name}
                   </Typography>
@@ -345,16 +374,24 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
                 </Box>
               </CardContent>
             </Card>
-            
+
             <Box textAlign="center" mt={2}>
               <Button
                 variant="contained"
                 onClick={startOCRProcessing}
                 disabled={processingState.step !== 'idle'}
-                startIcon={processingState.step === 'uploading' ? <CircularProgress size={20} /> : <CloudUpload />}
+                startIcon={
+                  processingState.step === 'uploading' ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <CloudUpload />
+                  )
+                }
                 size="large"
               >
-                {processingState.step === 'uploading' ? 'OCR処理中...' : 'OCR処理開始'}
+                {processingState.step === 'uploading'
+                  ? 'OCR処理中...'
+                  : 'OCR処理開始'}
               </Button>
             </Box>
           </Box>
@@ -368,7 +405,7 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               画像からシフト情報を自動抽出します
             </Typography>
-            
+
             <ButtonGroup variant="outlined" sx={{ mb: 2 }}>
               <Button
                 onClick={() => fileInputRef.current?.click()}
@@ -376,15 +413,16 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
               >
                 ファイル選択
               </Button>
-              <Button
-                onClick={startCamera}
-                startIcon={<CameraAlt />}
-              >
+              <Button onClick={startCamera} startIcon={<CameraAlt />}>
                 カメラ撮影
               </Button>
             </ButtonGroup>
-            
-            <Typography variant="caption" display="block" color="text.secondary">
+
+            <Typography
+              variant="caption"
+              display="block"
+              color="text.secondary"
+            >
               対応形式: JPG, PNG, JPEG（最大5MB）
             </Typography>
           </Box>
@@ -397,9 +435,9 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
           <Typography variant="body2" gutterBottom>
             {processingState.message}
           </Typography>
-          <LinearProgress 
-            variant="determinate" 
-            value={processingState.progress} 
+          <LinearProgress
+            variant="determinate"
+            value={processingState.progress}
             sx={{ height: 8, borderRadius: 4 }}
           />
         </Box>
@@ -413,12 +451,7 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
       )}
 
       {/* カメラダイアログ */}
-      <Dialog 
-        open={cameraOpen} 
-        onClose={stopCamera}
-        maxWidth="md"
-        fullWidth
-      >
+      <Dialog open={cameraOpen} onClose={stopCamera} maxWidth="md" fullWidth>
         <DialogTitle>
           <Box display="flex" alignItems="center" gap={1}>
             <PhotoCamera />
@@ -442,9 +475,7 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={stopCamera}>
-            キャンセル
-          </Button>
+          <Button onClick={stopCamera}>キャンセル</Button>
           <Button
             onClick={capturePhoto}
             variant="contained"
@@ -462,46 +493,58 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle>
-          OCR処理結果
-        </DialogTitle>
+        <DialogTitle>OCR処理結果</DialogTitle>
         <DialogContent>
           {ocrResult && (
             <Box>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+              <Grid2 container spacing={2}>
+                <Grid2 xs={12} md={6}>
                   <Typography variant="h6" gutterBottom>
                     抽出されたテキスト
                   </Typography>
-                  <Paper sx={{ p: 2, bgcolor: 'grey.50', maxHeight: 300, overflow: 'auto' }}>
-                    <Typography variant="body2" style={{ whiteSpace: 'pre-wrap' }}>
-                      {ocrResult.data?.extractedText || 'テキストが抽出されませんでした'}
+                  <Paper
+                    sx={{
+                      p: 2,
+                      bgcolor: 'grey.50',
+                      maxHeight: 300,
+                      overflow: 'auto',
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      style={{ whiteSpace: 'pre-wrap' }}
+                    >
+                      {ocrResult.data?.extractedText ||
+                        'テキストが抽出されませんでした'}
                     </Typography>
                   </Paper>
-                </Grid>
-                <Grid item xs={12} md={6}>
+                </Grid2>
+                <Grid2 xs={12} md={6}>
                   <Typography variant="h6" gutterBottom>
                     処理情報
                   </Typography>
                   <Box display="flex" gap={1} flexWrap="wrap">
                     <Chip
                       label={`信頼度: ${Math.round((ocrResult.data?.confidence || 0) * 100)}%`}
-                      color={ocrResult.data?.confidence && ocrResult.data.confidence > 0.8 ? 'success' : 'warning'}
+                      color={
+                        ocrResult.data?.confidence &&
+                        ocrResult.data.confidence > 0.8
+                          ? 'success'
+                          : 'warning'
+                      }
                     />
                     <Chip
                       label={`処理時間: ${ocrResult.metadata?.processingTimeMs || 0}ms`}
                       color="info"
                     />
                   </Box>
-                </Grid>
-              </Grid>
+                </Grid2>
+              </Grid2>
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setResultOpen(false)}>
-            閉じる
-          </Button>
+          <Button onClick={() => setResultOpen(false)}>閉じる</Button>
           <Button
             variant="contained"
             onClick={() => {

@@ -9,7 +9,6 @@ import {
   Alert,
   CircularProgress,
   Chip,
-  Grid,
   Paper,
   Button,
   IconButton,
@@ -17,6 +16,7 @@ import {
   Stack,
   LinearProgress,
 } from '@mui/material';
+import Grid2 from '@mui/material/Grid2';
 import {
   TrendingUp,
   Schedule,
@@ -47,21 +47,26 @@ import type {
 
 interface OptimizationDashboardProps {
   onError?: (error: string) => void;
+  simplified?: boolean; // シフトボード型UI用の簡素化モード
 }
 
-export function OptimizationDashboard({ onError }: OptimizationDashboardProps) {
+export function OptimizationDashboard({
+  onError,
+  simplified = false,
+}: OptimizationDashboardProps) {
   const { user } = useAuth();
   const [currentTab, setCurrentTab] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [serviceHealthy, setServiceHealthy] = useState<boolean | null>(null);
-  
+
   // Data state
   const [constraints, setConstraints] = useState<OptimizationConstraint[]>([]);
   const [runs, setRuns] = useState<OptimizationRun[]>([]);
   const [algorithms, setAlgorithms] = useState<OptimizationAlgorithm[]>([]);
   const [tiers, setTiers] = useState<Record<string, OptimizationTier>>({});
-  const [preferences, setPreferences] = useState<UserOptimizationPreferences | null>(null);
+  const [preferences, setPreferences] =
+    useState<UserOptimizationPreferences | null>(null);
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([]);
   const [activeRun, setActiveRun] = useState<OptimizationRun | null>(null);
 
@@ -116,10 +121,11 @@ export function OptimizationDashboard({ onError }: OptimizationDashboardProps) {
       if (runsResult.status === 'fulfilled') {
         const runsData = runsResult.value?.data || [];
         setRuns(runsData);
-        
+
         // Find active run
-        const activeRun = runsData.find((run: OptimizationRun) => 
-          run.status === 'running' || run.status === 'pending'
+        const activeRun = runsData.find(
+          (run: OptimizationRun) =>
+            run.status === 'running' || run.status === 'pending'
         );
         setActiveRun(activeRun || null);
       }
@@ -143,9 +149,9 @@ export function OptimizationDashboard({ onError }: OptimizationDashboardProps) {
       if (availabilityResult.status === 'fulfilled') {
         setAvailability(availabilityResult.value?.data || []);
       }
-
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'データの読み込みに失敗しました';
+      const errorMessage =
+        err instanceof Error ? err.message : 'データの読み込みに失敗しました';
       setError(errorMessage);
       onError?.(errorMessage);
     } finally {
@@ -164,10 +170,16 @@ export function OptimizationDashboard({ onError }: OptimizationDashboardProps) {
 
     const pollInterval = setInterval(async () => {
       try {
-        const statusResult = await apiService.getOptimizationRunStatus(user.token!, activeRun.id);
+        const statusResult = await apiService.getOptimizationRunStatus(
+          user.token!,
+          activeRun.id
+        );
         const updatedRun = statusResult.data;
 
-        if (updatedRun.status === 'completed' || updatedRun.status === 'failed') {
+        if (
+          updatedRun.status === 'completed' ||
+          updatedRun.status === 'failed'
+        ) {
           setActiveRun(null);
           loadData(); // Refresh all data
         } else {
@@ -200,9 +212,59 @@ export function OptimizationDashboard({ onError }: OptimizationDashboardProps) {
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="400px"
+      >
         <CircularProgress />
       </Box>
+    );
+  }
+
+  // 簡素化モード用のレンダリング
+  if (simplified) {
+    return (
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            労働時間最適化（簡易版）
+          </Typography>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            シフトボード型UIでは最適化機能は簡素化されています。
+            詳細な最適化は「最適化タブ」をご利用ください。
+          </Alert>
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+            <Paper sx={{ p: 2, textAlign: 'center' }}>
+              <Typography variant="caption" color="text.secondary">
+                推奨月間労働時間
+              </Typography>
+              <Typography variant="h6" color="primary">
+                60-80 時間
+              </Typography>
+            </Paper>
+            <Paper sx={{ p: 2, textAlign: 'center' }}>
+              <Typography variant="caption" color="text.secondary">
+                扶養内収入目標
+              </Typography>
+              <Typography variant="h6" color="success.main">
+                ¥100,000/月
+              </Typography>
+            </Paper>
+          </Box>
+
+          <Button
+            variant="outlined"
+            fullWidth
+            sx={{ mt: 2 }}
+            startIcon={<Assessment />}
+          >
+            詳細最適化機能を見る
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -210,7 +272,11 @@ export function OptimizationDashboard({ onError }: OptimizationDashboardProps) {
     <Box sx={{ width: '100%', height: '100%' }}>
       {/* Header */}
       <Box sx={{ mb: 3 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+        >
           <Typography variant="h4" component="h1" gutterBottom>
             最適化ダッシュボード
           </Typography>
@@ -260,11 +326,7 @@ export function OptimizationDashboard({ onError }: OptimizationDashboardProps) {
 
         {/* Error Alert */}
         {error && (
-          <Alert
-            severity="error"
-            sx={{ mb: 2 }}
-            onClose={() => setError(null)}
-          >
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
             {error}
           </Alert>
         )}
@@ -279,7 +341,7 @@ export function OptimizationDashboard({ onError }: OptimizationDashboardProps) {
           indicatorColor="primary"
           textColor="primary"
         >
-          {tabs.map((tab) => (
+          {tabs.map(tab => (
             <Tab
               key={tab.value}
               label={tab.label}
@@ -326,10 +388,7 @@ export function OptimizationDashboard({ onError }: OptimizationDashboardProps) {
         )}
 
         {currentTab === 3 && (
-          <OptimizationResultsPanel
-            runs={runs}
-            onUpdate={loadData}
-          />
+          <OptimizationResultsPanel runs={runs} onUpdate={loadData} />
         )}
       </Box>
     </Box>
@@ -357,12 +416,13 @@ function OptimizationOverview({
   onStartRun,
 }: OptimizationOverviewProps) {
   const completedRuns = runs.filter(run => run.status === 'completed');
-  const successRate = runs.length > 0 ? (completedRuns.length / runs.length) * 100 : 0;
+  const successRate =
+    runs.length > 0 ? (completedRuns.length / runs.length) * 100 : 0;
 
   return (
-    <Grid container spacing={3}>
+    <Grid2 container spacing={3}>
       {/* Statistics Cards */}
-      <Grid item xs={12} md={3}>
+      <Grid2 xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -376,41 +436,37 @@ function OptimizationOverview({
             </Typography>
           </CardContent>
         </Card>
-      </Grid>
+      </Grid2>
 
-      <Grid item xs={12} md={3}>
+      <Grid2 xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
               実行回数
             </Typography>
-            <Typography variant="h4">
-              {runs.length}
-            </Typography>
+            <Typography variant="h4">{runs.length}</Typography>
             <Typography variant="body2" color="textSecondary">
               成功率 {successRate.toFixed(1)}%
             </Typography>
           </CardContent>
         </Card>
-      </Grid>
+      </Grid2>
 
-      <Grid item xs={12} md={3}>
+      <Grid2 xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
               利用可能アルゴリズム
             </Typography>
-            <Typography variant="h4">
-              {algorithms.length}
-            </Typography>
+            <Typography variant="h4">{algorithms.length}</Typography>
             <Typography variant="body2" color="textSecondary">
               選択済み: {preferences?.preferredAlgorithm || 'なし'}
             </Typography>
           </CardContent>
         </Card>
-      </Grid>
+      </Grid2>
 
-      <Grid item xs={12} md={3}>
+      <Grid2 xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -424,10 +480,10 @@ function OptimizationOverview({
             </Typography>
           </CardContent>
         </Card>
-      </Grid>
+      </Grid2>
 
       {/* Recent Results */}
-      <Grid item xs={12}>
+      <Grid2 xs={12}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -439,7 +495,7 @@ function OptimizationOverview({
               </Typography>
             ) : (
               <Stack spacing={2}>
-                {completedRuns.slice(0, 3).map((run) => (
+                {completedRuns.slice(0, 3).map(run => (
                   <Box
                     key={run.id}
                     sx={{
@@ -449,7 +505,11 @@ function OptimizationOverview({
                       borderRadius: 1,
                     }}
                   >
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="center"
+                    >
                       <Box>
                         <Typography variant="subtitle1">
                           {run.objectiveType} - {run.algorithmUsed}
@@ -470,7 +530,7 @@ function OptimizationOverview({
             )}
           </CardContent>
         </Card>
-      </Grid>
-    </Grid>
+      </Grid2>
+    </Grid2>
   );
 }

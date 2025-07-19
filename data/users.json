@@ -1,0 +1,13 @@
+[
+  {
+    "id": "2a4e86d1-a676-457e-9f12-e35bcac89ea9",
+    "name": "松浦淳",
+    "kana": "まつうらじゅん",
+    "age": 20,
+    "graduationDate": "2028-03-20",
+    "targetLimit": 1500000,
+    "isDemo": false,
+    "createdAt": "2025-07-19T08:25:11.459Z",
+    "updatedAt": "2025-07-19T11:13:17.039Z"
+  }
+]

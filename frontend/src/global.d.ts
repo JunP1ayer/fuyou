@@ -15,15 +15,18 @@ declare module '@vitejs/plugin-react' {
 // React DOM client module declarations
 declare module 'react-dom/client' {
   import * as ReactDOM from 'react-dom';
-  
+
   export interface Root {
     render(children: React.ReactNode): void;
     unmount(): void;
   }
-  
+
   export function createRoot(container: Element | DocumentFragment): Root;
-  export function hydrateRoot(container: Element | DocumentFragment, initialChildren: React.ReactNode): Root;
-  
+  export function hydrateRoot(
+    container: Element | DocumentFragment,
+    initialChildren: React.ReactNode
+  ): Root;
+
   // Re-export everything from react-dom
   export * from 'react-dom';
 }

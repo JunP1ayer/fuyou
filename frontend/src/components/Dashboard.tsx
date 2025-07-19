@@ -32,7 +32,11 @@ import { ShiftCalendar } from './shifts/ShiftCalendar';
 import { ShiftFormDialog } from './shifts/ShiftFormDialog';
 import { ShiftEditDialog } from './shifts/ShiftEditDialog';
 import { OCRShiftManager } from './OCRShiftManager';
+import { SimplifiedOCRComponent } from './SimplifiedOCRComponent';
 import { OptimizationDashboard } from './OptimizationDashboard';
+import { RealTimeIncomeDisplay } from './RealTimeIncomeDisplay';
+import { Enhanced2025FuyouCard } from './Enhanced2025FuyouCard';
+import { FuyouAlertSystem } from './FuyouAlertSystem';
 import type { FuyouStatus } from '../types/fuyou';
 import type { Shift, CreateShiftData } from '../types/shift';
 
@@ -42,10 +46,13 @@ export function Dashboard() {
   const [fuyouStatus, setFuyouStatus] = useState<FuyouStatus | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const [currentTab, setCurrentTab] = useState(0);
+  const [isShiftBoardMode, setIsShiftBoardMode] = useState(true); // シフトボード型UIの切り替え
   const [shiftFormOpen, setShiftFormOpen] = useState(false);
   const [shiftEditOpen, setShiftEditOpen] = useState(false);
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [ocrOpen, setOcrOpen] = useState(false);
+  const [useSimplifiedOCR, setUseSimplifiedOCR] = useState(true); // ChatGPT風OCRの使用フラグ
 
   const handleLogout = () => {
     logout();
@@ -107,9 +114,12 @@ export function Dashboard() {
   const handleOCRShiftsSaved = (shifts: CreateShiftData[]) => {
     console.log('OCR shifts saved:', shifts);
     setUploadSuccess(`${shifts.length}件のシフトを OCR から登録しました`);
+    setOcrOpen(false);
 
-    // シフト管理タブに切り替え
-    setCurrentTab(1);
+    // シフトボード型UIの場合は自動的にシフトタブに切り替え
+    if (isShiftBoardMode) {
+      setCurrentTab(1);
+    }
 
     // 5秒後に成功メッセージを消す
     setTimeout(() => {
@@ -119,7 +129,15 @@ export function Dashboard() {
 
   const handleOCRError = (error: string) => {
     console.error('OCR error:', error);
-    // エラーハンドリングは OCRShiftManager コンポーネント内で行われる
+    // エラーハンドリングはOCRコンポーネント内で行われるが、必要に応じて追加処理
+  };
+
+  const handleOCROpen = () => {
+    setOcrOpen(true);
+  };
+
+  const handleOCRClose = () => {
+    setOcrOpen(false);
   };
 
   return (
@@ -130,14 +148,32 @@ export function Dashboard() {
             扶養管理アプリ
           </Typography>
           {currentTab === 0 && (
-            <Button
-              color="inherit"
-              onClick={() => setCsvUploadOpen(true)}
-              startIcon={<Upload />}
-              sx={{ mr: 2 }}
-            >
-              CSV登録
-            </Button>
+            <>
+              <Button
+                color="inherit"
+                onClick={() => setIsShiftBoardMode(!isShiftBoardMode)}
+                size="small"
+                sx={{ mr: 1, fontSize: '0.7rem' }}
+              >
+                {isShiftBoardMode ? '詳細表示' : 'シンプル表示'}
+              </Button>
+              <Button
+                color="inherit"
+                onClick={() => setCsvUploadOpen(true)}
+                startIcon={<Upload />}
+                sx={{ mr: 1 }}
+              >
+                CSV登録
+              </Button>
+              <Button
+                color="inherit"
+                onClick={handleOCROpen}
+                startIcon={<CameraAlt />}
+                sx={{ mr: 2 }}
+              >
+                📷 シフト表読取
+              </Button>
+            </>
           )}
           <Typography variant="body1" sx={{ mr: 2 }}>
             {user?.fullName}さん
@@ -189,8 +225,140 @@ export function Dashboard() {
           </Alert>
         )}
 
-        {/* ダッシュボードタブ */}
-        {currentTab === 0 && (
+        {/* ダッシュボードタブ（シフトボード型UI） */}
+        {currentTab === 0 && isShiftBoardMode && (
+          <Box role="tabpanel" id="tabpanel-0" aria-labelledby="tab-0">
+            {/* シフトボード型メインUI - 今月の収入と扶養状況を最優先表示 */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                gap: 2,
+                mb: 3,
+              }}
+            >
+              {/* リアルタイム収入表示（コンパクト版） */}
+              <RealTimeIncomeDisplay
+                fuyouStatus={fuyouStatus}
+                compactMode={true}
+                autoRefresh={true}
+                refreshInterval={300000} // 5分間隔
+              />
+            </Box>
+
+            {/* 2025年扶養制度対応ステータス詳細 */}
+            <Box sx={{ mb: 3 }}>
+              <Enhanced2025FuyouCard
+                onStatusUpdate={setFuyouStatus}
+                compactMode={false}
+              />
+            </Box>
+
+            {/* 今月のシフトカレンダー（簡易版） */}
+            <Box sx={{ mb: 3 }}>
+              <Card>
+                <CardContent>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mb: 2,
+                    }}
+                  >
+                    <Typography variant="h6">今月のシフト</Typography>
+                    <Button
+                      variant="outlined"
+                      onClick={() => setCurrentTab(1)}
+                      sx={{ fontSize: '0.8rem' }}
+                    >
+                      詳細管理
+                    </Button>
+                  </Box>
+                  <ShiftCalendar
+                    onAddShift={handleAddShift}
+                    onEditShift={handleEditShift}
+                    compactMode={true}
+                  />
+                </CardContent>
+              </Card>
+            </Box>
+
+            {/* 扶養アラートシステム */}
+            <Box sx={{ mb: 3 }}>
+              <FuyouAlertSystem
+                fuyouStatus={fuyouStatus}
+                compactMode={false}
+                showSnackbar={true}
+              />
+            </Box>
+
+            {/* クイックアクション */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: '1fr 1fr',
+                  md: '1fr 1fr 1fr',
+                },
+                gap: 2,
+              }}
+            >
+              <Card
+                sx={{ cursor: 'pointer', '&:hover': { boxShadow: 4 } }}
+                onClick={handleOCROpen}
+              >
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <CameraAlt
+                    sx={{ fontSize: 40, color: 'primary.main', mb: 1 }}
+                  />
+                  <Typography variant="h6" gutterBottom>
+                    📷 シフト表を撮影
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    ChatGPT風の簡単OCR
+                  </Typography>
+                </CardContent>
+              </Card>
+
+              <Card
+                sx={{ cursor: 'pointer', '&:hover': { boxShadow: 4 } }}
+                onClick={() => setCsvUploadOpen(true)}
+              >
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Upload sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
+                  <Typography variant="h6" gutterBottom>
+                    給与明細登録
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    CSVファイルから収入登録
+                  </Typography>
+                </CardContent>
+              </Card>
+
+              <Card
+                sx={{ cursor: 'pointer', '&:hover': { boxShadow: 4 } }}
+                onClick={() => handleAddShift()}
+              >
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Schedule
+                    sx={{ fontSize: 40, color: 'primary.main', mb: 1 }}
+                  />
+                  <Typography variant="h6" gutterBottom>
+                    手動シフト登録
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    直接シフトを入力
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Box>
+          </Box>
+        )}
+
+        {/* 従来のダッシュボードタブ（切り替え可能） */}
+        {currentTab === 0 && !isShiftBoardMode && (
           <Box role="tabpanel" id="tabpanel-0" aria-labelledby="tab-0">
             <Typography variant="h4" gutterBottom>
               ダッシュボード
@@ -314,13 +482,15 @@ export function Dashboard() {
             <OCRShiftManager
               onShiftsSaved={handleOCRShiftsSaved}
               onError={handleOCRError}
+              compactMode={isShiftBoardMode}
+              autoNavigateToShifts={isShiftBoardMode}
             />
           </Box>
         )}
         {/* 最適化タブ */}
         {currentTab === 3 && (
           <Box role="tabpanel" id="tabpanel-3" aria-labelledby="tab-3">
-            <OptimizationDashboard />
+            <OptimizationDashboard simplified={isShiftBoardMode} />
           </Box>
         )}
       </Box>
@@ -359,6 +529,25 @@ export function Dashboard() {
         onSuccess={handleShiftEditSuccess}
         shift={selectedShift}
       />
+
+      {/* SimplifiedOCRComponentダイアログ */}
+      <Dialog
+        open={ocrOpen}
+        onClose={handleOCRClose}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 3 }
+        }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          <SimplifiedOCRComponent
+            onShiftsSaved={handleOCRShiftsSaved}
+            onError={handleOCRError}
+            onClose={handleOCRClose}
+          />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

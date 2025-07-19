@@ -19,8 +19,9 @@ import { csvRoutes } from './routes/csv';
 import { alertRoutes } from './routes/alerts';
 import { demoRoutes } from './routes/demo';
 import { shiftRoutes } from './routes/shifts';
-import ocrRoutes from './routes/ocr';
-import { optimizationRoutes } from './routes/optimization';
+import ocrRoutes from './routes/ocr'; // Re-enabled for OpenAI integration
+import jobSourcesRouter from './routes/jobSources'; // Job sources management
+// import { optimizationRoutes } from './routes/optimization'; // Temporarily disabled
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -97,8 +98,9 @@ app.use('/api/csv', csvRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/demo', demoRoutes);
 app.use('/api/shifts', shiftRoutes);
-app.use('/api/ocr', ocrRoutes);
-app.use('/api/optimization', optimizationRoutes);
+app.use('/api/job-sources', jobSourcesRouter); // Job sources management
+app.use('/api/ocr', ocrRoutes); // Re-enabled for OpenAI integration
+// app.use('/api/optimization', optimizationRoutes); // Temporarily disabled for debugging
 
 // 404 handler
 app.use('*', (req, res) => {

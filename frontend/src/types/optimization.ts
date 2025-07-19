@@ -4,7 +4,13 @@
 export interface OptimizationConstraint {
   id: string;
   userId: string;
-  constraintType: 'max_weekly_hours' | 'max_monthly_hours' | 'min_monthly_income' | 'max_monthly_income' | 'fuyou_limit' | 'custom';
+  constraintType:
+    | 'max_weekly_hours'
+    | 'max_monthly_hours'
+    | 'min_monthly_income'
+    | 'max_monthly_income'
+    | 'fuyou_limit'
+    | 'custom';
   constraintValue: number;
   constraintUnit: 'hours' | 'yen' | 'percentage' | 'custom';
   priority: number; // 1-5, 1 is highest priority
@@ -101,7 +107,12 @@ export interface OptimizedShift {
 
 export interface OptimizationRecommendation {
   id: string;
-  type: 'shift_add' | 'shift_remove' | 'shift_modify' | 'constraint_adjust' | 'goal_modify';
+  type:
+    | 'shift_add'
+    | 'shift_remove'
+    | 'shift_modify'
+    | 'constraint_adjust'
+    | 'goal_modify';
   title: string;
   description: string;
   impact: {
@@ -156,14 +167,14 @@ export interface OptimizationValidation {
 }
 
 // Enum types
-export type ObjectiveType = 
+export type ObjectiveType =
   | 'maximize_income'
   | 'minimize_hours'
   | 'balance_sources'
   | 'minimize_risk'
   | 'multi_objective';
 
-export type AlgorithmType = 
+export type AlgorithmType =
   | 'linear_programming'
   | 'genetic_algorithm'
   | 'simulated_annealing'

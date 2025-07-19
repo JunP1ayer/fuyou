@@ -5,7 +5,6 @@ import {
   CardContent,
   Typography,
   Button,
-  Grid,
   TextField,
   Select,
   MenuItem,
@@ -29,6 +28,7 @@ import {
   Divider,
   Tooltip,
 } from '@mui/material';
+import Grid2 from '@mui/material/Grid2';
 import {
   Add,
   Edit,
@@ -66,32 +66,61 @@ export function OptimizationConstraintsPanel({
   const [error, setError] = useState<string | null>(null);
   const [constraintDialogOpen, setConstraintDialogOpen] = useState(false);
   const [availabilityDialogOpen, setAvailabilityDialogOpen] = useState(false);
-  const [editingConstraint, setEditingConstraint] = useState<OptimizationConstraint | null>(null);
-  const [editingAvailability, setEditingAvailability] = useState<AvailabilitySlot | null>(null);
+  const [editingConstraint, setEditingConstraint] =
+    useState<OptimizationConstraint | null>(null);
+  const [editingAvailability, setEditingAvailability] =
+    useState<AvailabilitySlot | null>(null);
 
-  const [constraintForm, setConstraintForm] = useState<CreateOptimizationConstraintRequest>({
-    constraintType: 'max_weekly_hours',
-    constraintValue: 20,
-    constraintUnit: 'hours',
-    priority: 3,
-    isActive: true,
-    metadata: {},
-  });
+  const [constraintForm, setConstraintForm] =
+    useState<CreateOptimizationConstraintRequest>({
+      constraintType: 'max_weekly_hours',
+      constraintValue: 20,
+      constraintUnit: 'hours',
+      priority: 3,
+      isActive: true,
+      metadata: {},
+    });
 
-  const [availabilityForm, setAvailabilityForm] = useState<CreateAvailabilitySlotRequest>({
-    dayOfWeek: 0,
-    startTime: '09:00',
-    endTime: '17:00',
-    isAvailable: true,
-    notes: '',
-  });
+  const [availabilityForm, setAvailabilityForm] =
+    useState<CreateAvailabilitySlotRequest>({
+      dayOfWeek: 0,
+      startTime: '09:00',
+      endTime: '17:00',
+      isAvailable: true,
+      notes: '',
+    });
 
   const constraintTypes = [
-    { value: 'max_weekly_hours', label: '週間最大労働時間', icon: <AccessTime />, unit: 'hours' },
-    { value: 'max_monthly_hours', label: '月間最大労働時間', icon: <AccessTime />, unit: 'hours' },
-    { value: 'min_monthly_income', label: '月間最小収入', icon: <MonetizationOn />, unit: 'yen' },
-    { value: 'max_monthly_income', label: '月間最大収入', icon: <MonetizationOn />, unit: 'yen' },
-    { value: 'fuyou_limit', label: '扶養控除限度額', icon: <Warning />, unit: 'yen' },
+    {
+      value: 'max_weekly_hours',
+      label: '週間最大労働時間',
+      icon: <AccessTime />,
+      unit: 'hours',
+    },
+    {
+      value: 'max_monthly_hours',
+      label: '月間最大労働時間',
+      icon: <AccessTime />,
+      unit: 'hours',
+    },
+    {
+      value: 'min_monthly_income',
+      label: '月間最小収入',
+      icon: <MonetizationOn />,
+      unit: 'yen',
+    },
+    {
+      value: 'max_monthly_income',
+      label: '月間最大収入',
+      icon: <MonetizationOn />,
+      unit: 'yen',
+    },
+    {
+      value: 'fuyou_limit',
+      label: '扶養控除限度額',
+      icon: <Warning />,
+      unit: 'yen',
+    },
   ];
 
   const dayOfWeekLabels = ['日', '月', '火', '水', '木', '金', '土'];
@@ -110,7 +139,10 @@ export function OptimizationConstraintsPanel({
           constraintForm
         );
       } else {
-        await apiService.createOptimizationConstraint(user.token, constraintForm);
+        await apiService.createOptimizationConstraint(
+          user.token,
+          constraintForm
+        );
       }
 
       setConstraintDialogOpen(false);
@@ -144,7 +176,11 @@ export function OptimizationConstraintsPanel({
       setEditingAvailability(null);
       onUpdate();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '可用性スロットの保存に失敗しました');
+      setError(
+        err instanceof Error
+          ? err.message
+          : '可用性スロットの保存に失敗しました'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -172,7 +208,11 @@ export function OptimizationConstraintsPanel({
       await apiService.deleteAvailabilitySlot(user.token, slotId);
       onUpdate();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '可用性スロットの削除に失敗しました');
+      setError(
+        err instanceof Error
+          ? err.message
+          : '可用性スロットの削除に失敗しました'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -234,12 +274,17 @@ export function OptimizationConstraintsPanel({
         </Alert>
       )}
 
-      <Grid container spacing={3}>
+      <Grid2 container spacing={3}>
         {/* Constraints Section */}
-        <Grid item xs={12} md={6}>
+        <Grid2 xs={12} md={6}>
           <Card>
             <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                sx={{ mb: 2 }}
+              >
                 <Typography variant="h6">最適化制約</Typography>
                 <Button
                   variant="contained"
@@ -254,28 +299,37 @@ export function OptimizationConstraintsPanel({
               </Stack>
 
               <List>
-                {constraints.map((constraint) => {
-                  const typeInfo = constraintTypes.find(t => t.value === constraint.constraintType);
+                {constraints.map(constraint => {
+                  const typeInfo = constraintTypes.find(
+                    t => t.value === constraint.constraintType
+                  );
                   return (
                     <React.Fragment key={constraint.id}>
                       <ListItem>
                         <ListItemText
                           primary={
-                            <Stack direction="row" spacing={1} alignItems="center">
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              alignItems="center"
+                            >
                               {typeInfo?.icon}
                               <Typography variant="subtitle1">
                                 {typeInfo?.label || constraint.constraintType}
                               </Typography>
                               <Chip
                                 label={constraint.isActive ? '有効' : '無効'}
-                                color={constraint.isActive ? 'success' : 'default'}
+                                color={
+                                  constraint.isActive ? 'success' : 'default'
+                                }
                                 size="small"
                               />
                             </Stack>
                           }
                           secondary={
                             <Typography variant="body2" color="textSecondary">
-                              値: {constraint.constraintValue} {constraint.constraintUnit}
+                              値: {constraint.constraintValue}{' '}
+                              {constraint.constraintUnit}
                               　優先度: {constraint.priority}/5
                             </Typography>
                           }
@@ -289,7 +343,9 @@ export function OptimizationConstraintsPanel({
                           </IconButton>
                           <IconButton
                             size="small"
-                            onClick={() => handleDeleteConstraint(constraint.id)}
+                            onClick={() =>
+                              handleDeleteConstraint(constraint.id)
+                            }
                           >
                             <Delete />
                           </IconButton>
@@ -310,13 +366,18 @@ export function OptimizationConstraintsPanel({
               </List>
             </CardContent>
           </Card>
-        </Grid>
+        </Grid2>
 
         {/* Availability Section */}
-        <Grid item xs={12} md={6}>
+        <Grid2 xs={12} md={6}>
           <Card>
             <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                sx={{ mb: 2 }}
+              >
                 <Typography variant="h6">可用性スケジュール</Typography>
                 <Button
                   variant="contained"
@@ -331,12 +392,16 @@ export function OptimizationConstraintsPanel({
               </Stack>
 
               <List>
-                {availability.map((slot) => (
+                {availability.map(slot => (
                   <React.Fragment key={slot.id}>
                     <ListItem>
                       <ListItemText
                         primary={
-                          <Stack direction="row" spacing={1} alignItems="center">
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            alignItems="center"
+                          >
                             <Schedule />
                             <Typography variant="subtitle1">
                               {dayOfWeekLabels[slot.dayOfWeek]}曜日
@@ -384,8 +449,8 @@ export function OptimizationConstraintsPanel({
               </List>
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </Grid2>
+      </Grid2>
 
       {/* Constraint Dialog */}
       <Dialog
@@ -398,20 +463,20 @@ export function OptimizationConstraintsPanel({
           {editingConstraint ? '制約を編集' : '新しい制約を追加'}
         </DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+          <Grid2 container spacing={2} sx={{ mt: 1 }}>
+            <Grid2 xs={12}>
               <FormControl fullWidth>
                 <InputLabel>制約タイプ</InputLabel>
                 <Select
                   value={constraintForm.constraintType}
-                  onChange={(e) =>
+                  onChange={e =>
                     setConstraintForm({
                       ...constraintForm,
                       constraintType: e.target.value as any,
                     })
                   }
                 >
-                  {constraintTypes.map((type) => (
+                  {constraintTypes.map(type => (
                     <MenuItem key={type.value} value={type.value}>
                       <Stack direction="row" spacing={1} alignItems="center">
                         {type.icon}
@@ -421,14 +486,14 @@ export function OptimizationConstraintsPanel({
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
+            </Grid2>
 
-            <Grid item xs={12} md={6}>
+            <Grid2 xs={12} md={6}>
               <TextField
                 label="制約値"
                 type="number"
                 value={constraintForm.constraintValue}
-                onChange={(e) =>
+                onChange={e =>
                   setConstraintForm({
                     ...constraintForm,
                     constraintValue: Number(e.target.value),
@@ -436,14 +501,14 @@ export function OptimizationConstraintsPanel({
                 }
                 fullWidth
               />
-            </Grid>
+            </Grid2>
 
-            <Grid item xs={12} md={6}>
+            <Grid2 xs={12} md={6}>
               <FormControl fullWidth>
                 <InputLabel>単位</InputLabel>
                 <Select
                   value={constraintForm.constraintUnit}
-                  onChange={(e) =>
+                  onChange={e =>
                     setConstraintForm({
                       ...constraintForm,
                       constraintUnit: e.target.value as any,
@@ -455,10 +520,12 @@ export function OptimizationConstraintsPanel({
                   <MenuItem value="percentage">パーセント</MenuItem>
                 </Select>
               </FormControl>
-            </Grid>
+            </Grid2>
 
-            <Grid item xs={12}>
-              <Typography gutterBottom>優先度: {constraintForm.priority}</Typography>
+            <Grid2 xs={12}>
+              <Typography gutterBottom>
+                優先度: {constraintForm.priority}
+              </Typography>
               <Slider
                 value={constraintForm.priority}
                 onChange={(_, value) =>
@@ -473,14 +540,14 @@ export function OptimizationConstraintsPanel({
                 marks
                 valueLabelDisplay="auto"
               />
-            </Grid>
+            </Grid2>
 
-            <Grid item xs={12}>
+            <Grid2 xs={12}>
               <FormControlLabel
                 control={
                   <Switch
                     checked={constraintForm.isActive}
-                    onChange={(e) =>
+                    onChange={e =>
                       setConstraintForm({
                         ...constraintForm,
                         isActive: e.target.checked,
@@ -490,8 +557,8 @@ export function OptimizationConstraintsPanel({
                 }
                 label="この制約を有効にする"
               />
-            </Grid>
-          </Grid>
+            </Grid2>
+          </Grid2>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConstraintDialogOpen(false)}>
@@ -515,16 +582,18 @@ export function OptimizationConstraintsPanel({
         fullWidth
       >
         <DialogTitle>
-          {editingAvailability ? '可用性スケジュールを編集' : '新しい可用性スケジュールを追加'}
+          {editingAvailability
+            ? '可用性スケジュールを編集'
+            : '新しい可用性スケジュールを追加'}
         </DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+          <Grid2 container spacing={2} sx={{ mt: 1 }}>
+            <Grid2 xs={12}>
               <FormControl fullWidth>
                 <InputLabel>曜日</InputLabel>
                 <Select
                   value={availabilityForm.dayOfWeek}
-                  onChange={(e) =>
+                  onChange={e =>
                     setAvailabilityForm({
                       ...availabilityForm,
                       dayOfWeek: Number(e.target.value),
@@ -538,14 +607,14 @@ export function OptimizationConstraintsPanel({
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
+            </Grid2>
 
-            <Grid item xs={12} md={6}>
+            <Grid2 xs={12} md={6}>
               <TextField
                 label="開始時間"
                 type="time"
                 value={availabilityForm.startTime}
-                onChange={(e) =>
+                onChange={e =>
                   setAvailabilityForm({
                     ...availabilityForm,
                     startTime: e.target.value,
@@ -554,14 +623,14 @@ export function OptimizationConstraintsPanel({
                 fullWidth
                 InputLabelProps={{ shrink: true }}
               />
-            </Grid>
+            </Grid2>
 
-            <Grid item xs={12} md={6}>
+            <Grid2 xs={12} md={6}>
               <TextField
                 label="終了時間"
                 type="time"
                 value={availabilityForm.endTime}
-                onChange={(e) =>
+                onChange={e =>
                   setAvailabilityForm({
                     ...availabilityForm,
                     endTime: e.target.value,
@@ -570,13 +639,13 @@ export function OptimizationConstraintsPanel({
                 fullWidth
                 InputLabelProps={{ shrink: true }}
               />
-            </Grid>
+            </Grid2>
 
-            <Grid item xs={12}>
+            <Grid2 xs={12}>
               <TextField
                 label="メモ"
                 value={availabilityForm.notes}
-                onChange={(e) =>
+                onChange={e =>
                   setAvailabilityForm({
                     ...availabilityForm,
                     notes: e.target.value,
@@ -586,14 +655,14 @@ export function OptimizationConstraintsPanel({
                 multiline
                 rows={2}
               />
-            </Grid>
+            </Grid2>
 
-            <Grid item xs={12}>
+            <Grid2 xs={12}>
               <FormControlLabel
                 control={
                   <Switch
                     checked={availabilityForm.isAvailable}
-                    onChange={(e) =>
+                    onChange={e =>
                       setAvailabilityForm({
                         ...availabilityForm,
                         isAvailable: e.target.checked,
@@ -603,8 +672,8 @@ export function OptimizationConstraintsPanel({
                 }
                 label="この時間帯を利用可能にする"
               />
-            </Grid>
-          </Grid>
+            </Grid2>
+          </Grid2>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setAvailabilityDialogOpen(false)}>

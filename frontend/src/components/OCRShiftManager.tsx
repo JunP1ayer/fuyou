@@ -30,10 +30,10 @@ import { apiService } from '../services/api';
 import { OCRUpload } from './OCRUpload';
 import { OCRProcessor } from './OCRProcessor';
 import { OCRResultEditor } from './OCRResultEditor';
-import type { 
-  OCRResponse, 
-  OCRUsageStats, 
-  ExtractedShiftData 
+import type {
+  OCRResponse,
+  OCRUsageStats,
+  ExtractedShiftData,
 } from '../types/ocr';
 import type { CreateShiftData } from '../types/shift';
 
@@ -41,6 +41,8 @@ interface OCRShiftManagerProps {
   onShiftsSaved?: (shifts: CreateShiftData[]) => void;
   onError?: (error: string) => void;
   onClose?: () => void;
+  compactMode?: boolean; // シフトボード型UI用のコンパクトモード
+  autoNavigateToShifts?: boolean; // シフト保存後にシフトタブに移動
 }
 
 type OCRStep = 'upload' | 'processing' | 'editing' | 'complete';
@@ -87,6 +89,8 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
   onShiftsSaved,
   onError,
   onClose,
+  compactMode = false,
+  autoNavigateToShifts = false,
 }) => {
   const { token } = useAuth();
   const [state, setState] = useState<OCRState>({
@@ -108,9 +112,15 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const showNotification = useCallback((message: string, severity: 'success' | 'error' | 'info' | 'warning' = 'info') => {
-    setNotification({ message, severity });
-  }, []);
+  const showNotification = useCallback(
+    (
+      message: string,
+      severity: 'success' | 'error' | 'info' | 'warning' = 'info'
+    ) => {
+      setNotification({ message, severity });
+    },
+    []
+  );
 
   const getCurrentStepIndex = (): number => {
     return steps.findIndex(step => step.id === state.step);
@@ -136,88 +146,122 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
   };
 
   // 画像アップロード完了時
-  const handleImageSelected = useCallback((file: File, preview: string) => {
-    updateState({
-      imageFile: file,
-      imagePreview: preview,
-      ocrResult: null,
-      extractedShifts: [],
-      error: null,
-    });
-    showNotification('画像が選択されました', 'success');
-  }, [updateState, showNotification]);
+  const handleImageSelected = useCallback(
+    (file: File, preview: string) => {
+      updateState({
+        imageFile: file,
+        imagePreview: preview,
+        ocrResult: null,
+        extractedShifts: [],
+        error: null,
+      });
+      showNotification('画像が選択されました', 'success');
+    },
+    [updateState, showNotification]
+  );
 
   // OCR処理完了時
-  const handleOCRComplete = useCallback((result: OCRResponse) => {
-    updateState({
-      ocrResult: result,
-      step: 'editing',
-      loading: false,
-    });
-    
-    if (result.success) {
-      showNotification('OCR処理が完了しました', 'success');
-    } else {
-      showNotification('OCR処理でエラーが発生しました', 'error');
-    }
-  }, [updateState, showNotification]);
-
-  // 使用状況更新時
-  const handleUsageUpdate = useCallback((usage: OCRUsageStats) => {
-    updateState({ usage });
-  }, [updateState]);
-
-  // シフトデータ抽出完了時
-  const handleShiftDataExtracted = useCallback((shifts: ExtractedShiftData[]) => {
-    updateState({ extractedShifts: shifts });
-    showNotification(`${shifts.length}件のシフトが抽出されました`, 'info');
-  }, [updateState, showNotification]);
-
-  // シフト編集完了時
-  const handleEditComplete = useCallback((editedShifts: ExtractedShiftData[]) => {
-    updateState({ extractedShifts: editedShifts });
-  }, [updateState]);
-
-  // シフト保存時
-  const handleSaveShifts = useCallback(async (shifts: CreateShiftData[]) => {
-    if (!token) {
-      showNotification('認証が必要です', 'error');
-      return;
-    }
-
-    updateState({ loading: true });
-
-    try {
-      // バルクシフト登録
-      const response = await apiService.createBulkShifts(token, shifts);
-      
-      if (response.success) {
-        updateState({ 
-          step: 'complete',
-          loading: false,
-        });
-        showNotification(`${shifts.length}件のシフトが登録されました`, 'success');
-        onShiftsSaved?.(shifts);
-      } else {
-        throw new Error('シフト登録に失敗しました');
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'シフト登録でエラーが発生しました';
-      updateState({ 
-        error: errorMessage,
+  const handleOCRComplete = useCallback(
+    (result: OCRResponse) => {
+      updateState({
+        ocrResult: result,
+        step: 'editing',
         loading: false,
       });
-      showNotification(errorMessage, 'error');
-      onError?.(errorMessage);
-    }
-  }, [token, updateState, showNotification, onShiftsSaved, onError]);
+
+      if (result.success) {
+        showNotification('OCR処理が完了しました', 'success');
+      } else {
+        showNotification('OCR処理でエラーが発生しました', 'error');
+      }
+    },
+    [updateState, showNotification]
+  );
+
+  // 使用状況更新時
+  const handleUsageUpdate = useCallback(
+    (usage: OCRUsageStats) => {
+      updateState({ usage });
+    },
+    [updateState]
+  );
+
+  // シフトデータ抽出完了時
+  const handleShiftDataExtracted = useCallback(
+    (shifts: ExtractedShiftData[]) => {
+      updateState({ extractedShifts: shifts });
+      showNotification(`${shifts.length}件のシフトが抽出されました`, 'info');
+    },
+    [updateState, showNotification]
+  );
+
+  // シフト編集完了時
+  const handleEditComplete = useCallback(
+    (editedShifts: ExtractedShiftData[]) => {
+      updateState({ extractedShifts: editedShifts });
+    },
+    [updateState]
+  );
+
+  // シフト保存時
+  const handleSaveShifts = useCallback(
+    async (shifts: CreateShiftData[]) => {
+      if (!token) {
+        showNotification('認証が必要です', 'error');
+        return;
+      }
+
+      updateState({ loading: true });
+
+      try {
+        // バルクシフト登録
+        const response = await apiService.createBulkShifts(token, shifts);
+
+        if (response.success) {
+          updateState({
+            step: 'complete',
+            loading: false,
+          });
+          showNotification(
+            `${shifts.length}件のシフトが登録されました`,
+            'success'
+          );
+          onShiftsSaved?.(shifts);
+
+          // シフトボード型UIでは自動的にシフトタブに移動
+          if (autoNavigateToShifts) {
+            setTimeout(() => {
+              updateState({ step: 'upload' }); // ステップをリセット
+            }, 2000); // 2秒後にリセット
+          }
+        } else {
+          throw new Error('シフト登録に失敗しました');
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'シフト登録でエラーが発生しました';
+        updateState({
+          error: errorMessage,
+          loading: false,
+        });
+        showNotification(errorMessage, 'error');
+        onError?.(errorMessage);
+      }
+    },
+    [token, updateState, showNotification, onShiftsSaved, onError]
+  );
 
   // エラーハンドリング
-  const handleError = useCallback((error: string) => {
-    updateState({ error });
-    showNotification(error, 'error');
-    onError?.(error);
-  }, [updateState, showNotification, onError]);
+  const handleError = useCallback(
+    (error: string) => {
+      updateState({ error });
+      showNotification(error, 'error');
+      onError?.(error);
+    },
+    [updateState, showNotification, onError]
+  );
 
   // ステップナビゲーション
   const goToNextStep = () => {
@@ -225,7 +269,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
     if (currentIndex < steps.length - 1) {
       const nextStep = steps[currentIndex + 1].id as OCRStep;
       updateState({ step: nextStep });
-      
+
       // 処理ステップの場合は自動的に処理を開始
       if (nextStep === 'processing') {
         updateState({ loading: true });
@@ -304,7 +348,9 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
         return (
           <Fade in>
             <Box textAlign="center" py={4}>
-              <CheckCircle sx={{ fontSize: 64, color: 'success.main', mb: 2 }} />
+              <CheckCircle
+                sx={{ fontSize: 64, color: 'success.main', mb: 2 }}
+              />
               <Typography variant="h5" gutterBottom>
                 OCR処理が完了しました
               </Typography>
@@ -342,9 +388,9 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Stepper activeStep={getCurrentStepIndex()}>
-            {steps.map((step) => (
+            {steps.map(step => (
               <Step key={step.id}>
-                <StepLabel 
+                <StepLabel
                   icon={<step.icon />}
                   error={state.error && state.step === step.id}
                 >
@@ -364,9 +410,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
       )}
 
       {/* メインコンテンツ */}
-      <Box sx={{ minHeight: '400px' }}>
-        {renderStepContent()}
-      </Box>
+      <Box sx={{ minHeight: '400px' }}>{renderStepContent()}</Box>
 
       {/* ナビゲーションボタン */}
       {state.step !== 'complete' && (
@@ -378,7 +422,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
           >
             戻る
           </Button>
-          
+
           <Box>
             {state.step === 'upload' && (
               <Button
@@ -413,7 +457,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
         autoHideDuration={4000}
         onClose={() => setNotification(null)}
       >
-        <Alert 
+        <Alert
           onClose={() => setNotification(null)}
           severity={notification?.severity}
         >

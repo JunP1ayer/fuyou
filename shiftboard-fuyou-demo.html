@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>扶養管理 - シフトボード風アプリ</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@mui/material@5.15.20/umd/material-ui.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Roboto', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      .shift-cell {
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+      .shift-cell:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      }
+      .fuyou-progress {
+        background: linear-gradient(45deg, #2196F3 30%, #21CBF3 90%);
+        border-radius: 10px;
+      }
+      .danger-progress {
+        background: linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%);
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+      const {
+        Box,
+        Card,
+        CardContent,
+        Typography,
+        Button,
+        Grid,
+        Paper,
+        Alert,
+        Chip,
+        LinearProgress,
+        Container,
+        ThemeProvider,
+        createTheme,
+        CssBaseline,
+        Dialog,
+        DialogContent,
+        DialogTitle,
+        Fab,
+        Badge,
+        IconButton,
+        Tooltip,
+      } = MaterialUI;
+
+      // Material Icons
+      const AccountBalance = () => React.createElement('span', { className: 'material-icons' }, 'account_balance');
+      const CameraAlt = () => React.createElement('span', { className: 'material-icons' }, 'camera_alt');
+      const Schedule = () => React.createElement('span', { className: 'material-icons' }, 'schedule');
+      const TrendingUp = () => React.createElement('span', { className: 'material-icons' }, 'trending_up');
+      const Work = () => React.createElement('span', { className: 'material-icons' }, 'work');
+      const Add = () => React.createElement('span', { className: 'material-icons' }, 'add');
+      const Upload = () => React.createElement('span', { className: 'material-icons' }, 'upload');
+      const PhotoCamera = () => React.createElement('span', { className: 'material-icons' }, 'photo_camera');
+      const CheckCircle = () => React.createElement('span', { className: 'material-icons', style: { color: '#4caf50' } }, 'check_circle');
+      const Warning = () => React.createElement('span', { className: 'material-icons', style: { color: '#ff9800' } }, 'warning');
+      const Error = () => React.createElement('span', { className: 'material-icons', style: { color: '#f44336' } }, 'error');
+
+      // Material-UI テーマ
+      const theme = createTheme({
+        palette: {
+          primary: {
+            main: '#2196F3',
+          },
+          secondary: {
+            main: '#FF4081',
+          },
+          success: {
+            main: '#4CAF50',
+          },
+          warning: {
+            main: '#FF9800',
+          },
+          error: {
+            main: '#F44336',
+          },
+        },
+        typography: {
+          fontFamily: 'Roboto, sans-serif',
+        },
+      });
+
+      // 扶養ステータスカード
+      const FuyouStatusCard = ({ status }) => {
+        const getStatusIcon = () => {
+          switch (status.riskLevel) {
+            case 'safe': return <CheckCircle />;
+            case 'warning': return <Warning />;
+            case 'danger': return <Error />;
+            default: return <CheckCircle />;
+          }
+        };
+
+        const getStatusColor = () => {
+          switch (status.riskLevel) {
+            case 'safe': return 'success';
+            case 'warning': return 'warning';
+            case 'danger': return 'error';
+            default: return 'primary';
+          }
+        };
+
+        const getStatusMessage = () => {
+          if (status.riskLevel === 'safe') {
+            return `扶養内です！あと${status.remaining.toLocaleString()}円まで安全`;
+          } else if (status.riskLevel === 'warning') {
+            return '注意: 扶養限度額に近づいています';
+          } else {
+            return '危険: 扶養限度額を超過する可能性があります';
+          }
+        };
+
+        return (
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TrendingUp />
+                扶養ステータス
+              </Typography>
+              
+              <Alert severity={getStatusColor()} sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {getStatusIcon()}
+                  {getStatusMessage()}
+                </Box>
+              </Alert>
+
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="body2">
+                    今年の収入: {status.currentEarnings.toLocaleString()}円
+                  </Typography>
+                  <Typography variant="body2">
+                    限度額: {status.limit.toLocaleString()}円
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={(status.currentEarnings / status.limit) * 100}
+                  sx={{
+                    height: 12,
+                    borderRadius: 6,
+                    backgroundColor: '#f0f0f0',
+                    '& .MuiLinearProgress-bar': {
+                      background: status.riskLevel === 'danger' 
+                        ? 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)'
+                        : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                      borderRadius: 6,
+                    },
+                  }}
+                />
+              </Box>
+
+              <Grid container spacing={2}>
+                <Grid item xs={4}>
+                  <Paper sx={{ p: 2, textAlign: 'center', background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)' }}>
+                    <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+                      {Math.round((status.currentEarnings / status.limit) * 100)}%
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'white' }}>達成率</Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={4}>
+                  <Paper sx={{ p: 2, textAlign: 'center', background: 'linear-gradient(45deg, #4CAF50 30%, #8BC34A 90%)' }}>
+                    <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+                      {(status.remaining / 10000).toFixed(0)}万
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'white' }}>残り余裕</Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={4}>
+                  <Paper sx={{ p: 2, textAlign: 'center', background: status.projection.overageRisk 
+                    ? 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)'
+                    : 'linear-gradient(45deg, #FF9800 30%, #FFB74D 90%)' }}>
+                    <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
+                      {(status.projection.yearEnd / 10000).toFixed(0)}万
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'white' }}>年末予測</Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        );
+      };
+
+      // シンプルカレンダー
+      const SimpleCalendar = ({ shifts, onAddShift }) => {
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay();
+
+        const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+        const calendarDays = [];
+
+        // 空のセルを追加
+        for (let i = 0; i < firstDayOfWeek; i++) {
+          calendarDays.push(null);
+        }
+
+        // 日付セルを追加
+        for (let day = 1; day <= daysInMonth; day++) {
+          calendarDays.push(day);
+        }
+
+        const getShiftsForDay = (day) => {
+          if (!day) return [];
+          const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          return shifts.filter(shift => shift.date === dateStr);
+        };
+
+        return (
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Schedule />
+                {currentYear}年{currentMonth + 1}月 シフトカレンダー
+              </Typography>
+
+              {/* 曜日ヘッダー */}
+              <Grid container spacing={1} sx={{ mb: 1 }}>
+                {weekDays.map((day, index) => (
+                  <Grid item xs key={index}>
+                    <Box
+                      textAlign="center"
+                      py={1}
+                      sx={{
+                        fontWeight: 'bold',
+                        color: index === 0 ? '#f44336' : index === 6 ? '#2196f3' : '#333',
+                        background: 'linear-gradient(45deg, #f5f5f5 30%, #e0e0e0 90%)',
+                        borderRadius: 1,
+                      }}
+                    >
+                      {day}
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+
+              {/* カレンダーグリッド */}
+              <Grid container spacing={1}>
+                {calendarDays.map((day, index) => {
+                  const dayShifts = getShiftsForDay(day);
+                  const isToday = day === today.getDate();
+                  
+                  return (
+                    <Grid item xs key={index}>
+                      <Paper
+                        className="shift-cell"
+                        elevation={isToday ? 4 : 1}
+                        sx={{
+                          minHeight: 100,
+                          cursor: day ? 'pointer' : 'default',
+                          position: 'relative',
+                          border: isToday ? '3px solid #2196F3' : '1px solid #e0e0e0',
+                          background: day ? (isToday ? 'linear-gradient(45deg, #E3F2FD 30%, #BBDEFB 90%)' : '#fff') : '#f5f5f5',
+                          opacity: day ? 1 : 0.3,
+                        }}
+                        onClick={() => day && onAddShift(day)}
+                      >
+                        {day && (
+                          <Box p={1}>
+                            {/* 日付 */}
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: isToday ? 'bold' : 'normal',
+                                color: isToday ? '#2196F3' : '#333',
+                                fontSize: isToday ? '1.1rem' : '0.9rem',
+                              }}
+                            >
+                              {day}
+                            </Typography>
+
+                            {/* シフト表示 */}
+                            {dayShifts.slice(0, 2).map((shift, idx) => (
+                              <Chip
+                                key={idx}
+                                label={`${shift.startTime}-${shift.endTime}`}
+                                size="small"
+                                color="primary"
+                                sx={{
+                                  width: '100%',
+                                  mb: 0.5,
+                                  height: 20,
+                                  fontSize: '0.7rem',
+                                  background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                                }}
+                              />
+                            ))}
+
+                            {dayShifts.length > 2 && (
+                              <Typography variant="caption" color="text.secondary">
+                                +{dayShifts.length - 2} more
+                              </Typography>
+                            )}
+
+                            {/* 収入表示 */}
+                            {dayShifts.length > 0 && (
+                              <Typography variant="caption" color="success.main" sx={{ fontWeight: 'bold' }}>
+                                ¥{dayShifts.reduce((sum, shift) => sum + shift.earnings, 0).toLocaleString()}
+                              </Typography>
+                            )}
+                          </Box>
+                        )}
+                      </Paper>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            </CardContent>
+          </Card>
+        );
+      };
+
+      // OCRダイアログ
+      const OCRDialog = ({ open, onClose, onComplete }) => {
+        const [step, setStep] = useState(1);
+        const [loading, setLoading] = useState(false);
+
+        const handleImageUpload = async () => {
+          setLoading(true);
+          // シミュレートされたOCR処理
+          setTimeout(() => {
+            const mockShifts = [
+              {
+                id: Date.now() + 1,
+                date: '2025-07-20',
+                startTime: '09:00',
+                endTime: '17:00',
+                workplace: 'カフェ',
+                earnings: 8000,
+              },
+              {
+                id: Date.now() + 2,
+                date: '2025-07-21',
+                startTime: '13:00',
+                endTime: '21:00',
+                workplace: 'レストラン',
+                earnings: 9600,
+              },
+            ];
+            onComplete(mockShifts);
+            setLoading(false);
+            setStep(1);
+          }, 2000);
+        };
+
+        return (
+          <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+            <DialogTitle>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <PhotoCamera />
+                シフト表AI読み取り
+              </Box>
+            </DialogTitle>
+            <DialogContent>
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                {step === 1 && !loading && (
+                  <>
+                    <CameraAlt sx={{ fontSize: 80, color: '#2196F3', mb: 2 }} />
+                    <Typography variant="h6" gutterBottom>
+                      シフト表を撮影してください
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      AIが自動でシフト情報を読み取り、カレンダーに登録します
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      size="large"
+                      onClick={handleImageUpload}
+                      sx={{
+                        mt: 3,
+                        background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                        px: 4,
+                      }}
+                    >
+                      写真を撮影
+                    </Button>
+                  </>
+                )}
+
+                {loading && (
+                  <>
+                    <Box sx={{ mb: 2 }}>
+                      <div style={{ 
+                        width: 60, 
+                        height: 60, 
+                        border: '4px solid #f3f3f3',
+                        borderTop: '4px solid #2196F3',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite',
+                        margin: '0 auto',
+                      }} />
+                    </Box>
+                    <Typography variant="h6" gutterBottom>
+                      AI解析中...
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      シフト情報を読み取っています
+                    </Typography>
+                  </>
+                )}
+              </Box>
+            </DialogContent>
+          </Dialog>
+        );
+      };
+
+      // メインアプリ
+      const ShiftBoardFuyouApp = () => {
+        const [shifts, setShifts] = useState([
+          {
+            id: 1,
+            date: '2025-07-15',
+            startTime: '10:00',
+            endTime: '18:00',
+            workplace: 'コンビニ',
+            earnings: 7200,
+          },
+          {
+            id: 2,
+            date: '2025-07-18',
+            startTime: '14:00',
+            endTime: '22:00',
+            workplace: 'ファミレス',
+            earnings: 8800,
+          },
+        ]);
+
+        const [fuyouStatus, setFuyouStatus] = useState({
+          currentEarnings: 650000,
+          limit: 1030000,
+          remaining: 380000,
+          riskLevel: 'safe',
+          projection: {
+            yearEnd: 980000,
+            overageRisk: false,
+          },
+        });
+
+        const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
+
+        const handleOCRComplete = (newShifts) => {
+          setShifts(prev => [...prev, ...newShifts]);
+          setOcrDialogOpen(false);
+          
+          // 扶養状況を再計算
+          const totalEarnings = [...shifts, ...newShifts].reduce(
+            (sum, shift) => sum + shift.earnings,
+            0
+          );
+          
+          setFuyouStatus(prev => ({
+            ...prev,
+            currentEarnings: prev.currentEarnings + totalEarnings,
+            remaining: Math.max(0, prev.limit - prev.currentEarnings - totalEarnings),
+            riskLevel: (prev.currentEarnings + totalEarnings) > prev.limit * 0.9 ? 'warning' : 'safe',
+          }));
+        };
+
+        const handleAddShift = (day) => {
+          alert(`${day}日のシフトを追加します`);
+        };
+
+        return (
+          <Container maxWidth="xl" sx={{ py: 3 }}>
+            {/* ヘッダー */}
+            <Box sx={{ mb: 4, textAlign: 'center' }}>
+              <Typography variant="h3" gutterBottom sx={{ 
+                fontWeight: 'bold',
+                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 2,
+              }}>
+                <AccountBalance sx={{ fontSize: 50, color: '#2196F3' }} />
+                扶養管理 - シフトボード
+              </Typography>
+              <Typography variant="h6" color="text.secondary">
+                学生アルバイター向け扶養控除自動管理システム
+              </Typography>
+            </Box>
+
+            {/* メインコンテンツ */}
+            <Grid container spacing={3}>
+              {/* 扶養ステータス */}
+              <Grid item xs={12} md={8}>
+                <FuyouStatusCard status={fuyouStatus} />
+              </Grid>
+
+              {/* クイックアクション */}
+              <Grid item xs={12} md={4}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      クイックアクション
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <Button
+                        variant="contained"
+                        size="large"
+                        startIcon={<CameraAlt />}
+                        onClick={() => setOcrDialogOpen(true)}
+                        sx={{
+                          height: 56,
+                          background: 'linear-gradient(45deg, #FF4081 30%, #FF6EC7 90%)',
+                          fontSize: '1.1rem',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        📸 シフト表を撮影
+                      </Button>
+                      
+                      <Button
+                        variant="outlined"
+                        size="large"
+                        startIcon={<Add />}
+                        sx={{ height: 48 }}
+                      >
+                        手動でシフト追加
+                      </Button>
+                      
+                      <Button
+                        variant="outlined"
+                        size="large"
+                        startIcon={<Upload />}
+                        sx={{ height: 48 }}
+                      >
+                        給与明細アップロード
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* カレンダー */}
+              <Grid item xs={12}>
+                <SimpleCalendar 
+                  shifts={shifts}
+                  onAddShift={handleAddShift}
+                />
+              </Grid>
+            </Grid>
+
+            {/* フローティングボタン */}
+            <Fab
+              color="secondary"
+              size="large"
+              sx={{
+                position: 'fixed',
+                bottom: 24,
+                right: 24,
+                background: 'linear-gradient(45deg, #FF4081 30%, #FF6EC7 90%)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #E91E63 30%, #FF4081 90%)',
+                },
+              }}
+              onClick={() => setOcrDialogOpen(true)}
+            >
+              <Badge badgeContent="AI" color="primary">
+                <CameraAlt />
+              </Badge>
+            </Fab>
+
+            {/* OCRダイアログ */}
+            <OCRDialog
+              open={ocrDialogOpen}
+              onClose={() => setOcrDialogOpen(false)}
+              onComplete={handleOCRComplete}
+            />
+
+            <style>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
+          </Container>
+        );
+      };
+
+      // ルートアプリ
+      const App = () => {
+        return (
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <ShiftBoardFuyouApp />
+          </ThemeProvider>
+        );
+      };
+
+      ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+  </body>
+</html>

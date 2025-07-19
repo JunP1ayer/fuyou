@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🧠 Perfect扶養シフトボード - Gemini Ultra設計</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@mui/material@5.15.20/umd/material-ui.development.js"></script>
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Roboto', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+      
+      /* 🎯 Gemini Ultra設計：扶養インパクトポッチシステム */
+      .fuyou-pot {
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        transition: all 0.3s ease;
+        position: relative;
+        margin: 1px;
+      }
+      
+      .fuyou-pot.safe {
+        background: linear-gradient(45deg, #2E7D32, #4CAF50);
+        box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+      }
+      
+      .fuyou-pot.safe::after { content: "✓"; }
+      
+      .fuyou-pot.warning {
+        background: linear-gradient(45deg, #F57C00, #FF9800);
+        box-shadow: 0 0 8px rgba(255, 152, 0, 0.4);
+        animation: pulse-warning 2s infinite;
+      }
+      
+      .fuyou-pot.warning::after { content: "!"; }
+      
+      .fuyou-pot.danger {
+        background: linear-gradient(45deg, #C62828, #F44336);
+        box-shadow: 0 0 12px rgba(244, 67, 54, 0.5);
+        animation: pulse-danger 1s infinite;
+      }
+      
+      .fuyou-pot.danger::after { content: "⚠"; }
+      
+      @keyframes pulse-warning {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+      }
+      
+      @keyframes pulse-danger {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        25% { transform: scale(1.15); opacity: 0.9; }
+        50% { transform: scale(1.05); opacity: 1; }
+        75% { transform: scale(1.15); opacity: 0.9; }
+      }
+      
+      @keyframes sparkle {
+        0% { transform: scale(0) rotate(0deg); opacity: 0; }
+        50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+        100% { transform: scale(1) rotate(360deg); opacity: 1; }
+      }
+      
+      /* 🚀 シフトボード完全再現：日付セル */
+      .shift-cell {
+        transition: all 0.15s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        min-height: 90px;
+        border-radius: 8px;
+      }
+      
+      .shift-cell:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      }
+      
+      .shift-cell.today {
+        border: 3px solid #2196F3;
+        background: linear-gradient(45deg, #E3F2FD 30%, #BBDEFB 90%);
+      }
+      
+      /* 📊 Gemini設計：扶養プログレスバー */
+      .fuyou-progress {
+        height: 24px;
+        border-radius: 12px;
+        background: linear-gradient(90deg, #E8F5E8 0%, #FFE8E8 100%);
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .fuyou-progress-bar {
+        height: 100%;
+        border-radius: 12px;
+        transition: all 0.8s ease-in-out;
+        position: relative;
+      }
+      
+      .fuyou-progress-bar.safe {
+        background: linear-gradient(90deg, #4CAF50, #66BB6A);
+      }
+      
+      .fuyou-progress-bar.warning {
+        background: linear-gradient(90deg, #FF9800, #FFB74D);
+      }
+      
+      .fuyou-progress-bar.danger {
+        background: linear-gradient(90deg, #F44336, #EF5350);
+      }
+      
+      .fuyou-progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: bold;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        font-size: 14px;
+      }
+      
+      /* 🧠 AI思考可視化 */
+      .ai-thinking {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        animation: slideIn 0.5s ease-out;
+      }
+      
+      @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      /* 💡 スマート提案バナー */
+      .smart-suggestion {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin: 8px 0;
+        animation: slideIn 0.3s ease;
+        border-left: 4px solid #FFF;
+      }
+      
+      /* 🎨 シフトボード風カラーパレット */
+      .shift-block {
+        padding: 4px 6px;
+        margin: 2px 0;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 500;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        min-height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        line-height: 1.2;
+      }
+      
+      .shift-block:hover {
+        filter: brightness(1.1);
+        transform: scale(1.02);
+      }
+      
+      .convenience { background: linear-gradient(45deg, #FF6B6B, #ee5a52); }
+      .restaurant { background: linear-gradient(45deg, #4ECDC4, #44A08D); }
+      .cafe { background: linear-gradient(45deg, #45B7D1, #96C93D); }
+      .retail { background: linear-gradient(45deg, #F093FB, #F5576C); }
+      .office { background: linear-gradient(45deg, #4facfe, #00f2fe); }
+      .other { background: linear-gradient(45deg, #a8edea, #fed6e3); }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useCallback, useRef } = React;
+      const {
+        Box,
+        Card,
+        CardContent,
+        Typography,
+        Grid,
+        Paper,
+        Alert,
+        LinearProgress,
+        Container,
+        ThemeProvider,
+        createTheme,
+        CssBaseline,
+        CircularProgress,
+        Button,
+        Dialog,
+        DialogContent,
+        DialogTitle,
+        Chip,
+        Fade,
+        Grow,
+      } = MaterialUI;
+
+      // 🧠 Gemini Ultra思考エンジン（完全版）
+      const GeminiUltraThink = {
+        analyzeFuyouRisk: (shifts, currentEarnings, limit) => {
+          const totalNewEarnings = shifts.reduce((sum, shift) => sum + (shift.earnings || 0), 0);
+          const projectedTotal = currentEarnings + totalNewEarnings;
+          const riskLevel = projectedTotal / limit;
+          
+          if (riskLevel > 1.0) {
+            return {
+              level: 'danger',
+              message: `🚨 扶養限度額超過！${(projectedTotal - limit).toLocaleString()}円オーバー`,
+              suggestion: '一部シフトを削減することを強く推奨します',
+              color: '#F44336',
+              remaining: 0,
+              overageAmount: projectedTotal - limit
+            };
+          } else if (riskLevel > 0.9) {
+            return {
+              level: 'warning',
+              message: `⚠️ 扶養限度額まで残り${(limit - projectedTotal).toLocaleString()}円`,
+              suggestion: 'これ以上のシフト追加は危険です',
+              color: '#FF9800',
+              remaining: limit - projectedTotal
+            };
+          } else if (riskLevel > 0.7) {
+            return {
+              level: 'caution',
+              message: `📊 扶養使用率${Math.round(riskLevel * 100)}% - 注意が必要`,
+              suggestion: '月末まで慎重にシフトを調整してください',
+              color: '#2196f3',
+              remaining: limit - projectedTotal
+            };
+          } else {
+            return {
+              level: 'safe',
+              message: `✅ 扶養内安全 - 残り${(limit - projectedTotal).toLocaleString()}円`,
+              suggestion: `あと${Math.floor((limit - projectedTotal) / 1000)}時間程度働けます`,
+              color: '#4CAF50',
+              remaining: limit - projectedTotal
+            };
+          }
+        },
+
+        generateOptimization: (shifts, hourlyWage, fuyouLimit) => {
+          const suggestions = [];
+          
+          const highEarningShifts = shifts.filter(s => s.earnings > hourlyWage * 6);
+          if (highEarningShifts.length > 0) {
+            suggestions.push({
+              type: 'optimize',
+              text: `💡 ${highEarningShifts.length}個の高収入シフトを優先的に確保しましょう`,
+              action: 'highlight-profitable'
+            });
+          }
+
+          const totalEarnings = shifts.reduce((sum, s) => sum + s.earnings, 0);
+          const remaining = fuyouLimit - totalEarnings;
+          if (remaining > 0 && remaining < hourlyWage * 10) {
+            suggestions.push({
+              type: 'maximize',
+              text: `🎯 あと${Math.floor(remaining / hourlyWage)}時間働けば扶養限度額に到達`,
+              action: 'suggest-shifts'
+            });
+          }
+
+          return suggestions;
+        },
+
+        calculatePotSize: (dailyEarnings, maxDailyTarget) => {
+          const baseSize = 16;
+          const maxSize = 28;
+          const ratio = Math.min(dailyEarnings / maxDailyTarget, 1);
+          return baseSize + (maxSize - baseSize) * ratio;
+        },
+
+        calculateFuyouImpact: (dailyEarnings, currentTotal, yearlyLimit) => {
+          const remainingBudget = yearlyLimit - currentTotal;
+          const impactRatio = dailyEarnings / remainingBudget;
+          
+          if (impactRatio < 0.01) return 'safe';
+          if (impactRatio < 0.05) return 'warning';
+          return 'danger';
+        }
+      };
+
+      // 🎯 扶養インパクトポッチ
+      const FuyouImpactPot = ({ earnings, impact, size }) => {
+        return (
+          <Box
+            className={`fuyou-pot ${impact}`}
+            sx={{
+              width: size,
+              height: size,
+              fontSize: Math.max(6, size * 0.3),
+              animation: impact === 'danger' ? 'pulse-danger 1s infinite' : 
+                        impact === 'warning' ? 'pulse-warning 2s infinite' : 'none'
+            }}
+          />
+        );
+      };
+
+      // 📊 扶養プログレスゲージ（Gemini設計）
+      const FuyouProgressGauge = ({ current, limit, animated = true }) => {
+        const percentage = Math.min((current / limit) * 100, 100);
+        const riskLevel = percentage > 100 ? 'danger' : percentage > 90 ? 'warning' : 'safe';
+        
+        return (
+          <Box position="relative" className="fuyou-progress">
+            <Box
+              className={`fuyou-progress-bar ${riskLevel}`}
+              sx={{
+                width: `${percentage}%`,
+                transition: animated ? 'width 0.8s ease-in-out' : 'none'
+              }}
+            />
+            
+            {/* 危険ゾーン表示 */}
+            <Box 
+              position="absolute" 
+              right="10%" 
+              top={0} 
+              height="100%"
+              width="2px"
+              bgcolor="error.main"
+              sx={{ opacity: 0.7 }}
+            />
+            
+            <Typography className="fuyou-progress-text">
+              {percentage.toFixed(1)}%
+            </Typography>
+          </Box>
+        );
+      };
+
+      // 🧠 AI思考可視化インジケーター
+      const GeminiThinkingIndicator = ({ isThinking, stage = 0 }) => {
+        const thinkingStages = [
+          { text: '📊 収入データを分析中...', duration: 1000 },
+          { text: '🧮 扶養限度額への影響を計算中...', duration: 1200 },
+          { text: '💡 最適化案を生成中...', duration: 800 },
+          { text: '✅ 分析完了！提案を準備中...', duration: 500 }
+        ];
+        
+        if (!isThinking) return null;
+        
+        return (
+          <Fade in={isThinking}>
+            <Box className="ai-thinking">
+              <Box display="flex" alignItems="center" gap={2}>
+                <CircularProgress size={20} sx={{ color: 'white' }} />
+                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                  🧠 Gemini Ultra思考中...
+                </Typography>
+              </Box>
+              
+              <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                {thinkingStages[stage]?.text || '分析中...'}
+              </Typography>
+              
+              <LinearProgress 
+                variant="determinate" 
+                value={(stage + 1) / thinkingStages.length * 100}
+                sx={{ 
+                  mt: 1, 
+                  height: 4,
+                  backgroundColor: 'rgba(255,255,255,0.3)',
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: 'white'
+                  }
+                }}
+              />
+            </Box>
+          </Fade>
+        );
+      };
+
+      // 💡 スマート提案表示
+      const SmartSuggestion = ({ suggestion, onAccept }) => {
+        return (
+          <Grow in={true}>
+            <Box className="smart-suggestion">
+              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                🧠 Gemini分析: {suggestion.text}
+              </Typography>
+              {onAccept && (
+                <Button 
+                  size="small" 
+                  sx={{ mt: 1, color: 'white', borderColor: 'white' }}
+                  variant="outlined"
+                  onClick={() => onAccept(suggestion)}
+                >
+                  提案を適用
+                </Button>
+              )}
+            </Box>
+          </Grow>
+        );
+      };
+
+      // 🚨 危険ゾーンアラート
+      const DangerZoneAlert = ({ analysis }) => {
+        if (!analysis || analysis.level === 'safe') return null;
+        
+        const severity = analysis.level === 'danger' ? 'error' : 'warning';
+        
+        return (
+          <Alert 
+            severity={severity} 
+            sx={{ 
+              mb: 2,
+              animation: 'slideIn 0.5s ease-out'
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              {analysis.message}
+            </Typography>
+            <Typography variant="body2">{analysis.suggestion}</Typography>
+          </Alert>
+        );
+      };
+
+      // 📅 シフトボード完全再現カレンダー
+      const PerfectShiftBoardCalendar = ({ shifts, onShiftUpdate, fuyouAnalysis }) => {
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay();
+
+        const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+        const calendarDays = [];
+
+        // カレンダー日付生成
+        for (let i = 0; i < firstDayOfWeek; i++) {
+          calendarDays.push(null);
+        }
+        for (let day = 1; day <= daysInMonth; day++) {
+          calendarDays.push(day);
+        }
+
+        const getShiftsForDay = (day) => {
+          if (!day) return [];
+          const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          return shifts.filter(shift => shift.date === dateStr);
+        };
+
+        const getWorkplaceClass = (workplace) => {
+          const mapping = {
+            'コンビニ': 'convenience',
+            'ファミレス': 'restaurant', 
+            'レストラン': 'restaurant',
+            'カフェ': 'cafe',
+            '小売': 'retail',
+            'オフィス': 'office'
+          };
+          return mapping[workplace] || 'other';
+        };
+
+        return (
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+                fontWeight: 'bold'
+              }}>
+                <span className="material-icons">schedule</span>
+                🧠 Perfect扶養シフトボード - {currentYear}年{currentMonth + 1}月
+              </Typography>
+
+              {/* 曜日ヘッダー */}
+              <Grid container spacing={0.5} sx={{ mb: 1 }}>
+                {weekDays.map((day, index) => (
+                  <Grid item xs key={index}>
+                    <Box
+                      textAlign="center"
+                      py={1}
+                      sx={{
+                        fontWeight: 'bold',
+                        fontSize: '12px',
+                        color: index === 0 ? '#f44336' : index === 6 ? '#2196f3' : '#333',
+                        background: 'linear-gradient(45deg, #f5f5f5 30%, #e0e0e0 90%)',
+                        borderRadius: 1,
+                      }}
+                    >
+                      {day}
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+
+              {/* カレンダーグリッド */}
+              <Grid container spacing={0.5}>
+                {calendarDays.map((day, index) => {
+                  const dayShifts = getShiftsForDay(day);
+                  const isToday = day === today.getDate();
+                  const totalEarnings = dayShifts.reduce((sum, shift) => sum + (shift.earnings || 0), 0);
+                  const fuyouImpact = totalEarnings > 0 ? 
+                    GeminiUltraThink.calculateFuyouImpact(totalEarnings, 850000, 1030000) : null;
+                  const potSize = totalEarnings > 0 ? 
+                    GeminiUltraThink.calculatePotSize(totalEarnings, 10000) : 0;
+                  
+                  return (
+                    <Grid item xs key={index}>
+                      <Paper
+                        className={`shift-cell ${isToday ? 'today' : ''}`}
+                        elevation={isToday ? 4 : 1}
+                        sx={{
+                          cursor: day ? 'pointer' : 'default',
+                          background: day ? (isToday ? 'linear-gradient(45deg, #E3F2FD 30%, #BBDEFB 90%)' : '#fff') : '#f5f5f5',
+                          opacity: day ? 1 : 0.3,
+                        }}
+                      >
+                        {day && (
+                          <Box p={0.5} sx={{ height: '100%', position: 'relative' }}>
+                            {/* 日付 */}
+                            <Box display="flex" justifyContent="space-between" alignItems="center">
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontWeight: isToday ? 'bold' : 'normal',
+                                  color: isToday ? '#2196F3' : '#333',
+                                  fontSize: '11px'
+                                }}
+                              >
+                                {day}
+                              </Typography>
+                              
+                              {/* 扶養インパクトポッチ */}
+                              {fuyouImpact && (
+                                <FuyouImpactPot 
+                                  earnings={totalEarnings}
+                                  impact={fuyouImpact}
+                                  size={potSize}
+                                />
+                              )}
+                            </Box>
+
+                            {/* シフトブロック */}
+                            <Box sx={{ mt: 0.5 }}>
+                              {dayShifts.slice(0, 3).map((shift, idx) => (
+                                <Box
+                                  key={idx}
+                                  className={`shift-block ${getWorkplaceClass(shift.workplace)}`}
+                                >
+                                  <Typography variant="caption" sx={{ fontSize: '9px', lineHeight: 1 }}>
+                                    {shift.startTime}-{shift.endTime}
+                                  </Typography>
+                                </Box>
+                              ))}
+                              
+                              {dayShifts.length > 3 && (
+                                <Typography variant="caption" sx={{ fontSize: '8px', color: '#666' }}>
+                                  +{dayShifts.length - 3} more
+                                </Typography>
+                              )}
+                            </Box>
+
+                            {/* 日収表示 */}
+                            {totalEarnings > 0 && (
+                              <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                  fontSize: '8px', 
+                                  fontWeight: 'bold',
+                                  color: fuyouImpact === 'danger' ? '#f44336' : 
+                                         fuyouImpact === 'warning' ? '#ff9800' : '#4caf50',
+                                  display: 'block',
+                                  textAlign: 'center',
+                                  mt: 0.5
+                                }}
+                              >
+                                ¥{totalEarnings.toLocaleString()}
+                              </Typography>
+                            )}
+                          </Box>
+                        )}
+                      </Paper>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            </CardContent>
+          </Card>
+        );
+      };
+
+      // 🏆 メインアプリ：ShiftBoardFuyouMaster
+      const ShiftBoardFuyouMaster = () => {
+        const [shifts, setShifts] = useState([
+          {
+            id: 1,
+            date: '2025-07-15',
+            startTime: '10:00',
+            endTime: '18:00',
+            workplace: 'コンビニ',
+            earnings: 8000,
+          },
+          {
+            id: 2,
+            date: '2025-07-18',
+            startTime: '14:00',
+            endTime: '22:00',
+            workplace: 'ファミレス',
+            earnings: 8000,
+          },
+          {
+            id: 3,
+            date: '2025-07-20',
+            startTime: '09:00',
+            endTime: '17:00',
+            workplace: 'カフェ',
+            earnings: 8000,
+          },
+          {
+            id: 4,
+            date: '2025-07-22',
+            startTime: '13:00',
+            endTime: '21:00',
+            workplace: 'レストラン',
+            earnings: 9000,
+          },
+        ]);
+
+        const [fuyouStatus, setFuyouStatus] = useState({
+          currentEarnings: 850000,
+          limit: 1030000,
+        });
+
+        const [isAIThinking, setIsAIThinking] = useState(false);
+        const [thinkingStage, setThinkingStage] = useState(0);
+        const [fuyouAnalysis, setFuyouAnalysis] = useState(null);
+        const [smartSuggestions, setSmartSuggestions] = useState([]);
+
+        // Gemini Ultra思考トリガー
+        const triggerAIAnalysis = useCallback(async (updatedShifts) => {
+          setIsAIThinking(true);
+          setThinkingStage(0);
+          
+          // 段階的思考シミュレーション
+          for (let stage = 0; stage < 4; stage++) {
+            setThinkingStage(stage);
+            await new Promise(resolve => setTimeout(resolve, [1000, 1200, 800, 500][stage]));
+          }
+          
+          const analysis = GeminiUltraThink.analyzeFuyouRisk(
+            updatedShifts, 
+            fuyouStatus.currentEarnings, 
+            fuyouStatus.limit
+          );
+          
+          const optimizations = GeminiUltraThink.generateOptimization(
+            updatedShifts,
+            1000,
+            fuyouStatus.limit
+          );
+          
+          setFuyouAnalysis(analysis);
+          setSmartSuggestions(optimizations);
+          setIsAIThinking(false);
+        }, [fuyouStatus]);
+
+        // 初回分析
+        useEffect(() => {
+          triggerAIAnalysis(shifts);
+        }, []);
+
+        const handleShiftUpdate = useCallback((updatedShifts) => {
+          setShifts(updatedShifts);
+          triggerAIAnalysis(updatedShifts);
+        }, [triggerAIAnalysis]);
+
+        const currentEarnings = fuyouStatus.currentEarnings + 
+          shifts.reduce((sum, shift) => sum + shift.earnings, 0);
+
+        return (
+          <Container maxWidth="xl" sx={{ py: 2 }}>
+            {/* ヘッダー */}
+            <Box sx={{ mb: 3, textAlign: 'center' }}>
+              <Typography variant="h4" gutterBottom sx={{ 
+                fontWeight: 'bold',
+                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>
+                🧠 Perfect扶養シフトボード
+              </Typography>
+              <Typography variant="subtitle1" sx={{ color: 'white', opacity: 0.9 }}>
+                Gemini Ultra設計 × シフトボード完全再現 × 扶養管理特化
+              </Typography>
+            </Box>
+
+            {/* AI思考可視化 */}
+            <GeminiThinkingIndicator 
+              isThinking={isAIThinking}
+              stage={thinkingStage}
+            />
+
+            {/* 扶養ダッシュボード */}
+            <Card sx={{ mb: 2 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  📊 扶養ダッシュボード
+                </Typography>
+                
+                <FuyouProgressGauge 
+                  current={currentEarnings}
+                  limit={fuyouStatus.limit}
+                  animated={!isAIThinking}
+                />
+                
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                  <Typography variant="body2">
+                    現在: {currentEarnings.toLocaleString()}円
+                  </Typography>
+                  <Typography variant="body2">
+                    限度額: {fuyouStatus.limit.toLocaleString()}円
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+
+            {/* 危険ゾーンアラート */}
+            <DangerZoneAlert analysis={fuyouAnalysis} />
+
+            {/* スマート提案 */}
+            {smartSuggestions.map((suggestion, index) => (
+              <SmartSuggestion 
+                key={index}
+                suggestion={suggestion}
+                onAccept={(suggestion) => {
+                  console.log('提案受け入れ:', suggestion);
+                }}
+              />
+            ))}
+
+            {/* シフトボード完全再現カレンダー */}
+            <PerfectShiftBoardCalendar
+              shifts={shifts}
+              onShiftUpdate={handleShiftUpdate}
+              fuyouAnalysis={fuyouAnalysis}
+            />
+
+            {/* Gemini思考状態表示 */}
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+              <Typography variant="caption" sx={{ 
+                background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                fontWeight: 'bold'
+              }}>
+                🧠 Gemini Ultra思考エンジン稼働中 - シフトボード級操作感 × 扶養管理完全特化
+              </Typography>
+            </Box>
+          </Container>
+        );
+      };
+
+      // テーマとルートアプリ
+      const theme = createTheme({
+        palette: {
+          primary: { main: '#667eea' },
+          secondary: { main: '#764ba2' },
+        },
+      });
+
+      const App = () => (
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <ShiftBoardFuyouMaster />
+        </ThemeProvider>
+      );
+
+      ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+  </body>
+</html>

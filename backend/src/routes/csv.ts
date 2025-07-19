@@ -3,6 +3,7 @@ import multer from 'multer';
 import { CSVParserService } from '../services/csvParserService';
 import { logger } from '../utils/logger';
 import { supabase } from '../utils/supabase';
+import { requireAuthOrDemo } from '../middleware/validation';
 import { randomUUID } from 'crypto';
 
 const router = express.Router();
@@ -24,7 +25,7 @@ const upload = multer({
 });
 
 // CSVファイルアップロード・処理エンドポイント
-router.post('/upload', upload.single('csvFile'), async (req, res) => {
+router.post('/upload', requireAuthOrDemo, upload.single('csvFile'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -46,9 +47,9 @@ router.post('/upload', upload.single('csvFile'), async (req, res) => {
       });
     }
 
-    // 収入取引をデータベースに保存（簡易版 - 認証なしでuser_id固定）
+    // 収入取引をデータベースに保存
     const savedIncomes = [];
-    const userId = 'demo-user-123'; // デモユーザー固定ID
+    const userId = req.user!.id; // 認証されたユーザーID
 
     for (const income of parseResult.incomeTransactions) {
       try {
@@ -142,9 +143,9 @@ router.post('/upload', upload.single('csvFile'), async (req, res) => {
 });
 
 // CSV処理履歴取得
-router.get('/history', async (req, res) => {
+router.get('/history', requireAuthOrDemo, async (req, res) => {
   try {
-    const userId = 'demo-user-123'; // デモユーザー固定ID
+    const userId = req.user!.id; // 認証されたユーザーID
 
     const { data: uploads, error } = await supabase
       .from('csv_uploads')
@@ -172,9 +173,9 @@ router.get('/history', async (req, res) => {
 });
 
 // CSV処理統計
-router.get('/stats', async (req, res) => {
+router.get('/stats', requireAuthOrDemo, async (req, res) => {
   try {
-    const userId = 'demo-user-123'; // デモユーザー固定ID
+    const userId = req.user!.id; // 認証されたユーザーID
 
     // 今月の処理統計
     const thisMonth = new Date();
