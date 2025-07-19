@@ -21,6 +21,7 @@ import {
   Dashboard as DashboardIcon,
   Schedule,
   CameraAlt,
+  Analytics,
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { CSVUpload, type ParsedIncomeData } from './CSVUpload';
@@ -31,6 +32,7 @@ import { ShiftCalendar } from './shifts/ShiftCalendar';
 import { ShiftFormDialog } from './shifts/ShiftFormDialog';
 import { ShiftEditDialog } from './shifts/ShiftEditDialog';
 import { OCRShiftManager } from './OCRShiftManager';
+import { OptimizationDashboard } from './OptimizationDashboard';
 import type { FuyouStatus } from '../types/fuyou';
 import type { Shift, CreateShiftData } from '../types/shift';
 
@@ -105,10 +107,10 @@ export function Dashboard() {
   const handleOCRShiftsSaved = (shifts: CreateShiftData[]) => {
     console.log('OCR shifts saved:', shifts);
     setUploadSuccess(`${shifts.length}件のシフトを OCR から登録しました`);
-    
+
     // シフト管理タブに切り替え
     setCurrentTab(1);
-    
+
     // 5秒後に成功メッセージを消す
     setTimeout(() => {
       setUploadSuccess(null);
@@ -169,6 +171,12 @@ export function Dashboard() {
             label="OCR登録"
             id="tab-2"
             aria-controls="tabpanel-2"
+          />
+          <Tab
+            icon={<Analytics />}
+            label="最適化"
+            id="tab-3"
+            aria-controls="tabpanel-3"
           />
         </Tabs>
       </Box>
@@ -307,6 +315,12 @@ export function Dashboard() {
               onShiftsSaved={handleOCRShiftsSaved}
               onError={handleOCRError}
             />
+          </Box>
+        )}
+        {/* 最適化タブ */}
+        {currentTab === 3 && (
+          <Box role="tabpanel" id="tabpanel-3" aria-labelledby="tab-3">
+            <OptimizationDashboard />
           </Box>
         )}
       </Box>

@@ -31,13 +31,13 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
+      const data: { error?: { message: string }, data?: T } = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error?.message || 'API request failed');
       }
 
-      return data;
+      return data.data as T;
     } catch (error) {
       throw error instanceof Error
         ? error
@@ -437,6 +437,201 @@ class ApiService {
       headers: {
         Authorization: `Bearer ${token}`,
       },
+    });
+  }
+
+  // Phase 4: Optimization endpoints
+  
+  // Constraints management
+  async createOptimizationConstraint(token: string, constraint: any) {
+    return this.request('/optimization/constraints', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(constraint),
+    });
+  }
+
+  async getOptimizationConstraints(token: string, activeOnly?: boolean) {
+    const queryString = activeOnly ? '?active_only=true' : '';
+    return this.request(`/optimization/constraints${queryString}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async updateOptimizationConstraint(token: string, constraintId: string, updates: any) {
+    return this.request(`/optimization/constraints/${constraintId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updates),
+    });
+  }
+
+  async deleteOptimizationConstraint(token: string, constraintId: string) {
+    return this.request(`/optimization/constraints/${constraintId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async validateOptimizationConstraints(token: string) {
+    return this.request('/optimization/constraints/validate', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  // Availability management
+  async createAvailabilitySlot(token: string, slot: any) {
+    return this.request('/optimization/availability', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(slot),
+    });
+  }
+
+  async getAvailabilitySlots(token: string) {
+    return this.request('/optimization/availability', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async updateAvailabilitySlot(token: string, slotId: string, updates: any) {
+    return this.request(`/optimization/availability/${slotId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updates),
+    });
+  }
+
+  async deleteAvailabilitySlot(token: string, slotId: string) {
+    return this.request(`/optimization/availability/${slotId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  // User preferences
+  async getOptimizationPreferences(token: string) {
+    return this.request('/optimization/preferences', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async updateOptimizationPreferences(token: string, preferences: any) {
+    return this.request('/optimization/preferences', {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(preferences),
+    });
+  }
+
+  // Optimization runs
+  async runOptimization(token: string, request: any) {
+    return this.request('/optimization/run', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(request),
+    });
+  }
+
+  async runOptimizationAsync(token: string, request: any) {
+    return this.request('/optimization/run/async', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(request),
+    });
+  }
+
+  async getOptimizationRunStatus(token: string, runId: string) {
+    return this.request(`/optimization/runs/${runId}/status`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getOptimizationRuns(token: string) {
+    return this.request('/optimization/runs', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getOptimizationRunDetails(token: string, runId: string) {
+    return this.request(`/optimization/runs/${runId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getOptimizationSuggestions(token: string, runId: string) {
+    return this.request(`/optimization/runs/${runId}/suggestions`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  // Utility endpoints
+  async getOptimizationAlgorithms(token: string) {
+    return this.request('/optimization/algorithms', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getOptimizationTiers(token: string) {
+    return this.request('/optimization/tiers', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getOptimizationHealth(token: string) {
+    return this.request('/optimization/health', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  async bulkValidateConstraints(token: string, constraints: any[]) {
+    return this.request('/optimization/constraints/bulk-validate', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ constraints }),
     });
   }
 }
