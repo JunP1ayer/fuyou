@@ -14,15 +14,19 @@
   "routes": [
     {
       "src": "/",
+      "dest": "/fuyou-pro-app.html"
+    },
+    {
+      "src": "/landing",
       "dest": "/index.html"
     },
     {
       "src": "/app",
-      "dest": "/fuyou-serverless-v5.html"
+      "dest": "/fuyou-pro-app.html"
     },
     {
-      "src": "/ai",
-      "dest": "/fuyou-serverless-v5.html"
+      "src": "/(.*)",
+      "dest": "/fuyou-pro-app.html"
     }
   ],
   "headers": [
@@ -56,7 +60,7 @@
   "redirects": [
     {
       "source": "/latest",
-      "destination": "/fuyou-serverless-v5.html",
+      "destination": "/fuyou-pro-app.html",
       "permanent": false
     }
   ]
