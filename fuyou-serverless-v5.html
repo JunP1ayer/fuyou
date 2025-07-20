@@ -28,13 +28,74 @@
             user-select: none;
         }
 
-        html, body {
+        /* PC版でもスマホUXを強制 */
+        html {
+            height: 100%;
+            /* デスクトップでも最大幅を制限してスマホ風に */
+            max-width: 430px;
+            margin: 0 auto;
+            background: #2c2c2c;
+        }
+
+        body {
             height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             overflow-x: hidden;
             position: fixed;
             width: 100%;
+            max-width: 430px;
+            margin: 0 auto;
+        }
+
+        /* デスクトップ用のスマホフレーム効果 */
+        @media (min-width: 600px) {
+            html {
+                background: #2c2c2c;
+                padding: 20px 0;
+                min-height: 100vh;
+                position: fixed;
+                width: 100%;
+                left: 0;
+                top: 0;
+            }
+            
+            body {
+                border-radius: 25px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                border: 8px solid #1a1a1a;
+                min-height: calc(100vh - 40px);
+                overflow: hidden;
+                position: relative;
+            }
+            
+            /* iPhoneのノッチ風 */
+            body::before {
+                content: '';
+                position: absolute;
+                top: -8px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 150px;
+                height: 25px;
+                background: #1a1a1a;
+                border-radius: 0 0 15px 15px;
+                z-index: 1000;
+            }
+            
+            /* スピーカー */
+            body::after {
+                content: '';
+                position: absolute;
+                top: 3px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 50px;
+                height: 4px;
+                background: #333;
+                border-radius: 2px;
+                z-index: 1001;
+            }
         }
 
         /* ========== スプラッシュ画面 ========== */
@@ -688,7 +749,75 @@
             console.log('🚀 扶養プロ 5.0 サーバーレス版 起動');
             generateDemoCalendar();
             enhanceTouchResponsiveness();
+            addMobileViewToggle();
         });
+
+        // PC版用モバイルビュー切り替え機能
+        function addMobileViewToggle() {
+            if (window.innerWidth >= 600) {
+                const toggleButton = document.createElement('div');
+                toggleButton.style.cssText = `
+                    position: fixed;
+                    top: 10px;
+                    right: 10px;
+                    background: rgba(0,0,0,0.7);
+                    color: white;
+                    padding: 8px 12px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    cursor: pointer;
+                    z-index: 10000;
+                    user-select: none;
+                    font-family: monospace;
+                    transition: all 0.3s ease;
+                    border: 1px solid rgba(255,255,255,0.2);
+                `;
+                toggleButton.textContent = '📱 Mobile View';
+                toggleButton.onclick = toggleMobileView;
+                toggleButton.onmouseenter = () => {
+                    toggleButton.style.background = 'rgba(0,0,0,0.9)';
+                    toggleButton.style.transform = 'scale(1.05)';
+                };
+                toggleButton.onmouseleave = () => {
+                    toggleButton.style.background = 'rgba(0,0,0,0.7)';
+                    toggleButton.style.transform = 'scale(1)';
+                };
+                document.body.appendChild(toggleButton);
+            }
+        }
+
+        let isMobileView = true;
+        function toggleMobileView() {
+            const button = document.querySelector('div[style*="📱"], div[style*="🖥️"]');
+            
+            if (isMobileView) {
+                // デスクトップビューに切り替え
+                document.documentElement.style.maxWidth = 'none';
+                document.documentElement.style.background = '#f0f0f0';
+                document.documentElement.style.padding = '0';
+                document.body.style.maxWidth = 'none';
+                document.body.style.margin = '0';
+                document.body.style.borderRadius = '0';
+                document.body.style.border = 'none';
+                document.body.style.boxShadow = 'none';
+                document.body.style.position = 'static';
+                if (button) button.textContent = '🖥️ Desktop View';
+                isMobileView = false;
+            } else {
+                // モバイルビューに戻る
+                document.documentElement.style.maxWidth = '430px';
+                document.documentElement.style.background = '#2c2c2c';
+                document.documentElement.style.padding = '20px 0';
+                document.body.style.maxWidth = '430px';
+                document.body.style.margin = '0 auto';
+                document.body.style.borderRadius = '25px';
+                document.body.style.border = '8px solid #1a1a1a';
+                document.body.style.boxShadow = '0 20px 60px rgba(0,0,0,0.3)';
+                document.body.style.position = 'fixed';
+                if (button) button.textContent = '📱 Mobile View';
+                isMobileView = true;
+            }
+        }
 
         // ========== スプラッシュ画面 ==========
         function startApp() {
