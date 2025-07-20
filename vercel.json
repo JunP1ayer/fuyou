@@ -1,4 +1,7 @@
 {
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "installCommand": "",
   "functions": {
     "api/openai-vision.js": {
       "maxDuration": 30
