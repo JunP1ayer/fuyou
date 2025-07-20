@@ -313,6 +313,14 @@
             cursor: default;
         }
 
+        .calendar-day.header.sunday {
+            color: #f44336;
+        }
+
+        .calendar-day.header.saturday {
+            color: #2196F3;
+        }
+
         .calendar-day.today {
             background: #4CAF50;
             color: white;
@@ -916,25 +924,61 @@
         // ========== カレンダー生成 ==========
         function generateDemoCalendar() {
             const calendar = document.getElementById('demoCalendar');
+            calendar.innerHTML = ''; // 既存の内容をクリア
+            
             const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
             
             // 曜日ヘッダー
-            weekdays.forEach(day => {
+            weekdays.forEach((day, index) => {
                 const header = document.createElement('div');
                 header.className = 'calendar-day header';
+                
+                // 日曜と土曜に特別なクラスを追加
+                if (index === 0) { // 日曜
+                    header.classList.add('sunday');
+                } else if (index === 6) { // 土曜
+                    header.classList.add('saturday');
+                }
+                
                 header.textContent = day;
                 calendar.appendChild(header);
             });
             
-            // 日付（1-31日の簡易版）
-            for (let day = 1; day <= 31; day++) {
+            // 現在の月の情報を取得
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth(); // 0-11
+            
+            // 月初の曜日を取得（0=日曜, 1=月曜, ...）
+            const firstDay = new Date(year, month, 1).getDay();
+            
+            // 月の日数を取得
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // 月初までの空のセルを追加
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day';
+                calendar.appendChild(emptyCell);
+            }
+            
+            // 日付を生成
+            for (let day = 1; day <= daysInMonth; day++) {
                 const dayElement = document.createElement('div');
                 dayElement.className = 'calendar-day';
                 dayElement.textContent = day;
                 
                 // 今日をハイライト
-                if (day === new Date().getDate()) {
+                if (day === now.getDate() && month === now.getMonth()) {
                     dayElement.classList.add('today');
+                }
+                
+                // 曜日による色分け
+                const dayOfWeek = (firstDay + day - 1) % 7;
+                if (dayOfWeek === 0) { // 日曜
+                    dayElement.style.color = '#f44336';
+                } else if (dayOfWeek === 6) { // 土曜
+                    dayElement.style.color = '#2196F3';
                 }
                 
                 // デモシフト（いくつかの日にシフトがあると仮定）
