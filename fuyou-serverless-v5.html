@@ -524,12 +524,12 @@
     <div id="splashScreen" class="splash-screen">
         <div class="splash-icon">🤖</div>
         <h1 class="splash-title">扶養プロ 5.0</h1>
-        <p class="splash-subtitle">AIが写真を解析して<br>シフトを自動登録</p>
+        <p class="splash-subtitle">AIが画像を解析して<br>シフトを自動登録</p>
         
         <div class="splash-features">
             <div class="feature-item">
                 <div class="feature-icon">📸</div>
-                <div>シフト表を撮影するだけ</div>
+                <div>シフト表画像をアップロード</div>
             </div>
             <div class="feature-item">
                 <div class="feature-icon">🧠</div>
@@ -572,7 +572,7 @@
                 <h2 class="welcome-title">AI搭載版へようこそ！</h2>
                 <p class="welcome-text">
                     設定不要でAI機能を使用できます。<br>
-                    シフト表を撮影するだけで自動解析し、<br>
+                    シフト表画像をアップロードするだけで自動解析し、<br>
                     カレンダーに瞬時に反映されます。
                 </p>
                 
@@ -581,9 +581,9 @@
                         <div class="quick-start-icon">🤖</div>
                         <div>AI解析開始</div>
                     </button>
-                    <button class="quick-start-btn secondary" onclick="takePicture()">
-                        <div class="quick-start-icon">📷</div>
-                        <div>写真撮影</div>
+                    <button class="quick-start-btn secondary" onclick="selectImage()">
+                        <div class="quick-start-icon">📱</div>
+                        <div>画像選択</div>
                     </button>
                 </div>
             </div>
@@ -604,7 +604,6 @@
         <!-- FAB群 -->
         <div class="fab-group">
             <button class="fab fab-ai" onclick="startAICapture()" title="AI解析">🤖</button>
-            <button class="fab fab-camera" onclick="takePicture()" title="写真撮影">📷</button>
         </div>
 
         <!-- AI解析モーダル -->
@@ -702,7 +701,7 @@
             document.getElementById('fileInput').click();
         }
 
-        function takePicture() {
+        function selectImage() {
             document.getElementById('fileInput').click();
         }
 
@@ -778,30 +777,8 @@
         }
 
         async function callServerlessAPI(imageData) {
-            // まずOpenAI APIを試行
-            try {
-                const response = await fetch('/api/openai-vision', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        image: imageData,
-                        prompt: 'この画像からシフト情報を抽出してください。'
-                    })
-                });
-                
-                if (response.ok) {
-                    return await response.json();
-                }
-                
-                console.warn('OpenAI API失敗、Gemini APIを試行中...');
-                
-            } catch (error) {
-                console.warn('OpenAI API接続エラー:', error);
-            }
-            
-            // Gemini APIにフォールバック
+            // 優先: Gemini API
+            console.log('🤖 Gemini APIで解析を開始...');
             try {
                 const response = await fetch('/api/gemini-vision', {
                     method: 'POST',
@@ -815,13 +792,39 @@
                 });
                 
                 if (response.ok) {
+                    console.log('✅ Gemini API解析成功');
                     return await response.json();
                 }
                 
-                throw new Error('Gemini API呼び出しに失敗しました');
+                console.warn('❌ Gemini API失敗、OpenAI APIにフォールバック...');
                 
             } catch (error) {
-                console.error('Gemini API呼び出しエラー:', error);
+                console.warn('❌ Gemini API接続エラー:', error);
+                console.log('🔄 OpenAI APIにフォールバック...');
+            }
+            
+            // フォールバック: OpenAI API
+            try {
+                const response = await fetch('/api/openai-vision', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        image: imageData,
+                        prompt: 'この画像からシフト情報を抽出してください。'
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('✅ OpenAI API解析成功（フォールバック）');
+                    return await response.json();
+                }
+                
+                throw new Error('OpenAI API呼び出しに失敗しました');
+                
+            } catch (error) {
+                console.error('❌ OpenAI API呼び出しエラー:', error);
                 throw new Error('AI解析サービスに接続できませんでした。ネットワーク接続を確認してください。');
             }
         }
