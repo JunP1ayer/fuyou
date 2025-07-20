@@ -27,6 +27,7 @@ import { format } from '../utils/dateUtils';
 import { useAuth } from '../hooks/useAuth';
 import { apiService } from '../services/api';
 import { JobTemplate, JobManagement } from './JobManagement';
+import { calculateShiftEarnings } from '../utils/shiftCalculation';
 import type { CreateShiftData } from '../types/shift';
 
 interface QuickShiftRegistrationProps {
@@ -43,7 +44,9 @@ export const QuickShiftRegistration: React.FC<QuickShiftRegistrationProps> = ({
   selectedDate,
 }) => {
   const { token } = useAuth();
-  const [step, setStep] = useState<'selectJob' | 'setTime' | 'confirm'>('selectJob');
+  const [step, setStep] = useState<'selectJob' | 'setTime' | 'confirm'>(
+    'selectJob'
+  );
   const [selectedJob, setSelectedJob] = useState<JobTemplate | null>(null);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('17:00');
@@ -70,23 +73,27 @@ export const QuickShiftRegistration: React.FC<QuickShiftRegistrationProps> = ({
     }
   }, [selectedJob]);
 
-  // 労働時間と収入の計算
+  // 労働時間と収入の計算（深夜時給対応）
   const calculateShiftDetails = () => {
-    if (!selectedJob) return { workingHours: 0, earnings: 0 };
+    if (!selectedJob || !selectedDate) {
+      return {
+        workingHours: 0,
+        earnings: 0,
+        breakdown: [],
+        regularHours: 0,
+        nightHours: 0,
+        weekendHours: 0,
+        transportationCost: 0,
+      };
+    }
 
-    const startMinutes = timeToMinutes(startTime);
-    const endMinutes = timeToMinutes(endTime);
-    const workMinutes = endMinutes - startMinutes - (selectedJob.defaultBreakMinutes || 0);
-    const workingHours = Math.max(0, workMinutes / 60);
-    const earnings = workingHours * selectedJob.hourlyRate + (selectedJob.transportationCost || 0);
-
-    return { workingHours, earnings };
-  };
-
-  // 時間を分に変換
-  const timeToMinutes = (timeStr: string): number => {
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    return hours * 60 + minutes;
+    return calculateShiftEarnings(
+      selectedJob,
+      selectedDate,
+      startTime,
+      endTime,
+      selectedJob.defaultBreakMinutes || 0
+    );
   };
 
   // シフト登録
@@ -110,7 +117,7 @@ export const QuickShiftRegistration: React.FC<QuickShiftRegistrationProps> = ({
         isConfirmed: false, // クイック登録は未確定として登録
       };
 
-      const response = await apiService.createShift(token, shiftData) as {
+      const response = (await apiService.createShift(token, shiftData)) as {
         success: boolean;
         data?: unknown;
         error?: unknown;
@@ -165,7 +172,9 @@ export const QuickShiftRegistration: React.FC<QuickShiftRegistrationProps> = ({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          maxHeight: '80vh',
+          maxHeight: { xs: '95vh', sm: '85vh' },
+          m: { xs: 1, sm: 2 },
+          width: { xs: 'calc(100% - 16px)', sm: 'auto' },
         },
       }}
     >
@@ -201,24 +210,38 @@ export const QuickShiftRegistration: React.FC<QuickShiftRegistrationProps> = ({
 
         {/* ステップインジケーター */}
         <Box sx={{ p: 2, pb: 0 }}>
-          <Box display="flex" alignItems="center" gap={1}>
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={1}
+            sx={{
+              overflowX: 'auto',
+              '&::-webkit-scrollbar': { display: 'none' },
+              scrollbarWidth: 'none',
+            }}
+          >
             <Chip
               label="1. バイト先"
               color={step === 'selectJob' ? 'primary' : 'default'}
               variant={['selectJob'].includes(step) ? 'filled' : 'outlined'}
               size="small"
+              sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' } }}
             />
             <Chip
               label="2. 時間設定"
               color={step === 'setTime' ? 'primary' : 'default'}
-              variant={['setTime', 'confirm'].includes(step) ? 'filled' : 'outlined'}
+              variant={
+                ['setTime', 'confirm'].includes(step) ? 'filled' : 'outlined'
+              }
               size="small"
+              sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' } }}
             />
             <Chip
               label="3. 確認"
               color={step === 'confirm' ? 'primary' : 'default'}
               variant={step === 'confirm' ? 'filled' : 'outlined'}
               size="small"
+              sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' } }}
             />
           </Box>
         </Box>
@@ -269,28 +292,100 @@ export const QuickShiftRegistration: React.FC<QuickShiftRegistrationProps> = ({
                 </Grid>
               </Grid>
 
-              <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  予想詳細
+              <Box
+                sx={{
+                  mt: 3,
+                  p: { xs: 1.5, sm: 2 },
+                  bgcolor: 'grey.50',
+                  borderRadius: 1,
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  gutterBottom
+                  sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                >
+                  収入詳細
                 </Typography>
+
+                {/* 時間内訳 */}
                 <Box display="flex" justifyContent="space-between" mb={1}>
-                  <span>労働時間:</span>
-                  <strong>{shiftDetails.workingHours.toFixed(1)}時間</strong>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                  >
+                    総労働時間:
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    fontWeight="bold"
+                    sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                  >
+                    {shiftDetails.workingHours.toFixed(1)}時間
+                  </Typography>
                 </Box>
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <span>時給:</span>
-                  <span>¥{selectedJob.hourlyRate.toLocaleString()}</span>
-                </Box>
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <span>交通費:</span>
-                  <span>¥{selectedJob.transportationCost?.toLocaleString() || 0}</span>
-                </Box>
+
+                {/* 詳細内訳 */}
+                {shiftDetails.breakdown.map((item, index) => (
+                  <Box
+                    key={index}
+                    display="flex"
+                    justifyContent="space-between"
+                    mb={0.5}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
+                    >
+                      {item.label}: {item.hours.toFixed(1)}h × ¥
+                      {item.rate.toLocaleString()}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}
+                    >
+                      ¥{Math.round(item.earnings).toLocaleString()}
+                    </Typography>
+                  </Box>
+                ))}
+
+                {/* 交通費 */}
+                {shiftDetails.transportationCost > 0 && (
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                    >
+                      交通費:
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                    >
+                      ¥{shiftDetails.transportationCost.toLocaleString()}
+                    </Typography>
+                  </Box>
+                )}
+
                 <Divider sx={{ my: 1 }} />
                 <Box display="flex" justifyContent="space-between">
-                  <span>合計収入:</span>
-                  <strong style={{ color: '#4CAF50', fontSize: '1.1em' }}>
-                    ¥{Math.round(shiftDetails.earnings).toLocaleString()}
-                  </strong>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                  >
+                    合計収入:
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    fontWeight="bold"
+                    sx={{
+                      color: '#4CAF50',
+                      fontSize: { xs: '0.9rem', sm: '1.1rem' },
+                    }}
+                  >
+                    ¥{Math.round(shiftDetails.totalEarnings).toLocaleString()}
+                  </Typography>
                 </Box>
               </Box>
             </Box>
@@ -320,14 +415,16 @@ export const QuickShiftRegistration: React.FC<QuickShiftRegistrationProps> = ({
                   <Box display="flex" alignItems="center" gap={1} mb={1}>
                     <Schedule fontSize="small" />
                     <Typography variant="body2">
-                      {selectedDate && format(new Date(selectedDate), 'M月d日 (E)')}
+                      {selectedDate &&
+                        format(new Date(selectedDate), 'M月d日 (E)')}
                     </Typography>
                   </Box>
 
                   <Box display="flex" alignItems="center" gap={1} mb={1}>
                     <AccessTime fontSize="small" />
                     <Typography variant="body2">
-                      {startTime} - {endTime} ({shiftDetails.workingHours.toFixed(1)}時間)
+                      {startTime} - {endTime} (
+                      {shiftDetails.workingHours.toFixed(1)}時間)
                     </Typography>
                   </Box>
 
@@ -341,7 +438,8 @@ export const QuickShiftRegistration: React.FC<QuickShiftRegistrationProps> = ({
                   <Box display="flex" alignItems="center" gap={1} mb={2}>
                     <DirectionsBus fontSize="small" />
                     <Typography variant="body2">
-                      交通費 ¥{selectedJob.transportationCost?.toLocaleString() || 0}
+                      交通費 ¥
+                      {selectedJob.transportationCost?.toLocaleString() || 0}
                     </Typography>
                   </Box>
 
@@ -349,8 +447,22 @@ export const QuickShiftRegistration: React.FC<QuickShiftRegistrationProps> = ({
 
                   <Box textAlign="center">
                     <Typography variant="h5" color="primary">
-                      合計収入: ¥{Math.round(shiftDetails.earnings).toLocaleString()}
+                      合計収入: ¥
+                      {Math.round(shiftDetails.totalEarnings).toLocaleString()}
                     </Typography>
+                    {shiftDetails.breakdown.length > 1 && (
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mt: 1 }}
+                      >
+                        {shiftDetails.breakdown
+                          .map(
+                            item => `${item.label}: ${item.hours.toFixed(1)}h`
+                          )
+                          .join(' / ')}
+                      </Typography>
+                    )}
                   </Box>
                 </CardContent>
               </Card>
@@ -365,17 +477,22 @@ export const QuickShiftRegistration: React.FC<QuickShiftRegistrationProps> = ({
         {/* フッター */}
         <Box
           sx={{
-            p: 2,
+            p: { xs: 1.5, sm: 2 },
             borderTop: '1px solid',
             borderColor: 'divider',
             display: 'flex',
-            gap: 2,
+            gap: { xs: 1, sm: 2 },
             justifyContent: 'space-between',
+            flexWrap: 'wrap',
           }}
         >
           <Button
             onClick={step === 'selectJob' ? onClose : handleBack}
             disabled={loading}
+            sx={{
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              minWidth: { xs: '80px', sm: 'auto' },
+            }}
           >
             {step === 'selectJob' ? 'キャンセル' : '戻る'}
           </Button>
@@ -386,6 +503,10 @@ export const QuickShiftRegistration: React.FC<QuickShiftRegistrationProps> = ({
                 variant="contained"
                 onClick={handleNext}
                 disabled={!selectedJob}
+                sx={{
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  minWidth: { xs: '80px', sm: 'auto' },
+                }}
               >
                 確認へ
               </Button>
@@ -397,6 +518,10 @@ export const QuickShiftRegistration: React.FC<QuickShiftRegistrationProps> = ({
                 onClick={handleCreateShift}
                 disabled={loading || !selectedJob}
                 startIcon={loading ? <CircularProgress size={20} /> : <Check />}
+                sx={{
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  minWidth: { xs: '90px', sm: 'auto' },
+                }}
               >
                 {loading ? '登録中...' : '登録完了'}
               </Button>
