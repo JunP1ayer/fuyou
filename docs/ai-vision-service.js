@@ -70,7 +70,7 @@ class AIVisionService {
      */
     async callVisionAPI(base64Image, retryCount = 0) {
         const payload = {
-            model: "gpt-4o-mini", // 🆕 最新の効率的なビジョンモデル
+            model: "gpt-4o", // 🆕 最新のGPT-4oビジョンモデル
             messages: [
                 {
                     role: "user",

@@ -2,7 +2,7 @@
 class GeminiVisionService {
     constructor() {
         this.apiKey = null; // 設定から取得
-        this.apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'; // 🆕 最新の高速モデル
+        this.apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5:generateContent'; // 🆕 最新のGemini 2.5モデル
         this.maxRetries = 3;
         this.retryDelay = 1000;
         
@@ -46,8 +46,8 @@ class GeminiVisionService {
                     fileName: imageFile.name,
                     fileSize: imageFile.size,
                     processedAt: new Date().toISOString(),
-                    provider: 'Gemini 1.5 Flash', // 🆕 最新プロバイダー名
-                    model: 'gemini-1.5-flash', // 🆕 最新モデル名
+                    provider: 'Gemini 2.5', // 🆕 最新プロバイダー名
+                    model: 'gemini-2.5', // 🆕 最新モデル名
                     qualityCheck: qualityCheck
                 }
             };
