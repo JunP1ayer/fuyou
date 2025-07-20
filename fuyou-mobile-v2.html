@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>扶養プロモバイル v2.0.0 - スマホアプリUX</title>
+    
+    <!-- 強力なキャッシュバスティング -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="cache-control" content="max-age=0">
+    
+    <!-- PWA + モバイル最適化 -->
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="扶養プロ">
+    
+    <style>
+        /* ========== モバイルファースト リセット ========== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow-x: hidden;
+            position: fixed;
+            width: 100%;
+        }
+
+        /* ========== 超高速タッチレスポンス ========== */
+        button, .btn, .tab-btn, .card, .clickable {
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            transition: all 0.05s ease-out !important;
+            cursor: pointer;
+        }
+
+        button:active, .btn:active, .tab-btn:active, .card:active, .clickable:active {
+            transform: scale(0.97) !important;
+            opacity: 0.8 !important;
+            filter: brightness(0.9) !important;
+        }
+
+        /* ========== メインコンテナ ========== */
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ========== ヘッダー ========== */
+        .header {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            color: white;
+            padding: max(env(safe-area-inset-top), 20px) 20px 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .version-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        /* ========== タブナビゲーション ========== */
+        .tab-navigation {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            position: relative;
+            z-index: 90;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 16px 12px;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tab-btn.active {
+            color: #4CAF50;
+            border-bottom-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .tab-btn:active {
+            background: rgba(76, 175, 80, 0.1) !important;
+        }
+
+        /* ========== メインコンテンツエリア ========== */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== カード系コンポーネント ========== */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .status-card {
+            text-align: center;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .status-amount {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 12px 0;
+        }
+
+        .status-label {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        /* ========== ボタンスタイル ========== */
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-secondary {
+            background: #2196F3;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn-danger {
+            background: #f44336;
+            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+        }
+
+        /* ========== シフトカレンダー ========== */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-top: 16px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .calendar-day.has-shift {
+            background: #E8F5E8;
+            border-color: #4CAF50;
+            color: #2E7D32;
+            font-weight: 600;
+        }
+
+        .calendar-day.today {
+            background: #4CAF50;
+            color: white;
+            font-weight: 700;
+        }
+
+        .calendar-day:active {
+            transform: scale(0.95);
+            background: #4CAF50 !important;
+            color: white !important;
+        }
+
+        /* ========== フォーム ========== */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        /* ========== アラートシステム ========== */
+        .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .alert-warning {
+            background: #FFF3CD;
+            color: #856404;
+            border-left: 4px solid #FFC107;
+        }
+
+        .alert-danger {
+            background: #F8D7DA;
+            color: #721C24;
+            border-left: 4px solid #DC3545;
+        }
+
+        .alert-info {
+            background: #D1ECF1;
+            color: #0C5460;
+            border-left: 4px solid #17A2B8;
+        }
+
+        /* ========== リスト ========== */
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-item-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .list-item-subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .list-item-value {
+            font-weight: 700;
+            color: #4CAF50;
+        }
+
+        /* ========== モーダル ========== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin: 20px;
+            max-width: 400px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ========== 収入表示 ========== */
+        .income-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .income-item {
+            text-align: center;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .income-amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4CAF50;
+        }
+
+        .income-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* ========== プログレスバー ========== */
+        .progress-container {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 20px;
+            margin: 16px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* ========== フローティングアクションボタン ========== */
+        .fab {
+            position: fixed;
+            bottom: calc(env(safe-area-inset-bottom) + 80px);
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab:active {
+            transform: scale(0.9);
+        }
+
+        /* ========== ローディング ========== */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e0e0e0;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ========== レスポンシブ調整 ========== */
+        @media (max-width: 480px) {
+            .content-area {
+                padding: 16px;
+            }
+            
+            .card {
+                padding: 16px;
+                border-radius: 12px;
+            }
+            
+            .calendar-day {
+                font-size: 12px;
+            }
+            
+            .tab-btn {
+                font-size: 12px;
+                padding: 12px 8px;
+            }
+        }
+
+        /* ========== セーフエリア対応 ========== */
+        @supports (padding: max(0px)) {
+            .content-area {
+                padding-bottom: max(20px, env(safe-area-inset-bottom));
+            }
+            
+            .fab {
+                bottom: max(80px, calc(env(safe-area-inset-bottom) + 80px));
+            }
+        }
+
+        /* ========== ダークモード対応 ========== */
+        @media (prefers-color-scheme: dark) {
+            .card {
+                background: #1e1e1e;
+                color: white;
+                border-color: #333;
+            }
+            
+            .content-area {
+                background: #121212;
+            }
+            
+            .form-input {
+                background: #1e1e1e;
+                color: white;
+                border-color: #333;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <h1>扶養プロモバイル</h1>
+            <div class="version-badge">v2.0.0 - 超高速レスポンス</div>
+        </header>
+
+        <!-- タブナビゲーション -->
+        <nav class="tab-navigation">
+            <button class="tab-btn active" data-tab="dashboard">ダッシュボード</button>
+            <button class="tab-btn" data-tab="shifts">シフト</button>
+            <button class="tab-btn" data-tab="income">収入</button>
+            <button class="tab-btn" data-tab="settings">設定</button>
+        </nav>
+
+        <!-- メインコンテンツ -->
+        <main class="content-area">
+            <!-- ダッシュボードタブ -->
+            <div id="dashboard" class="tab-content active">
+                <div class="card status-card">
+                    <div class="status-amount">¥124,850</div>
+                    <div class="status-label">今年の総収入</div>
+                    <div style="margin-top: 12px; font-size: 14px;">
+                        扶養控除まで残り: <strong>¥98,150</strong>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">今月の状況</div>
+                    <div class="income-display">
+                        <div class="income-item">
+                            <div class="income-amount">¥48,200</div>
+                            <div class="income-label">今月の収入</div>
+                        </div>
+                        <div class="income-item">
+                            <div class="income-amount">18日</div>
+                            <div class="income-label">勤務日数</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: 56%;">
+                            <div class="progress-text">56% 達成</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>AI予測:</strong> 現在のペースなら年収約22万円の見込みです。扶養控除内に収まる安全な範囲です。
+                </div>
+
+                <div class="card">
+                    <div class="card-title">クイックアクション</div>
+                    <button class="btn" onclick="showAddShiftModal()">シフト追加</button>
+                    <button class="btn btn-secondary" onclick="switchTab('income')">収入詳細</button>
+                </div>
+            </div>
+
+            <!-- シフトタブ -->
+            <div id="shifts" class="tab-content">
+                <div class="card">
+                    <div class="card-title">7月のシフト</div>
+                    <div class="calendar-grid" id="shiftCalendar">
+                        <!-- カレンダーはJavaScriptで生成 -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">今週の予定</div>
+                    <div class="list-item">
+                        <div>
+                            <div class="list-item-title">7/22 (月)</div>
+                            <div class="list-item-subtitle">9:00-17:00 (8時間)</div>
+                        </div>
+                        <div class="list-item-value">¥8,000</div>
+                    </div>
+                    <div class="list-item">
+                        <div>
+                            <div class="list-item-title">7/24 (水)</div>
+                            <div class="list-item-subtitle">10:00-15:00 (5時間)</div>
+                        </div>
+                        <div class="list-item-value">¥5,000</div>
+                    </div>
+                    <div class="list-item">
+                        <div>
+                            <div class="list-item-title">7/26 (金)</div>
+                            <div class="list-item-subtitle">14:00-18:00 (4時間)</div>
+                        </div>
+                        <div class="list-item-value">¥4,000</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 収入タブ -->
+            <div id="income" class="tab-content">
+                <div class="card">
+                    <div class="card-title">年間収入推移</div>
+                    <div class="income-display">
+                        <div class="income-item">
+                            <div class="income-amount">¥124,850</div>
+                            <div class="income-label">年間実績</div>
+                        </div>
+                        <div class="income-item">
+                            <div class="income-amount">¥220,000</div>
+                            <div class="income-label">年間予測</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        年間予測が扶養控除額（103万円）を大幅に下回っています。安全圏内です。
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">月別収入履歴</div>
+                    <div class="list-item">
+                        <div>
+                            <div class="list-item-title">2024年7月</div>
+                            <div class="list-item-subtitle">18日勤務</div>
+                        </div>
+                        <div class="list-item-value">¥48,200</div>
+                    </div>
+                    <div class="list-item">
+                        <div>
+                            <div class="list-item-title">2024年6月</div>
+                            <div class="list-item-subtitle">20日勤務</div>
+                        </div>
+                        <div class="list-item-value">¥52,000</div>
+                    </div>
+                    <div class="list-item">
+                        <div>
+                            <div class="list-item-title">2024年5月</div>
+                            <div class="list-item-subtitle">15日勤務</div>
+                        </div>
+                        <div class="list-item-value">¥38,500</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary">CSV出力</button>
+            </div>
+
+            <!-- 設定タブ -->
+            <div id="settings" class="tab-content">
+                <div class="card">
+                    <div class="card-title">基本設定</div>
+                    <div class="form-group">
+                        <label class="form-label">時給</label>
+                        <input type="number" class="form-input" value="1000" placeholder="時給を入力">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">扶養控除目標額</label>
+                        <input type="number" class="form-input" value="1030000" placeholder="目標額を入力">
+                    </div>
+                    <button class="btn">設定を保存</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">アプリ情報</div>
+                    <div class="list-item">
+                        <div class="list-item-title">バージョン</div>
+                        <div class="list-item-value">v2.0.0</div>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-item-title">最終更新</div>
+                        <div class="list-item-value">2024/07/21</div>
+                    </div>
+                    <div class="list-item">
+                        <div class="list-item-title">タッチ最適化</div>
+                        <div class="list-item-value">有効</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-danger">データをリセット</button>
+            </div>
+        </main>
+
+        <!-- フローティングアクションボタン -->
+        <button class="fab" onclick="showAddShiftModal()">+</button>
+
+        <!-- シフト追加モーダル -->
+        <div id="addShiftModal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close" onclick="hideAddShiftModal()">×</button>
+                <div class="modal-header">シフト追加</div>
+                
+                <div class="form-group">
+                    <label class="form-label">日付</label>
+                    <input type="date" class="form-input" id="shiftDate">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">開始時間</label>
+                    <input type="time" class="form-input" id="shiftStart">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">終了時間</label>
+                    <input type="time" class="form-input" id="shiftEnd">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">時給</label>
+                    <input type="number" class="form-input" id="shiftWage" value="1000">
+                </div>
+                
+                <button class="btn" onclick="saveShift()">シフトを保存</button>
+                <button class="btn btn-secondary" onclick="hideAddShiftModal()">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== グローバル変数 ==========
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let shifts = JSON.parse(localStorage.getItem('shifts') || '{}');
+
+        // ========== 初期化 ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 扶養プロモバイル v2.0.0 起動');
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // タッチ最適化を最優先で実行
+            enhanceTouchResponsiveness();
+            
+            // その他の初期化
+            setupTabNavigation();
+            generateCalendar();
+            loadShifts();
+            
+            console.log('✅ アプリ初期化完了');
+        }
+
+        // ========== 超高速タッチレスポンス ==========
+        function enhanceTouchResponsiveness() {
+            console.log('📱 超高速タッチレスポンス有効化中...');
+            
+            // 全てのタッチ可能要素に即座のフィードバック
+            document.querySelectorAll('button, .btn, .tab-btn, .card, .clickable, .calendar-day').forEach(element => {
+                // タッチ開始の瞬間にエフェクト
+                element.addEventListener('touchstart', function(e) {
+                    this.style.transform = 'scale(0.97)';
+                    this.style.opacity = '0.8';
+                    this.style.filter = 'brightness(0.9)';
+                }, { passive: true });
+                
+                // タッチ終了でエフェクト解除
+                element.addEventListener('touchend', function(e) {
+                    setTimeout(() => {
+                        this.style.transform = '';
+                        this.style.opacity = '';
+                        this.style.filter = '';
+                    }, 50);
+                }, { passive: true });
+                
+                // タッチキャンセル時もエフェクト解除
+                element.addEventListener('touchcancel', function(e) {
+                    this.style.transform = '';
+                    this.style.opacity = '';
+                    this.style.filter = '';
+                }, { passive: true });
+            });
+            
+            console.log('✅ タッチレスポンス最適化完了');
+        }
+
+        // ========== タブナビゲーション ==========
+        function setupTabNavigation() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabName = this.dataset.tab;
+                    switchTab(tabName);
+                });
+            });
+        }
+
+        function switchTab(tabName) {
+            // すべてのタブボタンとコンテンツを非アクティブに
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // 選択されたタブをアクティブに
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            // タブ切り替え時にタッチレスポンス再適用
+            setTimeout(enhanceTouchResponsiveness, 100);
+        }
+
+        // ========== カレンダー生成 ==========
+        function generateCalendar() {
+            const calendar = document.getElementById('shiftCalendar');
+            const today = new Date();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            
+            // 曜日ヘッダー
+            const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+            weekdays.forEach(day => {
+                const dayElement = document.createElement('div');
+                dayElement.textContent = day;
+                dayElement.style.fontWeight = 'bold';
+                dayElement.style.backgroundColor = '#f0f0f0';
+                dayElement.style.color = '#666';
+                calendar.appendChild(dayElement);
+            });
+            
+            // 月の最初の日の曜日を取得
+            const firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay();
+            
+            // 空のセルを追加（月の開始前）
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.classList.add('calendar-day');
+                emptyDay.style.opacity = '0.3';
+                calendar.appendChild(emptyDay);
+            }
+            
+            // 日付セルを生成
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.classList.add('calendar-day', 'clickable');
+                dayElement.textContent = day;
+                
+                // 今日をハイライト
+                if (day === today.getDate() && 
+                    currentMonth === today.getMonth() && 
+                    currentYear === today.getFullYear()) {
+                    dayElement.classList.add('today');
+                }
+                
+                // シフトがある日をハイライト
+                const dateKey = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                if (shifts[dateKey]) {
+                    dayElement.classList.add('has-shift');
+                }
+                
+                // クリックイベント
+                dayElement.addEventListener('click', function() {
+                    const selectedDate = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                    document.getElementById('shiftDate').value = selectedDate;
+                    showAddShiftModal();
+                });
+                
+                calendar.appendChild(dayElement);
+            }
+        }
+
+        // ========== シフト管理 ==========
+        function showAddShiftModal() {
+            document.getElementById('addShiftModal').classList.add('active');
+            // 今日の日付をデフォルトに設定
+            if (!document.getElementById('shiftDate').value) {
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('shiftDate').value = today;
+            }
+        }
+
+        function hideAddShiftModal() {
+            document.getElementById('addShiftModal').classList.remove('active');
+        }
+
+        function saveShift() {
+            const date = document.getElementById('shiftDate').value;
+            const startTime = document.getElementById('shiftStart').value;
+            const endTime = document.getElementById('shiftEnd').value;
+            const wage = parseInt(document.getElementById('shiftWage').value);
+            
+            if (!date || !startTime || !endTime || !wage) {
+                alert('すべての項目を入力してください');
+                return;
+            }
+            
+            // 労働時間計算
+            const start = new Date(`2000-01-01 ${startTime}`);
+            const end = new Date(`2000-01-01 ${endTime}`);
+            const hours = (end - start) / (1000 * 60 * 60);
+            const earnings = hours * wage;
+            
+            // シフトデータ保存
+            shifts[date] = {
+                startTime,
+                endTime,
+                wage,
+                hours,
+                earnings
+            };
+            
+            localStorage.setItem('shifts', JSON.stringify(shifts));
+            
+            // UI更新
+            generateCalendar();
+            hideAddShiftModal();
+            
+            // フォームクリア
+            document.getElementById('shiftStart').value = '';
+            document.getElementById('shiftEnd').value = '';
+            
+            alert(`シフトを保存しました！\n労働時間: ${hours}時間\n収入: ¥${earnings.toLocaleString()}`);
+        }
+
+        function loadShifts() {
+            // localStorage からシフトデータを読み込み
+            const savedShifts = localStorage.getItem('shifts');
+            if (savedShifts) {
+                shifts = JSON.parse(savedShifts);
+            }
+        }
+
+        // ========== デモデータ生成 ==========
+        function generateDemoData() {
+            const demoShifts = {
+                '2024-07-22': { startTime: '09:00', endTime: '17:00', wage: 1000, hours: 8, earnings: 8000 },
+                '2024-07-24': { startTime: '10:00', endTime: '15:00', wage: 1000, hours: 5, earnings: 5000 },
+                '2024-07-26': { startTime: '14:00', endTime: '18:00', wage: 1000, hours: 4, earnings: 4000 },
+                '2024-07-29': { startTime: '09:00', endTime: '17:00', wage: 1000, hours: 8, earnings: 8000 }
+            };
+            
+            shifts = { ...shifts, ...demoShifts };
+            localStorage.setItem('shifts', JSON.stringify(shifts));
+            generateCalendar();
+            
+            alert('デモデータを生成しました！');
+        }
+
+        // ========== バックグラウンドでのデモデータ生成 ==========
+        setTimeout(() => {
+            if (Object.keys(shifts).length === 0) {
+                generateDemoData();
+            }
+        }, 1000);
+
+        // ========== パフォーマンス監視 ==========
+        window.addEventListener('load', function() {
+            const loadTime = performance.now();
+            console.log(`🚀 アプリロード時間: ${loadTime.toFixed(2)}ms`);
+            
+            // タッチ遅延測定
+            let touchStartTime = 0;
+            document.addEventListener('touchstart', function() {
+                touchStartTime = performance.now();
+            }, { passive: true });
+            
+            document.addEventListener('touchend', function() {
+                const touchDelay = performance.now() - touchStartTime;
+                if (touchDelay > 50) {
+                    console.warn(`⚠️ タッチ遅延検出: ${touchDelay.toFixed(2)}ms`);
+                }
+            }, { passive: true });
+        });
+
+        // ========== エラーハンドリング ==========
+        window.addEventListener('error', function(e) {
+            console.error('❌ アプリエラー:', e.error);
+            alert('エラーが発生しました。ページを再読み込みしてください。');
+        });
+
+        console.log('✅ 扶養プロモバイル v2.0.0 完全ロード完了');
+    </script>
+</body>
+</html>
