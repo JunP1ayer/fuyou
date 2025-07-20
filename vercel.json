@@ -11,22 +11,22 @@
       "maxDuration": 30
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/",
-      "dest": "/fuyou-pro-app.html"
+      "source": "/",
+      "destination": "/index.html"
     },
     {
-      "src": "/landing",
-      "dest": "/index.html"
+      "source": "/app",
+      "destination": "/fuyou-interactive-v6.html"
     },
     {
-      "src": "/app",
-      "dest": "/fuyou-pro-app.html"
+      "source": "/ai",
+      "destination": "/fuyou-serverless-v5.html"
     },
     {
-      "src": "/(.*)",
-      "dest": "/fuyou-pro-app.html"
+      "source": "/latest",
+      "destination": "/fuyou-interactive-v6.html"
     }
   ],
   "headers": [
@@ -55,13 +55,6 @@
           "value": "public, max-age=3600"
         }
       ]
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/latest",
-      "destination": "/fuyou-pro-app.html",
-      "permanent": false
     }
   ]
 }
