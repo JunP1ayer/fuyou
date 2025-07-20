@@ -52,21 +52,22 @@
         @media (min-width: 600px) {
             html {
                 background: #2c2c2c;
-                padding: 20px 0;
                 min-height: 100vh;
-                position: fixed;
-                width: 100%;
-                left: 0;
-                top: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
             }
             
             body {
                 border-radius: 25px;
                 box-shadow: 0 20px 60px rgba(0,0,0,0.3);
                 border: 8px solid #1a1a1a;
-                min-height: calc(100vh - 40px);
+                height: 90vh;
+                max-height: 800px;
                 overflow: hidden;
                 position: relative;
+                margin: 0 !important;
             }
             
             /* iPhoneのノッチ風 */
@@ -269,52 +270,55 @@
 
         .welcome-card {
             background: white;
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 20px;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #f0f0f0;
         }
 
         .welcome-icon {
-            font-size: 80px;
-            margin-bottom: 20px;
+            font-size: 32px;
+            margin-bottom: 8px;
         }
 
         .welcome-title {
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 16px;
+            font-weight: 600;
             color: #333;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
         }
 
         .welcome-text {
             color: #666;
-            line-height: 1.6;
-            margin-bottom: 30px;
+            line-height: 1.4;
+            margin-bottom: 16px;
+            font-size: 12px;
+            display: none; /* シンプルにするため非表示 */
         }
 
         .quick-start {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 20px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
         }
 
         .quick-start-btn {
             background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
             border: none;
-            border-radius: 12px;
-            padding: 20px 16px;
-            font-size: 14px;
-            font-weight: 600;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            flex: 1;
+            justify-content: center;
         }
 
         .quick-start-btn:hover {
@@ -327,33 +331,45 @@
         }
 
         .quick-start-icon {
-            font-size: 32px;
+            font-size: 16px;
         }
 
         .demo-calendar {
             background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            border: 1px solid #f0f0f0;
         }
 
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f5f5f5;
         }
 
         .month-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             color: #333;
+        }
+
+        .calendar-subtitle {
+            font-size: 11px;
+            color: #999;
+            font-weight: 400;
         }
 
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
+            gap: 1px;
+            padding: 0 8px;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .calendar-day {
@@ -361,21 +377,25 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 12px;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s ease;
+            min-width: 0;
+            max-width: 100%;
         }
 
         .calendar-day.header {
-            font-weight: 600;
-            color: #666;
-            background: #f8f9fa;
+            font-weight: 500;
+            color: #888;
+            background: transparent;
             cursor: default;
+            font-size: 11px;
+            padding: 8px 0;
         }
 
         .calendar-day.header.sunday {
-            color: #f44336;
+            color: #ff5722;
         }
 
         .calendar-day.header.saturday {
@@ -385,21 +405,33 @@
         .calendar-day.today {
             background: #4CAF50;
             color: white;
-            font-weight: 700;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
         }
 
         .calendar-day.has-shift {
             background: linear-gradient(135deg, #4CAF50, #66BB6A);
             color: white;
-            font-weight: 700;
-            border-radius: 8px;
-            transform: scale(0.95);
-            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(76, 175, 80, 0.4);
         }
 
         .calendar-day.has-shift:hover {
-            transform: scale(1);
-            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(76, 175, 80, 0.5);
+        }
+
+        /* タイムツリー風の洗練されたデザイン */
+        .calendar-day:not(.header) {
+            position: relative;
+            background: #fafafa;
+            border: 1px solid #f0f0f0;
+            transition: all 0.15s ease;
+        }
+
+        .calendar-day:not(.header):hover {
+            background: #f5f5f5;
+            border-color: #e0e0e0;
         }
 
         /* ========== FAB群 ========== */
@@ -667,8 +699,11 @@
             <!-- デモカレンダー -->
             <div class="demo-calendar">
                 <div class="calendar-header">
-                    <div class="month-title">2024年7月</div>
-                    <div style="font-size: 12px; color: #666;">AI解析後にシフトが表示されます</div>
+                    <div>
+                        <div class="month-title">2024年7月</div>
+                        <div class="calendar-subtitle">タップして詳細を確認</div>
+                    </div>
+                    <div style="font-size: 11px; color: #999;">🤖 AI解析待ち</div>
                 </div>
                 
                 <div class="calendar-grid" id="demoCalendar">
@@ -1174,19 +1209,8 @@
                     dayElement.style.color = '#2196F3';
                 }
                 
-                // デモシフト（現実的なパターン：週2-3回のアルバイト）
-                const today = now.getDate();
-                const isShiftDay = [
-                    Math.max(1, today - 3),
-                    Math.max(1, today - 1), 
-                    Math.min(daysInMonth, today + 2),
-                    Math.min(daysInMonth, today + 5)
-                ].includes(day);
-                
-                if (isShiftDay) {
-                    dayElement.classList.add('has-shift');
-                    dayElement.title = 'シフト予定あり';
-                }
+                // シフト表示はAI解析後のみ（デモシフトは無効化）
+                // シンプルで混乱しないカレンダーを目指す
                 
                 calendar.appendChild(dayElement);
             }
