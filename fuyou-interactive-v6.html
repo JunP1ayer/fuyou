@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>扶養プロ 6.0 - シフトボード風UX</title>
+    
+    <!-- キャッシュバスティング -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- PWA + モバイル最適化 -->
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="扶養プロ">
+    
+    <style>
+        /* ========== 基本スタイル ========== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow-x: hidden;
+            position: fixed;
+            width: 100%;
+        }
+
+        /* ========== 超高速タッチレスポンス ========== */
+        button, .btn, .tab-btn, .card, .clickable {
+            touch-action: manipulation;
+            transition: all 0.05s ease-out !important;
+            cursor: pointer;
+        }
+
+        button:active, .btn:active, .tab-btn:active, .card:active, .clickable:active {
+            transform: scale(0.97) !important;
+            opacity: 0.8 !important;
+        }
+
+        /* ========== スプラッシュ画面 ========== */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 3000;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .splash-screen.hidden {
+            display: none;
+        }
+
+        .splash-icon {
+            font-size: 100px;
+            margin-bottom: 30px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+
+        .splash-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .splash-subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+            margin-bottom: 50px;
+            line-height: 1.4;
+        }
+
+        .start-button {
+            padding: 20px 40px;
+            background: white;
+            color: #4CAF50;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* ========== メインアプリ ========== */
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .app-container.visible {
+            opacity: 1;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            color: white;
+            padding: max(env(safe-area-inset-top), 15px) 20px 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .month-navigation {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 14px;
+        }
+
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .fuyou-status {
+            margin-top: 12px;
+            background: rgba(255,255,255,0.15);
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* ========== シフトボード風カレンダー ========== */
+        .calendar-container {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: #f5f5f5;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .calendar-header {
+            text-align: center;
+            padding: 16px 8px;
+            font-weight: 600;
+            color: #666;
+            font-size: 12px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .calendar-day {
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background: #f8f9fa;
+        }
+
+        .calendar-day:active {
+            background: #e3f2fd;
+            transform: scale(0.98);
+        }
+
+        .calendar-day.other-month {
+            background: #fafafa;
+            color: #ccc;
+        }
+
+        .calendar-day.today {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .calendar-day.today .day-number {
+            color: white;
+            font-weight: 700;
+        }
+
+        .day-number {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            padding: 8px;
+            align-self: flex-start;
+        }
+
+        .shift-list {
+            flex: 1;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .shift-item {
+            background: #4CAF50;
+            color: white;
+            font-size: 10px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 500;
+            line-height: 1.2;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .shift-item:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .shift-item.multiple {
+            background: #2196F3;
+        }
+
+        .shift-item.overtime {
+            background: #FF9800;
+        }
+
+        .add-shift-hint {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 16px;
+            height: 16px;
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px dashed #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #4CAF50;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .calendar-day:hover .add-shift-hint {
+            opacity: 1;
+        }
+
+        /* ========== FAB群 ========== */
+        .fab-group {
+            position: fixed;
+            bottom: 30px;
+            right: 20px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            color: white;
+            border: none;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .fab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .fab-ai {
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            animation: ai-glow 3s infinite;
+        }
+
+        @keyframes ai-glow {
+            0%, 100% { box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4); }
+            50% { box-shadow: 0 4px 20px rgba(78, 205, 196, 0.6); }
+        }
+
+        .fab-camera {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+
+        .fab-add {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+        }
+
+        /* ========== シフト編集モーダル ========== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin: 20px;
+            max-width: 400px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .time-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #2196F3;
+        }
+
+        .btn-secondary:hover {
+            background: #1976D2;
+        }
+
+        .btn-danger {
+            background: #f44336;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        /* ========== 既存シフト表示 ========== */
+        .existing-shifts {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .existing-shifts h4 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .shift-preview {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shift-info {
+            flex: 1;
+        }
+
+        .shift-time {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .shift-workplace {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .shift-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-edit {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+
+        /* ========== レスポンシブ ========== */
+        @media (max-width: 480px) {
+            .calendar-day {
+                min-height: 70px;
+            }
+            
+            .day-number {
+                font-size: 12px;
+                padding: 6px;
+            }
+            
+            .shift-item {
+                font-size: 9px;
+                padding: 3px 4px;
+            }
+            
+            .modal-content {
+                margin: 16px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- スプラッシュ画面 -->
+    <div id="splashScreen" class="splash-screen">
+        <div class="splash-icon">📅</div>
+        <h1 class="splash-title">扶養プロ 6.0</h1>
+        <p class="splash-subtitle">シフトボード風UX搭載<br>日付タップで瞬時に編集</p>
+        <button class="start-button" onclick="startApp()">始める</button>
+    </div>
+
+    <!-- メインアプリ -->
+    <div id="appContainer" class="app-container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="header-content">
+                <h1>扶養プロ 6.0</h1>
+                <div class="month-navigation">
+                    <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+                    <span id="currentMonth">2024年7月</span>
+                    <button class="nav-btn" onclick="changeMonth(1)">›</button>
+                </div>
+            </div>
+            <div class="fuyou-status">
+                <div>
+                    <span id="currentEarnings">¥0</span>
+                    <span style="opacity: 0.8;">/ ¥1,230,000</span>
+                </div>
+                <div style="font-size: 12px;" id="progressPercent">0%</div>
+            </div>
+        </header>
+
+        <!-- カレンダー表示 -->
+        <main class="calendar-container">
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- 動的生成 -->
+            </div>
+        </main>
+
+        <!-- FAB群 -->
+        <div class="fab-group">
+            <button class="fab fab-ai" onclick="startAICapture()" title="AI解析">🤖</button>
+            <button class="fab fab-camera" onclick="takePicture()" title="写真撮影">📷</button>
+            <button class="fab fab-add" onclick="showAddShiftModal()" title="手動追加">+</button>
+        </div>
+
+        <!-- シフト編集モーダル -->
+        <div id="shiftModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title" id="modalTitle">シフト編集</div>
+                    <button class="modal-close" onclick="closeShiftModal()">×</button>
+                </div>
+                
+                <!-- 既存シフト表示 -->
+                <div id="existingShifts" class="existing-shifts" style="display: none;">
+                    <h4>この日のシフト</h4>
+                    <div id="shiftsList">
+                        <!-- 動的生成 -->
+                    </div>
+                </div>
+                
+                <!-- 新規シフト追加フォーム -->
+                <div class="form-group">
+                    <label class="form-label">日付</label>
+                    <input type="date" class="form-input" id="shiftDate" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">時間</label>
+                    <div class="time-input-group">
+                        <input type="time" class="form-input" id="shiftStart" placeholder="開始時間">
+                        <input type="time" class="form-input" id="shiftEnd" placeholder="終了時間">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">バイト先</label>
+                    <select class="form-select" id="shiftWorkplace">
+                        <option value="バイト先A">バイト先A</option>
+                        <option value="バイト先B">バイト先B</option>
+                        <option value="コンビニ">コンビニ</option>
+                        <option value="カフェ">カフェ</option>
+                        <option value="塾講師">塾講師</option>
+                        <option value="その他">その他</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">時給</label>
+                    <input type="number" class="form-input" id="shiftWage" placeholder="1000" value="1000">
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn" onclick="saveShift()">保存</button>
+                    <button class="btn btn-secondary" onclick="closeShiftModal()">キャンセル</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ファイル入力（非表示） -->
+    <input type="file" id="fileInput" accept="image/*" capture="environment" style="display: none;" onchange="processImage(this)">
+
+    <script>
+        // ========== グローバル変数 ==========
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let shifts = JSON.parse(localStorage.getItem('shifts') || '{}');
+        let selectedDate = null;
+        let currentEditingShiftId = null;
+
+        // ========== 初期化 ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 扶養プロ 6.0 シフトボード風UX 起動');
+            enhanceTouchResponsiveness();
+            
+            // デモデータ生成
+            if (Object.keys(shifts).length === 0) {
+                generateDemoShifts();
+            }
+            
+            renderCalendar();
+            updateFuyouStatus();
+        });
+
+        // ========== スプラッシュ画面 ==========
+        function startApp() {
+            document.getElementById('splashScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.add('visible');
+        }
+
+        // ========== カレンダー描画 ==========
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            
+            // 月表示更新
+            const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+            document.getElementById('currentMonth').textContent = `${currentYear}年${monthNames[currentMonth]}`;
+            
+            // 曜日ヘッダー
+            const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+            weekdays.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+            
+            // カレンダー日付生成
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            
+            for (let i = 0; i < 42; i++) {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + i);
+                
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day clickable';
+                
+                // 日付番号
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = currentDate.getDate();
+                
+                if (currentDate.getMonth() !== currentMonth) {
+                    dayElement.classList.add('other-month');
+                }
+                
+                // 今日をハイライト
+                const today = new Date();
+                if (currentDate.toDateString() === today.toDateString()) {
+                    dayElement.classList.add('today');
+                }
+                
+                // シフト表示
+                const dateKey = formatDate(currentDate);
+                const dayShifts = shifts[dateKey] || [];
+                
+                const shiftList = document.createElement('div');
+                shiftList.className = 'shift-list';
+                
+                dayShifts.forEach((shift, index) => {
+                    const shiftItem = document.createElement('div');
+                    shiftItem.className = 'shift-item';
+                    shiftItem.textContent = `${shift.startTime}-${shift.endTime}`;
+                    
+                    // シフト項目クリックで編集
+                    shiftItem.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        editShift(dateKey, index);
+                    });
+                    
+                    shiftList.appendChild(shiftItem);
+                });
+                
+                // 追加ヒント
+                const addHint = document.createElement('div');
+                addHint.className = 'add-shift-hint';
+                addHint.textContent = '+';
+                
+                dayElement.appendChild(dayNumber);
+                dayElement.appendChild(shiftList);
+                dayElement.appendChild(addHint);
+                
+                // 日付クリックイベント
+                dayElement.addEventListener('click', () => {
+                    openDateModal(dateKey);
+                });
+                
+                grid.appendChild(dayElement);
+            }
+        }
+
+        function changeMonth(direction) {
+            currentMonth += direction;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            } else if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        }
+
+        // ========== シフト管理 ==========
+        function openDateModal(dateKey) {
+            selectedDate = dateKey;
+            const dayShifts = shifts[dateKey] || [];
+            
+            // モーダルタイトル設定
+            const date = new Date(dateKey);
+            const formattedDate = `${date.getMonth() + 1}/${date.getDate()}(${['日','月','火','水','木','金','土'][date.getDay()]})`;
+            document.getElementById('modalTitle').textContent = `${formattedDate} のシフト`;
+            
+            // 日付フィールド設定
+            document.getElementById('shiftDate').value = dateKey;
+            
+            // 既存シフト表示
+            if (dayShifts.length > 0) {
+                showExistingShifts(dayShifts);
+            } else {
+                hideExistingShifts();
+            }
+            
+            // フォームクリア
+            clearShiftForm();
+            
+            // モーダル表示
+            document.getElementById('shiftModal').classList.add('active');
+        }
+
+        function showExistingShifts(dayShifts) {
+            const container = document.getElementById('existingShifts');
+            const list = document.getElementById('shiftsList');
+            
+            list.innerHTML = '';
+            
+            dayShifts.forEach((shift, index) => {
+                const shiftDiv = document.createElement('div');
+                shiftDiv.className = 'shift-preview';
+                shiftDiv.innerHTML = `
+                    <div class="shift-info">
+                        <div class="shift-time">${shift.startTime} - ${shift.endTime}</div>
+                        <div class="shift-workplace">${shift.workplace} (¥${shift.wage}/時)</div>
+                    </div>
+                    <div class="shift-actions">
+                        <button class="btn-small btn-edit" onclick="editShift('${selectedDate}', ${index})">編集</button>
+                        <button class="btn-small btn-delete" onclick="deleteShift('${selectedDate}', ${index})">削除</button>
+                    </div>
+                `;
+                list.appendChild(shiftDiv);
+            });
+            
+            container.style.display = 'block';
+        }
+
+        function hideExistingShifts() {
+            document.getElementById('existingShifts').style.display = 'none';
+        }
+
+        function editShift(dateKey, shiftIndex) {
+            const shift = shifts[dateKey][shiftIndex];
+            currentEditingShiftId = shiftIndex;
+            
+            // フォームに値設定
+            document.getElementById('shiftStart').value = shift.startTime;
+            document.getElementById('shiftEnd').value = shift.endTime;
+            document.getElementById('shiftWorkplace').value = shift.workplace;
+            document.getElementById('shiftWage').value = shift.wage;
+            
+            // モーダルタイトル変更
+            document.getElementById('modalTitle').textContent = 'シフト編集';
+        }
+
+        function deleteShift(dateKey, shiftIndex) {
+            if (confirm('このシフトを削除しますか？')) {
+                shifts[dateKey].splice(shiftIndex, 1);
+                
+                // 空になったら日付キーも削除
+                if (shifts[dateKey].length === 0) {
+                    delete shifts[dateKey];
+                }
+                
+                saveShifts();
+                renderCalendar();
+                updateFuyouStatus();
+                
+                // モーダル内容更新
+                const dayShifts = shifts[dateKey] || [];
+                if (dayShifts.length > 0) {
+                    showExistingShifts(dayShifts);
+                } else {
+                    hideExistingShifts();
+                }
+            }
+        }
+
+        function saveShift() {
+            const startTime = document.getElementById('shiftStart').value;
+            const endTime = document.getElementById('shiftEnd').value;
+            const workplace = document.getElementById('shiftWorkplace').value;
+            const wage = parseInt(document.getElementById('shiftWage').value);
+            
+            if (!startTime || !endTime || !workplace || !wage) {
+                alert('すべての項目を入力してください');
+                return;
+            }
+            
+            // 労働時間計算
+            const start = new Date(`2000-01-01 ${startTime}`);
+            const end = new Date(`2000-01-01 ${endTime}`);
+            const hours = (end - start) / (1000 * 60 * 60);
+            
+            if (hours <= 0) {
+                alert('終了時間は開始時間より後にしてください');
+                return;
+            }
+            
+            const earnings = hours * wage;
+            
+            const newShift = {
+                startTime,
+                endTime,
+                workplace,
+                wage,
+                hours,
+                earnings
+            };
+            
+            if (!shifts[selectedDate]) {
+                shifts[selectedDate] = [];
+            }
+            
+            if (currentEditingShiftId !== null) {
+                // 編集
+                shifts[selectedDate][currentEditingShiftId] = newShift;
+                currentEditingShiftId = null;
+            } else {
+                // 新規追加
+                shifts[selectedDate].push(newShift);
+            }
+            
+            saveShifts();
+            renderCalendar();
+            updateFuyouStatus();
+            closeShiftModal();
+            
+            alert(`シフトを保存しました！\n労働時間: ${hours}時間\n収入: ¥${earnings.toLocaleString()}`);
+        }
+
+        function clearShiftForm() {
+            document.getElementById('shiftStart').value = '';
+            document.getElementById('shiftEnd').value = '';
+            document.getElementById('shiftWorkplace').value = 'バイト先A';
+            document.getElementById('shiftWage').value = '1000';
+            currentEditingShiftId = null;
+        }
+
+        function closeShiftModal() {
+            document.getElementById('shiftModal').classList.remove('active');
+            clearShiftForm();
+        }
+
+        function showAddShiftModal() {
+            const today = new Date().toISOString().split('T')[0];
+            openDateModal(today);
+        }
+
+        // ========== AI機能 ========== 
+        function startAICapture() {
+            alert('🤖 AI機能は準備中です！\n\n現在は手動でシフトを追加してください。\n次のアップデートでAI解析機能を追加予定です。');
+        }
+
+        function takePicture() {
+            alert('📷 写真撮影機能は準備中です！\n\n現在は手動でシフトを追加してください。\nAI解析機能と合わせて次のアップデートで追加予定です。');
+        }
+
+        // ========== データ管理 ==========
+        function saveShifts() {
+            localStorage.setItem('shifts', JSON.stringify(shifts));
+        }
+
+        function generateDemoShifts() {
+            const demoShifts = {
+                '2024-07-22': [
+                    { startTime: '09:00', endTime: '17:00', workplace: 'カフェ', wage: 1000, hours: 8, earnings: 8000 }
+                ],
+                '2024-07-24': [
+                    { startTime: '10:00', endTime: '15:00', workplace: 'コンビニ', wage: 950, hours: 5, earnings: 4750 }
+                ],
+                '2024-07-26': [
+                    { startTime: '14:00', endTime: '18:00', workplace: 'カフェ', wage: 1000, hours: 4, earnings: 4000 },
+                    { startTime: '19:00', endTime: '22:00', workplace: '塾講師', wage: 1500, hours: 3, earnings: 4500 }
+                ],
+                '2024-07-29': [
+                    { startTime: '09:00', endTime: '17:00', workplace: 'カフェ', wage: 1000, hours: 8, earnings: 8000 }
+                ]
+            };
+            
+            shifts = demoShifts;
+            saveShifts();
+        }
+
+        // ========== 扶養状況更新 ==========
+        function updateFuyouStatus() {
+            const totalEarnings = calculateTotalEarnings();
+            const fuyouLimit = 1230000; // 2025年制度
+            const progress = Math.min((totalEarnings / fuyouLimit) * 100, 100);
+            
+            document.getElementById('currentEarnings').textContent = `¥${totalEarnings.toLocaleString()}`;
+            document.getElementById('progressPercent').textContent = `${progress.toFixed(1)}%`;
+        }
+
+        function calculateTotalEarnings() {
+            let total = 0;
+            Object.values(shifts).forEach(dayShifts => {
+                dayShifts.forEach(shift => {
+                    total += shift.earnings;
+                });
+            });
+            return total;
+        }
+
+        // ========== ユーティリティ ==========
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function enhanceTouchResponsiveness() {
+            document.querySelectorAll('.clickable, button, .btn').forEach(element => {
+                element.addEventListener('touchstart', function(e) {
+                    this.style.transform = 'scale(0.97)';
+                    this.style.opacity = '0.8';
+                }, { passive: true });
+                
+                element.addEventListener('touchend', function(e) {
+                    setTimeout(() => {
+                        this.style.transform = '';
+                        this.style.opacity = '';
+                    }, 50);
+                }, { passive: true });
+            });
+        }
+
+        console.log('✅ 扶養プロ 6.0 シフトボード風UX ロード完了');
+    </script>
+</body>
+</html>
