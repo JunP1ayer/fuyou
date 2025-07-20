@@ -2,7 +2,7 @@
   "name": "扶養プロ - 学生バイト扶養管理アプリ",
   "short_name": "扶養プロ",
   "description": "学生アルバイト向けの扶養控除管理システム。AI画像解析でシフト表を自動読み込み、複数バイト先の収入を最適化管理。",
-  "start_url": "/fuyou-pro-app.html",
+  "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#4CAF50",
@@ -47,7 +47,7 @@
       "name": "シフト追加",
       "short_name": "シフト追加",
       "description": "新しいシフトを追加",
-      "url": "/fuyou-pro-app.html?action=add-shift",
+      "url": "/?action=add-shift",
       "icons": [
         {
           "src": "shortcut-add.png",
@@ -59,7 +59,7 @@
       "name": "AI分析",
       "short_name": "AI分析",
       "description": "シフト表をAI分析",
-      "url": "/fuyou-pro-app.html?tab=ai-analysis",
+      "url": "/?tab=ai-analysis",
       "icons": [
         {
           "src": "shortcut-ai.png",
@@ -71,7 +71,7 @@
       "name": "分析レポート",
       "short_name": "分析",
       "description": "収入分析を表示",
-      "url": "/fuyou-pro-app.html?tab=analytics",
+      "url": "/?tab=analytics",
       "icons": [
         {
           "src": "shortcut-analytics.png",

@@ -2,10 +2,16 @@
 const CACHE_NAME = 'fuyou-pro-v1.0.0';
 const urlsToCache = [
   '/',
-  '/fuyou-pro-app.html',
   '/ai-vision-service.js',
   '/fuyou-optimization-engine.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/config.js',
+  '/secure-config-loader.js',
+  '/setup-wizard.js',
+  '/analytics-tracker.js',
+  '/backup-manager.js',
+  '/premium-features.js',
+  '/gemini-vision-service.js'
 ];
 
 // インストール時のキャッシュ処理
@@ -81,7 +87,7 @@ self.addEventListener('fetch', (event) => {
           .catch(() => {
             // ネットワークエラー時のフォールバック
             if (event.request.destination === 'document') {
-              return caches.match('/fuyou-pro-app.html');
+              return caches.match('/');
             }
           });
       })
@@ -137,14 +143,14 @@ self.addEventListener('notificationclick', (event) => {
 
   if (event.action === 'explore') {
     event.waitUntil(
-      clients.openWindow('/fuyou-pro-app.html')
+      clients.openWindow('/')
     );
   } else if (event.action === 'close') {
     // 何もしない（通知を閉じるだけ）
   } else {
     // デフォルトアクション
     event.waitUntil(
-      clients.openWindow('/fuyou-pro-app.html')
+      clients.openWindow('/')
     );
   }
 });
