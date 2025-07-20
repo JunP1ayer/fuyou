@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>扶養プロ 5.0 - サーバーレスAI搭載</title>
+    
+    <!-- キャッシュバスティング -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- PWA + モバイル最適化 -->
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="扶養プロ">
+    
+    <style>
+        /* ========== 基本スタイル ========== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow-x: hidden;
+            position: fixed;
+            width: 100%;
+        }
+
+        /* ========== スプラッシュ画面 ========== */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 3000;
+            animation: splashFade 0.5s ease-in-out;
+        }
+
+        .splash-screen.hidden {
+            display: none;
+        }
+
+        @keyframes splashFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .splash-icon {
+            font-size: 100px;
+            margin-bottom: 30px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+
+        .splash-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .splash-subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+            margin-bottom: 50px;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .splash-features {
+            background: rgba(255,255,255,0.15);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            margin-right: 16px;
+            width: 32px;
+        }
+
+        .start-button {
+            width: 100%;
+            padding: 20px;
+            background: white;
+            color: #4CAF50;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        /* ========== メインアプリ ========== */
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .app-container.visible {
+            opacity: 1;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            color: white;
+            padding: max(env(safe-area-inset-top), 15px) 20px 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .ai-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .ai-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #FFE082;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .fuyou-status {
+            margin-top: 12px;
+            background: rgba(255,255,255,0.15);
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        /* ========== カレンダー表示 ========== */
+        .calendar-container {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .welcome-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .welcome-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .welcome-text {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .quick-start {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .quick-start-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 20px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .quick-start-btn.secondary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+        }
+
+        .quick-start-icon {
+            font-size: 32px;
+        }
+
+        .demo-calendar {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .month-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-day.header {
+            font-weight: 600;
+            color: #666;
+            background: #f8f9fa;
+            cursor: default;
+        }
+
+        .calendar-day.today {
+            background: #4CAF50;
+            color: white;
+            font-weight: 700;
+        }
+
+        .calendar-day.has-shift {
+            background: #E8F5E8;
+            border: 2px solid #4CAF50;
+            color: #2E7D32;
+            font-weight: 600;
+        }
+
+        /* ========== FAB群 ========== */
+        .fab-group {
+            position: fixed;
+            bottom: 30px;
+            right: 20px;
+            z-index: 200;
+        }
+
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            color: white;
+            border: none;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .fab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .fab-ai {
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            animation: ai-glow 3s infinite;
+        }
+
+        @keyframes ai-glow {
+            0%, 100% { box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4); }
+            50% { box-shadow: 0 4px 20px rgba(78, 205, 196, 0.6); }
+        }
+
+        .fab-camera {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+
+        /* ========== AI解析モーダル ========== */
+        .ai-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            z-index: 2000;
+            backdrop-filter: blur(8px);
+        }
+
+        .ai-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .ai-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px;
+            max-width: 450px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            text-align: center;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .ai-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #e0e0e0;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .analysis-steps {
+            margin: 30px 0;
+        }
+
+        .analysis-step {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: left;
+        }
+
+        .step-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .step-icon.active {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .step-icon.completed {
+            background: #2196F3;
+            color: white;
+        }
+
+        .step-text {
+            flex: 1;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .step-text.active {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin: 16px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #2196F3;
+        }
+
+        .btn-secondary:hover {
+            background: #1976D2;
+        }
+
+        /* ========== レスポンシブ ========== */
+        @media (max-width: 480px) {
+            .splash-title { font-size: 28px; }
+            .splash-subtitle { font-size: 16px; }
+            .splash-features { padding: 20px; }
+            .calendar-container { padding: 16px; }
+            .welcome-card { padding: 20px; }
+            .quick-start { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- スプラッシュ画面 -->
+    <div id="splashScreen" class="splash-screen">
+        <div class="splash-icon">🤖</div>
+        <h1 class="splash-title">扶養プロ 5.0</h1>
+        <p class="splash-subtitle">AIが写真を解析して<br>シフトを自動登録</p>
+        
+        <div class="splash-features">
+            <div class="feature-item">
+                <div class="feature-icon">📸</div>
+                <div>シフト表を撮影するだけ</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🧠</div>
+                <div>AIが自動で解析・抽出</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📅</div>
+                <div>カレンダーに瞬時に反映</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">💰</div>
+                <div>扶養控除を自動管理</div>
+            </div>
+            
+            <button class="start-button" onclick="startApp()">今すぐ始める</button>
+        </div>
+    </div>
+
+    <!-- メインアプリ -->
+    <div id="appContainer" class="app-container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="header-content">
+                <h1>扶養プロ 5.0</h1>
+                <div class="ai-status">
+                    <div class="ai-indicator"></div>
+                    <span>AI待機中</span>
+                </div>
+            </div>
+            <div class="fuyou-status">
+                <div>年収進捗: ¥0 / ¥1,230,000 (0%)</div>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="calendar-container">
+            <!-- ウェルカムカード -->
+            <div class="welcome-card">
+                <div class="welcome-icon">🎉</div>
+                <h2 class="welcome-title">AI搭載版へようこそ！</h2>
+                <p class="welcome-text">
+                    設定不要でAI機能を使用できます。<br>
+                    シフト表を撮影するだけで自動解析し、<br>
+                    カレンダーに瞬時に反映されます。
+                </p>
+                
+                <div class="quick-start">
+                    <button class="quick-start-btn" onclick="startAICapture()">
+                        <div class="quick-start-icon">🤖</div>
+                        <div>AI解析開始</div>
+                    </button>
+                    <button class="quick-start-btn secondary" onclick="takePicture()">
+                        <div class="quick-start-icon">📷</div>
+                        <div>写真撮影</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- デモカレンダー -->
+            <div class="demo-calendar">
+                <div class="calendar-header">
+                    <div class="month-title">2024年7月</div>
+                    <div style="font-size: 12px; color: #666;">AI解析後にシフトが表示されます</div>
+                </div>
+                
+                <div class="calendar-grid" id="demoCalendar">
+                    <!-- 動的生成 -->
+                </div>
+            </div>
+        </main>
+
+        <!-- FAB群 -->
+        <div class="fab-group">
+            <button class="fab fab-ai" onclick="startAICapture()" title="AI解析">🤖</button>
+            <button class="fab fab-camera" onclick="takePicture()" title="写真撮影">📷</button>
+        </div>
+
+        <!-- AI解析モーダル -->
+        <div id="aiModal" class="ai-modal">
+            <div class="ai-modal-content">
+                <h2 style="margin-bottom: 20px; color: #333;">🤖 AI解析中</h2>
+                
+                <img id="uploadedImage" class="image-preview" style="display: none;" />
+                
+                <div id="analysisProgress">
+                    <div class="ai-spinner"></div>
+                    
+                    <div class="analysis-steps">
+                        <div class="analysis-step">
+                            <div class="step-icon" id="step1">📸</div>
+                            <div class="step-text" id="stepText1">画像を受信中...</div>
+                        </div>
+                        <div class="analysis-step">
+                            <div class="step-icon" id="step2">🧠</div>
+                            <div class="step-text" id="stepText2">AI解析を実行中...</div>
+                        </div>
+                        <div class="analysis-step">
+                            <div class="step-icon" id="step3">📊</div>
+                            <div class="step-text" id="stepText3">データを抽出中...</div>
+                        </div>
+                        <div class="analysis-step">
+                            <div class="step-icon" id="step4">📅</div>
+                            <div class="step-text" id="stepText4">カレンダーに反映中...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="analysisResult" style="display: none;">
+                    <h3 style="margin-bottom: 16px; color: #333;">解析完了！</h3>
+                    <div id="resultContent">
+                        <!-- 動的生成 -->
+                    </div>
+                    <button class="btn" onclick="confirmResults()">カレンダーに追加</button>
+                    <button class="btn btn-secondary" onclick="closeAIModal()">閉じる</button>
+                </div>
+                
+                <div id="analysisError" style="display: none;">
+                    <div style="color: #f44336; margin-bottom: 16px;">
+                        <strong>⚠️ 解析に失敗しました</strong>
+                    </div>
+                    <div id="errorMessage" style="color: #666; margin-bottom: 20px;"></div>
+                    <button class="btn btn-secondary" onclick="retryAnalysis()">再試行</button>
+                    <button class="btn" onclick="closeAIModal()">閉じる</button>
+                </div>
+                
+                <button style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; color: #999; cursor: pointer;" onclick="closeAIModal()">×</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ファイル入力（非表示） -->
+    <input type="file" id="fileInput" accept="image/*" capture="environment" style="display: none;" onchange="processImage(this)">
+
+    <script>
+        // ========== グローバル変数 ==========
+        let currentImage = null;
+        let detectedShifts = [];
+        let isAnalyzing = false;
+
+        // ========== 初期化 ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 扶養プロ 5.0 サーバーレス版 起動');
+            generateDemoCalendar();
+            enhanceTouchResponsiveness();
+        });
+
+        // ========== スプラッシュ画面 ==========
+        function startApp() {
+            document.getElementById('splashScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.add('visible');
+            
+            // ウェルカムアニメーション
+            setTimeout(() => {
+                showWelcomeMessage();
+            }, 500);
+        }
+
+        function showWelcomeMessage() {
+            // 簡単なウェルカムメッセージ
+            const aiStatus = document.querySelector('.ai-status span');
+            aiStatus.textContent = 'AI準備完了';
+            
+            setTimeout(() => {
+                aiStatus.textContent = 'AI待機中';
+            }, 3000);
+        }
+
+        // ========== 画像撮影・処理 ==========
+        function startAICapture() {
+            document.getElementById('fileInput').click();
+        }
+
+        function takePicture() {
+            document.getElementById('fileInput').click();
+        }
+
+        function processImage(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // ファイルサイズチェック（5MB制限）
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('⚠️ ファイルサイズが大きすぎます（5MB以下にしてください）');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentImage = e.target.result;
+                    document.getElementById('uploadedImage').src = currentImage;
+                    document.getElementById('uploadedImage').style.display = 'block';
+                    
+                    showAIModal();
+                    performAIAnalysis(currentImage);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // ========== AI解析処理 ==========
+        async function performAIAnalysis(imageData) {
+            if (isAnalyzing) return;
+            isAnalyzing = true;
+            
+            try {
+                // ステップ1: 画像受信
+                updateAnalysisStep(1, 'active', '画像を受信中...');
+                await sleep(500);
+                updateAnalysisStep(1, 'completed', '✅ 画像受信完了');
+                
+                // ステップ2: AI解析
+                updateAnalysisStep(2, 'active', 'AI解析を実行中...');
+                
+                // サーバーレス関数を呼び出し
+                const response = await callServerlessAPI(imageData);
+                
+                updateAnalysisStep(2, 'completed', '✅ AI解析完了');
+                await sleep(300);
+                
+                // ステップ3: データ抽出
+                updateAnalysisStep(3, 'active', 'データを抽出中...');
+                await sleep(800);
+                
+                if (response.success && response.shifts && response.shifts.length > 0) {
+                    detectedShifts = response.shifts;
+                    updateAnalysisStep(3, 'completed', '✅ データ抽出完了');
+                    await sleep(300);
+                    
+                    // ステップ4: カレンダー準備
+                    updateAnalysisStep(4, 'active', 'カレンダー準備中...');
+                    await sleep(500);
+                    updateAnalysisStep(4, 'completed', '✅ 準備完了');
+                    
+                    // 結果表示
+                    showAnalysisResult(response);
+                } else {
+                    throw new Error(response.error || 'シフト情報を検出できませんでした');
+                }
+                
+            } catch (error) {
+                console.error('AI解析エラー:', error);
+                showAnalysisError(error.message);
+            } finally {
+                isAnalyzing = false;
+            }
+        }
+
+        async function callServerlessAPI(imageData) {
+            // まずOpenAI APIを試行
+            try {
+                const response = await fetch('/api/openai-vision', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        image: imageData,
+                        prompt: 'この画像からシフト情報を抽出してください。'
+                    })
+                });
+                
+                if (response.ok) {
+                    return await response.json();
+                }
+                
+                console.warn('OpenAI API失敗、Gemini APIを試行中...');
+                
+            } catch (error) {
+                console.warn('OpenAI API接続エラー:', error);
+            }
+            
+            // Gemini APIにフォールバック
+            try {
+                const response = await fetch('/api/gemini-vision', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        image: imageData,
+                        prompt: 'この画像からシフト情報を抽出してください。'
+                    })
+                });
+                
+                if (response.ok) {
+                    return await response.json();
+                }
+                
+                throw new Error('Gemini API呼び出しに失敗しました');
+                
+            } catch (error) {
+                console.error('Gemini API呼び出しエラー:', error);
+                throw new Error('AI解析サービスに接続できませんでした。ネットワーク接続を確認してください。');
+            }
+        }
+
+        // ========== UI更新処理 ==========
+        function showAIModal() {
+            document.getElementById('aiModal').classList.add('active');
+            
+            // 初期状態リセット
+            document.getElementById('analysisProgress').style.display = 'block';
+            document.getElementById('analysisResult').style.display = 'none';
+            document.getElementById('analysisError').style.display = 'none';
+            
+            // ステップリセット
+            for (let i = 1; i <= 4; i++) {
+                const icon = document.getElementById(`step${i}`);
+                const text = document.getElementById(`stepText${i}`);
+                icon.className = 'step-icon';
+                text.className = 'step-text';
+            }
+        }
+
+        function closeAIModal() {
+            document.getElementById('aiModal').classList.remove('active');
+        }
+
+        function updateAnalysisStep(stepNum, status, text) {
+            const icon = document.getElementById(`step${stepNum}`);
+            const textEl = document.getElementById(`stepText${stepNum}`);
+            
+            icon.className = 'step-icon';
+            textEl.className = 'step-text';
+            
+            if (status === 'active') {
+                icon.classList.add('active');
+                textEl.classList.add('active');
+            } else if (status === 'completed') {
+                icon.classList.add('completed');
+            }
+            
+            textEl.textContent = text;
+        }
+
+        function showAnalysisResult(response) {
+            document.getElementById('analysisProgress').style.display = 'none';
+            document.getElementById('analysisResult').style.display = 'block';
+            
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = `
+                <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                    <div style="font-weight: 600; margin-bottom: 8px;">検出されたシフト: ${response.shifts.length}件</div>
+                    <div style="font-size: 14px; color: #666;">信頼度: ${Math.round((response.confidence || 0.8) * 100)}%</div>
+                </div>
+                
+                <div style="text-align: left;">
+                    ${response.shifts.map((shift, index) => `
+                        <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; margin: 8px 0; background: white;">
+                            <div style="font-weight: 600; color: #333;">${formatDateJP(shift.date)}</div>
+                            <div style="color: #666; font-size: 14px;">${shift.startTime} - ${shift.endTime}</div>
+                            <div style="color: #4CAF50; font-size: 14px; font-weight: 600;">${shift.jobName}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function showAnalysisError(errorMessage) {
+            document.getElementById('analysisProgress').style.display = 'none';
+            document.getElementById('analysisError').style.display = 'block';
+            document.getElementById('errorMessage').textContent = errorMessage;
+        }
+
+        function confirmResults() {
+            // デモ用：カレンダーに反映
+            localStorage.setItem('detectedShifts', JSON.stringify(detectedShifts));
+            updateDemoCalendar();
+            closeAIModal();
+            
+            alert(`✅ ${detectedShifts.length}件のシフトをカレンダーに追加しました！`);
+        }
+
+        function retryAnalysis() {
+            if (currentImage) {
+                showAIModal();
+                performAIAnalysis(currentImage);
+            }
+        }
+
+        // ========== カレンダー生成 ==========
+        function generateDemoCalendar() {
+            const calendar = document.getElementById('demoCalendar');
+            const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+            
+            // 曜日ヘッダー
+            weekdays.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day header';
+                header.textContent = day;
+                calendar.appendChild(header);
+            });
+            
+            // 日付（1-31日の簡易版）
+            for (let day = 1; day <= 31; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+                
+                // 今日をハイライト
+                if (day === new Date().getDate()) {
+                    dayElement.classList.add('today');
+                }
+                
+                // デモシフト（いくつかの日にシフトがあると仮定）
+                if ([5, 7, 12, 14, 19, 21, 26, 28].includes(day)) {
+                    dayElement.classList.add('has-shift');
+                }
+                
+                calendar.appendChild(dayElement);
+            }
+        }
+
+        function updateDemoCalendar() {
+            // AI検出シフトをカレンダーに反映（デモ版）
+            const savedShifts = JSON.parse(localStorage.getItem('detectedShifts') || '[]');
+            
+            if (savedShifts.length > 0) {
+                // カレンダーの更新ロジック（実装簡略化）
+                console.log('AI検出シフトをカレンダーに反映:', savedShifts);
+                
+                // ヘッダー更新
+                const fuyouStatus = document.querySelector('.fuyou-status');
+                const totalShifts = savedShifts.length;
+                fuyouStatus.innerHTML = `年収進捗: ¥${totalShifts * 8000} / ¥1,230,000 (${Math.round(totalShifts * 8000 / 1230000 * 100)}%)`;
+            }
+        }
+
+        // ========== ユーティリティ ==========
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function formatDateJP(dateStr) {
+            const date = new Date(dateStr);
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+            const weekday = weekdays[date.getDay()];
+            return `${month}/${day}(${weekday})`;
+        }
+
+        function enhanceTouchResponsiveness() {
+            document.querySelectorAll('button, .btn, .fab, .quick-start-btn').forEach(element => {
+                element.addEventListener('touchstart', function(e) {
+                    this.style.transform = 'scale(0.97)';
+                    this.style.opacity = '0.8';
+                }, { passive: true });
+                
+                element.addEventListener('touchend', function(e) {
+                    setTimeout(() => {
+                        this.style.transform = '';
+                        this.style.opacity = '';
+                    }, 100);
+                }, { passive: true });
+            });
+        }
+
+        console.log('✅ 扶養プロ 5.0 サーバーレス版 ロード完了');
+    </script>
+</body>
+</html>

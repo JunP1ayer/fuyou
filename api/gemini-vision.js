@@ -1,0 +1,157 @@
+// Vercel Serverless Function for Gemini Vision API
+export default async function handler(req, res) {
+  // CORS設定
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // OPTIONS リクエスト（プリフライト）の処理
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // POST以外は拒否
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { image, prompt } = req.body;
+
+    // 基本バリデーション
+    if (!image) {
+      return res.status(400).json({ error: 'Image is required' });
+    }
+
+    // 環境変数からAPIキーを取得
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'Gemini API key not configured' });
+    }
+
+    // base64データからmimeTypeとdataを分離
+    const base64Match = image.match(/^data:([^;]+);base64,(.+)$/);
+    if (!base64Match) {
+      return res.status(400).json({ error: 'Invalid base64 image format' });
+    }
+
+    const mimeType = base64Match[1];
+    const base64Data = base64Match[2];
+
+    // Gemini API呼び出し
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: `あなたはアルバイトのシフト表を解析する専門AIです。
+画像からシフト情報を抽出し、以下のJSON形式で出力してください：
+
+{
+  "success": true,
+  "shifts": [
+    {
+      "date": "2024-07-22",
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "jobName": "推定されるバイト先名",
+      "notes": "特記事項があれば"
+    }
+  ],
+  "confidence": 0.95,
+  "detectedText": "認識されたテキスト全体"
+}
+
+重要な指示：
+- 日付は必ずYYYY-MM-DD形式
+- 時間は必ずHH:MM形式（24時間表記）
+- バイト先名が不明の場合は"バイト先"とする
+- 曖昧な情報は confidence を下げる
+- 確実に読み取れない場合は該当項目を除外
+
+${prompt || 'この画像からシフト情報を抽出してください。'}`
+              },
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: base64Data
+                }
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.1,
+          topK: 32,
+          topP: 1,
+          maxOutputTokens: 1000,
+        }
+      })
+    });
+
+    if (!geminiResponse.ok) {
+      const errorData = await geminiResponse.text();
+      console.error('Gemini API Error:', errorData);
+      return res.status(geminiResponse.status).json({ 
+        error: 'Gemini API request failed',
+        details: geminiResponse.statusText
+      });
+    }
+
+    const result = await geminiResponse.json();
+    
+    // レスポンスから内容を抽出
+    const content = result.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!content) {
+      return res.status(500).json({ error: 'No content received from Gemini' });
+    }
+
+    // JSONパース試行
+    try {
+      // Geminiは時々```json```で囲むので、それを除去
+      const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
+      const parsedContent = JSON.parse(cleanContent);
+      
+      // 使用状況をログ出力（監視用）
+      console.log('Gemini Vision API Usage:', {
+        timestamp: new Date().toISOString(),
+        prompt_tokens: result.usageMetadata?.promptTokenCount || 0,
+        candidates_tokens: result.usageMetadata?.candidatesTokenCount || 0,
+        total_tokens: result.usageMetadata?.totalTokenCount || 0,
+        shifts_detected: parsedContent.shifts?.length || 0,
+        confidence: parsedContent.confidence || 0
+      });
+
+      return res.status(200).json(parsedContent);
+      
+    } catch (parseError) {
+      // JSONパースに失敗した場合、テキストとして返す
+      console.error('JSON Parse Error:', parseError);
+      return res.status(200).json({
+        success: false,
+        error: 'Failed to parse AI response as JSON',
+        rawResponse: content,
+        shifts: []
+      });
+    }
+
+  } catch (error) {
+    console.error('Server Error:', error);
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+}
+
+// レート制限チェック（将来の拡張用）
+function checkRateLimit(req) {
+  // IPベースの簡易レート制限
+  // 実装は省略（Redis等を使用して実装）
+  return true;
+}

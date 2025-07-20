@@ -1,0 +1,145 @@
+// Vercel Serverless Function for OpenAI Vision API
+export default async function handler(req, res) {
+  // CORS設定
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // OPTIONS リクエスト（プリフライト）の処理
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // POST以外は拒否
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { image, prompt } = req.body;
+
+    // 基本バリデーション
+    if (!image) {
+      return res.status(400).json({ error: 'Image is required' });
+    }
+
+    // 環境変数からAPIキーを取得
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'OpenAI API key not configured' });
+    }
+
+    // OpenAI API呼び出し
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        max_tokens: 1000,
+        messages: [
+          {
+            role: 'system',
+            content: `あなたはアルバイトのシフト表を解析する専門AIです。
+画像からシフト情報を抽出し、以下のJSON形式で出力してください：
+
+{
+  "success": true,
+  "shifts": [
+    {
+      "date": "2024-07-22",
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "jobName": "推定されるバイト先名",
+      "notes": "特記事項があれば"
+    }
+  ],
+  "confidence": 0.95,
+  "detectedText": "認識されたテキスト全体"
+}
+
+重要な指示：
+- 日付は必ずYYYY-MM-DD形式
+- 時間は必ずHH:MM形式（24時間表記）
+- バイト先名が不明の場合は"バイト先"とする
+- 曖昧な情報は confidence を下げる
+- 確実に読み取れない場合は該当項目を除外`
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: prompt || 'この画像からシフト情報を抽出してください。'
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: image
+                }
+              }
+            ]
+          }
+        ]
+      })
+    });
+
+    if (!openaiResponse.ok) {
+      const errorData = await openaiResponse.text();
+      console.error('OpenAI API Error:', errorData);
+      return res.status(openaiResponse.status).json({ 
+        error: 'OpenAI API request failed',
+        details: openaiResponse.statusText
+      });
+    }
+
+    const result = await openaiResponse.json();
+    
+    // レスポンスから内容を抽出
+    const content = result.choices?.[0]?.message?.content;
+    if (!content) {
+      return res.status(500).json({ error: 'No content received from OpenAI' });
+    }
+
+    // JSONパース試行
+    try {
+      const parsedContent = JSON.parse(content);
+      
+      // 使用状況をログ出力（監視用）
+      console.log('OpenAI Vision API Usage:', {
+        timestamp: new Date().toISOString(),
+        tokens_used: result.usage?.total_tokens || 0,
+        shifts_detected: parsedContent.shifts?.length || 0,
+        confidence: parsedContent.confidence || 0
+      });
+
+      return res.status(200).json(parsedContent);
+      
+    } catch (parseError) {
+      // JSONパースに失敗した場合、テキストとして返す
+      console.error('JSON Parse Error:', parseError);
+      return res.status(200).json({
+        success: false,
+        error: 'Failed to parse AI response as JSON',
+        rawResponse: content,
+        shifts: []
+      });
+    }
+
+  } catch (error) {
+    console.error('Server Error:', error);
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+}
+
+// レート制限関数（将来の拡張用）
+function checkRateLimit(req) {
+  // IPベースの簡易レート制限
+  // 実装は省略（Redis等を使用して実装）
+  return true;
+}

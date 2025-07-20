@@ -1,17 +1,39 @@
 {
-  "framework": null,
-  "routes": [
+  "functions": {
+    "api/openai-vision.js": {
+      "maxDuration": 30
+    },
+    "api/gemini-vision.js": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
     {
-      "src": "/",
-      "dest": "/fuyou-pro-app.html"
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/openai-vision",
+      "destination": "/api/openai-vision.js"
     },
     {
-      "src": "/landing",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/app",
-      "dest": "/fuyou-pro-app.html"
+      "source": "/api/gemini-vision", 
+      "destination": "/api/gemini-vision.js"
     }
   ]
 }
