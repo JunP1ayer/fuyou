@@ -1,18 +1,31 @@
 {
-  "name": "fuyou-app",
-  "version": "1.0.0",
-  "description": "扶養管理アプリ - 学生アルバイト向けの自動扶養管理サービス",
+  "name": "fuyou-pro",
+  "version": "5.0.0",
+  "description": "扶養プロ - AI搭載学生バイト扶養管理アプリ（サーバーレス版）",
   "private": true,
+  "type": "module",
   "scripts": {
-    "build": "echo 'Static files - no build needed'",
-    "start": "echo 'Static files - no start needed'"
+    "build": "echo '✅ Static HTML files - no build needed'",
+    "start": "echo '✅ Serverless functions ready'",
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
   },
   "keywords": [
-    "扶養",
-    "アルバイト",
-    "学生",
-    "税務",
-    "自動化"
+    "扶養控除",
+    "AI",
+    "OCR",
+    "シフト管理",
+    "学生アルバイト",
+    "OpenAI",
+    "Gemini",
+    "サーバーレス"
   ],
-  "author": "JunP1ayer"
+  "author": "JunP1ayer",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vercel": "^33.0.0"
+  }
 }

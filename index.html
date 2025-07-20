@@ -2,82 +2,195 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>扶養プロ - 学生バイト扶養管理アプリ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>扶養プロ 5.0 - AI搭載版</title>
+    
+    <!-- 即座にリダイレクト -->
+    <script>
+        // 3秒後に最新AI版にリダイレクト
+        setTimeout(() => {
+            window.location.href = '/fuyou-serverless-v5.html';
+        }, 3000);
+    </script>
+    
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
-            text-align: center;
-            padding: 50px 20px;
-            margin: 0;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            text-align: center;
+            padding: 20px;
         }
-        h1 {
-            font-size: 3rem;
+        
+        .splash-container {
+            max-width: 400px;
+            width: 100%;
+            animation: slideUp 1s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .logo {
+            font-size: 100px;
             margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        p {
-            font-size: 1.2rem;
+        
+        .version {
+            font-size: 20px;
+            opacity: 0.9;
             margin-bottom: 30px;
+        }
+        
+        .features {
+            background: rgba(255,255,255,0.15);
+            padding: 25px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 16px;
+        }
+        
+        .feature-icon {
+            font-size: 24px;
+            margin-right: 16px;
+            width: 32px;
+        }
+        
+        .redirect-info {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            font-size: 14px;
             opacity: 0.9;
         }
+        
+        .loading {
+            margin-top: 20px;
+        }
+        
+        .loading-bar {
+            width: 200px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 16px auto;
+        }
+        
+        .loading-progress {
+            width: 0%;
+            height: 100%;
+            background: white;
+            border-radius: 2px;
+            animation: loading 3s ease-in-out;
+        }
+        
+        @keyframes loading {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        .manual-link {
+            margin-top: 20px;
+        }
+        
         .btn {
             display: inline-block;
-            padding: 15px 30px;
-            background: rgba(255,255,255,0.2);
-            color: white;
+            padding: 12px 24px;
+            background: white;
+            color: #4CAF50;
             text-decoration: none;
-            border-radius: 25px;
-            font-size: 1.1rem;
+            border-radius: 12px;
             font-weight: 600;
-            margin: 10px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3);
             transition: all 0.3s ease;
         }
+        
         .btn:hover {
-            background: rgba(255,255,255,0.3);
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
         }
-        .status {
-            margin-top: 40px;
-            padding: 20px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-        }
-        .emoji {
-            font-size: 2rem;
-            margin-bottom: 10px;
+        
+        @media (max-width: 480px) {
+            .logo { font-size: 80px; }
+            h1 { font-size: 28px; }
+            .version { font-size: 16px; }
+            .features { padding: 20px; }
         }
     </style>
 </head>
 <body>
-    <div class="emoji">📱💰</div>
-    <h1>扶養プロ</h1>
-    <p>学生アルバイト向け扶養控除管理システム</p>
-    
-    <div class="status">
-        <h2>🎉 GitHub Pages 公開中！</h2>
-        <p>スマホアプリライクUIで扶養管理を簡単に</p>
+    <div class="splash-container">
+        <div class="logo">🤖</div>
+        <h1>扶養プロ 5.0</h1>
+        <div class="version">AI搭載サーバーレス版</div>
         
-        <a href="fuyou-pro-app.html" class="btn">📱 メインアプリを開く</a>
-        <a href="deploy/" class="btn">🚀 デプロイ版を開く</a>
-    </div>
-    
-    <div style="margin-top: 40px; opacity: 0.7; font-size: 0.9rem;">
-        <p>✅ 2025年税制改正対応</p>
-        <p>✅ スマホ最適化UI</p>
-        <p>✅ タッチ操作・ハプティックフィードバック</p>
-        <p>✅ PWA対応</p>
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">📸</div>
+                <div>シフト表を撮影するだけ</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🧠</div>
+                <div>AIが自動で解析・抽出</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📅</div>
+                <div>カレンダーに瞬時に反映</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💰</div>
+                <div>扶養控除を自動管理</div>
+            </div>
+        </div>
+        
+        <div class="redirect-info">
+            <div>最新AI版に自動転送中...</div>
+            <div class="loading">
+                <div class="loading-bar">
+                    <div class="loading-progress"></div>
+                </div>
+                <div style="font-size: 12px; opacity: 0.8;">3秒後に開始</div>
+            </div>
+        </div>
+        
+        <div class="manual-link">
+            <a href="/fuyou-serverless-v5.html" class="btn">今すぐ開始</a>
+        </div>
     </div>
 </body>
 </html>
