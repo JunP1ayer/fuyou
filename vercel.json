@@ -1,7 +1,16 @@
 {
+  "version": 2,
   "builds": [
     {
-      "src": "**/*",
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "fuyou-pro-app.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "deploy/index.html",
       "use": "@vercel/static"
     }
   ],
@@ -15,19 +24,11 @@
       "dest": "/fuyou-pro-app.html"
     },
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "src": "/deploy",
+      "dest": "/deploy/index.html"
     }
   ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    }
-  ]
+  "installCommand": "echo 'Skip install'",
+  "buildCommand": "echo 'Skip build'",
+  "outputDirectory": "."
 }

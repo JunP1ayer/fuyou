@@ -1,48 +1,7 @@
-# Node modules
-node_modules/
-frontend/node_modules/
-
-# TypeScript source files
-frontend/src/
-frontend/tsconfig.json
-frontend/vite.config.ts
-
-# Backend files
-backend/
-
-# Log files
-*.log
-frontend/*.log
-backend/*.log
-
-# Environment files
-.env
-.env.local
-.env.production
-
-# Cache and temp files
-.cache
-.temp
-dist/
-build/
-
-# Documentation
-*.md
-!README.md
-
-# Git files
-.git/
-.gitignore
-
-# Development files
-*.cjs
-*.mjs
-workaround-*
-
-# Database files
-database/
-calendar_data/
-data/
-
-# Optimization service
-optimization_service/
+# すべてのフォルダを除外（必要なHTMLファイルのみデプロイ）
+*
+!index.html
+!fuyou-pro-app.html
+!deploy/
+!deploy/index.html
+!deploy/vercel.json
