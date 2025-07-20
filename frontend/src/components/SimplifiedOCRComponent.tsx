@@ -82,24 +82,37 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
 
   // ファイル処理
   const processFile = (file: File) => {
-    // ファイル検証
-    if (!file.type.startsWith('image/')) {
-      setError('画像ファイルを選択してください');
+    // サポートされているファイル形式をチェック
+    const supportedTypes = [
+      'image/jpeg',
+      'image/png', 
+      'image/webp',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv',
+      'application/pdf',
+    ];
+
+    const supportedExtensions = ['.xlsx', '.xls', '.csv', '.pdf', '.jpg', '.jpeg', '.png', '.webp'];
+    const fileExtension = file.name.toLowerCase().split('.').pop();
+    
+    if (!supportedTypes.includes(file.type) && !supportedExtensions.includes(`.${fileExtension}`)) {
+      setError('サポートされていないファイル形式です。画像、Excel、CSV、PDFファイルを選択してください');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError('ファイルサイズは5MB以下にしてください');
+    if (file.size > 10 * 1024 * 1024) {
+      setError('ファイルサイズは10MB以下にしてください');
       return;
     }
 
     setSelectedFile(file);
     setError(null);
-    startOCRProcessing(file);
+    startAIFileProcessing(file);
   };
 
-  // OCR処理開始
-  const startOCRProcessing = async (file: File) => {
+  // AI ファイル処理開始
+  const startAIFileProcessing = async (file: File) => {
     if (!token) {
       setError('認証が必要です');
       return;
@@ -109,30 +122,47 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
     setError(null);
 
     try {
-      // 自然言語OCR処理（GPT-4を使用したバックエンド処理）
-      const response = await apiService.uploadImageForNaturalLanguageOCR(
-        token,
-        file,
-        'ユーザー' // 実際のユーザー名を取得する場合は useAuth から取得
-      );
+      // AI統合ファイル解析処理（OpenAI/Gemini使用）
+      const response = await apiService.uploadFileForAIAnalysis(token, file);
 
       if (!response.success || !response.data) {
-        throw new Error('OCR処理に失敗しました');
+        throw new Error('ファイル解析に失敗しました');
       }
 
-      // バックエンドで処理済みの自然言語結果をそのまま使用
+      // AIファイル解析結果を自然言語結果形式に変換
+      const shifts = response.data.shifts || [];
+      const confidence = response.data.confidence || 0.8;
+      const provider = response.data.provider || 'AI';
+      
+      let message = '';
+      if (shifts.length > 0) {
+        message = `${provider.toUpperCase()}がファイルを解析しました。\n\n`;
+        message += `📊 検出されたシフト: ${shifts.length}件\n`;
+        message += `✨ 解析精度: ${Math.round(confidence * 100)}%\n\n`;
+        message += `以下のシフトが見つかりました:\n`;
+        shifts.slice(0, 3).forEach((shift, index) => {
+          message += `${index + 1}. ${shift.date} ${shift.startTime}-${shift.endTime} (${shift.jobSourceName})\n`;
+        });
+        if (shifts.length > 3) {
+          message += `他 ${shifts.length - 3} 件...\n`;
+        }
+        message += `\n内容に間違いがなければ「はい、この通りです」を、修正が必要であれば「修正したいです」をクリックしてください。`;
+      } else {
+        message = `${provider.toUpperCase()}でファイルを解析しましたが、シフト情報を検出できませんでした。\n\nファイルにシフト表が含まれているか確認し、別のファイルで再試行してください。`;
+      }
+
       const naturalLanguageResult: NaturalLanguageResult = {
-        message: response.data.naturalLanguageMessage,
-        shifts: response.data.extractedShifts,
-        confidence: response.data.confidence,
-        needsReview: response.data.needsReview,
+        message,
+        shifts,
+        confidence,
+        needsReview: confidence < 0.8 || shifts.length === 0,
       };
 
       setResult(naturalLanguageResult);
       setStage('result');
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'OCR処理に失敗しました';
+        error instanceof Error ? error.message : 'ファイル解析に失敗しました';
       setError(errorMessage);
       setStage('input');
       onError?.(errorMessage);
@@ -222,7 +252,7 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                 </Avatar>
 
                 <Typography variant="h5" gutterBottom fontWeight="bold">
-                  📷 シフト表を撮影してください
+                  📄 シフト表ファイルを選択してください
                 </Typography>
 
                 <Typography
@@ -231,13 +261,13 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                   paragraph
                   sx={{ mb: 4 }}
                 >
-                  写真を撮るだけで、AIが自動でシフト情報を読み取ります
+                  画像・Excel・CSV・PDFファイルからAIが自動でシフト情報を読み取ります
                 </Typography>
 
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/*,.xlsx,.xls,.csv,.pdf"
                   onChange={handleFileSelect}
                   style={{ display: 'none' }}
                 />
@@ -246,7 +276,7 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                   <Button
                     variant="contained"
                     size="large"
-                    startIcon={<CameraAlt />}
+                    startIcon={<PhotoLibrary />}
                     onClick={() => fileInputRef.current?.click()}
                     sx={{
                       minHeight: 60,
@@ -255,12 +285,12 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                       borderRadius: 3,
                     }}
                   >
-                    写真を撮る・選択する
+                    ファイルを選択
                   </Button>
                 </Box>
 
                 <Typography variant="caption" color="text.secondary">
-                  対応形式: JPG, PNG, JPEG（最大5MB）
+                  対応形式: 画像(JPG, PNG), Excel(.xlsx, .xls), CSV(.csv), PDF(.pdf)（最大10MB）
                 </Typography>
               </Box>
             </Fade>
@@ -273,17 +303,17 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                 <CircularProgress size={60} sx={{ mb: 3 }} />
 
                 <Typography variant="h6" gutterBottom>
-                  シフト表を読み取っています...
+                  ファイルを解析しています...
                 </Typography>
 
                 <Typography variant="body2" color="text.secondary">
-                  AIが画像を解析中です（約5-10秒）
+                  AIがファイルを解析中です（約10-30秒）
                 </Typography>
 
                 <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
                   <Typography variant="caption" color="text.secondary">
-                    💡 より正確な読み取りのコツ：
-                    文字がはっきり見える明るい場所で撮影してください
+                    💡 解析精度向上のコツ：
+                    明瞭な文字・整理されたデータ形式のファイルを使用してください
                   </Typography>
                 </Box>
               </Box>
@@ -364,7 +394,7 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                     startIcon={<Refresh />}
                     size="small"
                   >
-                    別の画像で再試行
+                    別のファイルで再試行
                   </Button>
                 </Box>
               </Box>

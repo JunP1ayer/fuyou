@@ -438,15 +438,16 @@ export function Dashboard() {
               </Box>
 
               {/* 扶養アラート（必要時のみ表示） */}
-              {fuyouStatus && (fuyouStatus as { risk?: string }).risk === 'high' && (
-                <Box sx={{ mt: 2 }}>
-                  <FuyouAlertSystem
-                    fuyouStatus={fuyouStatus}
-                    compactMode={true}
-                    showSnackbar={false}
-                  />
-                </Box>
-              )}
+              {fuyouStatus &&
+                (fuyouStatus as { risk?: string }).risk === 'high' && (
+                  <Box sx={{ mt: 2 }}>
+                    <FuyouAlertSystem
+                      fuyouStatus={fuyouStatus}
+                      compactMode={true}
+                      showSnackbar={false}
+                    />
+                  </Box>
+                )}
             </Box>
           )}
 
