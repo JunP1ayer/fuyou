@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini API テスト</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>🤖 Gemini API テスト</h1>
+    
+    <div class="test-section">
+        <h2>基本テスト</h2>
+        <button onclick="testBasicLoad()">基本ロードテスト</button>
+        <button onclick="testGeminiService()">Gemini Service テスト</button>
+        <button onclick="testAIVisionService()">AI Vision Service テスト</button>
+        <div id="basicResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>モック解析テスト</h2>
+        <button onclick="testMockAnalysis()">モック解析実行</button>
+        <div id="mockResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>エラーハンドリングテスト</h2>
+        <button onclick="testErrorHandling()">エラーハンドリング</button>
+        <div id="errorResult" class="result"></div>
+    </div>
+
+    <!-- スクリプト読み込み -->
+    <script src="config.js"></script>
+    <script src="gemini-vision-service.js"></script>
+    <script src="ai-vision-service.js"></script>
+
+    <script>
+        function showResult(elementId, className, message) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${className}`;
+            element.innerHTML = message;
+        }
+
+        function testBasicLoad() {
+            try {
+                let results = [];
+                
+                // 設定ファイルのテスト
+                if (typeof window.FUYOU_CONFIG !== 'undefined') {
+                    results.push('✅ Config 読み込み成功');
+                } else {
+                    results.push('❌ Config 読み込み失敗');
+                }
+
+                // Gemini Service のテスト
+                if (typeof GeminiVisionService !== 'undefined') {
+                    results.push('✅ GeminiVisionService 定義確認');
+                    
+                    try {
+                        const geminiService = new GeminiVisionService();
+                        results.push('✅ GeminiVisionService インスタンス作成成功');
+                        
+                        if (typeof geminiService.isAvailable === 'function') {
+                            results.push('✅ isAvailable メソッド確認');
+                        } else {
+                            results.push('❌ isAvailable メソッドなし');
+                        }
+                        
+                    } catch (e) {
+                        results.push(`❌ GeminiVisionService インスタンス作成失敗: ${e.message}`);
+                    }
+                } else {
+                    results.push('❌ GeminiVisionService 未定義');
+                }
+
+                // AI Vision Service のテスト
+                if (typeof AIVisionService !== 'undefined') {
+                    results.push('✅ AIVisionService 定義確認');
+                    
+                    try {
+                        const aiService = new AIVisionService();
+                        results.push('✅ AIVisionService インスタンス作成成功');
+                        
+                        if (typeof aiService.initializeGeminiService === 'function') {
+                            results.push('✅ initializeGeminiService メソッド確認');
+                            const initResult = aiService.initializeGeminiService();
+                            results.push(`Gemini 初期化結果: ${initResult ? '成功' : '失敗'}`);
+                        } else {
+                            results.push('❌ initializeGeminiService メソッドなし');
+                        }
+                        
+                    } catch (e) {
+                        results.push(`❌ AIVisionService インスタンス作成失敗: ${e.message}`);
+                    }
+                } else {
+                    results.push('❌ AIVisionService 未定義');
+                }
+
+                showResult('basicResult', 'success', results.join('<br>'));
+                
+            } catch (error) {
+                showResult('basicResult', 'error', `基本テスト失敗: ${error.message}`);
+            }
+        }
+
+        function testGeminiService() {
+            try {
+                if (typeof GeminiVisionService === 'undefined') {
+                    throw new Error('GeminiVisionService が定義されていません');
+                }
+
+                const geminiService = new GeminiVisionService();
+                const results = [];
+
+                // APIキー設定チェック
+                const isAvailable = geminiService.isAvailable();
+                results.push(`API 利用可能性: ${isAvailable ? '✅' : '❌'} (${isAvailable ? 'APIキー設定済み' : 'APIキー未設定'})`);
+
+                // メソッド存在確認
+                const methods = ['analyzeShiftTable', 'getMockResponse', 'checkImageQuality', 'generateMockShifts'];
+                methods.forEach(method => {
+                    if (typeof geminiService[method] === 'function') {
+                        results.push(`✅ ${method} メソッド存在`);
+                    } else {
+                        results.push(`❌ ${method} メソッド不存在`);
+                    }
+                });
+
+                showResult('basicResult', 'success', results.join('<br>'));
+
+            } catch (error) {
+                showResult('basicResult', 'error', `Gemini Service テスト失敗: ${error.message}`);
+            }
+        }
+
+        function testAIVisionService() {
+            try {
+                if (typeof AIVisionService === 'undefined') {
+                    throw new Error('AIVisionService が定義されていません');
+                }
+
+                const aiService = new AIVisionService();
+                const results = [];
+
+                // Gemini 初期化テスト
+                const geminiInit = aiService.initializeGeminiService();
+                results.push(`Gemini 初期化: ${geminiInit ? '✅' : '❌'}`);
+
+                // Gemini Service 確認
+                if (aiService.geminiService) {
+                    results.push('✅ Gemini Service 連携成功');
+                    const geminiAvailable = aiService.geminiService.isAvailable();
+                    results.push(`Gemini 利用可能性: ${geminiAvailable ? '✅' : '❌'}`);
+                } else {
+                    results.push('❌ Gemini Service 連携失敗');
+                }
+
+                // 複数プロバイダー対応確認
+                if (typeof aiService.analyzeWithMultipleProviders === 'function') {
+                    results.push('✅ 複数プロバイダー対応メソッド存在');
+                } else {
+                    results.push('❌ 複数プロバイダー対応メソッド不存在');
+                }
+
+                showResult('basicResult', 'success', results.join('<br>'));
+
+            } catch (error) {
+                showResult('basicResult', 'error', `AI Vision Service テスト失敗: ${error.message}`);
+            }
+        }
+
+        async function testMockAnalysis() {
+            try {
+                if (typeof GeminiVisionService === 'undefined') {
+                    throw new Error('GeminiVisionService が定義されていません');
+                }
+
+                showResult('mockResult', 'warning', '🔄 モック解析テスト実行中...');
+
+                const geminiService = new GeminiVisionService();
+                
+                // テスト用ファイル作成
+                const mockFile = new File(['test image data'], 'test-shift.jpg', { 
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                });
+
+                // モック解析実行
+                const result = await geminiService.getMockResponse(mockFile);
+
+                const results = [];
+                results.push(`✅ モック解析完了`);
+                results.push(`成功フラグ: ${result.success ? '✅' : '❌'}`);
+                results.push(`シフト数: ${result.shifts ? result.shifts.length : 0}件`);
+                results.push(`信頼度: ${Math.round((result.confidence || 0) * 100)}%`);
+                results.push(`プロバイダー: ${result.metadata?.provider || 'unknown'}`);
+                results.push(`デモフラグ: ${result.metadata?.isDemo ? '✅' : '❌'}`);
+
+                if (result.shifts && result.shifts.length > 0) {
+                    results.push('<br><strong>生成されたシフト例:</strong>');
+                    const firstShift = result.shifts[0];
+                    results.push(`• 日付: ${firstShift.date}`);
+                    results.push(`• 時間: ${firstShift.startTime} - ${firstShift.endTime}`);
+                    results.push(`• 勤務先: ${firstShift.workplaceName}`);
+                    results.push(`• 労働時間: ${firstShift.hours}時間`);
+                }
+
+                showResult('mockResult', 'success', results.join('<br>'));
+
+            } catch (error) {
+                showResult('mockResult', 'error', `モック解析テスト失敗: ${error.message}<br>Stack: ${error.stack}`);
+            }
+        }
+
+        async function testErrorHandling() {
+            try {
+                showResult('errorResult', 'warning', '🔄 エラーハンドリングテスト実行中...');
+
+                const results = [];
+
+                // 1. 無効なファイルでのテスト
+                try {
+                    const geminiService = new GeminiVisionService();
+                    const invalidFile = new File([''], 'invalid.txt', { type: 'text/plain' });
+                    
+                    const result = await geminiService.analyzeShiftTable(invalidFile);
+                    results.push('✅ 無効ファイル処理: モックレスポンスで正常処理');
+                    results.push(`レスポンス成功: ${result.success ? '✅' : '❌'}`);
+                    
+                    if (result.metadata?.isFallback) {
+                        results.push('✅ フォールバック機能動作確認');
+                    }
+                    
+                } catch (error) {
+                    results.push(`❌ 無効ファイル処理エラー: ${error.message}`);
+                }
+
+                // 2. AIVisionService の複数プロバイダーテスト
+                try {
+                    const aiService = new AIVisionService();
+                    aiService.initializeGeminiService();
+                    
+                    const testFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+                    const result = await aiService.analyzeWithMultipleProviders(testFile);
+                    
+                    results.push('✅ 複数プロバイダーテスト成功');
+                    results.push(`プロバイダー: ${result.metadata?.provider || 'unknown'}`);
+                    
+                } catch (error) {
+                    results.push(`❌ 複数プロバイダーテスト失敗: ${error.message}`);
+                }
+
+                // 3. 設定チェック
+                const config = window.FUYOU_CONFIG || {};
+                results.push('<br><strong>設定確認:</strong>');
+                results.push(`Gemini APIキー設定: ${config.api?.gemini?.apiKey ? '✅' : '❌'}`);
+                results.push(`Gemini 有効化: ${config.api?.gemini?.enabled ? '✅' : '❌'}`);
+                results.push(`フォールバック有効: ${config.api?.fallback?.enableMockService !== false ? '✅' : '❌'}`);
+
+                showResult('errorResult', 'success', results.join('<br>'));
+
+            } catch (error) {
+                showResult('errorResult', 'error', `エラーハンドリングテスト失敗: ${error.message}<br>Stack: ${error.stack}`);
+            }
+        }
+
+        // ページ読み込み時の初期チェック
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('Gemini テストページ読み込み完了');
+            
+            // 基本的な可用性チェック
+            const checks = [];
+            checks.push(`window.FUYOU_CONFIG: ${typeof window.FUYOU_CONFIG !== 'undefined' ? '✅' : '❌'}`);
+            checks.push(`GeminiVisionService: ${typeof GeminiVisionService !== 'undefined' ? '✅' : '❌'}`);
+            checks.push(`AIVisionService: ${typeof AIVisionService !== 'undefined' ? '✅' : '❌'}`);
+            
+            console.log('初期チェック結果:', checks);
+        });
+    </script>
+</body>
+</html>
