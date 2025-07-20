@@ -3539,27 +3539,7 @@
         }
 
         // ========== イベントリスナー設定 ==========
-        function initializeApp() {
-            // AI サービス初期化
-            initializeAIService();
-            
-            // 最適化エンジン初期化
-            initializeOptimizationEngine();
-            
-            // タブナビゲーション
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-            });
-            
-            // 画像アップロード
-            document.getElementById('imageInput').addEventListener('change', handleImageUpload);
-            
-            // 初期表示更新
-            updateFuyouStatus();
-            updateCalendar();
-            updateWorkplaceList();
-            updateAnalytics();
-        }
+        // この関数は重複のため削除（メイン初期化関数は下部にあります）
 
         // ========== PWA機能 ==========
 
@@ -4114,45 +4094,452 @@
         `;
         document.head.appendChild(keyboardStyles);
 
-        // ========== アプリ初期化 ==========
-        function initializeApp() {
-            // PWA 機能初期化
-            initializePWA();
+        // ========== タッチ反応性強化 ==========
+        function enhanceTouchResponsiveness() {
+            console.log('📱 タッチ反応性を強化中...');
             
-            // モバイル最適化
-            optimizeForMobile();
-            
-            // AI サービス初期化
-            initializeAIService();
-            
-            // 最適化エンジン初期化
-            initializeOptimizationEngine();
-            
-            // 戦略的機能の初期化
-            initializeStrategicFeatures();
-            
-            // タブナビゲーション
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            // 全てのボタンに即座の視覚的フィードバックを追加
+            document.querySelectorAll('button, .btn, .tab-btn, .card').forEach(element => {
+                // タッチ開始時の即座のフィードバック
+                element.addEventListener('touchstart', function(e) {
+                    this.style.transform = 'scale(0.95)';
+                    this.style.transition = 'transform 0.1s ease';
+                }, { passive: true });
+                
+                // タッチ終了時の復帰
+                element.addEventListener('touchend', function(e) {
+                    this.style.transform = 'scale(1)';
+                    // ハプティックフィードバック（対応デバイスで）
+                    if (navigator.vibrate) {
+                        navigator.vibrate(10);
+                    }
+                }, { passive: true });
+                
+                // タッチキャンセル時の復帰
+                element.addEventListener('touchcancel', function(e) {
+                    this.style.transform = 'scale(1)';
+                }, { passive: true });
             });
             
-            // 画像アップロード
-            document.getElementById('imageInput').addEventListener('change', handleImageUpload);
+            // ダブルタップズーム防止
+            document.addEventListener('touchend', function(e) {
+                const now = new Date().getTime();
+                const timesince = now - lastTouchEnd;
+                if ((timesince < 300) && (timesince > 0)) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
             
-            // スマホキーボード対応の初期化
-            initializeKeyboardHandling();
-            
-            // バックグラウンドタスクのスケジュール
-            scheduleBackgroundTasks();
-            
-            // 初期表示更新
-            updateFuyouStatus();
-            updateCalendar();
-            updateWorkplaceList();
-            updateAnalytics();
+            let lastTouchEnd = 0;
+        }
 
-            // URL パラメータの処理
-            handleURLParameters();
+        // ========== シフトボードライクUX ==========
+        function initializeShiftBoardUX() {
+            console.log('📋 シフトボードライクUXを初期化中...');
+            
+            // 🆕 ドラッグ&ドロップでシフト移動
+            initializeDragAndDrop();
+            
+            // 🆕 長押しでクイックアクション
+            initializeLongPressActions();
+            
+            // 🆕 スワイプジェスチャー強化
+            initializeAdvancedSwipeGestures();
+            
+            // 🆕 快適なスクロール
+            initializeSmoothScrolling();
+            
+            // 🆕 インタラクティブなカレンダー
+            initializeInteractiveCalendar();
+        }
+
+        function initializeDragAndDrop() {
+            // シフトカードのドラッグ&ドロップ実装
+            document.querySelectorAll('.shift-card').forEach(card => {
+                card.draggable = true;
+                
+                card.addEventListener('dragstart', function(e) {
+                    e.dataTransfer.setData('text/plain', this.dataset.shiftId);
+                    this.style.opacity = '0.5';
+                });
+                
+                card.addEventListener('dragend', function(e) {
+                    this.style.opacity = '1';
+                });
+            });
+            
+            // ドロップエリアの設定
+            document.querySelectorAll('.calendar-day').forEach(day => {
+                day.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.style.backgroundColor = '#e8f5e8';
+                });
+                
+                day.addEventListener('dragleave', function(e) {
+                    this.style.backgroundColor = '';
+                });
+                
+                day.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    const shiftId = e.dataTransfer.getData('text/plain');
+                    const newDate = this.dataset.date;
+                    moveShift(shiftId, newDate);
+                    this.style.backgroundColor = '';
+                });
+            });
+        }
+
+        function initializeLongPressActions() {
+            let longPressTimer;
+            
+            document.querySelectorAll('.shift-card, .calendar-day').forEach(element => {
+                element.addEventListener('touchstart', function(e) {
+                    longPressTimer = setTimeout(() => {
+                        // 長押しアクションメニューを表示
+                        showQuickActionMenu(this, e.touches[0]);
+                    }, 500);
+                }, { passive: true });
+                
+                element.addEventListener('touchend', function(e) {
+                    clearTimeout(longPressTimer);
+                }, { passive: true });
+                
+                element.addEventListener('touchmove', function(e) {
+                    clearTimeout(longPressTimer);
+                }, { passive: true });
+            });
+        }
+
+        function showQuickActionMenu(element, touch) {
+            console.log('📱 クイックアクションメニュー表示');
+            // ハプティックフィードバック
+            if (navigator.vibrate) {
+                navigator.vibrate([10, 50, 10]);
+            }
+            
+            // メニューUI実装（後で詳細実装）
+            const menu = document.createElement('div');
+            menu.className = 'quick-action-menu';
+            menu.style.cssText = `
+                position: fixed;
+                top: ${touch.clientY}px;
+                left: ${touch.clientX}px;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 9999;
+                padding: 8px;
+            `;
+            
+            const actions = ['編集', '削除', 'コピー', '詳細'];
+            actions.forEach(action => {
+                const btn = document.createElement('button');
+                btn.textContent = action;
+                btn.style.cssText = 'display: block; width: 100%; padding: 8px; margin: 2px 0; border: none; background: #f5f5f5;';
+                menu.appendChild(btn);
+            });
+            
+            document.body.appendChild(menu);
+            
+            // 3秒後に自動削除
+            setTimeout(() => {
+                if (menu.parentNode) {
+                    menu.parentNode.removeChild(menu);
+                }
+            }, 3000);
+        }
+
+        function initializeAdvancedSwipeGestures() {
+            let startX, startY, currentX, currentY;
+            
+            document.addEventListener('touchstart', function(e) {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            document.addEventListener('touchmove', function(e) {
+                if (!startX || !startY) return;
+                
+                currentX = e.touches[0].clientX;
+                currentY = e.touches[0].clientY;
+                
+                const diffX = startX - currentX;
+                const diffY = startY - currentY;
+                
+                // 水平スワイプでタブ切り替え
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+                    if (diffX > 0) {
+                        // 左スワイプ：次のタブ
+                        switchToNextTab();
+                    } else {
+                        // 右スワイプ：前のタブ
+                        switchToPreviousTab();
+                    }
+                    startX = startY = null;
+                }
+            }, { passive: true });
+        }
+
+        function initializeSmoothScrolling() {
+            // iOS風の滑らかなスクロール
+            document.querySelectorAll('.tab-content, .calendar-container').forEach(element => {
+                element.style.cssText += `
+                    -webkit-overflow-scrolling: touch;
+                    scroll-behavior: smooth;
+                `;
+            });
+        }
+
+        function initializeInteractiveCalendar() {
+            // カレンダーの日付セルをよりインタラクティブに
+            document.querySelectorAll('.calendar-day').forEach(day => {
+                // ホバー効果（PC）
+                day.addEventListener('mouseenter', function() {
+                    if (!this.classList.contains('other-month')) {
+                        this.style.backgroundColor = '#f0f8ff';
+                    }
+                });
+                
+                day.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('selected')) {
+                        this.style.backgroundColor = '';
+                    }
+                });
+                
+                // タップ効果（モバイル）
+                day.addEventListener('touchstart', function() {
+                    if (!this.classList.contains('other-month')) {
+                        this.style.backgroundColor = '#e3f2fd';
+                    }
+                }, { passive: true });
+            });
+        }
+
+        function initializeEnhancedNavigation() {
+            console.log('🧭 強化ナビゲーションを初期化中...');
+            
+            document.querySelectorAll('.tab-btn').forEach((btn, index) => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // 即座の視覚的フィードバック
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 100);
+                    
+                    // ハプティックフィードバック
+                    if (navigator.vibrate) {
+                        navigator.vibrate(5);
+                    }
+                    
+                    // タブ切り替え実行
+                    const tabName = this.dataset.tab;
+                    if (tabName) {
+                        switchTab(tabName);
+                    }
+                });
+                
+                // キーボードナビゲーション対応
+                btn.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        this.click();
+                    }
+                });
+            });
+        }
+
+        // ========== 追加のヘルパー関数 ==========
+        function switchToNextTab() {
+            const tabs = ['calendar', 'ai-analysis', 'analytics', 'settings'];
+            const currentIndex = tabs.indexOf(appState.currentTab);
+            const nextIndex = (currentIndex + 1) % tabs.length;
+            switchTab(tabs[nextIndex]);
+        }
+
+        function switchToPreviousTab() {
+            const tabs = ['calendar', 'ai-analysis', 'analytics', 'settings'];
+            const currentIndex = tabs.indexOf(appState.currentTab);
+            const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+            switchTab(tabs[prevIndex]);
+        }
+
+        function moveShift(shiftId, newDate) {
+            console.log(`📅 シフト移動: ${shiftId} → ${newDate}`);
+            
+            // シフトを新しい日付に移動
+            const shift = appState.shifts.find(s => s.id === shiftId);
+            if (shift) {
+                shift.date = newDate;
+                saveState();
+                updateCalendar();
+                
+                // 成功フィードバック
+                showToast('✅ シフトを移動しました', 'success');
+                
+                // ハプティックフィードバック
+                if (navigator.vibrate) {
+                    navigator.vibrate([10, 50, 10]);
+                }
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+                color: white;
+                padding: 12px 24px;
+                border-radius: 24px;
+                z-index: 10000;
+                font-size: 14px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                animation: slideInFromTop 0.3s ease;
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutToTop 0.3s ease forwards';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 2000);
+        }
+
+        // ========== アニメーションCSS ==========
+        const animationStyles = document.createElement('style');
+        animationStyles.textContent = `
+            @keyframes slideInFromTop {
+                from { transform: translate(-50%, -100%); opacity: 0; }
+                to { transform: translate(-50%, 0); opacity: 1; }
+            }
+            
+            @keyframes slideOutToTop {
+                from { transform: translate(-50%, 0); opacity: 1; }
+                to { transform: translate(-50%, -100%); opacity: 0; }
+            }
+            
+            .quick-action-menu {
+                animation: fadeInScale 0.2s ease;
+            }
+            
+            @keyframes fadeInScale {
+                from { transform: scale(0.8); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+            }
+            
+            /* シフトボードライクなホバー効果 */
+            .calendar-day:hover {
+                background-color: #f0f8ff !important;
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+            }
+            
+            .shift-card {
+                transition: all 0.2s ease;
+                cursor: move;
+            }
+            
+            .shift-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+            
+            /* タッチフィードバック強化 */
+            button:active, .btn:active, .tab-btn:active {
+                transform: scale(0.95);
+                transition: transform 0.1s ease;
+            }
+            
+            /* スマホでの選択禁止 */
+            .calendar-day, .shift-card, .tab-btn {
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                -webkit-tap-highlight-color: transparent;
+            }
+        `;
+        document.head.appendChild(animationStyles);
+
+        // ========== アプリ初期化 ==========
+        function initializeApp() {
+            console.log('🚀 扶養プロ初期化開始...');
+            
+            try {
+                // PWA 機能初期化
+                initializePWA();
+                
+                // モバイル最適化
+                optimizeForMobile();
+                
+                // 🆕 タッチ反応性強化
+                enhanceTouchResponsiveness();
+                
+                // AI サービス初期化
+                initializeAIService();
+                
+                // 最適化エンジン初期化
+                initializeOptimizationEngine();
+                
+                // 戦略的機能の初期化
+                initializeStrategicFeatures();
+                
+                // 🆕 シフトボードライクなUX初期化
+                initializeShiftBoardUX();
+                
+                // タブナビゲーション（強化版）
+                initializeEnhancedNavigation();
+                
+                // 画像アップロード
+                const imageInput = document.getElementById('imageInput');
+                if (imageInput) {
+                    imageInput.addEventListener('change', handleImageUpload);
+                }
+                
+                // スマホキーボード対応の初期化
+                initializeKeyboardHandling();
+            
+                // バックグラウンドタスクのスケジュール
+                scheduleBackgroundTasks();
+                
+                // 初期表示更新
+                updateFuyouStatus();
+                updateCalendar();
+                updateWorkplaceList();
+                updateAnalytics();
+
+                // URL パラメータの処理
+                handleURLParameters();
+                
+                console.log('✅ 扶養プロ初期化完了！');
+                
+                // 成功メッセージ表示
+                showToast('🚀 扶養プロが起動しました', 'success');
+                
+            } catch (error) {
+                console.error('❌ 初期化エラー:', error);
+                showToast('⚠️ 初期化中にエラーが発生しました', 'error');
+                
+                // エラーでも基本機能は動作するように
+                try {
+                    updateFuyouStatus();
+                    updateCalendar();
+                } catch (fallbackError) {
+                    console.error('❌ フォールバック初期化も失敗:', fallbackError);
+                }
+            }
         }
 
         function handleURLParameters() {

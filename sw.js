@@ -1,5 +1,5 @@
 // Service Worker for 扶養プロ - Progressive Web App
-const CACHE_NAME = 'fuyou-pro-v1.0.0';
+const CACHE_NAME = 'fuyou-pro-v1.1.0'; // 🆕 バージョンアップでキャッシュクリア
 const urlsToCache = [
   '/',
   '/ai-vision-service.js',
