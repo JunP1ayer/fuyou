@@ -28,7 +28,25 @@ logs/
 *.db
 *.sqlite3
 
-# API Keys
+# API Keys - CRITICAL SECURITY
+.env
 .env.local
+.env.development
 .env.production
+.env.backup.*
 config/secrets.json
+**/*-key.json
+**/*-secret.json
+**/*-credentials.json
+secure-config.js
+api-keys.txt
+
+# Security backups
+secure-backups/
+*.gpg
+*.encrypted
+
+# Never commit these production files
+deployment-secrets.md
+production-keys.txt
+server.log

@@ -1201,6 +1201,8 @@
         <div class="sheet-content" id="sheetContent"></div>
     </div>
 
+    <!-- セキュア設定読み込み -->
+    <script src="secure-config-loader.js"></script>
     <!-- 設定ファイル -->
     <script src="config.js"></script>
     <!-- AI Vision Service -->
@@ -3089,37 +3091,19 @@
             restoreInput.accept = '.json';
             restoreInput.style.display = 'none';
             
-            // プレミアムボタン
-            const premiumBtn = document.createElement('button');
-            premiumBtn.innerHTML = '⭐';
-            premiumBtn.title = 'プレミアム機能';
-            premiumBtn.style.cssText = backupBtn.style.cssText.replace('#4CAF50', '#FFD700');
-            premiumBtn.addEventListener('click', () => {
-                if (typeof premium !== 'undefined') {
-                    premium.showUpgradeModal();
-                }
-            });
+            // プレミアムボタンは削除（完全無料アプリのため）
             
             settingsArea.appendChild(backupBtn);
-            settingsArea.appendChild(premiumBtn);
             settingsArea.appendChild(restoreInput);
         }
         
         function addStrategicEventListeners() {
-            // AI機能使用時のプレミアムチェック
+            // AI機能は常に利用可能（完全無料のため制限なし）
             const originalHandleImageUpload = window.handleImageUpload;
             if (originalHandleImageUpload) {
                 window.handleImageUpload = function(event) {
                     try {
-                        if (typeof premium !== 'undefined') {
-                            const canUse = premium.canUseFeature('unlimited_ai_scans');
-                            if (!canUse.allowed) {
-                                premium.showUpgradeModal();
-                                return;
-                            }
-                            premium.recordUsage('unlimited_ai_scans');
-                        }
-                        
+                        // プレミアムチェックを削除 - 常に利用可能
                         return originalHandleImageUpload.call(this, event);
                     } catch (error) {
                         console.error('AI機能使用エラー:', error);

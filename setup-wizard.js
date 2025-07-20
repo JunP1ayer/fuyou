@@ -14,9 +14,9 @@ class SetupWizard {
                 action: this.setupFuyouLimits.bind(this)
             },
             {
-                title: 'AI機能の設定（オプション）',
-                description: 'シフト表の自動読み取り',
-                action: this.setupAPIKeys.bind(this)
+                title: 'AI機能について',
+                description: '完全無料でシフト表を自動読み取り',
+                action: this.showAIFeatures.bind(this)
             },
             {
                 title: 'サンプルで試してみる',
@@ -145,42 +145,55 @@ class SetupWizard {
         `;
     }
 
-    setupAPIKeys() {
+    showAIFeatures() {
         const body = document.getElementById('wizard-body');
         body.innerHTML = `
-            <div class="api-setup">
-                <div class="api-option">
-                    <h4>🤖 AI画像解析を使用する（推奨）</h4>
-                    <p>シフト表の写真から自動でデータを読み取ります</p>
-                    
-                    <div class="api-toggle">
-                        <input type="checkbox" id="enable-ai" checked />
-                        <label for="enable-ai">AI機能を有効にする</label>
+            <div class="ai-features">
+                <div class="feature-highlight">
+                    <h4>🎉 完全無料AI機能</h4>
+                    <p>扶養プロでは、すべてのAI機能を無料で提供しています！</p>
+                </div>
+                
+                <div class="ai-feature-list">
+                    <div class="ai-feature-item">
+                        <span class="feature-icon">📸</span>
+                        <div class="feature-content">
+                            <h5>シフト表画像解析</h5>
+                            <p>写真を撮るだけで自動的にシフトデータを抽出</p>
+                        </div>
                     </div>
                     
-                    <div id="api-key-input" class="api-key-section">
-                        <label>OpenAI APIキー</label>
-                        <input type="password" id="openai-key" class="wizard-input" 
-                               placeholder="sk-..." />
-                        <small>
-                            <a href="https://platform.openai.com/api-keys" target="_blank">
-                                APIキーの取得方法 →
-                            </a>
-                        </small>
+                    <div class="ai-feature-item">
+                        <span class="feature-icon">🤖</span>
+                        <div class="feature-content">
+                            <h5>OpenAI GPT-4o搭載</h5>
+                            <p>最新の画像認識AIで高精度な文字認識</p>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-feature-item">
+                        <span class="feature-icon">⚡</span>
+                        <div class="feature-content">
+                            <h5>即座にデータ化</h5>
+                            <p>手作業でのデータ入力は一切不要</p>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-feature-item">
+                        <span class="feature-icon">♾️</span>
+                        <div class="feature-content">
+                            <h5>無制限利用</h5>
+                            <p>回数制限なし、すべて無料でご利用いただけます</p>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="skip-option">
-                    <p>💡 AI機能は後からでも設定できます</p>
+                <div class="ready-message">
+                    <p>✅ AI機能は既に利用可能です</p>
+                    <p>📱 次の画面でさっそく試してみましょう！</p>
                 </div>
             </div>
         `;
-
-        // トグル動作
-        document.getElementById('enable-ai').addEventListener('change', (e) => {
-            document.getElementById('api-key-input').style.display = 
-                e.target.checked ? 'block' : 'none';
-        });
     }
 
     showDemo() {
@@ -214,23 +227,13 @@ class SetupWizard {
         const settings = {
             studentStatus: document.getElementById('student-status')?.value || 'student',
             targetIncome: document.getElementById('target-income')?.value || '',
-            enableAI: document.getElementById('enable-ai')?.checked || false,
+            enableAI: true, // 常にAI機能有効
             setupCompleted: true,
             completedAt: new Date().toISOString()
         };
 
-        // APIキー保存（暗号化推奨）
-        const apiKey = document.getElementById('openai-key')?.value;
-        if (apiKey && apiKey.startsWith('sk-')) {
-            window.updateConfig({
-                api: {
-                    openai: {
-                        apiKey: apiKey,
-                        enabled: true
-                    }
-                }
-            });
-        }
+        // AI機能は常に有効（APIキーは既に設定済み）
+        // ユーザーによる設定は不要
 
         localStorage.setItem('fuyou_setup_completed', 'true');
         localStorage.setItem('fuyou_user_settings', JSON.stringify(settings));

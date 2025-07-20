@@ -1,11 +1,21 @@
 // OpenAI Vision API による シフト表解析サービス
 class AIVisionService {
     constructor() {
-        // 注意: 本番環境では環境変数を使用してください
-        this.apiKey = 'YOUR_OPENAI_API_KEY'; // 実際のAPIキーに置き換え
+        // 実際のAPIキーは設定ファイルから自動取得
+        this.apiKey = null;
         this.apiUrl = 'https://api.openai.com/v1/chat/completions';
         this.maxRetries = 3;
         this.retryDelay = 1000;
+        
+        // 設定から API キーを取得
+        this.initializeAPIKey();
+    }
+    
+    initializeAPIKey() {
+        if (typeof window !== 'undefined' && window.FUYOU_CONFIG) {
+            this.apiKey = window.FUYOU_CONFIG.api.openai.apiKey;
+            console.log('OpenAI APIキーを設定から取得しました');
+        }
     }
 
     /**
@@ -292,7 +302,7 @@ class AIVisionService {
      * 利用可能性チェック
      */
     isAvailable() {
-        return this.apiKey && this.apiKey !== 'YOUR_OPENAI_API_KEY';
+        return this.apiKey && this.apiKey.startsWith('sk-');
     }
 
 

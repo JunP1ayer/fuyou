@@ -7,24 +7,24 @@ const CONFIG = {
     api: {
         // OpenAI設定
         openai: {
-            apiKey: null, // 実際のAPIキーを設定してください
+            apiKey: null, // 環境変数から取得
             model: 'gpt-4o',
             maxTokens: 2000,
             temperature: 0.1,
-            enabled: false // APIキー設定後にtrueに変更
+            enabled: true // 完全無料提供
         },
         
         // Gemini設定
         gemini: {
-            apiKey: null, // Geminiキー未設定時はモック使用
+            apiKey: null, // 環境変数から取得
             model: 'gemini-pro-vision',
-            enabled: false // OpenAI優先、Geminiはフォールバック
+            enabled: true // Gemini も利用可能
         },
         
         // フォールバック設定
         fallback: {
-            enableMockService: true,
-            mockDataVariation: true,
+            enableMockService: false, // 実APIのみ使用
+            mockDataVariation: false,
             preferOpenAI: true // OpenAIを優先使用
         }
     },

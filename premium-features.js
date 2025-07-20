@@ -3,11 +3,11 @@ class PremiumFeatures {
     constructor() {
         this.isPremium = false;
         this.premiumFeatures = {
-            // AI機能拡張
+            // 完全無料化 - 全機能無制限
             unlimited_ai_scans: {
                 name: 'AI解析無制限',
                 description: 'シフト表の画像解析回数制限なし',
-                free_limit: 5,
+                free_limit: 9999, // 実質無制限
                 icon: '🤖'
             },
             
@@ -15,7 +15,7 @@ class PremiumFeatures {
             unlimited_workplaces: {
                 name: '勤務先無制限登録',
                 description: '複数のバイト先を無制限に管理',
-                free_limit: 1,
+                free_limit: 9999, // 実質無制限
                 icon: '🏢'
             },
             
@@ -23,7 +23,7 @@ class PremiumFeatures {
             advanced_analytics: {
                 name: '詳細分析レポート',
                 description: '月次・年次の詳細な収入分析',
-                free_limit: 0,
+                free_limit: 9999, // 完全無料
                 icon: '📊'
             },
             
@@ -31,7 +31,7 @@ class PremiumFeatures {
             smart_optimization: {
                 name: 'スマート最適化',
                 description: 'AI powered 最適なシフト提案',
-                free_limit: 0,
+                free_limit: 9999, // 完全無料
                 icon: '🎯'
             },
             
@@ -39,7 +39,7 @@ class PremiumFeatures {
             cloud_backup: {
                 name: 'クラウドバックアップ',
                 description: 'Google Drive自動バックアップ',
-                free_limit: 0,
+                free_limit: 9999, // 完全無料
                 icon: '☁️'
             },
             
@@ -47,7 +47,7 @@ class PremiumFeatures {
             smart_notifications: {
                 name: 'スマート通知',
                 description: '扶養限度額の詳細なアラート設定',
-                free_limit: 0,
+                free_limit: 9999, // 完全無料
                 icon: '🔔'
             },
             
@@ -55,7 +55,7 @@ class PremiumFeatures {
             advanced_export: {
                 name: '高度なエクスポート',
                 description: 'Excel、PDF、税務署形式での出力',
-                free_limit: 0,
+                free_limit: 9999, // 完全無料
                 icon: '📄'
             },
             
@@ -63,7 +63,7 @@ class PremiumFeatures {
             priority_support: {
                 name: '優先サポート',
                 description: '24時間以内の問い合わせ対応',
-                free_limit: 0,
+                free_limit: 9999, // 完全無料
                 icon: '🚀'
             }
         };
