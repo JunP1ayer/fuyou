@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扶養プロ - 実装確認ページ</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .check-item { margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .ok { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .btn { background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>扶養プロ実装確認ページ v1.2.0</h1>
+    
+    <h2>📋 実装状況チェック</h2>
+    <div id="checkResults"></div>
+    
+    <h2>🔧 強制更新テスト</h2>
+    <button class="btn" onclick="clearCache()">Service Workerキャッシュクリア</button>
+    <button class="btn" onclick="reloadApp()">アプリリロード</button>
+    <button class="btn" onclick="checkMainApp()">メインアプリ確認</button>
+    
+    <script>
+        // 実装チェック関数
+        function checkImplementation() {
+            const results = document.getElementById('checkResults');
+            const checks = [];
+            
+            // メインアプリのHTMLを取得して確認
+            fetch('fuyou-pro-app.html')
+                .then(response => response.text())
+                .then(html => {
+                    // 関数実装チェック
+                    const functions = [
+                        'enhanceTouchResponsiveness',
+                        'initializeShiftBoardUX', 
+                        'initializeDragAndDrop',
+                        'showQuickActionMenu',
+                        'showToast',
+                        'moveShift'
+                    ];
+                    
+                    functions.forEach(func => {
+                        const exists = html.includes(`function ${func}`);
+                        checks.push({
+                            name: func,
+                            status: exists,
+                            message: exists ? '✅ 実装済み' : '❌ 未実装'
+                        });
+                    });
+                    
+                    // バージョンチェック
+                    const hasVersion = html.includes('v1.2.0');
+                    checks.push({
+                        name: 'バージョン表示',
+                        status: hasVersion,
+                        message: hasVersion ? '✅ v1.2.0表示済み' : '❌ バージョン未更新'
+                    });
+                    
+                    // キャッシュバスティングチェック
+                    const hasCacheBusting = html.includes('Cache-Control');
+                    checks.push({
+                        name: 'キャッシュバスティング',
+                        status: hasCacheBusting,
+                        message: hasCacheBusting ? '✅ 実装済み' : '❌ 未実装'
+                    });
+                    
+                    displayResults(checks);
+                })
+                .catch(error => {
+                    results.innerHTML = '<div class="check-item error">❌ メインアプリの取得に失敗: ' + error.message + '</div>';
+                });
+        }
+        
+        function displayResults(checks) {
+            const results = document.getElementById('checkResults');
+            results.innerHTML = checks.map(check => 
+                `<div class="check-item ${check.status ? 'ok' : 'error'}">
+                    <strong>${check.name}</strong>: ${check.message}
+                </div>`
+            ).join('');
+        }
+        
+        function clearCache() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    registrations.forEach(registration => {
+                        registration.unregister();
+                    });
+                });
+                
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        names.forEach(name => {
+                            caches.delete(name);
+                        });
+                    });
+                }
+                
+                alert('✅ キャッシュをクリアしました。ページを再読み込みしてください。');
+            }
+        }
+        
+        function reloadApp() {
+            window.location.reload(true);
+        }
+        
+        function checkMainApp() {
+            window.open('fuyou-pro-app.html', '_blank');
+        }
+        
+        // ページ読み込み時に自動チェック
+        window.onload = checkImplementation;
+    </script>
+    
+    <h2>📱 動作確認用リンク</h2>
+    <p><a href="fuyou-pro-app.html" target="_blank">📱 メインアプリを開く</a></p>
+    <p><a href="https://junp1ayer.github.io/fuyou/fuyou-pro-app.html" target="_blank">🌐 GitHub Pages版を開く</a></p>
+    
+    <h2>🔍 確認手順</h2>
+    <ol>
+        <li>「Service Workerキャッシュクリア」をクリック</li>
+        <li>ブラウザでCtrl+F5で強制更新</li>
+        <li>「メインアプリ確認」でアプリを開く</li>
+        <li>開発者ツール（F12）→ Consoleで以下を確認:
+            <ul>
+                <li>「🚀 扶養プロ初期化開始...」</li>
+                <li>「📱 タッチ反応性を強化中...」</li>
+                <li>「📋 シフトボードライクUXを初期化中...」</li>
+                <li>「✅ 扶養プロ初期化完了！」</li>
+            </ul>
+        </li>
+        <li>タッチ操作テスト:
+            <ul>
+                <li>タブをタップして反応確認</li>
+                <li>左右スワイプでタブ切り替え</li>
+                <li>ボタン長押し（0.5秒）でメニュー表示</li>
+            </ul>
+        </li>
+    </ol>
+</body>
+</html>
