@@ -427,11 +427,249 @@
             background: #fafafa;
             border: 1px solid #f0f0f0;
             transition: all 0.15s ease;
+            cursor: pointer;
         }
 
         .calendar-day:not(.header):hover {
             background: #f5f5f5;
             border-color: #e0e0e0;
+        }
+
+        /* シフト統計サマリー */
+        .shift-summary {
+            margin-top: 16px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .summary-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .summary-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* シフト登録モーダル */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #666;
+            padding: 4px;
+        }
+
+        .shift-form {
+            padding: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-group.half {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+        }
+
+        .form-group textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .wage-settings {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .wage-options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .earnings-preview {
+            background: #e8f5e8;
+            border: 1px solid #4CAF50;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .preview-label {
+            font-size: 12px;
+            color: #2e7d32;
+            margin-bottom: 4px;
+        }
+
+        .preview-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1b5e20;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        /* FAB追加ボタン */
+        .fab-add {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            margin-bottom: 60px;
         }
 
         /* ========== FAB群 ========== */
@@ -616,6 +854,62 @@
             background: #1976D2;
         }
 
+        /* シフトテンプレート */
+        .template-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .template-btn {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .template-btn:hover {
+            background: #e3f2fd;
+            border-color: #2196F3;
+            color: #2196F3;
+        }
+
+        .template-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* データ出力ボタン */
+        .summary-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+        }
+
+        .export-btn {
+            flex: 1;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .export-btn:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+            transform: translateY(-1px);
+        }
+
         /* ========== レスポンシブ ========== */
         @media (max-width: 480px) {
             .splash-title { font-size: 28px; }
@@ -709,12 +1003,145 @@
                 <div class="calendar-grid" id="demoCalendar">
                     <!-- 動的生成 -->
                 </div>
+                
+                <!-- シフト統計サマリー -->
+                <div class="shift-summary" id="shiftSummary" style="display: none;">
+                    <div class="summary-row">
+                        <span class="summary-label">今月の勤務</span>
+                        <span class="summary-value" id="monthlyShifts">0日</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">今月の収入</span>
+                        <span class="summary-value" id="monthlyEarnings">¥0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">月間目標</span>
+                        <span class="summary-value" id="monthlyGoal">¥85,000</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">年収進捗</span>
+                        <span class="summary-value" id="yearlyProgress">0%</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">今月残り</span>
+                        <span class="summary-value" id="monthlyRemaining" style="color: #FF9800;">¥85,000</span>
+                    </div>
+                    <div class="summary-actions">
+                        <button class="export-btn" onclick="exportShiftData()">📊 データ出力</button>
+                        <button class="export-btn" onclick="showShiftList()">📋 一覧表示</button>
+                    </div>
+                </div>
             </div>
         </main>
 
         <!-- FAB群 -->
         <div class="fab-group">
             <button class="fab fab-ai" onclick="startAICapture()" title="AI解析">🤖</button>
+            <button class="fab fab-add" onclick="showShiftModal()" title="シフト追加">➕</button>
+        </div>
+
+        <!-- シフト登録/編集モーダル -->
+        <div id="shiftModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">シフト登録</h3>
+                    <button class="close-btn" onclick="closeShiftModal()">✕</button>
+                </div>
+                
+                <form id="shiftForm" class="shift-form">
+                    <!-- 勤務先選択 -->
+                    <div class="form-group">
+                        <label>勤務先</label>
+                        <select id="workplaceSelect" required>
+                            <option value="">勤務先を選択</option>
+                            <option value="cafe" data-color="#4CAF50">カフェ バイト</option>
+                            <option value="convenience" data-color="#2196F3">コンビニ 夜勤</option>
+                            <option value="tutor" data-color="#FF9800">家庭教師</option>
+                            <option value="restaurant" data-color="#9C27B0">レストラン</option>
+                            <option value="retail" data-color="#F44336">小売店</option>
+                            <option value="delivery" data-color="#607D8B">配達バイト</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 日付選択 -->
+                    <div class="form-group">
+                        <label>勤務日</label>
+                        <input type="date" id="shiftDate" required>
+                    </div>
+                    
+                    <!-- 時間設定 -->
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>開始時刻</label>
+                            <input type="time" id="startTime" required>
+                        </div>
+                        <div class="form-group half">
+                            <label>終了時刻</label>
+                            <input type="time" id="endTime" required>
+                        </div>
+                    </div>
+                    
+                    <!-- 休憩時間 -->
+                    <div class="form-group">
+                        <label>休憩時間（分）</label>
+                        <input type="number" id="breakMinutes" value="0" min="0" max="480">
+                    </div>
+                    
+                    <!-- 時給設定 -->
+                    <div class="form-group">
+                        <label>時給</label>
+                        <div class="wage-settings">
+                            <input type="number" id="baseWage" placeholder="基本時給" required min="0">
+                            <div class="wage-options">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="isHoliday">
+                                    <span>休日勤務 (+25%)</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="isNightShift">
+                                    <span>深夜勤務 (+25%)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 交通費 -->
+                    <div class="form-group">
+                        <label>交通費</label>
+                        <input type="number" id="transportFee" value="0" min="0" placeholder="往復交通費">
+                    </div>
+                    
+                    <!-- シフトテンプレート -->
+                    <div class="form-group">
+                        <label>よく使うシフト</label>
+                        <div class="template-buttons">
+                            <button type="button" class="template-btn" onclick="loadTemplate('morning')">朝バイト</button>
+                            <button type="button" class="template-btn" onclick="loadTemplate('evening')">夕方バイト</button>
+                            <button type="button" class="template-btn" onclick="loadTemplate('night')">夜勤バイト</button>
+                            <button type="button" class="template-btn" onclick="saveAsTemplate()">現在の設定を保存</button>
+                        </div>
+                    </div>
+                    
+                    <!-- メモ -->
+                    <div class="form-group">
+                        <label>メモ</label>
+                        <textarea id="shiftMemo" placeholder="備考があれば入力"></textarea>
+                    </div>
+                    
+                    <!-- 予想収入表示 -->
+                    <div class="earnings-preview">
+                        <div class="preview-label">予想収入</div>
+                        <div class="preview-amount" id="earningsPreview">¥0</div>
+                    </div>
+                    
+                    <!-- ボタン -->
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeShiftModal()">キャンセル</button>
+                        <button type="submit" class="btn btn-primary" id="saveShiftBtn">保存</button>
+                        <button type="button" class="btn btn-danger" id="deleteShiftBtn" style="display: none;" onclick="deleteShift()">削除</button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- AI解析モーダル -->
@@ -778,6 +1205,8 @@
         let currentImage = null;
         let detectedShifts = [];
         let isAnalyzing = false;
+        let shifts = JSON.parse(localStorage.getItem('userShifts') || '[]');
+        let currentEditingShift = null;
 
         // ========== 初期化 ==========
         document.addEventListener('DOMContentLoaded', function() {
@@ -785,6 +1214,8 @@
             generateDemoCalendar();
             enhanceTouchResponsiveness();
             addMobileViewToggle();
+            setupShiftManagement();
+            updateShiftSummary();
         });
 
         // PC版用モバイルビュー切り替え機能
@@ -1149,6 +1580,220 @@
             }
         }
 
+        // ========== シフト管理機能 ==========
+        function setupShiftManagement() {
+            // フォーム送信イベント
+            document.getElementById('shiftForm').addEventListener('submit', saveShift);
+            
+            // リアルタイム予想収入計算
+            const inputs = ['baseWage', 'startTime', 'endTime', 'breakMinutes', 'isHoliday', 'isNightShift', 'transportFee'];
+            inputs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', updateEarningsPreview);
+                    element.addEventListener('change', updateEarningsPreview);
+                }
+            });
+        }
+
+        function showShiftModal(shift = null) {
+            currentEditingShift = shift;
+            const modal = document.getElementById('shiftModal');
+            const title = document.getElementById('modalTitle');
+            const deleteBtn = document.getElementById('deleteShiftBtn');
+            
+            if (shift) {
+                title.textContent = 'シフト編集';
+                deleteBtn.style.display = 'block';
+                fillShiftForm(shift);
+            } else {
+                title.textContent = 'シフト登録';
+                deleteBtn.style.display = 'none';
+                resetShiftForm();
+                
+                // 今日の日付をデフォルトに
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('shiftDate').value = today;
+            }
+            
+            modal.style.display = 'flex';
+            updateEarningsPreview();
+        }
+
+        function closeShiftModal() {
+            document.getElementById('shiftModal').style.display = 'none';
+            currentEditingShift = null;
+        }
+
+        function fillShiftForm(shift) {
+            document.getElementById('workplaceSelect').value = shift.workplace || '';
+            document.getElementById('shiftDate').value = shift.date;
+            document.getElementById('startTime').value = shift.startTime;
+            document.getElementById('endTime').value = shift.endTime;
+            document.getElementById('breakMinutes').value = shift.breakMinutes || 0;
+            document.getElementById('baseWage').value = shift.baseWage;
+            document.getElementById('isHoliday').checked = shift.isHoliday || false;
+            document.getElementById('isNightShift').checked = shift.isNightShift || false;
+            document.getElementById('transportFee').value = shift.transportFee || 0;
+            document.getElementById('shiftMemo').value = shift.memo || '';
+        }
+
+        function resetShiftForm() {
+            document.getElementById('shiftForm').reset();
+            document.getElementById('earningsPreview').textContent = '¥0';
+        }
+
+        function updateEarningsPreview() {
+            const baseWage = parseFloat(document.getElementById('baseWage').value) || 0;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const breakMinutes = parseInt(document.getElementById('breakMinutes').value) || 0;
+            const isHoliday = document.getElementById('isHoliday').checked;
+            const isNightShift = document.getElementById('isNightShift').checked;
+            const transportFee = parseFloat(document.getElementById('transportFee').value) || 0;
+
+            if (!startTime || !endTime || baseWage <= 0) {
+                document.getElementById('earningsPreview').textContent = '¥0';
+                return;
+            }
+
+            const workHours = calculateWorkHours(startTime, endTime, breakMinutes);
+            let totalWage = workHours * baseWage;
+
+            // 休日手当・深夜手当
+            if (isHoliday) totalWage *= 1.25;
+            if (isNightShift) totalWage *= 1.25;
+
+            const totalEarnings = totalWage + transportFee;
+            document.getElementById('earningsPreview').textContent = `¥${Math.round(totalEarnings).toLocaleString()}`;
+        }
+
+        function calculateWorkHours(startTime, endTime, breakMinutes = 0) {
+            const start = new Date(`2000-01-01T${startTime}`);
+            const end = new Date(`2000-01-01T${endTime}`);
+            
+            if (end <= start) {
+                end.setDate(end.getDate() + 1); // 日をまたぐ場合
+            }
+            
+            const workTimeMs = end.getTime() - start.getTime();
+            const workHours = workTimeMs / (1000 * 60 * 60);
+            const breakHours = breakMinutes / 60;
+            
+            return Math.max(0, workHours - breakHours);
+        }
+
+        function saveShift(event) {
+            event.preventDefault();
+            
+            const formData = {
+                id: currentEditingShift ? currentEditingShift.id : Date.now().toString(),
+                workplace: document.getElementById('workplaceSelect').value,
+                date: document.getElementById('shiftDate').value,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
+                breakMinutes: parseInt(document.getElementById('breakMinutes').value) || 0,
+                baseWage: parseFloat(document.getElementById('baseWage').value),
+                isHoliday: document.getElementById('isHoliday').checked,
+                isNightShift: document.getElementById('isNightShift').checked,
+                transportFee: parseFloat(document.getElementById('transportFee').value) || 0,
+                memo: document.getElementById('shiftMemo').value
+            };
+
+            // 収入計算
+            const workHours = calculateWorkHours(formData.startTime, formData.endTime, formData.breakMinutes);
+            let totalWage = workHours * formData.baseWage;
+            if (formData.isHoliday) totalWage *= 1.25;
+            if (formData.isNightShift) totalWage *= 1.25;
+            formData.earnings = totalWage + formData.transportFee;
+
+            if (currentEditingShift) {
+                // 編集
+                const index = shifts.findIndex(s => s.id === currentEditingShift.id);
+                if (index !== -1) {
+                    shifts[index] = formData;
+                }
+            } else {
+                // 新規追加
+                shifts.push(formData);
+            }
+
+            localStorage.setItem('userShifts', JSON.stringify(shifts));
+            updateCalendarDisplay();
+            updateShiftSummary();
+            closeShiftModal();
+            
+            // 成功メッセージ
+            const action = currentEditingShift ? '更新' : '登録';
+            showSuccessMessage(`✅ シフトを${action}しました！`);
+        }
+
+        function deleteShift() {
+            if (!currentEditingShift) return;
+            
+            if (confirm('このシフトを削除しますか？')) {
+                shifts = shifts.filter(s => s.id !== currentEditingShift.id);
+                localStorage.setItem('userShifts', JSON.stringify(shifts));
+                updateCalendarDisplay();
+                updateShiftSummary();
+                closeShiftModal();
+                showSuccessMessage('🗑️ シフトを削除しました');
+            }
+        }
+
+        function showSuccessMessage(message) {
+            // シンプルなアラート（後でトーストメッセージに変更可能）
+            alert(message);
+        }
+
+        function updateShiftSummary() {
+            const summaryElement = document.getElementById('shiftSummary');
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            // 今月のシフトを抽出
+            const monthlyShifts = shifts.filter(shift => {
+                const shiftDate = new Date(shift.date);
+                return shiftDate.getMonth() === currentMonth && shiftDate.getFullYear() === currentYear;
+            });
+
+            // 統計計算
+            const totalShifts = monthlyShifts.length;
+            const monthlyEarnings = monthlyShifts.reduce((sum, shift) => sum + (shift.earnings || 0), 0);
+            const yearlyEarnings = shifts.reduce((sum, shift) => sum + (shift.earnings || 0), 0);
+            const yearlyProgress = Math.min(100, (yearlyEarnings / 1030000) * 100); // 103万円基準
+            
+            // 月間目標設定（103万円を12ヶ月で割る）
+            const monthlyGoal = Math.round(1030000 / 12);
+            const remainingGoal = Math.max(0, monthlyGoal - monthlyEarnings);
+            const goalProgress = Math.min(100, (monthlyEarnings / monthlyGoal) * 100);
+
+            // 表示更新
+            document.getElementById('monthlyShifts').textContent = `${totalShifts}日`;
+            document.getElementById('monthlyEarnings').textContent = `¥${Math.round(monthlyEarnings).toLocaleString()}`;
+            document.getElementById('monthlyGoal').textContent = `¥${monthlyGoal.toLocaleString()}`;
+            document.getElementById('yearlyProgress').textContent = `${Math.round(yearlyProgress)}%`;
+            
+            // 月間残り目標の表示と色分け
+            const remainingElement = document.getElementById('monthlyRemaining');
+            remainingElement.textContent = `¥${remainingGoal.toLocaleString()}`;
+            
+            if (goalProgress >= 100) {
+                remainingElement.style.color = '#4CAF50'; // 緑（目標達成）
+                remainingElement.textContent = '🎉 目標達成！';
+            } else if (goalProgress >= 75) {
+                remainingElement.style.color = '#FF9800'; // オレンジ（もう少し）
+            } else if (goalProgress >= 50) {
+                remainingElement.style.color = '#2196F3'; // 青（順調）
+            } else {
+                remainingElement.style.color = '#f44336'; // 赤（要努力）
+            }
+
+            // サマリー表示制御
+            summaryElement.style.display = totalShifts > 0 ? 'block' : 'none';
+        }
+
         // ========== カレンダー生成 ==========
         function generateDemoCalendar() {
             const calendar = document.getElementById('demoCalendar');
@@ -1209,11 +1854,75 @@
                     dayElement.style.color = '#2196F3';
                 }
                 
-                // シフト表示はAI解析後のみ（デモシフトは無効化）
-                // シンプルで混乱しないカレンダーを目指す
+                // ユーザーのシフトがあるかチェック
+                const userShift = shifts.find(shift => {
+                    const shiftDate = new Date(shift.date);
+                    return shiftDate.getFullYear() === year && 
+                           shiftDate.getMonth() === month && 
+                           shiftDate.getDate() === day;
+                });
+                
+                if (userShift) {
+                    dayElement.classList.add('has-shift');
+                    dayElement.title = `${userShift.startTime}-${userShift.endTime} ${getWorkplaceName(userShift.workplace)} (¥${Math.round(userShift.earnings || 0).toLocaleString()})`;
+                    
+                    // 勤務先ごとの色分け
+                    const workplaceColor = getWorkplaceColor(userShift.workplace);
+                    if (workplaceColor) {
+                        dayElement.style.backgroundColor = workplaceColor;
+                        dayElement.style.color = 'white';
+                        dayElement.style.fontWeight = 'bold';
+                        dayElement.style.borderRadius = '4px';
+                    }
+                    
+                    // クリックで編集
+                    dayElement.addEventListener('click', () => showShiftModal(userShift));
+                } else {
+                    // クリックで新規登録（その日の日付を設定）
+                    dayElement.addEventListener('click', () => {
+                        const clickedDate = new Date(year, month, day).toISOString().split('T')[0];
+                        showShiftModal();
+                        setTimeout(() => {
+                            document.getElementById('shiftDate').value = clickedDate;
+                        }, 100);
+                    });
+                }
                 
                 calendar.appendChild(dayElement);
             }
+        }
+
+        function updateCalendarDisplay() {
+            // カレンダー全体を再生成してユーザーシフトを反映
+            generateDemoCalendar();
+            
+            // 扶養進捗の更新
+            updateFuyouProgress();
+        }
+
+        function updateFuyouProgress() {
+            const totalEarnings = shifts.reduce((sum, shift) => sum + (shift.earnings || 0), 0);
+            const fuyouLimit = 1030000; // 103万円
+            const progressPercent = Math.min(100, (totalEarnings / fuyouLimit) * 100);
+            
+            const fuyouStatus = document.querySelector('.fuyou-status');
+            let statusColor = '#4CAF50'; // 緑色（安全）
+            let statusText = '安全圏内';
+            
+            if (progressPercent > 90) {
+                statusColor = '#f44336'; // 赤色（危険）
+                statusText = '⚠️ 限度額接近';
+            } else if (progressPercent > 75) {
+                statusColor = '#ff9800'; // オレンジ色（警告）
+                statusText = '注意が必要';
+            }
+            
+            fuyouStatus.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>年収進捗: ¥${Math.round(totalEarnings).toLocaleString()} / ¥${fuyouLimit.toLocaleString()} (${Math.round(progressPercent)}%)</span>
+                    <span style="color: ${statusColor}; font-weight: bold;">${statusText}</span>
+                </div>
+            `;
         }
 
         function updateDemoCalendar() {
@@ -1223,17 +1932,200 @@
             if (savedShifts.length > 0) {
                 // カレンダーの更新ロジック（実装簡略化）
                 console.log('AI検出シフトをカレンダーに反映:', savedShifts);
-                
-                // ヘッダー更新
-                const fuyouStatus = document.querySelector('.fuyou-status');
-                const totalShifts = savedShifts.length;
-                fuyouStatus.innerHTML = `年収進捗: ¥${totalShifts * 8000} / ¥1,230,000 (${Math.round(totalShifts * 8000 / 1230000 * 100)}%)`;
+                updateFuyouProgress();
             }
         }
 
         // ========== ユーティリティ ==========
+        function getWorkplaceColor(workplace) {
+            const colors = {
+                'cafe': '#4CAF50',
+                'convenience': '#2196F3', 
+                'tutor': '#FF9800',
+                'restaurant': '#9C27B0',
+                'retail': '#F44336',
+                'delivery': '#607D8B'
+            };
+            return colors[workplace] || '#666';
+        }
+
+        function getWorkplaceName(workplace) {
+            const names = {
+                'cafe': 'カフェ バイト',
+                'convenience': 'コンビニ 夜勤',
+                'tutor': '家庭教師',
+                'restaurant': 'レストラン',
+                'retail': '小売店',
+                'delivery': '配達バイト'
+            };
+            return names[workplace] || 'バイト';
+        }
+
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ========== シフトテンプレート機能 ==========
+        function loadTemplate(templateType) {
+            const templates = {
+                'morning': {
+                    workplace: 'cafe',
+                    startTime: '08:00',
+                    endTime: '12:00',
+                    breakMinutes: 0,
+                    baseWage: 1000,
+                    isHoliday: false,
+                    isNightShift: false,
+                    transportFee: 300
+                },
+                'evening': {
+                    workplace: 'retail',
+                    startTime: '17:00',
+                    endTime: '21:00',
+                    breakMinutes: 0,
+                    baseWage: 1100,
+                    isHoliday: false,
+                    isNightShift: false,
+                    transportFee: 200
+                },
+                'night': {
+                    workplace: 'convenience',
+                    startTime: '22:00',
+                    endTime: '06:00',
+                    breakMinutes: 60,
+                    baseWage: 1200,
+                    isHoliday: false,
+                    isNightShift: true,
+                    transportFee: 400
+                }
+            };
+
+            const template = templates[templateType];
+            if (template) {
+                document.getElementById('workplaceSelect').value = template.workplace;
+                document.getElementById('startTime').value = template.startTime;
+                document.getElementById('endTime').value = template.endTime;
+                document.getElementById('breakMinutes').value = template.breakMinutes;
+                document.getElementById('baseWage').value = template.baseWage;
+                document.getElementById('isHoliday').checked = template.isHoliday;
+                document.getElementById('isNightShift').checked = template.isNightShift;
+                document.getElementById('transportFee').value = template.transportFee;
+                
+                updateEarningsPreview();
+                showSuccessMessage(`✅ ${getTemplateName(templateType)}テンプレートを適用しました`);
+            }
+        }
+
+        function saveAsTemplate() {
+            const currentData = {
+                workplace: document.getElementById('workplaceSelect').value,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
+                breakMinutes: document.getElementById('breakMinutes').value,
+                baseWage: document.getElementById('baseWage').value,
+                isHoliday: document.getElementById('isHoliday').checked,
+                isNightShift: document.getElementById('isNightShift').checked,
+                transportFee: document.getElementById('transportFee').value
+            };
+
+            // 簡易テンプレート保存（実際は更なるUI改善が可能）
+            const templateName = prompt('テンプレート名を入力してください:', '新しいテンプレート');
+            if (templateName) {
+                const savedTemplates = JSON.parse(localStorage.getItem('shiftTemplates') || '{}');
+                savedTemplates[templateName] = currentData;
+                localStorage.setItem('shiftTemplates', JSON.stringify(savedTemplates));
+                showSuccessMessage(`✅ "${templateName}"として保存しました`);
+            }
+        }
+
+        function getTemplateName(templateType) {
+            const names = {
+                'morning': '朝バイト',
+                'evening': '夕方バイト', 
+                'night': '夜勤バイト'
+            };
+            return names[templateType] || templateType;
+        }
+
+        // ========== データ出力機能 ==========
+        function exportShiftData() {
+            if (shifts.length === 0) {
+                alert('出力するシフトデータがありません');
+                return;
+            }
+
+            // CSV形式でデータを出力
+            const headers = ['日付', '勤務先', '開始時間', '終了時間', '休憩時間', '基本時給', '収入', 'メモ'];
+            const csvData = [headers];
+
+            shifts.forEach(shift => {
+                const row = [
+                    shift.date,
+                    getWorkplaceName(shift.workplace),
+                    shift.startTime,
+                    shift.endTime,
+                    shift.breakMinutes + '分',
+                    '¥' + shift.baseWage,
+                    '¥' + Math.round(shift.earnings || 0),
+                    shift.memo || ''
+                ];
+                csvData.push(row);
+            });
+
+            // CSVファイルとしてダウンロード
+            const csvContent = csvData.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `シフトデータ_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showSuccessMessage('📊 シフトデータをCSVファイルで出力しました');
+            } else {
+                // ダウンロードに対応していない場合は、テキストエリアに表示
+                alert('CSV内容:\n\n' + csvContent);
+            }
+        }
+
+        function showShiftList() {
+            if (shifts.length === 0) {
+                alert('表示するシフトデータがありません');
+                return;
+            }
+
+            // シフト一覧をソートして表示
+            const sortedShifts = [...shifts].sort((a, b) => new Date(b.date) - new Date(a.date));
+            let listContent = '📋 シフト一覧 (新しい順)\n\n';
+            
+            sortedShifts.forEach((shift, index) => {
+                listContent += `${index + 1}. ${shift.date} (${new Date(shift.date).toLocaleDateString('ja-JP', {weekday: 'short'})})\n`;
+                listContent += `   🏢 ${getWorkplaceName(shift.workplace)}\n`;
+                listContent += `   ⏰ ${shift.startTime} - ${shift.endTime}`;
+                if (shift.breakMinutes > 0) {
+                    listContent += ` (休憩${shift.breakMinutes}分)`;
+                }
+                listContent += `\n`;
+                listContent += `   💰 ¥${Math.round(shift.earnings || 0).toLocaleString()}\n`;
+                if (shift.memo) {
+                    listContent += `   📝 ${shift.memo}\n`;
+                }
+                listContent += '\n';
+            });
+
+            // 統計情報を追加
+            const totalEarnings = shifts.reduce((sum, shift) => sum + (shift.earnings || 0), 0);
+            listContent += `📊 統計情報\n`;
+            listContent += `総シフト数: ${shifts.length}回\n`;
+            listContent += `総収入: ¥${Math.round(totalEarnings).toLocaleString()}\n`;
+            listContent += `平均収入: ¥${Math.round(totalEarnings / shifts.length).toLocaleString()}/回\n`;
+
+            alert(listContent);
         }
 
         function formatDateJP(dateStr) {

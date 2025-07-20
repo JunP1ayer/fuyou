@@ -18,7 +18,7 @@ import {
   FormControl,
   InputLabel,
 } from '@mui/material';
-import Grid2 from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import {
   ChevronLeft,
   ChevronRight,
@@ -223,12 +223,51 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
     return ['日', '月', '火', '水', '木', '金', '土'];
   };
 
+  // 勤務先ごとの色設定
+  const getWorkplaceColor = (jobSourceName: string): string => {
+    const colors: { [key: string]: string } = {
+      カフェ: '#4CAF50',
+      コンビニ: '#2196F3',
+      家庭教師: '#FF9800',
+      レストラン: '#9C27B0',
+      小売店: '#F44336',
+      配達: '#607D8B',
+      オフィス: '#795548',
+      塾講師: '#E91E63',
+    };
+
+    // 部分マッチも試行
+    for (const [key, color] of Object.entries(colors)) {
+      if (jobSourceName?.includes(key)) {
+        return color;
+      }
+    }
+
+    return '#666666'; // デフォルト色
+  };
+
   // シフトの状態に応じた色を取得
   const getShiftColor = (shift: Shift) => {
     if (shift.isConfirmed) {
       return 'success';
     }
     return 'warning';
+  };
+
+  // シフトチップの背景色を取得
+  const getShiftChipStyle = (shift: Shift) => {
+    const workplaceColor = getWorkplaceColor(shift.jobSourceName || '');
+    return {
+      backgroundColor: workplaceColor,
+      color: 'white',
+      '& .MuiChip-label': {
+        color: 'white',
+      },
+      '&:hover': {
+        backgroundColor: workplaceColor,
+        filter: 'brightness(0.9)',
+      },
+    };
   };
 
   return (
@@ -296,10 +335,10 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         )}
 
         {/* 統計情報と収入予測 */}
-        <Grid2 container spacing={2} sx={{ mb: 3 }}>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
           {/* 統計情報 */}
           {stats && (
-            <Grid2 xs={12} lg={8}>
+            <Grid item xs={12} lg={8}>
               <Box>
                 <Typography
                   variant="h6"
@@ -309,8 +348,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                   <TrendingUp />
                   月間統計
                 </Typography>
-                <Grid2 container spacing={2}>
-                  <Grid2 xs={6} md={3}>
+                <Grid container spacing={2}>
+                  <Grid item xs={6} md={3}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
                       <Typography variant="h6" color="primary">
                         {stats.thisMonth.shifts}
@@ -319,8 +358,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                         今月のシフト数
                       </Typography>
                     </Paper>
-                  </Grid2>
-                  <Grid2 xs={6} md={3}>
+                  </Grid>
+                  <Grid item xs={6} md={3}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
                       <Typography variant="h6" color="primary">
                         {formatHours(stats.thisMonth.hours)}
@@ -329,8 +368,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                         今月の労働時間
                       </Typography>
                     </Paper>
-                  </Grid2>
-                  <Grid2 xs={6} md={3}>
+                  </Grid>
+                  <Grid item xs={6} md={3}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
                       <Typography variant="h6" color="primary">
                         {formatCurrency(stats.thisMonth.earnings)}
@@ -339,8 +378,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                         今月の収入
                       </Typography>
                     </Paper>
-                  </Grid2>
-                  <Grid2 xs={6} md={3}>
+                  </Grid>
+                  <Grid item xs={6} md={3}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
                       <Typography variant="h6" color="primary">
                         {Math.round(
@@ -352,17 +391,17 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                         平均時給
                       </Typography>
                     </Paper>
-                  </Grid2>
-                </Grid2>
+                  </Grid>
+                </Grid>
               </Box>
-            </Grid2>
+            </Grid>
           )}
 
           {/* 収入予測 */}
-          <Grid2 item xs={12} lg={4}>
+          <Grid item xs={12} lg={4}>
             <EarningsProjectionCard />
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
 
         {/* カレンダー */}
         <Box position="relative">
@@ -384,9 +423,9 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           )}
 
           {/* 曜日ヘッダー */}
-          <Grid2 container spacing={1} sx={{ mb: 1 }}>
+          <Grid container spacing={1} sx={{ mb: 1 }}>
             {getWeekDays().map((day, index) => (
-              <Grid2 item xs key={index}>
+              <Grid item xs key={index}>
                 <Box
                   textAlign="center"
                   py={1}
@@ -402,14 +441,14 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                 >
                   {day}
                 </Box>
-              </Grid2>
+              </Grid>
             ))}
-          </Grid2>
+          </Grid>
 
           {/* 日付グリッド */}
-          <Grid2 container spacing={1}>
+          <Grid container spacing={1}>
             {calendarDates.map(calendarDate => (
-              <Grid2 item xs key={calendarDate.date}>
+              <Grid item xs key={calendarDate.date}>
                 <Paper
                   elevation={calendarDate.isToday ? 3 : 1}
                   sx={{
@@ -477,18 +516,25 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                                 <Typography variant="caption">
                                   {shift.startTime}-{shift.endTime}
                                 </Typography>
+                                <Typography
+                                  variant="caption"
+                                  sx={{ opacity: 0.8 }}
+                                >
+                                  {shift.jobSourceName || 'バイト'}
+                                </Typography>
                               </Box>
                             }
                             size="small"
-                            color={
-                              getShiftColor(shift) as 'success' | 'warning'
-                            }
                             sx={{
                               width: '100%',
                               mb: 0.5,
+                              ...getShiftChipStyle(shift),
                               '& .MuiChip-label': {
                                 width: '100%',
                                 textAlign: 'left',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
                               },
                             }}
                             onClick={e => {
@@ -516,9 +562,9 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                     )}
                   </Box>
                 </Paper>
-              </Grid2>
+              </Grid>
             ))}
-          </Grid2>
+          </Grid>
         </Box>
 
         {/* 新規シフト追加ボタン（コンパクトモードでは非表示） */}

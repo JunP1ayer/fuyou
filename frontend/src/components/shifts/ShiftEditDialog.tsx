@@ -15,7 +15,7 @@ import {
   Autocomplete,
   Divider,
 } from '@mui/material';
-import Grid2 from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import { format } from '../../utils/dateUtils';
 import { Delete } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
@@ -310,9 +310,9 @@ export const ShiftEditDialog: React.FC<ShiftEditDialogProps> = ({
           </Alert>
         )}
 
-        <Grid2 container spacing={3} sx={{ mt: 1 }}>
+        <Grid container spacing={3} sx={{ mt: 1 }}>
           {/* バイト先名 */}
-          <Grid2 xs={12}>
+          <Grid item xs={12}>
             <Autocomplete
               options={COMMON_JOB_SOURCES}
               freeSolo
@@ -333,10 +333,10 @@ export const ShiftEditDialog: React.FC<ShiftEditDialogProps> = ({
                 />
               )}
             />
-          </Grid2>
+          </Grid>
 
           {/* 日付 */}
-          <Grid2 xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <TextField
               label="日付"
               type="date"
@@ -350,10 +350,10 @@ export const ShiftEditDialog: React.FC<ShiftEditDialogProps> = ({
                 shrink: true,
               }}
             />
-          </Grid2>
+          </Grid>
 
           {/* 時給 */}
-          <Grid2 xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <TextField
               label="時給"
               type="number"
@@ -368,10 +368,10 @@ export const ShiftEditDialog: React.FC<ShiftEditDialogProps> = ({
                 ),
               }}
             />
-          </Grid2>
+          </Grid>
 
           {/* 開始時間 */}
-          <Grid2 xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <TextField
               label="開始時間"
               type="time"
@@ -383,10 +383,10 @@ export const ShiftEditDialog: React.FC<ShiftEditDialogProps> = ({
                 shrink: true,
               }}
             />
-          </Grid2>
+          </Grid>
 
           {/* 終了時間 */}
-          <Grid2 xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <TextField
               label="終了時間"
               type="time"
@@ -398,10 +398,10 @@ export const ShiftEditDialog: React.FC<ShiftEditDialogProps> = ({
                 shrink: true,
               }}
             />
-          </Grid2>
+          </Grid>
 
           {/* 休憩時間 */}
-          <Grid2 xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <TextField
               label="休憩時間"
               type="number"
@@ -415,10 +415,10 @@ export const ShiftEditDialog: React.FC<ShiftEditDialogProps> = ({
                 ),
               }}
             />
-          </Grid2>
+          </Grid>
 
           {/* 労働時間・収入表示 */}
-          <Grid2 xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
               <Box
                 sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}
@@ -442,10 +442,10 @@ export const ShiftEditDialog: React.FC<ShiftEditDialogProps> = ({
                 </strong>
               </Box>
             </Box>
-          </Grid2>
+          </Grid>
 
           {/* 備考 */}
-          <Grid2 xs={12}>
+          <Grid item xs={12}>
             <TextField
               label="備考"
               multiline
@@ -455,10 +455,10 @@ export const ShiftEditDialog: React.FC<ShiftEditDialogProps> = ({
               fullWidth
               placeholder="特記事項があれば入力してください"
             />
-          </Grid2>
+          </Grid>
 
           {/* 確定フラグ */}
-          <Grid2 xs={12}>
+          <Grid item xs={12}>
             <FormControlLabel
               control={
                 <Switch
@@ -482,8 +482,8 @@ export const ShiftEditDialog: React.FC<ShiftEditDialogProps> = ({
                 </Button>
               </Box>
             )}
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
       </DialogContent>
 
       <DialogActions>

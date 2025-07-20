@@ -7,7 +7,7 @@ export function format(date: Date, formatStr: string): string {
   const minutes = date.getMinutes();
 
   // Simple format string replacements
-  return formatStr
+  let result = formatStr
     .replace('yyyy', year.toString())
     .replace('MM', month.toString().padStart(2, '0'))
     .replace('M', month.toString())
@@ -15,6 +15,15 @@ export function format(date: Date, formatStr: string): string {
     .replace('d', day.toString())
     .replace('HH', hours.toString().padStart(2, '0'))
     .replace('mm', minutes.toString().padStart(2, '0'));
+
+  // Handle (E) for day of week in Japanese
+  if (result.includes('(E)')) {
+    const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+    const dayOfWeek = date.getDay();
+    result = result.replace('(E)', `(${dayNames[dayOfWeek]})`);
+  }
+
+  return result;
 }
 
 export function startOfMonth(date: Date): Date {
@@ -91,6 +100,18 @@ export function addDays(date: Date, amount: number): Date {
   const result = new Date(date);
   result.setDate(result.getDate() + amount);
   return result;
+}
+
+export function addWeeks(date: Date, amount: number): Date {
+  return addDays(date, amount * 7);
+}
+
+export function isSameDay(date1: Date, date2: Date): boolean {
+  return (
+    date1.getDate() === date2.getDate() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getFullYear() === date2.getFullYear()
+  );
 }
 
 export function subDays(date: Date, amount: number): Date {

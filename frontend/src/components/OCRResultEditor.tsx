@@ -30,7 +30,7 @@ import {
   Tooltip,
   Badge,
 } from '@mui/material';
-import Grid2 from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import {
   ExpandMore,
   Edit,
@@ -306,9 +306,9 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
 
   return (
     <Box>
-      <Grid2 container spacing={3}>
+      <Grid container spacing={3}>
         {/* 左側: 画像表示 */}
-        <Grid2 xs={12} md={6}>
+        <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
               <Box
@@ -392,10 +392,10 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
               )}
             </CardContent>
           </Card>
-        </Grid2>
+        </Grid>
 
         {/* 右側: テキストとシフト編集 */}
-        <Grid2 xs={12} md={6}>
+        <Grid item xs={12} md={6}>
           {/* 抽出テキスト */}
           <Card sx={{ mb: 3 }}>
             <CardContent>
@@ -518,8 +518,8 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                           </IconButton>
                         </Box>
 
-                        <Grid2 container spacing={2}>
-                          <Grid2 xs={12} sm={6}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} sm={6}>
                             <TextField
                               label="日付"
                               type="date"
@@ -535,8 +535,8 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                               helperText={validationErrors[`${shift.id}-date`]}
                               InputLabelProps={{ shrink: true }}
                             />
-                          </Grid2>
-                          <Grid2 xs={12} sm={6}>
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
                             <Autocomplete
                               options={COMMON_LOCATIONS}
                               freeSolo
@@ -561,8 +561,8 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                               )}
                               size="small"
                             />
-                          </Grid2>
-                          <Grid2 xs={6}>
+                          </Grid>
+                          <Grid item xs={6}>
                             <TextField
                               label="開始時間"
                               type="time"
@@ -576,8 +576,8 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                               size="small"
                               InputLabelProps={{ shrink: true }}
                             />
-                          </Grid2>
-                          <Grid2 xs={6}>
+                          </Grid>
+                          <Grid item xs={6}>
                             <TextField
                               label="終了時間"
                               type="time"
@@ -593,8 +593,8 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                               helperText={validationErrors[`${shift.id}-time`]}
                               InputLabelProps={{ shrink: true }}
                             />
-                          </Grid2>
-                          <Grid2 xs={12}>
+                          </Grid>
+                          <Grid item xs={12}>
                             <Autocomplete
                               options={COMMON_HOURLY_RATES}
                               freeSolo
@@ -632,8 +632,8 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
                               )}
                               size="small"
                             />
-                          </Grid2>
-                        </Grid2>
+                          </Grid>
+                        </Grid>
                       </Box>
                     </ListItem>
                   ))}
@@ -641,8 +641,8 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
               )}
             </CardContent>
           </Card>
-        </Grid2>
-      </Grid2>
+        </Grid>
+      </Grid>
 
       {/* アクションボタン */}
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>

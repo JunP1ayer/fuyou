@@ -31,7 +31,7 @@ import {
   LinearProgress,
   CircularProgress,
 } from '@mui/material';
-import Grid2 from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import {
   ExpandMore,
   ExpandLess,
@@ -190,8 +190,8 @@ export function OptimizationResultsPanel({
       )}
 
       {/* Summary Cards */}
-      <Grid2 container spacing={3} sx={{ mb: 3 }}>
-        <Grid2 xs={12} md={3}>
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Stack
@@ -209,9 +209,9 @@ export function OptimizationResultsPanel({
               </Stack>
             </CardContent>
           </Card>
-        </Grid2>
+        </Grid>
 
-        <Grid2 xs={12} md={3}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Stack
@@ -231,9 +231,9 @@ export function OptimizationResultsPanel({
               </Stack>
             </CardContent>
           </Card>
-        </Grid2>
+        </Grid>
 
-        <Grid2 xs={12} md={3}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Stack
@@ -253,9 +253,9 @@ export function OptimizationResultsPanel({
               </Stack>
             </CardContent>
           </Card>
-        </Grid2>
+        </Grid>
 
-        <Grid2 xs={12} md={3}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardContent>
               <Stack
@@ -278,8 +278,8 @@ export function OptimizationResultsPanel({
               </Stack>
             </CardContent>
           </Card>
-        </Grid2>
-      </Grid2>
+        </Grid>
+      </Grid>
 
       {/* Runs Table */}
       <Card>
@@ -398,8 +398,8 @@ export function OptimizationResultsPanel({
                               >
                                 実行詳細
                               </Typography>
-                              <Grid2 container spacing={2}>
-                                <Grid2 xs={12} md={6}>
+                              <Grid container spacing={2}>
+                                <Grid item xs={12} md={6}>
                                   <Typography
                                     variant="body2"
                                     color="textSecondary"
@@ -409,8 +409,8 @@ export function OptimizationResultsPanel({
                                   <Typography variant="body2">
                                     {run.message}
                                   </Typography>
-                                </Grid2>
-                                <Grid2 xs={12} md={6}>
+                                </Grid>
+                                <Grid item xs={12} md={6}>
                                   <Typography
                                     variant="body2"
                                     color="textSecondary"
@@ -424,9 +424,9 @@ export function OptimizationResultsPanel({
                                         ).toLocaleString('ja-JP')
                                       : 'N/A'}
                                   </Typography>
-                                </Grid2>
+                                </Grid>
                                 {run.completedAt && (
-                                  <Grid2 xs={12} md={6}>
+                                  <Grid item xs={12} md={6}>
                                     <Typography
                                       variant="body2"
                                       color="textSecondary"
@@ -438,9 +438,9 @@ export function OptimizationResultsPanel({
                                         'ja-JP'
                                       )}
                                     </Typography>
-                                  </Grid2>
+                                  </Grid>
                                 )}
-                              </Grid2>
+                              </Grid>
                             </Box>
                           </Collapse>
                         </TableCell>
@@ -503,8 +503,8 @@ export function OptimizationResultsPanel({
 // Tab Components
 function OptimizationOverviewTab({ run }: { run: OptimizationRun }) {
   return (
-    <Grid2 container spacing={3}>
-      <Grid2 xs={12} md={6}>
+    <Grid container spacing={3}>
+      <Grid item xs={12} md={6}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -535,9 +535,9 @@ function OptimizationOverviewTab({ run }: { run: OptimizationRun }) {
             </Stack>
           </CardContent>
         </Card>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={6}>
+      <Grid item xs={12} md={6}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -575,8 +575,8 @@ function OptimizationOverviewTab({ run }: { run: OptimizationRun }) {
             </Stack>
           </CardContent>
         </Card>
-      </Grid2>
-    </Grid2>
+      </Grid>
+    </Grid>
   );
 }
 
@@ -717,8 +717,8 @@ function OptimizationMetricsTab({ run }: { run: OptimizationRun }) {
       </Typography>
 
       {metrics ? (
-        <Grid2 container spacing={3}>
-          <Grid2 xs={12} md={4}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
             <Card>
               <CardContent>
                 <Typography variant="h6" color="primary">
@@ -729,9 +729,9 @@ function OptimizationMetricsTab({ run }: { run: OptimizationRun }) {
                 </Typography>
               </CardContent>
             </Card>
-          </Grid2>
+          </Grid>
 
-          <Grid2 xs={12} md={4}>
+          <Grid item xs={12} md={4}>
             <Card>
               <CardContent>
                 <Typography variant="h6" color="primary">
@@ -742,9 +742,9 @@ function OptimizationMetricsTab({ run }: { run: OptimizationRun }) {
                 </Typography>
               </CardContent>
             </Card>
-          </Grid2>
+          </Grid>
 
-          <Grid2 xs={12} md={4}>
+          <Grid item xs={12} md={4}>
             <Card>
               <CardContent>
                 <Typography variant="h6" color="primary">
@@ -755,8 +755,8 @@ function OptimizationMetricsTab({ run }: { run: OptimizationRun }) {
                 </Typography>
               </CardContent>
             </Card>
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
       ) : (
         <Alert severity="info">実行指標データがありません。</Alert>
       )}

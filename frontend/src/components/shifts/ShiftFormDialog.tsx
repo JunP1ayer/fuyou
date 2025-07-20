@@ -13,11 +13,16 @@ import {
   CircularProgress,
   InputAdornment,
   Autocomplete,
+  Tabs,
+  Tab,
+  Chip,
 } from '@mui/material';
-import Grid2 from '@mui/material/Grid2';
+import { Grid } from '@mui/material';
+import { Assignment, Add } from '@mui/icons-material';
 import { format } from '../../utils/dateUtils';
 import { useAuth } from '../../hooks/useAuth';
 import { apiService } from '../../services/api';
+import { ShiftTemplates } from './ShiftTemplates';
 import type { ShiftFormData, CreateShiftData } from '../../types/shift';
 
 interface ShiftFormDialogProps {
@@ -55,6 +60,7 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tabValue, setTabValue] = useState(0);
   const [formData, setFormData] = useState<ShiftFormData>({
     jobSourceName: '',
     date: null,
@@ -87,6 +93,19 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
     }
   }, [initialDate]);
 
+  // テンプレート適用
+  const handleApplyTemplate = (template: Partial<CreateShiftData>) => {
+    setFormData(prev => ({
+      ...prev,
+      jobSourceName: template.jobSourceName || '',
+      startTime: template.startTime || '09:00',
+      endTime: template.endTime || '17:00',
+      hourlyRate: template.hourlyRate?.toString() || '1000',
+      breakMinutes: template.breakMinutes?.toString() || '60',
+    }));
+    setTabValue(0); // 手動入力タブに切り替え
+  };
+
   // フォームのリセット
   const resetForm = () => {
     setFormData({
@@ -100,6 +119,7 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
       isConfirmed: false,
     });
     setError(null);
+    setTabValue(0);
   };
 
   // ダイアログクローズ処理
@@ -199,7 +219,14 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
         onSubmit: handleSubmit,
       }}
     >
-      <DialogTitle>新規シフト登録</DialogTitle>
+      <DialogTitle>
+        <Box display="flex" alignItems="center" gap={1}>
+          新規シフト登録
+          {formData.jobSourceName && (
+            <Chip label={formData.jobSourceName} size="small" color="primary" />
+          )}
+        </Box>
+      </DialogTitle>
 
       <DialogContent>
         {error && (
@@ -208,157 +235,189 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
           </Alert>
         )}
 
-        <Grid2 container spacing={3} sx={{ mt: 1 }}>
-          {/* バイト先名 */}
-          <Grid2 xs={12}>
-            <Autocomplete
-              options={COMMON_JOB_SOURCES}
-              freeSolo
-              value={formData.jobSourceName}
-              onChange={(event, newValue) => {
-                updateField('jobSourceName', newValue || '');
-              }}
-              onInputChange={(event, newInputValue) => {
-                updateField('jobSourceName', newInputValue);
-              }}
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  label="バイト先"
-                  required
-                  fullWidth
-                  placeholder="バイト先名を入力してください"
-                />
-              )}
+        {/* タブナビゲーション */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+          <Tabs
+            value={tabValue}
+            onChange={(e, newValue) => setTabValue(newValue)}
+          >
+            <Tab label="手動入力" icon={<Add />} iconPosition="start" />
+            <Tab
+              label="テンプレート選択"
+              icon={<Assignment />}
+              iconPosition="start"
             />
-          </Grid2>
+          </Tabs>
+        </Box>
 
-          {/* 日付 */}
-          <Grid2 xs={12} md={6}>
-            <TextField
-              label="日付"
-              type="date"
-              value={formatDateForInput(formData.date)}
-              onChange={e =>
-                updateField('date', parseDateFromInput(e.target.value))
-              }
-              required
-              fullWidth
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-          </Grid2>
+        {/* 手動入力タブ */}
+        {tabValue === 0 && (
+          <Grid container spacing={3} sx={{ mt: 1 }}>
+            {/* バイト先名 */}
+            <Grid item xs={12}>
+              <Autocomplete
+                options={COMMON_JOB_SOURCES}
+                freeSolo
+                value={formData.jobSourceName}
+                onChange={(event, newValue) => {
+                  updateField('jobSourceName', newValue || '');
+                }}
+                onInputChange={(event, newInputValue) => {
+                  updateField('jobSourceName', newInputValue);
+                }}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    label="バイト先"
+                    required
+                    fullWidth
+                    placeholder="バイト先名を入力してください"
+                  />
+                )}
+              />
+            </Grid>
 
-          {/* 時給 */}
-          <Grid2 xs={12} md={6}>
-            <TextField
-              label="時給"
-              type="number"
-              value={formData.hourlyRate}
-              onChange={e => updateField('hourlyRate', e.target.value)}
-              required
-              fullWidth
-              inputProps={{ min: 0, step: 10 }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">円</InputAdornment>
-                ),
-              }}
-            />
-          </Grid2>
+            {/* 日付 */}
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="日付"
+                type="date"
+                value={formatDateForInput(formData.date)}
+                onChange={e =>
+                  updateField('date', parseDateFromInput(e.target.value))
+                }
+                required
+                fullWidth
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            </Grid>
 
-          {/* 開始時間 */}
-          <Grid2 xs={12} md={6}>
-            <TextField
-              label="開始時間"
-              type="time"
-              value={formData.startTime}
-              onChange={e => updateField('startTime', e.target.value)}
-              required
-              fullWidth
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-          </Grid2>
+            {/* 時給 */}
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="時給"
+                type="number"
+                value={formData.hourlyRate}
+                onChange={e => updateField('hourlyRate', e.target.value)}
+                required
+                fullWidth
+                inputProps={{ min: 0, step: 10 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">円</InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
 
-          {/* 終了時間 */}
-          <Grid2 xs={12} md={6}>
-            <TextField
-              label="終了時間"
-              type="time"
-              value={formData.endTime}
-              onChange={e => updateField('endTime', e.target.value)}
-              required
-              fullWidth
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-          </Grid2>
+            {/* 開始時間 */}
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="開始時間"
+                type="time"
+                value={formData.startTime}
+                onChange={e => updateField('startTime', e.target.value)}
+                required
+                fullWidth
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            </Grid>
 
-          {/* 休憩時間 */}
-          <Grid2 xs={12} md={6}>
-            <TextField
-              label="休憩時間"
-              type="number"
-              value={formData.breakMinutes}
-              onChange={e => updateField('breakMinutes', e.target.value)}
-              fullWidth
-              inputProps={{ min: 0, step: 15 }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">分</InputAdornment>
-                ),
-              }}
-            />
-          </Grid2>
+            {/* 終了時間 */}
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="終了時間"
+                type="time"
+                value={formData.endTime}
+                onChange={e => updateField('endTime', e.target.value)}
+                required
+                fullWidth
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            </Grid>
 
-          {/* 労働時間・収入表示 */}
-          <Grid2 xs={12} md={6}>
-            <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-              <Box
-                sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}
-              >
-                <span>労働時間:</span>
-                <strong>{calculation.workingHours.toFixed(1)}時間</strong>
+            {/* 休憩時間 */}
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="休憩時間"
+                type="number"
+                value={formData.breakMinutes}
+                onChange={e => updateField('breakMinutes', e.target.value)}
+                fullWidth
+                inputProps={{ min: 0, step: 15 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">分</InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+
+            {/* 労働時間・収入表示 */}
+            <Grid item xs={12} md={6}>
+              <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    mb: 1,
+                  }}
+                >
+                  <span>労働時間:</span>
+                  <strong>{calculation.workingHours.toFixed(1)}時間</strong>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>予想収入:</span>
+                  <strong>
+                    ¥{Math.round(calculation.earnings).toLocaleString()}
+                  </strong>
+                </Box>
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>予想収入:</span>
-                <strong>
-                  ¥{Math.round(calculation.earnings).toLocaleString()}
-                </strong>
-              </Box>
-            </Box>
-          </Grid2>
+            </Grid>
 
-          {/* 備考 */}
-          <Grid2 xs={12}>
-            <TextField
-              label="備考"
-              multiline
-              rows={3}
-              value={formData.description}
-              onChange={e => updateField('description', e.target.value)}
-              fullWidth
-              placeholder="特記事項があれば入力してください"
-            />
-          </Grid2>
+            {/* 備考 */}
+            <Grid item xs={12}>
+              <TextField
+                label="備考"
+                multiline
+                rows={3}
+                value={formData.description}
+                onChange={e => updateField('description', e.target.value)}
+                fullWidth
+                placeholder="特記事項があれば入力してください"
+              />
+            </Grid>
 
-          {/* 確定フラグ */}
-          <Grid2 xs={12}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.isConfirmed}
-                  onChange={e => updateField('isConfirmed', e.target.checked)}
-                />
-              }
-              label="このシフトを確定済みとして登録する"
+            {/* 確定フラグ */}
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.isConfirmed}
+                    onChange={e => updateField('isConfirmed', e.target.checked)}
+                  />
+                }
+                label="このシフトを確定済みとして登録する"
+              />
+            </Grid>
+          </Grid>
+        )}
+
+        {/* テンプレート選択タブ */}
+        {tabValue === 1 && (
+          <Box sx={{ mt: 1 }}>
+            <ShiftTemplates
+              onApplyTemplate={handleApplyTemplate}
+              onClose={() => setTabValue(0)}
             />
-          </Grid2>
-        </Grid2>
+          </Box>
+        )}
       </DialogContent>
 
       <DialogActions>

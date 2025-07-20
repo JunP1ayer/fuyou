@@ -22,6 +22,9 @@ import {
   Schedule,
   CameraAlt,
   Analytics,
+  Repeat,
+  PhoneAndroid,
+  Computer,
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { CSVUpload, type ParsedIncomeData } from './CSVUpload';
@@ -31,6 +34,9 @@ import { AlertsPanel } from './AlertsPanel';
 import { ShiftCalendar } from './shifts/ShiftCalendar';
 import { ShiftFormDialog } from './shifts/ShiftFormDialog';
 import { ShiftEditDialog } from './shifts/ShiftEditDialog';
+import { RecurringShiftDialog } from './shifts/RecurringShiftDialog';
+import { QuickShiftRegistration } from './QuickShiftRegistration';
+import { JobManagement } from './JobManagement';
 import { OCRShiftManager } from './OCRShiftManager';
 import { SimplifiedOCRComponent } from './SimplifiedOCRComponent';
 import { OptimizationDashboard } from './OptimizationDashboard';
@@ -52,7 +58,11 @@ export function Dashboard() {
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [ocrOpen, setOcrOpen] = useState(false);
+  const [recurringShiftOpen, setRecurringShiftOpen] = useState(false);
   const [useSimplifiedOCR, setUseSimplifiedOCR] = useState(true); // ChatGPT風OCRの使用フラグ
+  const [quickShiftOpen, setQuickShiftOpen] = useState(false);
+  const [jobManagementOpen, setJobManagementOpen] = useState(false);
+  const [mobilePreviewMode, setMobilePreviewMode] = useState(false); // スマホプレビューモード
 
   const handleLogout = () => {
     logout();
@@ -81,7 +91,13 @@ export function Dashboard() {
   const handleAddShift = (date?: string) => {
     setSelectedDate(date || null);
     setSelectedShift(null);
-    setShiftFormOpen(true);
+    
+    // シフトボードモードの場合はクイック登録を使用
+    if (isShiftBoardMode && date) {
+      setQuickShiftOpen(true);
+    } else {
+      setShiftFormOpen(true);
+    }
   };
 
   const handleEditShift = (shift: Shift) => {
@@ -140,15 +156,79 @@ export function Dashboard() {
     setOcrOpen(false);
   };
 
+  const handleRecurringShiftSuccess = (shiftsCreated: number) => {
+    setUploadSuccess(`${shiftsCreated}件の定期シフトを登録しました`);
+    setRecurringShiftOpen(false);
+
+    // シフトボード型UIの場合は自動的にシフトタブに切り替え
+    if (isShiftBoardMode) {
+      setCurrentTab(1);
+    }
+
+    // 5秒後に成功メッセージを消す
+    setTimeout(() => {
+      setUploadSuccess(null);
+    }, 5000);
+  };
+
+  const handleQuickShiftSuccess = () => {
+    setUploadSuccess('シフトをクイック登録しました');
+    setQuickShiftOpen(false);
+    setSelectedDate(null);
+
+    // 5秒後に成功メッセージを消す
+    setTimeout(() => {
+      setUploadSuccess(null);
+    }, 5000);
+  };
+
+  const handleQuickShiftClose = () => {
+    setQuickShiftOpen(false);
+    setSelectedDate(null);
+  };
+
+  // スマホプレビューモードのスタイル
+  const mobilePreviewStyles = mobilePreviewMode ? {
+    maxWidth: '375px', // iPhone 14相当の幅
+    margin: '0 auto',
+    border: '8px solid #333',
+    borderRadius: '25px',
+    overflow: 'hidden',
+    boxShadow: '0 0 20px rgba(0,0,0,0.3)',
+    position: 'relative' as const,
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: '10px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      width: '60px',
+      height: '6px',
+      backgroundColor: '#333',
+      borderRadius: '3px',
+      zIndex: 1000,
+    },
+  } : {};
+
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
+    <Box sx={{ flexGrow: 1, backgroundColor: mobilePreviewMode ? '#f0f0f0' : 'inherit', minHeight: '100vh', py: mobilePreviewMode ? 2 : 0 }}>
+      <Box sx={mobilePreviewStyles}>
+        <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             扶養管理アプリ
           </Typography>
           {currentTab === 0 && (
             <>
+              <Button
+                color="inherit"
+                onClick={() => setMobilePreviewMode(!mobilePreviewMode)}
+                size="small"
+                sx={{ mr: 1, fontSize: '0.7rem' }}
+                startIcon={mobilePreviewMode ? <Computer /> : <PhoneAndroid />}
+              >
+                {mobilePreviewMode ? 'PC表示' : 'スマホ表示'}
+              </Button>
               <Button
                 color="inherit"
                 onClick={() => setIsShiftBoardMode(!isShiftBoardMode)}
@@ -228,13 +308,15 @@ export function Dashboard() {
         {/* ダッシュボードタブ（シフトボード型UI） */}
         {currentTab === 0 && isShiftBoardMode && (
           <Box role="tabpanel" id="tabpanel-0" aria-labelledby="tab-0">
-            {/* シフトボード型メインUI - 今月の収入と扶養状況を最優先表示 */}
+            {/* シフトボード型メインUI - カレンダー中心設計 */}
+            
+            {/* 上部：コンパクトな収入・扶養ステータス */}
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
                 gap: 2,
-                mb: 3,
+                mb: 2,
               }}
             >
               {/* リアルタイム収入表示（コンパクト版） */}
@@ -244,116 +326,97 @@ export function Dashboard() {
                 autoRefresh={true}
                 refreshInterval={300000} // 5分間隔
               />
-            </Box>
-
-            {/* 2025年扶養制度対応ステータス詳細 */}
-            <Box sx={{ mb: 3 }}>
-              <Enhanced2025FuyouCard
-                onStatusUpdate={setFuyouStatus}
-                compactMode={false}
-              />
-            </Box>
-
-            {/* 今月のシフトカレンダー（簡易版） */}
-            <Box sx={{ mb: 3 }}>
-              <Card>
-                <CardContent>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      mb: 2,
-                    }}
-                  >
-                    <Typography variant="h6">今月のシフト</Typography>
-                    <Button
-                      variant="outlined"
-                      onClick={() => setCurrentTab(1)}
-                      sx={{ fontSize: '0.8rem' }}
-                    >
-                      詳細管理
-                    </Button>
-                  </Box>
-                  <ShiftCalendar
-                    onAddShift={handleAddShift}
-                    onEditShift={handleEditShift}
-                    compactMode={true}
-                  />
+              
+              {/* 簡潔な扶養ステータス */}
+              <Card sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+                <CardContent sx={{ color: 'white', py: 1 }}>
+                  <Typography variant="h6" sx={{ fontSize: '1rem' }}>
+                    扶養ステータス
+                  </Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    {fuyouStatus ? 
+                      `${fuyouStatus.selectedLimit.name}: ${Math.round((fuyouStatus as any).progress * 100)}%` 
+                      : '読み込み中...'}
+                  </Typography>
                 </CardContent>
               </Card>
             </Box>
 
-            {/* 扶養アラートシステム */}
-            <Box sx={{ mb: 3 }}>
-              <FuyouAlertSystem
-                fuyouStatus={fuyouStatus}
-                compactMode={false}
-                showSnackbar={true}
+            {/* メイン：シフトカレンダー（画面の70%を占める） */}
+            <Box sx={{ mb: 2, minHeight: '60vh' }}>
+              <ShiftCalendar
+                onAddShift={handleAddShift}
+                onEditShift={handleEditShift}
+                compactMode={false} // メイン表示なのでフル機能
               />
             </Box>
 
-            {/* クイックアクション */}
+            {/* 下部：簡潔なクイックアクション */}
             <Box
               sx={{
                 display: 'grid',
                 gridTemplateColumns: {
-                  xs: '1fr',
-                  sm: '1fr 1fr',
-                  md: '1fr 1fr 1fr',
+                  xs: '1fr 1fr',
+                  sm: '1fr 1fr 1fr 1fr',
                 },
-                gap: 2,
+                gap: 1,
+                '& .MuiCard-root': {
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  '&:hover': { 
+                    transform: 'translateY(-2px)',
+                    boxShadow: 4 
+                  },
+                },
               }}
             >
-              <Card
-                sx={{ cursor: 'pointer', '&:hover': { boxShadow: 4 } }}
-                onClick={handleOCROpen}
-              >
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <CameraAlt
-                    sx={{ fontSize: 40, color: 'primary.main', mb: 1 }}
-                  />
-                  <Typography variant="h6" gutterBottom>
-                    📷 シフト表を撮影
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ChatGPT風の簡単OCR
+              <Card onClick={handleOCROpen}>
+                <CardContent sx={{ textAlign: 'center', py: 1 }}>
+                  <CameraAlt sx={{ fontSize: 24, color: 'primary.main', mb: 0.5 }} />
+                  <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                    📷 シフト表読取
                   </Typography>
                 </CardContent>
               </Card>
 
-              <Card
-                sx={{ cursor: 'pointer', '&:hover': { boxShadow: 4 } }}
-                onClick={() => setCsvUploadOpen(true)}
-              >
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <Upload sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-                  <Typography variant="h6" gutterBottom>
+              <Card onClick={() => setCsvUploadOpen(true)}>
+                <CardContent sx={{ textAlign: 'center', py: 1 }}>
+                  <Upload sx={{ fontSize: 24, color: 'primary.main', mb: 0.5 }} />
+                  <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
                     給与明細登録
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    CSVファイルから収入登録
+                </CardContent>
+              </Card>
+
+              <Card onClick={() => handleAddShift()}>
+                <CardContent sx={{ textAlign: 'center', py: 1 }}>
+                  <Schedule sx={{ fontSize: 24, color: 'primary.main', mb: 0.5 }} />
+                  <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                    手動シフト登録
                   </Typography>
                 </CardContent>
               </Card>
 
-              <Card
-                sx={{ cursor: 'pointer', '&:hover': { boxShadow: 4 } }}
-                onClick={() => handleAddShift()}
-              >
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <Schedule
-                    sx={{ fontSize: 40, color: 'primary.main', mb: 1 }}
-                  />
-                  <Typography variant="h6" gutterBottom>
-                    手動シフト登録
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    直接シフトを入力
+              <Card onClick={() => setRecurringShiftOpen(true)}>
+                <CardContent sx={{ textAlign: 'center', py: 1 }}>
+                  <Repeat sx={{ fontSize: 24, color: 'primary.main', mb: 0.5 }} />
+                  <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                    定期シフト登録
                   </Typography>
                 </CardContent>
               </Card>
             </Box>
+
+            {/* 扶養アラート（必要時のみ表示） */}
+            {fuyouStatus && (fuyouStatus as any).risk === 'high' && (
+              <Box sx={{ mt: 2 }}>
+                <FuyouAlertSystem
+                  fuyouStatus={fuyouStatus}
+                  compactMode={true}
+                  showSnackbar={false}
+                />
+              </Box>
+            )}
           </Box>
         )}
 
@@ -430,10 +493,14 @@ export function Dashboard() {
                     バイト先管理
                   </Typography>
                   <Typography variant="body1" color="text.secondary">
-                    CSVから自動検出されたバイト先の管理
+                    バイト先の時給・交通費・テンプレート管理
                   </Typography>
-                  <Button variant="outlined" sx={{ mt: 2 }} disabled>
-                    バイト先一覧（実装予定）
+                  <Button 
+                    variant="outlined" 
+                    sx={{ mt: 2 }} 
+                    onClick={() => setJobManagementOpen(true)}
+                  >
+                    バイト先一覧・管理
                   </Button>
                 </CardContent>
               </Card>
@@ -548,6 +615,41 @@ export function Dashboard() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* 定期シフト登録ダイアログ */}
+      <RecurringShiftDialog
+        open={recurringShiftOpen}
+        onClose={() => setRecurringShiftOpen(false)}
+        onSuccess={handleRecurringShiftSuccess}
+      />
+
+      {/* クイックシフト登録ダイアログ */}
+      <QuickShiftRegistration
+        open={quickShiftOpen}
+        onClose={handleQuickShiftClose}
+        onSuccess={handleQuickShiftSuccess}
+        selectedDate={selectedDate}
+      />
+
+      {/* バイト先管理ダイアログ */}
+      <Dialog
+        open={jobManagementOpen}
+        onClose={() => setJobManagementOpen(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: { height: '80vh' },
+        }}
+      >
+        <DialogTitle>バイト先管理</DialogTitle>
+        <DialogContent>
+          <JobManagement />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setJobManagementOpen(false)}>閉じる</Button>
+        </DialogActions>
+      </Dialog>
+      </Box>
     </Box>
   );
 }

@@ -12,7 +12,7 @@ import {
   CircularProgress,
   Tooltip,
 } from '@mui/material';
-import Grid2 from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import {
   TrendingUp,
   TrendingDown,
@@ -214,8 +214,8 @@ export const EarningsProjectionCard: React.FC = () => {
         </Box>
 
         {/* 統計情報 */}
-        <Grid2 container spacing={2}>
-          <Grid2 xs={12} md={6}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
             <Paper sx={{ p: 2, textAlign: 'center' }}>
               <Box
                 display="flex"
@@ -233,9 +233,9 @@ export const EarningsProjectionCard: React.FC = () => {
                 今月の収入
               </Typography>
             </Paper>
-          </Grid2>
+          </Grid>
 
-          <Grid2 xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Paper sx={{ p: 2, textAlign: 'center' }}>
               <Box
                 display="flex"
@@ -253,9 +253,9 @@ export const EarningsProjectionCard: React.FC = () => {
                 年間予測収入
               </Typography>
             </Paper>
-          </Grid2>
+          </Grid>
 
-          <Grid2 xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Paper sx={{ p: 2, textAlign: 'center' }}>
               <Box
                 display="flex"
@@ -273,9 +273,9 @@ export const EarningsProjectionCard: React.FC = () => {
                 1日平均収入
               </Typography>
             </Paper>
-          </Grid2>
+          </Grid>
 
-          <Grid2 xs={12} md={6}>
+          <Grid item xs={12} md={6}>
             <Paper sx={{ p: 2, textAlign: 'center' }}>
               <Box
                 display="flex"
@@ -293,8 +293,8 @@ export const EarningsProjectionCard: React.FC = () => {
                 推奨1日収入
               </Typography>
             </Paper>
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
 
         {/* アドバイス */}
         <Box mt={3}>

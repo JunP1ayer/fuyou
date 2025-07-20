@@ -16,7 +16,7 @@ import {
   Stack,
   LinearProgress,
 } from '@mui/material';
-import Grid2 from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import {
   TrendingUp,
   Schedule,
@@ -420,9 +420,9 @@ function OptimizationOverview({
     runs.length > 0 ? (completedRuns.length / runs.length) * 100 : 0;
 
   return (
-    <Grid2 container spacing={3}>
+    <Grid container spacing={3}>
       {/* Statistics Cards */}
-      <Grid2 xs={12} md={3}>
+      <Grid item xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -436,9 +436,9 @@ function OptimizationOverview({
             </Typography>
           </CardContent>
         </Card>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={3}>
+      <Grid item xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -450,9 +450,9 @@ function OptimizationOverview({
             </Typography>
           </CardContent>
         </Card>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={3}>
+      <Grid item xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -464,9 +464,9 @@ function OptimizationOverview({
             </Typography>
           </CardContent>
         </Card>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={3}>
+      <Grid item xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -480,10 +480,10 @@ function OptimizationOverview({
             </Typography>
           </CardContent>
         </Card>
-      </Grid2>
+      </Grid>
 
       {/* Recent Results */}
-      <Grid2 xs={12}>
+      <Grid item xs={12}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -530,7 +530,7 @@ function OptimizationOverview({
             )}
           </CardContent>
         </Card>
-      </Grid2>
-    </Grid2>
+      </Grid>
+    </Grid>
   );
 }

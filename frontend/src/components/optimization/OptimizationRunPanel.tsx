@@ -33,7 +33,7 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
-import Grid2 from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import {
   PlayArrow,
   Stop,
@@ -299,9 +299,9 @@ export function OptimizationRunPanel({
 
                   {/* Step 0: Objective Selection */}
                   {index === 0 && (
-                    <Grid2 container spacing={2}>
+                    <Grid container spacing={2}>
                       {objectiveTypes.map(objective => (
-                        <Grid2 xs={12} md={6} key={objective.value}>
+                        <Grid item xs={12} md={6} key={objective.value}>
                           <Paper
                             sx={{
                               p: 2,
@@ -341,16 +341,16 @@ export function OptimizationRunPanel({
                               </Box>
                             </Stack>
                           </Paper>
-                        </Grid2>
+                        </Grid>
                       ))}
-                    </Grid2>
+                    </Grid>
                   )}
 
                   {/* Step 1: Algorithm Selection */}
                   {index === 1 && (
-                    <Grid2 container spacing={2}>
+                    <Grid container spacing={2}>
                       {algorithms.map(algorithm => (
-                        <Grid2 xs={12} key={algorithm.id}>
+                        <Grid item xs={12} key={algorithm.id}>
                           <Paper
                             sx={{
                               p: 2,
@@ -407,15 +407,15 @@ export function OptimizationRunPanel({
                               </Stack>
                             </Stack>
                           </Paper>
-                        </Grid2>
+                        </Grid>
                       ))}
-                    </Grid2>
+                    </Grid>
                   )}
 
                   {/* Step 2: Time Period */}
                   {index === 2 && (
-                    <Grid2 container spacing={2}>
-                      <Grid2 xs={12} md={6}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
                         <TextField
                           label="開始日"
                           type="date"
@@ -429,8 +429,8 @@ export function OptimizationRunPanel({
                           fullWidth
                           InputLabelProps={{ shrink: true }}
                         />
-                      </Grid2>
-                      <Grid2 xs={12} md={6}>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
                         <TextField
                           label="終了日"
                           type="date"
@@ -444,8 +444,8 @@ export function OptimizationRunPanel({
                           fullWidth
                           InputLabelProps={{ shrink: true }}
                         />
-                      </Grid2>
-                    </Grid2>
+                      </Grid>
+                    </Grid>
                   )}
 
                   {/* Step 3: Confirmation */}

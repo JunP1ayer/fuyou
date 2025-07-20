@@ -28,7 +28,7 @@ import {
   Divider,
   Tooltip,
 } from '@mui/material';
-import Grid2 from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import {
   Add,
   Edit,
@@ -274,9 +274,9 @@ export function OptimizationConstraintsPanel({
         </Alert>
       )}
 
-      <Grid2 container spacing={3}>
+      <Grid container spacing={3}>
         {/* Constraints Section */}
-        <Grid2 xs={12} md={6}>
+        <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
               <Stack
@@ -366,10 +366,10 @@ export function OptimizationConstraintsPanel({
               </List>
             </CardContent>
           </Card>
-        </Grid2>
+        </Grid>
 
         {/* Availability Section */}
-        <Grid2 xs={12} md={6}>
+        <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
               <Stack
@@ -449,8 +449,8 @@ export function OptimizationConstraintsPanel({
               </List>
             </CardContent>
           </Card>
-        </Grid2>
-      </Grid2>
+        </Grid>
+      </Grid>
 
       {/* Constraint Dialog */}
       <Dialog
@@ -463,8 +463,8 @@ export function OptimizationConstraintsPanel({
           {editingConstraint ? '制約を編集' : '新しい制約を追加'}
         </DialogTitle>
         <DialogContent>
-          <Grid2 container spacing={2} sx={{ mt: 1 }}>
-            <Grid2 xs={12}>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
               <FormControl fullWidth>
                 <InputLabel>制約タイプ</InputLabel>
                 <Select
@@ -486,9 +486,9 @@ export function OptimizationConstraintsPanel({
                   ))}
                 </Select>
               </FormControl>
-            </Grid2>
+            </Grid>
 
-            <Grid2 xs={12} md={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 label="制約値"
                 type="number"
@@ -501,9 +501,9 @@ export function OptimizationConstraintsPanel({
                 }
                 fullWidth
               />
-            </Grid2>
+            </Grid>
 
-            <Grid2 xs={12} md={6}>
+            <Grid item xs={12} md={6}>
               <FormControl fullWidth>
                 <InputLabel>単位</InputLabel>
                 <Select
@@ -520,9 +520,9 @@ export function OptimizationConstraintsPanel({
                   <MenuItem value="percentage">パーセント</MenuItem>
                 </Select>
               </FormControl>
-            </Grid2>
+            </Grid>
 
-            <Grid2 xs={12}>
+            <Grid item xs={12}>
               <Typography gutterBottom>
                 優先度: {constraintForm.priority}
               </Typography>
@@ -540,9 +540,9 @@ export function OptimizationConstraintsPanel({
                 marks
                 valueLabelDisplay="auto"
               />
-            </Grid2>
+            </Grid>
 
-            <Grid2 xs={12}>
+            <Grid item xs={12}>
               <FormControlLabel
                 control={
                   <Switch
@@ -557,8 +557,8 @@ export function OptimizationConstraintsPanel({
                 }
                 label="この制約を有効にする"
               />
-            </Grid2>
-          </Grid2>
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConstraintDialogOpen(false)}>
@@ -587,8 +587,8 @@ export function OptimizationConstraintsPanel({
             : '新しい可用性スケジュールを追加'}
         </DialogTitle>
         <DialogContent>
-          <Grid2 container spacing={2} sx={{ mt: 1 }}>
-            <Grid2 xs={12}>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
               <FormControl fullWidth>
                 <InputLabel>曜日</InputLabel>
                 <Select
@@ -607,9 +607,9 @@ export function OptimizationConstraintsPanel({
                   ))}
                 </Select>
               </FormControl>
-            </Grid2>
+            </Grid>
 
-            <Grid2 xs={12} md={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 label="開始時間"
                 type="time"
@@ -623,9 +623,9 @@ export function OptimizationConstraintsPanel({
                 fullWidth
                 InputLabelProps={{ shrink: true }}
               />
-            </Grid2>
+            </Grid>
 
-            <Grid2 xs={12} md={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 label="終了時間"
                 type="time"
@@ -639,9 +639,9 @@ export function OptimizationConstraintsPanel({
                 fullWidth
                 InputLabelProps={{ shrink: true }}
               />
-            </Grid2>
+            </Grid>
 
-            <Grid2 xs={12}>
+            <Grid item xs={12}>
               <TextField
                 label="メモ"
                 value={availabilityForm.notes}
@@ -655,9 +655,9 @@ export function OptimizationConstraintsPanel({
                 multiline
                 rows={2}
               />
-            </Grid2>
+            </Grid>
 
-            <Grid2 xs={12}>
+            <Grid item xs={12}>
               <FormControlLabel
                 control={
                   <Switch
@@ -672,8 +672,8 @@ export function OptimizationConstraintsPanel({
                 }
                 label="この時間帯を利用可能にする"
               />
-            </Grid2>
-          </Grid2>
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setAvailabilityDialogOpen(false)}>

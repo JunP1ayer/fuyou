@@ -19,7 +19,7 @@ import {
   Divider,
   ButtonGroup,
 } from '@mui/material';
-import Grid2 from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import {
   PhotoCamera,
   Upload,
@@ -497,8 +497,8 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
         <DialogContent>
           {ocrResult && (
             <Box>
-              <Grid2 container spacing={2}>
-                <Grid2 xs={12} md={6}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
                   <Typography variant="h6" gutterBottom>
                     抽出されたテキスト
                   </Typography>
@@ -518,8 +518,8 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
                         'テキストが抽出されませんでした'}
                     </Typography>
                   </Paper>
-                </Grid2>
-                <Grid2 xs={12} md={6}>
+                </Grid>
+                <Grid item xs={12} md={6}>
                   <Typography variant="h6" gutterBottom>
                     処理情報
                   </Typography>
@@ -538,8 +538,8 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
                       color="info"
                     />
                   </Box>
-                </Grid2>
-              </Grid2>
+                </Grid>
+              </Grid>
             </Box>
           )}
         </DialogContent>

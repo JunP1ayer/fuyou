@@ -17,7 +17,7 @@ import {
   Divider,
   Chip,
 } from '@mui/material';
-import Grid2 from '@mui/material/Grid2';
+import Grid from '@mui/material/Grid';
 import { Save, Notifications, Security, Settings } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { apiService } from '../../services/api';
@@ -181,9 +181,9 @@ export function OptimizationSettingsPanel({
         </Alert>
       )}
 
-      <Grid2 container spacing={3}>
+      <Grid container spacing={3}>
         {/* Basic Settings */}
-        <Grid2 xs={12} md={6}>
+        <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
               <Stack
@@ -318,10 +318,10 @@ export function OptimizationSettingsPanel({
               </Stack>
             </CardContent>
           </Card>
-        </Grid2>
+        </Grid>
 
         {/* Notification Settings */}
-        <Grid2 xs={12} md={6}>
+        <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
               <Stack
@@ -411,18 +411,18 @@ export function OptimizationSettingsPanel({
               </Stack>
             </CardContent>
           </Card>
-        </Grid2>
+        </Grid>
 
         {/* Current Settings Display */}
-        <Grid2 xs={12}>
+        <Grid item xs={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 現在の設定
               </Typography>
 
-              <Grid2 container spacing={2}>
-                <Grid2 xs={12} md={3}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={3}>
                   <Typography variant="body2" color="textSecondary">
                     優先アルゴリズム
                   </Typography>
@@ -435,9 +435,9 @@ export function OptimizationSettingsPanel({
                     color="primary"
                     size="small"
                   />
-                </Grid2>
+                </Grid>
 
-                <Grid2 xs={12} md={3}>
+                <Grid item xs={12} md={3}>
                   <Typography variant="body2" color="textSecondary">
                     最適化目標
                   </Typography>
@@ -450,9 +450,9 @@ export function OptimizationSettingsPanel({
                     color="secondary"
                     size="small"
                   />
-                </Grid2>
+                </Grid>
 
-                <Grid2 xs={12} md={3}>
+                <Grid item xs={12} md={3}>
                   <Typography variant="body2" color="textSecondary">
                     リスク許容度
                   </Typography>
@@ -471,9 +471,9 @@ export function OptimizationSettingsPanel({
                     }
                     size="small"
                   />
-                </Grid2>
+                </Grid>
 
-                <Grid2 xs={12} md={3}>
+                <Grid item xs={12} md={3}>
                   <Typography variant="body2" color="textSecondary">
                     自動最適化
                   </Typography>
@@ -482,12 +482,12 @@ export function OptimizationSettingsPanel({
                     color={settings.autoOptimize ? 'success' : 'default'}
                     size="small"
                   />
-                </Grid2>
-              </Grid2>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
-        </Grid2>
-      </Grid2>
+        </Grid>
+      </Grid>
 
       {/* Save Button */}
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
