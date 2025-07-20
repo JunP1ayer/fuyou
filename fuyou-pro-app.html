@@ -237,22 +237,38 @@
 
         .tab-btn {
             flex: 1;
-            padding: 16px 8px;
+            padding: 18px 8px; /* タッチしやすいサイズに拡大 */
             background: none;
             border: none;
             font-size: 14px;
             font-weight: 500;
             color: #666;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             border-radius: 12px 12px 0 0;
             margin: 0 4px;
+            /* スマホ向けタッチ最適化 */
+            min-height: 52px; /* 最小タッチターゲットサイズ */
+            -webkit-tap-highlight-color: rgba(76, 175, 80, 0.15);
+            touch-action: manipulation;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .tab-btn:hover {
+        .tab-btn:hover,
+        .tab-btn:focus {
             color: #4CAF50;
             background: rgba(76, 175, 80, 0.05);
+        }
+        
+        /* タッチデバイス向けアクティブ状態強化 */
+        .tab-btn:active {
+            transform: scale(0.96);
+            background: rgba(76, 175, 80, 0.12);
+            color: #4CAF50;
         }
 
         .tab-btn.active {
@@ -742,33 +758,148 @@
         }
 
         /* レスポンシブ対応 */
+        /* スマホ縦画面最適化 */
         @media (max-width: 480px) {
             .app-container {
                 max-width: 100%;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+                min-height: 100vh;
+                min-height: calc(100vh - env(safe-area-inset-bottom));
             }
             
             .header {
-                padding: 16px 12px 12px;
+                padding: 20px 16px 16px;
+                padding-top: calc(env(safe-area-inset-top) + 20px);
+            }
+            
+            .header h1 {
+                font-size: 20px;
+                text-align: center;
+            }
+            
+            .tab-nav {
+                min-height: 64px;
+                padding: 0 8px;
             }
             
             .tab-content {
-                padding: 12px;
-                padding-bottom: 80px; /* ボタンエリア確保 */
+                padding: 16px 12px;
+                padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
-            /* モバイル専用ボタンサイズ調整 */
+            /* モバイル向けボタンサイズ最適化 */
             .btn {
-                min-height: 48px; /* タッチターゲットサイズ確保 */
+                min-height: 52px; /* タッチターゲットサイズ磺保 */
                 font-size: 16px;
+                padding: 16px 20px;
+                border-radius: 12px;
             }
 
             .tab-btn {
-                min-height: 48px;
+                min-height: 52px;
                 font-size: 13px;
+                padding: 18px 8px;
             }
 
             .calendar-cell {
+                min-height: 52px;
+                font-size: 12px;
+            }
+            
+            /* フォーム要素最適化 */
+            input, select, textarea {
                 min-height: 48px;
+                font-size: 16px; /* iOS zoom prevention */
+                padding: 12px 16px;
+                border-radius: 8px;
+                border: 1px solid #ddd;
+                background: #fff;
+                -webkit-appearance: none;
+                appearance: none;
+            }
+            
+            input:focus, select:focus, textarea:focus {
+                outline: none;
+                border-color: #4CAF50;
+                box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+                transform: none;
+            }
+        }
+
+        /* 超小画面対応（iPhone SE等） */
+        @media (max-width: 360px) {
+            .header h1 {
+                font-size: 18px;
+            }
+            
+            .tab-btn {
+                font-size: 11px;
+                padding: 16px 4px;
+                min-height: 48px;
+            }
+            
+            .calendar-cell {
+                font-size: 10px;
+                min-height: 44px;
+            }
+            
+            .btn {
+                min-height: 48px;
+                font-size: 14px;
+                padding: 14px 16px;
+            }
+            
+            .tab-content {
+                padding: 12px 8px;
+            }
+        }
+
+        /* 横画面対応（ランドスケープモード） */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .app-container {
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .header {
+                padding: 8px 16px;
+                flex-shrink: 0;
+            }
+            
+            .header h1 {
+                font-size: 16px;
+            }
+            
+            .tab-nav {
+                min-height: 48px;
+                flex-shrink: 0;
+            }
+            
+            .tab-btn {
+                padding: 10px 8px;
+                min-height: 40px;
+                font-size: 12px;
+            }
+            
+            .tab-content {
+                flex: 1;
+                overflow-y: auto;
+                padding: 12px;
+            }
+            
+            /* ランドスケープでの要素調整 */
+            .calendar-grid {
+                grid-template-rows: repeat(auto-fit, minmax(35px, 1fr));
+            }
+            
+            .calendar-cell {
+                min-height: 35px;
+                font-size: 11px;
             }
         }
 
@@ -779,23 +910,27 @@
             scroll-behavior: smooth;
         }
 
-        /* フローティングアクションボタン */
+        /* スマホ向けフローティングアクションボタン */
         .floating-action-btn {
             position: fixed;
-            bottom: 80px;
+            bottom: calc(env(safe-area-inset-bottom) + 80px);
             right: 20px;
-            width: 56px;
-            height: 56px;
+            width: 64px; /* タッチしやすいサイズに拡大 */
+            height: 64px;
             border-radius: 50%;
             background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
             border: none;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
             z-index: 1000;
-            transition: all 0.3s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             display: none;
+            /* スマホ向けタッチ最適化 */
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
         }
 
         .floating-action-btn.show {
@@ -805,15 +940,36 @@
         }
 
         .floating-action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.5);
         }
 
         .floating-action-btn:active {
-            transform: translateY(0);
+            transform: translateY(-1px) scale(0.98);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+        }
+        
+        /* ファブリップルエフェクト */
+        .floating-action-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+            pointer-events: none;
+        }
+        
+        .floating-action-btn:active::after {
+            width: 100px;
+            height: 100px;
         }
 
-        /* スティッキーボタングループ */
+        /* スマホ向けスティッキーボタングループ */
         .sticky-bottom-actions {
             position: sticky;
             bottom: 0;
@@ -821,8 +977,17 @@
             right: 0;
             background: linear-gradient(to top, rgba(255,255,255,1) 80%, rgba(255,255,255,0));
             padding: 16px;
+            padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
             margin-top: 20px;
             z-index: 100;
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .sticky-bottom-actions .btn {
+            width: 100%;
+            justify-content: center;
+            margin-bottom: 0;
         }
 
         /* 改善されたボタンスタイル */
@@ -958,10 +1123,51 @@
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
+            /* スマホ向けフォーカス改善 */
+            outline: none;
+            position: relative;
         }
 
-        .btn:active, .calendar-cell:active, .tab-btn:active {
+        .btn:active {
+            transform: scale(0.96);
+        }
+        
+        .calendar-cell:active {
             transform: scale(0.98);
+            background: rgba(76, 175, 80, 0.1) !important;
+        }
+        
+        .workplace-card:active {
+            transform: scale(0.98);
+        }
+        
+        /* タッチフィードバック強化 */
+        .btn:active::after,
+        .tab-btn:active::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            animation: ripple 0.3s ease-out;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            100% {
+                width: 200%;
+                height: 200%;
+                opacity: 0;
+            }
         }
 
         /* スワイプインジケーター */
@@ -985,15 +1191,67 @@
         }
 
         /* 振動フィードバック用クラス */
+        /* 強化されたハプティック・ビジュアルフィードバック */
         .haptic-feedback {
-            animation: haptic 0.1s ease;
+            animation: haptic-pulse 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        @keyframes haptic {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-2px); }
-            75% { transform: translateX(2px); }
-            100% { transform: translateX(0); }
+        @keyframes haptic-pulse {
+            0% { 
+                transform: scale(1); 
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.3);
+            }
+            50% { 
+                transform: scale(0.96); 
+                box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
+            }
+            100% { 
+                transform: scale(1); 
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+        }
+
+        /* スムーズなページ遷移 */
+        .tab-content {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .tab-content:not(.active) {
+            opacity: 0;
+            transform: translateX(10px);
+            pointer-events: none;
+        }
+
+        .tab-content.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        /* ローディングアニメーション強化 */
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(76, 175, 80, 0.2);
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* カードホバーエフェクト */
+        .workplace-card, .fuyou-status-card, .income-history-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .workplace-card:hover, .fuyou-status-card:hover, .income-history-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
         }
 
         /* プッシュ通知許可バナー */
@@ -2979,7 +3237,7 @@
                 activeElement.classList.add('haptic-feedback');
                 setTimeout(() => {
                     activeElement.classList.remove('haptic-feedback');
-                }, 100);
+                }, 200);
             }
         }
 
@@ -3263,6 +3521,104 @@
             });
         }
 
+        // ========== スマホキーボード対応 ==========
+        function initializeKeyboardHandling() {
+            let initialViewportHeight = window.innerHeight;
+            let isKeyboardOpen = false;
+            
+            // キーボード表示/非表示検知
+            function handleViewportChange() {
+                const currentHeight = window.innerHeight;
+                const heightDifference = initialViewportHeight - currentHeight;
+                
+                if (heightDifference > 150) { // キーボードが開いた
+                    if (!isKeyboardOpen) {
+                        isKeyboardOpen = true;
+                        document.body.classList.add('keyboard-open');
+                        
+                        // アクティブな入力フィールドを可視範囲に
+                        const activeElement = document.activeElement;
+                        if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+                            setTimeout(() => {
+                                activeElement.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                });
+                            }, 100);
+                        }
+                    }
+                } else { // キーボードが閉じた
+                    if (isKeyboardOpen) {
+                        isKeyboardOpen = false;
+                        document.body.classList.remove('keyboard-open');
+                    }
+                }
+            }
+            
+            // イベントリスナー登録
+            window.addEventListener('resize', handleViewportChange);
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    initialViewportHeight = window.innerHeight;
+                    handleViewportChange();
+                }, 500);
+            });
+            
+            // 入力フィールドフォーカス時の処理
+            document.addEventListener('focusin', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    // iOS Safariでのズーム防止（font-size: 16px以上必要）
+                    if (parseFloat(getComputedStyle(e.target).fontSize) < 16) {
+                        e.target.style.fontSize = '16px';
+                    }
+                    
+                    // フィールドが画面下部に隠れる場合のスクロール調整
+                    setTimeout(() => {
+                        const rect = e.target.getBoundingClientRect();
+                        const keyboardHeight = isKeyboardOpen ? 250 : 0; // 推定キーボード高さ
+                        
+                        if (rect.bottom > window.innerHeight - keyboardHeight - 50) {
+                            e.target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                            });
+                        }
+                    }, 300);
+                }
+            });
+            
+            // Enter キー押下時の処理
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+                    e.target.blur(); // キーボードを閉じる
+                }
+            });
+        }
+        
+        // キーボード表示時のCSS調整
+        const keyboardStyles = document.createElement('style');
+        keyboardStyles.textContent = `
+            .keyboard-open .app-container {
+                height: 100vh;
+                overflow: hidden;
+            }
+            
+            .keyboard-open .tab-content {
+                max-height: calc(100vh - 200px);
+                overflow-y: auto;
+            }
+            
+            .keyboard-open .floating-action-btn {
+                display: none !important;
+            }
+            
+            .keyboard-open .sticky-bottom-actions {
+                position: relative;
+                padding-bottom: 16px;
+            }
+        `;
+        document.head.appendChild(keyboardStyles);
+
         // ========== アプリ初期化 ==========
         function initializeApp() {
             // PWA 機能初期化
@@ -3287,6 +3643,9 @@
             
             // 画像アップロード
             document.getElementById('imageInput').addEventListener('change', handleImageUpload);
+            
+            // スマホキーボード対応の初期化
+            initializeKeyboardHandling();
             
             // バックグラウンドタスクのスケジュール
             scheduleBackgroundTasks();
