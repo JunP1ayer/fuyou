@@ -1209,6 +1209,11 @@
     <script src="gemini-vision-service.js"></script>
     <!-- 扶養最適化エンジン -->
     <script src="fuyou-optimization-engine.js"></script>
+    <!-- 戦略的機能モジュール -->
+    <script src="setup-wizard.js"></script>
+    <script src="analytics-tracker.js"></script>
+    <script src="backup-manager.js"></script>
+    <script src="premium-features.js"></script>
     
     <script>
         // ========== 状態管理 ==========
@@ -2971,6 +2976,168 @@
             }
         }
 
+        // ========== 戦略的機能初期化 ==========
+        function initializeStrategicFeatures() {
+            try {
+                // プレミアム機能の初期化
+                if (typeof premium !== 'undefined') {
+                    console.log('プレミアム機能システム初期化完了');
+                    
+                    // プレミアムバッジの初期化
+                    if (!document.querySelector('.premium-badge')) {
+                        const header = document.querySelector('.header-top');
+                        if (header) {
+                            const badge = document.createElement('div');
+                            badge.className = 'premium-badge';
+                            badge.style.cssText = `
+                                background: linear-gradient(45deg, #FFD700, #FFA500);
+                                color: #333;
+                                padding: 4px 8px;
+                                border-radius: 12px;
+                                font-size: 12px;
+                                font-weight: bold;
+                                display: none;
+                            `;
+                            header.appendChild(badge);
+                        }
+                    }
+                }
+                
+                // アナリティクス初期化
+                if (typeof analytics !== 'undefined') {
+                    // 初回訪問時にプライバシー同意を求める
+                    const consent = localStorage.getItem('analytics_consent');
+                    if (consent === null) {
+                        setTimeout(() => {
+                            analytics.requestConsent();
+                        }, 2000);
+                    }
+                    
+                    // アプリ起動イベント
+                    analytics.trackEvent('app', 'launch', window.location.pathname);
+                    console.log('アナリティクストラッカー初期化完了');
+                }
+                
+                // バックアップマネージャー初期化
+                if (typeof backupManager !== 'undefined') {
+                    // 設定画面にバックアップボタンを追加
+                    addBackupButtons();
+                    console.log('バックアップマネージャー初期化完了');
+                }
+                
+                // セットアップウィザード初期化（既に自動起動設定済み）
+                if (typeof wizardInstance !== 'undefined') {
+                    console.log('セットアップウィザード初期化完了');
+                }
+                
+                // カスタムイベントリスナー追加
+                addStrategicEventListeners();
+                
+            } catch (error) {
+                console.error('戦略的機能初期化エラー:', error);
+            }
+        }
+        
+        function addBackupButtons() {
+            // 設定エリアの特定（なければ作成）
+            let settingsArea = document.querySelector('.settings-area');
+            if (!settingsArea) {
+                settingsArea = document.createElement('div');
+                settingsArea.className = 'settings-area';
+                settingsArea.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                    z-index: 1000;
+                `;
+                document.body.appendChild(settingsArea);
+            }
+            
+            // バックアップボタン
+            const backupBtn = document.createElement('button');
+            backupBtn.id = 'backup-btn';
+            backupBtn.innerHTML = '💾';
+            backupBtn.title = 'データをバックアップ';
+            backupBtn.style.cssText = `
+                width: 48px;
+                height: 48px;
+                border: none;
+                border-radius: 50%;
+                background: #4CAF50;
+                color: white;
+                font-size: 20px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transition: all 0.3s;
+            `;
+            
+            backupBtn.addEventListener('mouseenter', () => {
+                backupBtn.style.transform = 'scale(1.1)';
+            });
+            
+            backupBtn.addEventListener('mouseleave', () => {
+                backupBtn.style.transform = 'scale(1)';
+            });
+            
+            // 復元用ファイル入力
+            const restoreInput = document.createElement('input');
+            restoreInput.type = 'file';
+            restoreInput.id = 'restore-input';
+            restoreInput.accept = '.json';
+            restoreInput.style.display = 'none';
+            
+            // プレミアムボタン
+            const premiumBtn = document.createElement('button');
+            premiumBtn.innerHTML = '⭐';
+            premiumBtn.title = 'プレミアム機能';
+            premiumBtn.style.cssText = backupBtn.style.cssText.replace('#4CAF50', '#FFD700');
+            premiumBtn.addEventListener('click', () => {
+                if (typeof premium !== 'undefined') {
+                    premium.showUpgradeModal();
+                }
+            });
+            
+            settingsArea.appendChild(backupBtn);
+            settingsArea.appendChild(premiumBtn);
+            settingsArea.appendChild(restoreInput);
+        }
+        
+        function addStrategicEventListeners() {
+            // AI機能使用時のプレミアムチェック
+            const originalHandleImageUpload = window.handleImageUpload;
+            if (originalHandleImageUpload) {
+                window.handleImageUpload = function(event) {
+                    try {
+                        if (typeof premium !== 'undefined') {
+                            const canUse = premium.canUseFeature('unlimited_ai_scans');
+                            if (!canUse.allowed) {
+                                premium.showUpgradeModal();
+                                return;
+                            }
+                            premium.recordUsage('unlimited_ai_scans');
+                        }
+                        
+                        return originalHandleImageUpload.call(this, event);
+                    } catch (error) {
+                        console.error('AI機能使用エラー:', error);
+                    }
+                };
+            }
+            
+            // アナリティクス追跡の追加
+            document.addEventListener('click', (e) => {
+                if (typeof analytics !== 'undefined' && analytics.consentGiven) {
+                    const button = e.target.closest('button');
+                    if (button && button.dataset.tab) {
+                        analytics.trackEvent('navigation', 'tab_click', button.dataset.tab);
+                    }
+                }
+            });
+        }
+
         // ========== アプリ初期化 ==========
         function initializeApp() {
             // PWA 機能初期化
@@ -2984,6 +3151,9 @@
             
             // 最適化エンジン初期化
             initializeOptimizationEngine();
+            
+            // 戦略的機能の初期化
+            initializeStrategicFeatures();
             
             // タブナビゲーション
             document.querySelectorAll('.tab-btn').forEach(btn => {
