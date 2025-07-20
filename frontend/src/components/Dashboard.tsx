@@ -537,7 +537,7 @@ export function Dashboard() {
         maxWidth="sm"
         fullWidth
         PaperProps={{
-          sx: { borderRadius: 3 }
+          sx: { borderRadius: 3 },
         }}
       >
         <DialogContent sx={{ p: 0 }}>

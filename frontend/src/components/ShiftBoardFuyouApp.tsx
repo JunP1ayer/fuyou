@@ -87,13 +87,13 @@ export const ShiftBoardFuyouApp: React.FC = () => {
   const handleOCRComplete = (newShifts: Shift[]) => {
     setShifts(prev => [...prev, ...newShifts]);
     setOcrDialogOpen(false);
-    
+
     // 扶養状況を再計算（簡易版）
     const totalEarnings = [...shifts, ...newShifts].reduce(
       (sum, shift) => sum + shift.calculatedEarnings,
       0
     );
-    
+
     setFuyouStatus(prev => ({
       ...prev,
       currentEarnings: totalEarnings,
@@ -106,13 +106,17 @@ export const ShiftBoardFuyouApp: React.FC = () => {
     <Box sx={{ p: 2, maxWidth: 1200, mx: 'auto' }}>
       {/* ヘッダー */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" gutterBottom sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 2,
-          fontWeight: 'bold',
-          color: 'primary.main' 
-        }}>
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            fontWeight: 'bold',
+            color: 'primary.main',
+          }}
+        >
           <AccountBalance />
           扶養管理 - シフトボード
         </Typography>
@@ -126,12 +130,16 @@ export const ShiftBoardFuyouApp: React.FC = () => {
         <Grid item xs={12} md={8}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+              >
                 <TrendingUp />
                 扶養ステータス
               </Typography>
-              
-              <Alert 
+
+              <Alert
                 severity={getFuyouStatusColor(fuyouStatus.riskLevel) as any}
                 sx={{ mb: 2 }}
               >
@@ -139,7 +147,13 @@ export const ShiftBoardFuyouApp: React.FC = () => {
               </Alert>
 
               <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    mb: 1,
+                  }}
+                >
                   <Typography variant="body2">
                     今年の収入: {fuyouStatus.currentEarnings.toLocaleString()}円
                   </Typography>
@@ -149,7 +163,9 @@ export const ShiftBoardFuyouApp: React.FC = () => {
                 </Box>
                 <LinearProgress
                   variant="determinate"
-                  value={(fuyouStatus.currentEarnings / fuyouStatus.limit) * 100}
+                  value={
+                    (fuyouStatus.currentEarnings / fuyouStatus.limit) * 100
+                  }
                   color={getFuyouStatusColor(fuyouStatus.riskLevel) as any}
                   sx={{ height: 8, borderRadius: 4 }}
                 />
@@ -159,7 +175,10 @@ export const ShiftBoardFuyouApp: React.FC = () => {
                 <Grid item xs={4}>
                   <Paper sx={{ p: 2, textAlign: 'center' }}>
                     <Typography variant="h6" color="primary">
-                      {Math.round((fuyouStatus.currentEarnings / fuyouStatus.limit) * 100)}%
+                      {Math.round(
+                        (fuyouStatus.currentEarnings / fuyouStatus.limit) * 100
+                      )}
+                      %
                     </Typography>
                     <Typography variant="caption">達成率</Typography>
                   </Paper>
@@ -174,7 +193,14 @@ export const ShiftBoardFuyouApp: React.FC = () => {
                 </Grid>
                 <Grid item xs={4}>
                   <Paper sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography variant="h6" color={fuyouStatus.projection.overageRisk ? 'error.main' : 'info.main'}>
+                    <Typography
+                      variant="h6"
+                      color={
+                        fuyouStatus.projection.overageRisk
+                          ? 'error.main'
+                          : 'info.main'
+                      }
+                    >
                       {fuyouStatus.projection.yearEnd.toLocaleString()}円
                     </Typography>
                     <Typography variant="caption">年末予測</Typography>
@@ -191,7 +217,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 クイックアクション
               </Typography>
-              
+
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Tooltip title="シフト表を撮影してAIが自動でシフトを登録">
                   <Box>
@@ -206,7 +232,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
                     />
                   </Box>
                 </Tooltip>
-                
+
                 <Chip
                   icon={<Add />}
                   label="手動でシフト追加"
@@ -215,7 +241,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
                   size="large"
                   sx={{ width: '100%', height: 48 }}
                 />
-                
+
                 <Chip
                   icon={<Upload />}
                   label="給与明細アップロード"
@@ -235,10 +261,10 @@ export const ShiftBoardFuyouApp: React.FC = () => {
         <CardContent>
           <ShiftCalendar
             compactMode={false}
-            onAddShift={(date) => {
+            onAddShift={date => {
               console.log('Add shift for date:', date);
             }}
-            onEditShift={(shift) => {
+            onEditShift={shift => {
               console.log('Edit shift:', shift);
             }}
           />
@@ -246,8 +272,8 @@ export const ShiftBoardFuyouApp: React.FC = () => {
       </Card>
 
       {/* OCRダイアログ */}
-      <Dialog 
-        open={ocrDialogOpen} 
+      <Dialog
+        open={ocrDialogOpen}
         onClose={() => setOcrDialogOpen(false)}
         maxWidth="md"
         fullWidth
@@ -259,7 +285,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
           </Box>
         </DialogTitle>
         <DialogContent>
-          <OCRShiftManager 
+          <OCRShiftManager
             onComplete={handleOCRComplete}
             onCancel={() => setOcrDialogOpen(false)}
           />

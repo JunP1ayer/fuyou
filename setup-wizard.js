@@ -52,7 +52,10 @@ class SetupWizard {
                 </div>
                 <div class="wizard-footer">
                     <button id="wizard-back" class="wizard-btn secondary">戻る</button>
-                    <button id="wizard-next" class="wizard-btn primary">次へ</button>
+                    <div class="wizard-buttons-right">
+                        <button id="wizard-skip" class="wizard-btn secondary" style="margin-right: 8px; font-size: 12px;">スキップ</button>
+                        <button id="wizard-next" class="wizard-btn primary">次へ</button>
+                    </div>
                 </div>
                 <div class="wizard-progress">
                     ${this.steps.map((_, i) => `<span class="progress-dot" data-step="${i}"></span>`).join('')}
@@ -121,28 +124,124 @@ class SetupWizard {
         const body = document.getElementById('wizard-body');
         body.innerHTML = `
             <div class="limits-setup">
-                <div class="info-box">
-                    <h3>2025年 扶養控除限度額</h3>
-                    <p class="limit-amount">¥1,030,000</p>
-                    <p class="limit-note">年間収入がこの金額を超えると扶養から外れます</p>
+                <div class="info-box new-2025">
+                    <h3>🎉 2025年新制度</h3>
+                    <p class="limit-amount">学生: 年収150万円まで</p>
                 </div>
                 
                 <div class="input-group">
                     <label>あなたの状況を選択</label>
                     <select id="student-status" class="wizard-select">
-                        <option value="student">学生（勤労学生控除あり）</option>
-                        <option value="general">一般</option>
+                        <option value="student-19-22">🎓 学生（19-22歳）→ 150万円まで</option>
+                        <option value="student-other">📚 学生（その他年齢）→ 123万円まで</option>
+                        <option value="general">👤 一般（学生以外）→ 123万円まで</option>
                     </select>
                 </div>
                 
                 <div class="input-group">
                     <label>目標年収（任意）</label>
                     <input type="number" id="target-income" class="wizard-input" 
-                           placeholder="例: 1000000" />
-                    <small>扶養内で最大限稼ぎたい場合は 1030000 と入力</small>
+                           placeholder="例: 1400000" />
+                    <div class="income-suggestions">
+                        <button type="button" class="suggestion-btn" onclick="document.getElementById('target-income').value='1230000'">123万円</button>
+                        <button type="button" class="suggestion-btn" onclick="document.getElementById('target-income').value='1500000'">150万円</button>
+                    </div>
                 </div>
+                
+                <div class="tax-benefit-preview" id="tax-preview">
+                    <h5>💰 節税効果予測</h5>
+                    <div id="benefit-details">年収を入力すると詳細が表示されます</div>
+                </div>
+                
+                <details class="detailed-info">
+                    <summary>📊 詳細な制度説明を見る</summary>
+                    <div class="limit-card">
+                        <div class="limit-header">基本扶養控除</div>
+                        <div class="limit-amount-small">年収123万円まで</div>
+                        <div class="limit-desc">従来の扶養控除（38万円）</div>
+                    </div>
+                    <div class="limit-card special">
+                        <div class="limit-header">🆕 特定親族特別控除</div>
+                        <div class="limit-amount-small">年収123万円超〜150万円</div>
+                        <div class="limit-desc">新制度！段階的に控除減額</div>
+                    </div>
+                    <div class="limit-card student">
+                        <div class="limit-header">勤労学生控除</div>
+                        <div class="limit-amount-small">年収150万円まで</div>
+                        <div class="limit-desc">学生本人の所得税ゼロ</div>
+                    </div>
+                </details>
             </div>
         `;
+        
+        // 年収入力に応じてメリット表示を更新
+        const targetIncomeInput = document.getElementById('target-income');
+        const studentStatusSelect = document.getElementById('student-status');
+        
+        const updateBenefitPreview = () => {
+            const income = parseInt(targetIncomeInput.value) || 0;
+            const status = studentStatusSelect.value;
+            const benefitDetails = document.getElementById('benefit-details');
+            
+            if (income === 0) {
+                benefitDetails.innerHTML = '年収を入力すると詳細が表示されます';
+                return;
+            }
+            
+            let result = '';
+            
+            if (status === 'student-19-22') {
+                if (income <= 1230000) {
+                    result = `
+                        <div class="benefit-good">
+                            ✅ 親: 特定扶養控除 63万円<br>
+                            ✅ 本人: 所得税・住民税 0円<br>
+                            <strong>年間節税効果: 約19万円</strong>
+                        </div>
+                    `;
+                } else if (income <= 1500000) {
+                    const controlAmount = Math.max(0, 630000 - Math.floor((income - 1230000) * 0.4));
+                    result = `
+                        <div class="benefit-ok">
+                            ✅ 親: 特定親族特別控除 ${Math.floor(controlAmount/10000)}万円<br>
+                            ✅ 本人: 所得税・住民税 0円<br>
+                            <strong>年間節税効果: 約${Math.floor(controlAmount*0.3/10000)}万円</strong>
+                        </div>
+                    `;
+                } else {
+                    result = `
+                        <div class="benefit-warning">
+                            ⚠️ 親: 扶養控除なし<br>
+                            ⚠️ 本人: 所得税・住民税 発生<br>
+                            <strong>税負担増加の可能性</strong>
+                        </div>
+                    `;
+                }
+            } else {
+                if (income <= 1230000) {
+                    result = `
+                        <div class="benefit-good">
+                            ✅ 親: 扶養控除 38万円<br>
+                            ✅ 本人: 所得税・住民税 0円<br>
+                            <strong>年間節税効果: 約11万円</strong>
+                        </div>
+                    `;
+                } else {
+                    result = `
+                        <div class="benefit-warning">
+                            ⚠️ 親: 扶養控除なし<br>
+                            ⚠️ 本人: 所得税・住民税 発生<br>
+                            <strong>税負担増加の可能性</strong>
+                        </div>
+                    `;
+                }
+            }
+            
+            benefitDetails.innerHTML = result;
+        };
+        
+        targetIncomeInput.addEventListener('input', updateBenefitPreview);
+        studentStatusSelect.addEventListener('change', updateBenefitPreview);
     }
 
     showAIFeatures() {
@@ -268,14 +367,43 @@ class SetupWizard {
                 this.showStep(this.currentStep - 1);
             }
         });
-
-        document.getElementById('wizard-next').addEventListener('click', async () => {
+        
+        document.getElementById('wizard-skip').addEventListener('click', () => {
+            // スキップして次のステップまたは完了へ
             if (this.currentStep < this.steps.length - 1) {
                 this.showStep(this.currentStep + 1);
             } else {
-                // 完了処理
-                await this.saveSettings();
                 this.close();
+            }
+        });
+
+        document.getElementById('wizard-next').addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            try {
+                if (this.currentStep < this.steps.length - 1) {
+                    this.showStep(this.currentStep + 1);
+                } else {
+                    // 完了処理
+                    await this.saveSettings();
+                    this.close();
+                }
+            } catch (error) {
+                console.error('ウィザード操作エラー:', error);
+                // エラーが発生してもウィザードを強制的に進める
+                try {
+                    if (this.currentStep < this.steps.length - 1) {
+                        this.showStep(this.currentStep + 1);
+                    } else {
+                        this.close();
+                    }
+                } catch (fallbackError) {
+                    console.error('フォールバック処理も失敗:', fallbackError);
+                    // 最終手段：ウィザードを強制終了
+                    this.modal?.remove();
+                    localStorage.setItem('fuyou_setup_completed', 'true');
+                }
             }
         });
 
@@ -324,9 +452,11 @@ class SetupWizard {
                 border-radius: 16px;
                 max-width: 500px;
                 width: 90%;
-                max-height: 80vh;
+                max-height: 90vh;
                 overflow: hidden;
                 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                display: flex;
+                flex-direction: column;
             }
 
             .wizard-header {
@@ -348,9 +478,12 @@ class SetupWizard {
             }
 
             .wizard-body {
-                padding: 32px 24px;
-                min-height: 300px;
+                padding: 20px 24px;
+                min-height: 200px;
+                max-height: calc(90vh - 200px);
                 overflow-y: auto;
+                flex: 1;
+                -webkit-overflow-scrolling: touch;
             }
 
             .wizard-footer {
@@ -359,6 +492,9 @@ class SetupWizard {
                 justify-content: space-between;
                 border-top: 1px solid #eee;
                 background: #f9f9f9;
+                flex-shrink: 0;
+                position: relative;
+                z-index: 10;
             }
 
             .wizard-btn {
@@ -439,9 +575,144 @@ class SetupWizard {
                 color: #2e7d32;
                 margin: 8px 0;
             }
+            
+            /* 2025年税制改正対応スタイル */
+            .info-box.new-2025 {
+                background: linear-gradient(135deg, #e8f5e9, #f3e5f5);
+                border: 2px solid #4CAF50;
+            }
+            
+            .tax-reform-highlight {
+                text-align: center;
+                padding: 16px;
+            }
+            
+            .reform-title {
+                font-size: 18px;
+                font-weight: bold;
+                color: #1976d2;
+                margin-bottom: 8px;
+            }
+            
+            .detailed-limits {
+                margin: 20px 0;
+            }
+            
+            .limit-card {
+                background: white;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                padding: 12px;
+                margin: 8px 0;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            .limit-card.special {
+                border-color: #FF9800;
+                background: #fff8e1;
+            }
+            
+            .limit-card.student {
+                border-color: #2196F3;
+                background: #e3f2fd;
+            }
+            
+            .limit-header {
+                font-weight: bold;
+                font-size: 14px;
+                color: #333;
+            }
+            
+            .limit-amount-small {
+                font-size: 16px;
+                font-weight: bold;
+                color: #4CAF50;
+                margin: 4px 0;
+            }
+            
+            .limit-desc {
+                font-size: 12px;
+                color: #666;
+            }
+            
+            .income-suggestions {
+                margin-top: 8px;
+            }
+            
+            .suggestion-btn {
+                background: #f0f0f0;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                padding: 6px 12px;
+                margin: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                transition: all 0.3s;
+            }
+            
+            .suggestion-btn:hover {
+                background: #e0e0e0;
+                border-color: #4CAF50;
+            }
+            
+            .tax-benefit-preview {
+                margin-top: 12px;
+                padding: 12px;
+                background: #f5f5f5;
+                border-radius: 6px;
+                font-size: 14px;
+            }
+            
+            .benefit-good {
+                background: #d1f2eb;
+                color: #0e6b3a;
+                padding: 12px;
+                border-radius: 6px;
+                border-left: 4px solid #28a745;
+            }
+            
+            .benefit-ok {
+                background: #fff3cd;
+                color: #856404;
+                padding: 12px;
+                border-radius: 6px;
+                border-left: 4px solid #ffc107;
+            }
+            
+            .benefit-warning {
+                background: #f8d7da;
+                color: #721c24;
+                padding: 12px;
+                border-radius: 6px;
+                border-left: 4px solid #dc3545;
+            }
+            
+            .detailed-info {
+                margin-top: 16px;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            
+            .detailed-info summary {
+                padding: 12px 16px;
+                background: #f5f5f5;
+                cursor: pointer;
+                font-weight: 500;
+                user-select: none;
+                outline: none;
+            }
+            
+            .detailed-info summary:hover {
+                background: #e9ecef;
+            }
+            
+            .detailed-info[open] summary {
+                border-bottom: 1px solid #e0e0e0;
+            }
 
             .input-group {
-                margin-bottom: 20px;
+                margin-bottom: 16px;
             }
 
             .input-group label {
@@ -508,9 +779,31 @@ class SetupWizard {
             @media (max-width: 600px) {
                 .wizard-content {
                     width: 100%;
-                    height: 100%;
-                    max-height: 100%;
+                    height: 100vh;
+                    max-height: 100vh;
                     border-radius: 0;
+                }
+                
+                .wizard-body {
+                    max-height: calc(100vh - 180px);
+                    padding: 16px 20px;
+                }
+                
+                .wizard-header {
+                    padding: 20px 24px 16px;
+                }
+                
+                .wizard-footer {
+                    padding: 12px 20px;
+                }
+                
+                .input-group {
+                    margin-bottom: 16px;
+                }
+                
+                .suggestion-btn {
+                    padding: 8px 12px;
+                    font-size: 13px;
                 }
             }
         `;

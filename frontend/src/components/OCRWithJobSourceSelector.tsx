@@ -40,7 +40,9 @@ export default function OCRWithJobSourceSelector({
 }: OCRWithJobSourceSelectorProps) {
   const { token } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedJobSource, setSelectedJobSource] = useState<JobSource | null>(null);
+  const [selectedJobSource, setSelectedJobSource] = useState<JobSource | null>(
+    null
+  );
   const [showOCR, setShowOCR] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -105,7 +107,8 @@ export default function OCRWithJobSourceSelector({
       // 成功時の処理
       setError(null);
     } catch (error: any) {
-      const errorMessage = 'シフトの保存に失敗しました: ' + (error.message || 'Unknown error');
+      const errorMessage =
+        'シフトの保存に失敗しました: ' + (error.message || 'Unknown error');
       setError(errorMessage);
       if (onError) {
         onError(errorMessage);
@@ -126,7 +129,14 @@ export default function OCRWithJobSourceSelector({
         {/* ヘッダー */}
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 2,
+              }}
+            >
               <Typography variant="h6">
                 シフト表OCR処理 - {selectedJobSource.name}
               </Typography>
@@ -139,7 +149,7 @@ export default function OCRWithJobSourceSelector({
                 バイト先を変更
               </Button>
             </Box>
-            
+
             <Stepper activeStep={currentStep} sx={{ mt: 2 }}>
               {steps.map((step, index) => (
                 <Step key={index}>
@@ -175,7 +185,7 @@ export default function OCRWithJobSourceSelector({
           <Typography variant="body2" color="text.secondary">
             シフト表の画像を解析する前に、対象のバイト先を選択してください
           </Typography>
-          
+
           <Stepper activeStep={currentStep} sx={{ mt: 3 }}>
             {steps.map((step, index) => (
               <Step key={index}>
@@ -214,13 +224,10 @@ export default function OCRWithJobSourceSelector({
 
           {/* アクションボタン */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-            <Button
-              onClick={onClose}
-              variant="outlined"
-            >
+            <Button onClick={onClose} variant="outlined">
               キャンセル
             </Button>
-            
+
             <Button
               onClick={handleNextStep}
               disabled={!selectedJobSource}

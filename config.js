@@ -29,17 +29,30 @@ const CONFIG = {
         }
     },
     
-    // 扶養制度設定（2025年度）
+    // 扶養制度設定（2025年税制改正対応）
     fuyou: {
-        dependentLimit: 1030000,        // 扶養控除限度額
+        // 2025年新制度
+        basicDependentLimit: 1230000,    // 基本扶養控除限度額（123万円）
+        studentDependentLimit: 1500000,  // 学生扶養控除限度額（150万円・19-22歳）
+        studentWorkingLimit: 1500000,    // 勤労学生控除限度額（150万円）
+        specialDependentStart: 1230000,  // 特定親族特別控除開始額（123万円）
+        specialDependentEnd: 1500000,    // 特定親族特別控除終了額（150万円）
+        
+        // 旧制度（後方互換性のため）
+        legacyDependentLimit: 1030000,   // 旧扶養控除限度額（103万円）
+        
+        // その他の限度額
         socialInsuranceLimit: 1060000,  // 社会保険料免除限度額
         municipalTaxLimit: 1000000,     // 住民税非課税限度額
-        warningThreshold: 0.9,          // 警告レベル (90%)
+        
+        // アラート設定
+        warningThreshold: 0.8,          // 警告レベル (80%)
         dangerThreshold: 0.95,          // 危険レベル (95%)
         
-        // 学生特別控除
+        // 控除額
         studentDeduction: 270000,       // 勤労学生控除
-        basicDeduction: 380000          // 基礎控除
+        basicDeduction: 380000,         // 基礎控除
+        specialFamilyDeduction: 630000  // 特定扶養控除（19-22歳）
     },
     
     // PWA設定
@@ -213,11 +226,75 @@ if (configErrors.length > 0) {
     console.warn('設定エラー:', configErrors);
 }
 
+// 2025年税制に基づく扶養限度額計算
+function getDependentLimit(userStatus = null) {
+    try {
+        // ユーザー設定を取得
+        const userSettings = userStatus || JSON.parse(localStorage.getItem('fuyou_user_settings') || '{}');
+        const studentStatus = userSettings.studentStatus || 'general';
+        
+        // 2025年新制度に基づく限度額決定
+        switch (studentStatus) {
+            case 'student-19-22':
+                // 19-22歳の学生：150万円まで扶養控除対象
+                return CONFIG.fuyou.studentDependentLimit;
+            case 'student-other':
+                // その他年齢の学生：123万円まで
+                return CONFIG.fuyou.basicDependentLimit;
+            case 'general':
+            default:
+                // 一般（学生以外）：123万円まで
+                return CONFIG.fuyou.basicDependentLimit;
+        }
+    } catch (error) {
+        console.warn('ユーザー設定取得エラー、デフォルト値を使用:', error);
+        return CONFIG.fuyou.basicDependentLimit;
+    }
+}
+
+// 税制メリット計算（2025年対応）
+function calculateTaxBenefit(income, userStatus = null) {
+    const userSettings = userStatus || JSON.parse(localStorage.getItem('fuyou_user_settings') || '{}');
+    const studentStatus = userSettings.studentStatus || 'general';
+    
+    let parentDeduction = 0;
+    let studentTax = 0;
+    
+    if (studentStatus === 'student-19-22') {
+        if (income <= CONFIG.fuyou.basicDependentLimit) {
+            // 123万円以下：特定扶養控除63万円
+            parentDeduction = CONFIG.fuyou.specialFamilyDeduction;
+        } else if (income <= CONFIG.fuyou.studentDependentLimit) {
+            // 123万円超〜150万円：特定親族特別控除（段階的減額）
+            const reductionRate = (income - CONFIG.fuyou.specialDependentStart) / 
+                                 (CONFIG.fuyou.specialDependentEnd - CONFIG.fuyou.specialDependentStart);
+            parentDeduction = Math.max(0, CONFIG.fuyou.specialFamilyDeduction * (1 - reductionRate * 0.4));
+        }
+        // 150万円以下なら学生の所得税は0円
+        if (income <= CONFIG.fuyou.studentWorkingLimit) {
+            studentTax = 0;
+        }
+    } else {
+        if (income <= CONFIG.fuyou.basicDependentLimit) {
+            // 一般扶養控除38万円
+            parentDeduction = CONFIG.fuyou.basicDeduction;
+        }
+    }
+    
+    return {
+        parentDeduction,
+        studentTax,
+        totalBenefit: parentDeduction * 0.3 // 概算節税効果（30%税率）
+    };
+}
+
 // グローバル設定として公開
 if (typeof window !== 'undefined') {
     window.FUYOU_CONFIG = CONFIG;
     window.updateConfig = updateConfig;
     window.resetConfig = resetConfig;
+    window.getDependentLimit = getDependentLimit;
+    window.calculateTaxBenefit = calculateTaxBenefit;
 }
 
 // モジュールとしてエクスポート

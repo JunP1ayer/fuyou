@@ -1,20 +1,58 @@
 // 扶養特化最適化エンジン
 class FuyouOptimizationEngine {
     constructor() {
-        // 2025年の扶養控除制度
+        // 2025年税制改正対応
         this.limits = {
-            dependent: 1030000,        // 扶養控除限度額
+            // 動的限度額（ユーザー設定に基づく）
+            dependent: this.getDynamicDependentLimit(),
             socialInsurance: 1060000,  // 社会保険料免除限度額 
             municipalTax: 1000000,     // 住民税非課税限度額
-            warning: 0.9,              // 警告レベル（90%）
+            warning: 0.8,              // 警告レベル（80%に下げて早期警告）
             danger: 0.95               // 危険レベル（95%）
         };
         
-        // 学生の特別控除
-        this.studentBonuses = {
-            勤労学生控除: 270000,      // 勤労学生控除額
-            基礎控除: 380000           // 基礎控除額
+        // 2025年制度の各種控除
+        this.deductions = {
+            basic: 380000,             // 基礎控除
+            studentWorking: 270000,    // 勤労学生控除
+            specialFamily: 630000,     // 特定扶養控除（19-22歳）
+            generalDependent: 380000   // 一般扶養控除
         };
+    }
+    
+    /**
+     * 動的な扶養限度額取得（2025年対応）
+     */
+    getDynamicDependentLimit() {
+        try {
+            if (typeof window !== 'undefined' && window.getDependentLimit) {
+                return window.getDependentLimit();
+            }
+            
+            // フォールバック：設定から動的に判定
+            const userSettings = JSON.parse(localStorage.getItem('fuyou_user_settings') || '{}');
+            const studentStatus = userSettings.studentStatus || 'general';
+            
+            switch (studentStatus) {
+                case 'student-19-22':
+                    return 1500000; // 150万円
+                case 'student-other':
+                    return 1230000; // 123万円
+                case 'general':
+                default:
+                    return 1230000; // 123万円
+            }
+        } catch (error) {
+            console.warn('動的限度額取得エラー、デフォルト値使用:', error);
+            return 1230000; // 2025年の基本限度額
+        }
+    }
+
+    /**
+     * 限度額を最新の設定で更新
+     */
+    refreshDependentLimit() {
+        this.limits.dependent = this.getDynamicDependentLimit();
     }
 
     /**
@@ -25,6 +63,9 @@ class FuyouOptimizationEngine {
      * @returns {Object} リスク分析結果
      */
     analyzeRisk(currentIncome, shifts, workplaces) {
+        // 分析前に限度額を最新化
+        this.refreshDependentLimit();
+        
         const analysis = {
             current: this.getCurrentStatus(currentIncome),
             prediction: this.predictYearEnd(currentIncome, shifts),

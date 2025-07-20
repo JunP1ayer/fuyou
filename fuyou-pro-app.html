@@ -100,16 +100,22 @@
             }
         }
 
-        /* ヘッダー */
+        /* ヘッダー - スマホアプリライク */
         .header {
             background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
-            padding: 20px 16px 16px;
-            padding-top: max(20px, env(safe-area-inset-top));
+            padding: max(env(safe-area-inset-top), 8px) 16px 16px;
             position: sticky;
             top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .header:hover {
+            box-shadow: 0 6px 25px rgba(76, 175, 80, 0.5);
         }
 
         .header-top {
@@ -135,10 +141,31 @@
         }
 
         .fuyou-status {
-            background: rgba(255,255,255,0.15);
-            padding: 12px;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.2);
+            padding: 16px;
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .fuyou-status::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #fff, rgba(255,255,255,0.5), #fff);
+            opacity: 0.6;
+        }
+        
+        .fuyou-status:active {
+            transform: scale(0.98);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
         }
 
         .fuyou-amount {
@@ -153,26 +180,46 @@
         }
 
         .fuyou-bar {
-            height: 6px;
-            background: rgba(255,255,255,0.3);
-            border-radius: 3px;
-            margin-top: 8px;
+            height: 8px;
+            background: rgba(255,255,255,0.25);
+            border-radius: 6px;
+            margin-top: 12px;
             overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .fuyou-progress {
             height: 100%;
-            background: linear-gradient(90deg, #ffeb3b, #ff9800, #f44336);
-            border-radius: 3px;
-            transition: width 0.3s ease;
+            background: linear-gradient(90deg, #ffffff, #f1f8e9, #ffffff);
+            border-radius: 6px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+        
+        .fuyou-progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.4), transparent);
+            border-radius: 6px 6px 0 0;
         }
 
-        /* タブナビゲーション */
+        /* タブナビゲーション - スマホアプリライク */
         .tab-nav {
             display: flex;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
+            background: linear-gradient(135deg, #fafafa, #f0f0f0);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
             overflow-x: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            position: sticky;
+            top: calc(env(safe-area-inset-top) + 120px);
+            z-index: 50;
+            backdrop-filter: blur(10px);
         }
 
         /* タブレット・デスクトップでのタブ調整 */
@@ -197,22 +244,34 @@
             font-weight: 500;
             color: #666;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            border-radius: 12px 12px 0 0;
+            margin: 0 4px;
+        }
+        
+        .tab-btn:hover {
+            color: #4CAF50;
+            background: rgba(76, 175, 80, 0.05);
         }
 
         .tab-btn.active {
             color: #4CAF50;
+            background: rgba(76, 175, 80, 0.08);
+            font-weight: 600;
         }
 
         .tab-btn.active::after {
             content: '';
             position: absolute;
             bottom: 0;
-            left: 0;
-            right: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
             height: 3px;
-            background: #4CAF50;
+            background: linear-gradient(90deg, #4CAF50, #66BB6A);
+            border-radius: 2px 2px 0 0;
+            box-shadow: 0 -2px 8px rgba(76, 175, 80, 0.3);
         }
 
         /* タブコンテンツ */
@@ -999,7 +1058,7 @@
             </div>
             <div class="fuyou-status">
                 <div class="fuyou-amount" id="fuyouAmount">¥0</div>
-                <div class="fuyou-label">年間収入 / ¥1,030,000</div>
+                <div class="fuyou-label" id="fuyouLimitLabel">年間収入 / <span id="dynamicLimitDisplay">¥1,230,000</span></div>
                 <div class="fuyou-bar">
                     <div class="fuyou-progress" id="fuyouProgress" style="width: 0%"></div>
                 </div>
@@ -1102,8 +1161,16 @@
             <div class="analytics-cards">
                 <!-- 扶養ステータスカード -->
                 <div class="analytics-card">
-                    <div class="card-title">扶養控除ステータス</div>
+                    <div class="card-title">📊 扶養控除ステータス（2025年制度）</div>
                     <div id="fuyouStatusDetail">
+                        <div class="prediction-item">
+                            <span class="prediction-label">適用制度</span>
+                            <span class="prediction-value" id="currentTaxRegime">2025年新制度</span>
+                        </div>
+                        <div class="prediction-item">
+                            <span class="prediction-label">年収限度額</span>
+                            <span class="prediction-value" id="currentDependentLimit">¥1,500,000</span>
+                        </div>
                         <div class="prediction-item">
                             <span class="prediction-label">扶養残り予算</span>
                             <span class="prediction-value" id="remainingBudget">¥0</span>
@@ -1115,6 +1182,10 @@
                         <div class="prediction-item">
                             <span class="prediction-label">現在のリスクレベル</span>
                             <span class="prediction-value" id="currentRiskLevel">安全</span>
+                        </div>
+                        <div class="prediction-item">
+                            <span class="prediction-label">💰 年間節税効果</span>
+                            <span class="prediction-value safe" id="taxBenefitAmount">¥0</span>
                         </div>
                     </div>
                 </div>
@@ -1251,7 +1322,9 @@
         }
 
         function getFuyouRisk() {
-            const percentage = (appState.yearlyIncome / 1030000) * 100;
+            // 2025年税制対応：ユーザーの状況に応じた限度額を使用
+            const dependentLimit = window.getDependentLimit ? window.getDependentLimit() : 1230000;
+            const percentage = (appState.yearlyIncome / dependentLimit) * 100;
             if (percentage >= 95) return { level: 'danger', text: '危険' };
             if (percentage >= 90) return { level: 'warning', text: '注意' };
             return { level: 'safe', text: '安全' };
@@ -1262,9 +1335,36 @@
             const amount = document.getElementById('fuyouAmount');
             const progress = document.getElementById('fuyouProgress');
             
+            // 2025年税制対応：ユーザーの状況に応じた限度額を使用
+            const dependentLimit = window.getDependentLimit ? window.getDependentLimit() : 1230000;
+            
             amount.textContent = formatCurrency(appState.yearlyIncome);
-            const percentage = Math.min((appState.yearlyIncome / 1030000) * 100, 100);
+            const percentage = Math.min((appState.yearlyIncome / dependentLimit) * 100, 100);
             progress.style.width = percentage + '%';
+            
+            // 動的限度額表示を更新
+            const dynamicLimitDisplay = document.getElementById('dynamicLimitDisplay');
+            if (dynamicLimitDisplay) {
+                dynamicLimitDisplay.textContent = formatCurrency(dependentLimit);
+            }
+            
+            // ユーザーの制度情報を表示
+            const userSettings = JSON.parse(localStorage.getItem('fuyou_user_settings') || '{}');
+            const studentStatus = userSettings.studentStatus || 'general';
+            
+            // 限度額ラベルにユーザー制度を反映
+            const fuyouLimitLabel = document.getElementById('fuyouLimitLabel');
+            if (fuyouLimitLabel) {
+                let labelText = '年間収入 / ';
+                if (studentStatus === 'student-19-22') {
+                    labelText = '年間収入 (学生・19-22歳) / ';
+                } else if (studentStatus === 'student-other') {
+                    labelText = '年間収入 (学生) / ';
+                } else {
+                    labelText = '年間収入 (一般) / ';
+                }
+                fuyouLimitLabel.innerHTML = labelText + `<span id="dynamicLimitDisplay">${formatCurrency(dependentLimit)}</span>`;
+            }
         }
 
         function updateCalendar() {
@@ -1520,12 +1620,53 @@
         }
 
         function updateFuyouStatusDetail(currentStatus) {
-            document.getElementById('remainingBudget').textContent = formatCurrency(currentStatus.dependentRemaining);
-            document.getElementById('safetyMargin').textContent = formatCurrency(Math.max(0, currentStatus.safetyMargin));
+            // 2025年税制対応：動的な限度額計算
+            const dependentLimit = window.getDependentLimit ? window.getDependentLimit() : 1230000;
+            const remaining = Math.max(0, dependentLimit - appState.yearlyIncome);
+            
+            // ユーザー設定に基づく制度情報表示
+            const userSettings = JSON.parse(localStorage.getItem('fuyou_user_settings') || '{}');
+            const studentStatus = userSettings.studentStatus || 'general';
+            
+            // 適用制度の表示
+            let regimeText = '2025年新制度';
+            if (studentStatus === 'student-19-22') {
+                regimeText += ' (学生・19-22歳)';
+            } else if (studentStatus === 'student-other') {
+                regimeText += ' (学生・その他年齢)';
+            } else {
+                regimeText += ' (一般)';
+            }
+            document.getElementById('currentTaxRegime').textContent = regimeText;
+            
+            // 限度額表示
+            document.getElementById('currentDependentLimit').textContent = formatCurrency(dependentLimit);
+            
+            // 基本情報更新
+            document.getElementById('remainingBudget').textContent = formatCurrency(remaining);
+            document.getElementById('safetyMargin').textContent = formatCurrency(Math.max(0, dependentLimit * 0.8 - appState.yearlyIncome));
             
             const riskElement = document.getElementById('currentRiskLevel');
-            riskElement.textContent = getRiskLevelText(currentStatus.riskLevel);
-            riskElement.className = `prediction-value ${currentStatus.riskLevel}`;
+            const risk = getFuyouRisk();
+            riskElement.textContent = risk.text;
+            riskElement.className = `prediction-value ${risk.level}`;
+            
+            // 税制メリット表示（2025年対応）
+            if (window.calculateTaxBenefit) {
+                const benefit = window.calculateTaxBenefit(appState.yearlyIncome);
+                const benefitElement = document.getElementById('taxBenefitAmount');
+                if (benefitElement) {
+                    benefitElement.textContent = formatCurrency(Math.round(benefit.totalBenefit));
+                    // メリットの大きさに応じて色分け
+                    if (benefit.totalBenefit > 150000) {
+                        benefitElement.className = 'prediction-value safe';
+                    } else if (benefit.totalBenefit > 80000) {
+                        benefitElement.className = 'prediction-value warning';
+                    } else {
+                        benefitElement.className = 'prediction-value danger';
+                    }
+                }
+            }
         }
 
         function updatePredictionsAdvanced(prediction) {

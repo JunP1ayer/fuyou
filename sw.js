@@ -192,7 +192,27 @@ async function checkFuyouLimit() {
     
     // ローカルストレージから現在の収入を取得
     const currentIncome = await getCurrentIncome();
-    const fuyouLimit = 1030000;
+    // 2025年税制対応：動的限度額取得
+    const getUserSettings = () => {
+        try {
+            const settings = JSON.parse(localStorage.getItem('fuyou_user_settings') || '{}');
+            const studentStatus = settings.studentStatus || 'general';
+            
+            switch (studentStatus) {
+                case 'student-19-22':
+                    return 1500000; // 150万円
+                case 'student-other':
+                    return 1230000; // 123万円
+                case 'general':
+                default:
+                    return 1230000; // 123万円
+            }
+        } catch {
+            return 1230000; // デフォルト値
+        }
+    };
+    
+    const fuyouLimit = getUserSettings();
     const warningThreshold = fuyouLimit * 0.9; // 90%で警告
     
     if (currentIncome >= warningThreshold) {

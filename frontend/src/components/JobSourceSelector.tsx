@@ -32,7 +32,13 @@ import { useAuth } from '../contexts/AuthContext';
 export interface JobSource {
   id: string;
   name: string;
-  category: 'part_time_job' | 'temporary_work' | 'freelance' | 'scholarship' | 'family_support' | 'other';
+  category:
+    | 'part_time_job'
+    | 'temporary_work'
+    | 'freelance'
+    | 'scholarship'
+    | 'family_support'
+    | 'other';
   hourly_rate?: number;
   expected_monthly_hours?: number;
   is_active: boolean;
@@ -120,7 +126,7 @@ export default function JobSourceSelector({
   const handleAddJobSource = async () => {
     try {
       setError(null);
-      
+
       if (!newJobSource.name.trim()) {
         setError('バイト先名を入力してください');
         return;
@@ -129,23 +135,27 @@ export default function JobSourceSelector({
       const data = {
         name: newJobSource.name.trim(),
         category: newJobSource.category,
-        hourlyRate: newJobSource.hourlyRate ? parseFloat(newJobSource.hourlyRate) : undefined,
-        expectedMonthlyHours: newJobSource.expectedMonthlyHours ? parseInt(newJobSource.expectedMonthlyHours) : undefined,
+        hourlyRate: newJobSource.hourlyRate
+          ? parseFloat(newJobSource.hourlyRate)
+          : undefined,
+        expectedMonthlyHours: newJobSource.expectedMonthlyHours
+          ? parseInt(newJobSource.expectedMonthlyHours)
+          : undefined,
       };
 
       const response = await apiService.createJobSource(token!, data);
-      
+
       // リストを更新
       await loadJobSources();
-      
+
       // 新規作成したバイト先を自動選択
       if (response.data) {
         onJobSourceSelect(response.data);
       }
-      
+
       // ダイアログを閉じる
       setAddDialogOpen(false);
-      
+
       // フォームをリセット
       setNewJobSource({
         name: '',
@@ -159,7 +169,9 @@ export default function JobSourceSelector({
     }
   };
 
-  const selectedJobSource = jobSources.find(js => js.id === selectedJobSourceId);
+  const selectedJobSource = jobSources.find(
+    js => js.id === selectedJobSourceId
+  );
 
   return (
     <Box>
@@ -181,7 +193,7 @@ export default function JobSourceSelector({
             <MenuItem value="">
               <em>選択してください</em>
             </MenuItem>
-            {jobSources.map((jobSource) => (
+            {jobSources.map(jobSource => (
               <MenuItem key={jobSource.id} value={jobSource.id}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   {categoryIcons[jobSource.category]}
@@ -191,7 +203,8 @@ export default function JobSourceSelector({
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {categoryLabels[jobSource.category]}
-                      {jobSource.hourly_rate && ` | ¥${jobSource.hourly_rate}/時間`}
+                      {jobSource.hourly_rate &&
+                        ` | ¥${jobSource.hourly_rate}/時間`}
                     </Typography>
                   </Box>
                 </Box>
@@ -253,7 +266,13 @@ export default function JobSourceSelector({
         fullWidth
       >
         <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
             新しいバイト先を追加
             <IconButton onClick={() => setAddDialogOpen(false)}>
               <CloseIcon />
@@ -267,7 +286,9 @@ export default function JobSourceSelector({
                 fullWidth
                 label="バイト先名"
                 value={newJobSource.name}
-                onChange={(e) => setNewJobSource({ ...newJobSource, name: e.target.value })}
+                onChange={e =>
+                  setNewJobSource({ ...newJobSource, name: e.target.value })
+                }
                 required
                 placeholder="例: 〇〇カフェ 新宿店"
               />
@@ -278,11 +299,18 @@ export default function JobSourceSelector({
                 <Select
                   value={newJobSource.category}
                   label="カテゴリ"
-                  onChange={(e) => setNewJobSource({ ...newJobSource, category: e.target.value as JobSource['category'] })}
+                  onChange={e =>
+                    setNewJobSource({
+                      ...newJobSource,
+                      category: e.target.value as JobSource['category'],
+                    })
+                  }
                 >
                   {Object.entries(categoryLabels).map(([value, label]) => (
                     <MenuItem key={value} value={value}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                      >
                         {categoryIcons[value as JobSource['category']]}
                         {label}
                       </Box>
@@ -297,7 +325,12 @@ export default function JobSourceSelector({
                 label="時給 (円)"
                 type="number"
                 value={newJobSource.hourlyRate}
-                onChange={(e) => setNewJobSource({ ...newJobSource, hourlyRate: e.target.value })}
+                onChange={e =>
+                  setNewJobSource({
+                    ...newJobSource,
+                    hourlyRate: e.target.value,
+                  })
+                }
                 placeholder="1000"
               />
             </Grid>
@@ -307,16 +340,19 @@ export default function JobSourceSelector({
                 label="月間予定時間"
                 type="number"
                 value={newJobSource.expectedMonthlyHours}
-                onChange={(e) => setNewJobSource({ ...newJobSource, expectedMonthlyHours: e.target.value })}
+                onChange={e =>
+                  setNewJobSource({
+                    ...newJobSource,
+                    expectedMonthlyHours: e.target.value,
+                  })
+                }
                 placeholder="80"
               />
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAddDialogOpen(false)}>
-            キャンセル
-          </Button>
+          <Button onClick={() => setAddDialogOpen(false)}>キャンセル</Button>
           <Button onClick={handleAddJobSource} variant="contained">
             追加
           </Button>

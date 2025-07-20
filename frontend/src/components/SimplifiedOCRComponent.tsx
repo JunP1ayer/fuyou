@@ -66,16 +66,19 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingShifts, setEditingShifts] = useState<CreateShiftData[]>([]);
   const [error, setError] = useState<string | null>(null);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ファイル選択処理
-  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      processFile(file);
-    }
-  }, []);
+  const handleFileSelect = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        processFile(file);
+      }
+    },
+    []
+  );
 
   // ファイル処理
   const processFile = (file: File) => {
@@ -84,7 +87,7 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
       setError('画像ファイルを選択してください');
       return;
     }
-    
+
     if (file.size > 5 * 1024 * 1024) {
       setError('ファイルサイズは5MB以下にしてください');
       return;
@@ -108,11 +111,11 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
     try {
       // 自然言語OCR処理（GPT-4を使用したバックエンド処理）
       const response = await apiService.uploadImageForNaturalLanguageOCR(
-        token, 
-        file, 
+        token,
+        file,
         'ユーザー' // 実際のユーザー名を取得する場合は useAuth から取得
       );
-      
+
       if (!response.success || !response.data) {
         throw new Error('OCR処理に失敗しました');
       }
@@ -127,15 +130,14 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
 
       setResult(naturalLanguageResult);
       setStage('result');
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'OCR処理に失敗しました';
+      const errorMessage =
+        error instanceof Error ? error.message : 'OCR処理に失敗しました';
       setError(errorMessage);
       setStage('input');
       onError?.(errorMessage);
     }
   };
-
 
   // 確認処理
   const handleConfirm = async () => {
@@ -144,7 +146,7 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
     try {
       // バルクシフト登録
       const response = await apiService.createBulkShifts(token, result.shifts);
-      
+
       if (response.success) {
         onShiftsSaved?.(result.shifts);
         onClose?.();
@@ -152,7 +154,8 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
         throw new Error('シフト登録に失敗しました');
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'シフト登録に失敗しました';
+      const errorMessage =
+        error instanceof Error ? error.message : 'シフト登録に失敗しました';
       setError(errorMessage);
       onError?.(errorMessage);
     }
@@ -172,7 +175,7 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
 
     try {
       const response = await apiService.createBulkShifts(token, editingShifts);
-      
+
       if (response.success) {
         setEditDialogOpen(false);
         onShiftsSaved?.(editingShifts);
@@ -181,7 +184,8 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
         throw new Error('シフト登録に失敗しました');
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'シフト登録に失敗しました';
+      const errorMessage =
+        error instanceof Error ? error.message : 'シフト登録に失敗しました';
       setError(errorMessage);
     }
   };
@@ -205,18 +209,31 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
           {stage === 'input' && (
             <Fade in>
               <Box textAlign="center">
-                <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'primary.main', width: 64, height: 64 }}>
+                <Avatar
+                  sx={{
+                    mx: 'auto',
+                    mb: 2,
+                    bgcolor: 'primary.main',
+                    width: 64,
+                    height: 64,
+                  }}
+                >
                   <CameraAlt sx={{ fontSize: 32 }} />
                 </Avatar>
-                
+
                 <Typography variant="h5" gutterBottom fontWeight="bold">
                   📷 シフト表を撮影してください
                 </Typography>
-                
-                <Typography variant="body1" color="text.secondary" paragraph sx={{ mb: 4 }}>
+
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  paragraph
+                  sx={{ mb: 4 }}
+                >
                   写真を撮るだけで、AIが自動でシフト情報を読み取ります
                 </Typography>
-                
+
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -224,15 +241,15 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                   onChange={handleFileSelect}
                   style={{ display: 'none' }}
                 />
-                
+
                 <Box sx={{ mb: 3 }}>
                   <Button
                     variant="contained"
                     size="large"
                     startIcon={<CameraAlt />}
                     onClick={() => fileInputRef.current?.click()}
-                    sx={{ 
-                      minHeight: 60, 
+                    sx={{
+                      minHeight: 60,
                       minWidth: 200,
                       fontSize: '1.1rem',
                       borderRadius: 3,
@@ -241,7 +258,7 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                     写真を撮る・選択する
                   </Button>
                 </Box>
-                
+
                 <Typography variant="caption" color="text.secondary">
                   対応形式: JPG, PNG, JPEG（最大5MB）
                 </Typography>
@@ -254,15 +271,15 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
             <Fade in>
               <Box textAlign="center" py={4}>
                 <CircularProgress size={60} sx={{ mb: 3 }} />
-                
+
                 <Typography variant="h6" gutterBottom>
                   シフト表を読み取っています...
                 </Typography>
-                
+
                 <Typography variant="body2" color="text.secondary">
                   AIが画像を解析中です（約5-10秒）
                 </Typography>
-                
+
                 <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
                   <Typography variant="caption" color="text.secondary">
                     💡 より正確な読み取りのコツ：
@@ -283,11 +300,18 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                     <SmartToy />
                   </Avatar>
                   <Box flex={1}>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
                       AI アシスタント
                     </Typography>
                     <Paper sx={{ p: 3, bgcolor: 'grey.50', borderRadius: 2 }}>
-                      <Typography variant="body1" sx={{ whiteSpace: 'pre-line', lineHeight: 1.6 }}>
+                      <Typography
+                        variant="body1"
+                        sx={{ whiteSpace: 'pre-line', lineHeight: 1.6 }}
+                      >
                         {result.message}
                       </Typography>
                     </Paper>
@@ -304,7 +328,12 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                 )}
 
                 {/* アクションボタン */}
-                <Box display="flex" gap={2} justifyContent="center" flexWrap="wrap">
+                <Box
+                  display="flex"
+                  gap={2}
+                  justifyContent="center"
+                  flexWrap="wrap"
+                >
                   <Button
                     variant="contained"
                     color="primary"
@@ -315,7 +344,7 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                   >
                     はい、この通りです
                   </Button>
-                  
+
                   <Button
                     variant="outlined"
                     size="large"
@@ -357,34 +386,43 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
       </Card>
 
       {/* 編集ダイアログ */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>
-          <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+          >
             <Typography variant="h6">シフト情報を編集</Typography>
             <IconButton onClick={() => setEditDialogOpen(false)}>
               <Close />
             </IconButton>
           </Box>
         </DialogTitle>
-        
+
         <DialogContent>
           <Typography variant="body2" color="text.secondary" paragraph>
             読み取った内容を確認・修正してください
           </Typography>
-          
+
           {editingShifts.map((shift, index) => (
             <Card key={index} sx={{ mb: 2, p: 2 }}>
               <Typography variant="subtitle2" gutterBottom color="primary">
                 シフト {index + 1}
               </Typography>
-              
+
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     label="日付"
                     type="date"
                     value={shift.date}
-                    onChange={(e) => {
+                    onChange={e => {
                       const newShifts = [...editingShifts];
                       newShifts[index].date = e.target.value;
                       setEditingShifts(newShifts);
@@ -393,13 +431,13 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                     InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
-                
+
                 <Grid item xs={6} sm={3}>
                   <TextField
                     label="開始時間"
                     type="time"
                     value={shift.startTime}
-                    onChange={(e) => {
+                    onChange={e => {
                       const newShifts = [...editingShifts];
                       newShifts[index].startTime = e.target.value;
                       setEditingShifts(newShifts);
@@ -408,13 +446,13 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                     InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
-                
+
                 <Grid item xs={6} sm={3}>
                   <TextField
                     label="終了時間"
                     type="time"
                     value={shift.endTime}
-                    onChange={(e) => {
+                    onChange={e => {
                       const newShifts = [...editingShifts];
                       newShifts[index].endTime = e.target.value;
                       setEditingShifts(newShifts);
@@ -423,12 +461,12 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                     InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
-                
+
                 <Grid item xs={12} sm={6}>
                   <TextField
                     label="勤務場所"
                     value={shift.jobSourceName}
-                    onChange={(e) => {
+                    onChange={e => {
                       const newShifts = [...editingShifts];
                       newShifts[index].jobSourceName = e.target.value;
                       setEditingShifts(newShifts);
@@ -436,13 +474,13 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                     fullWidth
                   />
                 </Grid>
-                
+
                 <Grid item xs={12} sm={6}>
                   <TextField
                     label="時給"
                     type="number"
                     value={shift.hourlyRate}
-                    onChange={(e) => {
+                    onChange={e => {
                       const newShifts = [...editingShifts];
                       newShifts[index].hourlyRate = Number(e.target.value);
                       setEditingShifts(newShifts);
@@ -454,22 +492,20 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                   />
                 </Grid>
               </Grid>
-              
+
               {/* 計算表示 */}
               <Box mt={2} p={2} bgcolor="grey.50" borderRadius={1}>
                 <Typography variant="body2" color="text.secondary">
-                  勤務時間: {calculateWorkHours(shift)}時間 | 
-                  予想収入: {calculateEarnings(shift).toLocaleString()}円
+                  勤務時間: {calculateWorkHours(shift)}時間 | 予想収入:{' '}
+                  {calculateEarnings(shift).toLocaleString()}円
                 </Typography>
               </Box>
             </Card>
           ))}
         </DialogContent>
-        
+
         <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>
-            キャンセル
-          </Button>
+          <Button onClick={() => setEditDialogOpen(false)}>キャンセル</Button>
           <Button variant="contained" onClick={handleEditComplete}>
             シフトを登録
           </Button>

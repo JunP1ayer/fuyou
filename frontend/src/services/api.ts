@@ -476,7 +476,11 @@ class ApiService {
     return data;
   }
 
-  async uploadImageForNaturalLanguageOCR(token: string, imageFile: File, userName?: string) {
+  async uploadImageForNaturalLanguageOCR(
+    token: string,
+    imageFile: File,
+    userName?: string
+  ) {
     const formData = new FormData();
     formData.append('image', imageFile);
     if (userName) {
@@ -495,7 +499,9 @@ class ApiService {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error?.message || 'Natural language OCR processing failed');
+      throw new Error(
+        data.error?.message || 'Natural language OCR processing failed'
+      );
     }
 
     return data;
@@ -718,17 +724,26 @@ class ApiService {
     });
   }
 
-  async createJobSource(token: string, data: {
-    name: string;
-    category: 'part_time_job' | 'temporary_work' | 'freelance' | 'scholarship' | 'family_support' | 'other';
-    hourlyRate?: number;
-    expectedMonthlyHours?: number;
-    bankAccountInfo?: {
-      bankName?: string;
-      accountType?: string;
-      accountNumber?: string;
-    };
-  }) {
+  async createJobSource(
+    token: string,
+    data: {
+      name: string;
+      category:
+        | 'part_time_job'
+        | 'temporary_work'
+        | 'freelance'
+        | 'scholarship'
+        | 'family_support'
+        | 'other';
+      hourlyRate?: number;
+      expectedMonthlyHours?: number;
+      bankAccountInfo?: {
+        bankName?: string;
+        accountType?: string;
+        accountNumber?: string;
+      };
+    }
+  ) {
     return this.request('/job-sources', {
       method: 'POST',
       headers: {
