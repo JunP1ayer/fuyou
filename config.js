@@ -8,7 +8,7 @@ const CONFIG = {
         // OpenAI設定
         openai: {
             apiKey: null, // 環境変数から取得
-            model: 'gpt-4o',
+            model: 'gpt-4o-mini', // 🆕 2024年最新モデル
             maxTokens: 2000,
             temperature: 0.1,
             enabled: true // 完全無料提供
@@ -17,7 +17,7 @@ const CONFIG = {
         // Gemini設定
         gemini: {
             apiKey: null, // 環境変数から取得
-            model: 'gemini-pro-vision',
+            model: 'gemini-1.5-flash', // 🆕 2024年最新の高速モデル
             enabled: true // Gemini も利用可能
         },
         
