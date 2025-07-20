@@ -212,14 +212,23 @@
         /* タブナビゲーション - スマホアプリライク */
         .tab-nav {
             display: flex;
-            background: linear-gradient(135deg, #fafafa, #f0f0f0);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border-bottom: 1px solid rgba(76, 175, 80, 0.1);
             overflow-x: auto;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 12px rgba(76, 175, 80, 0.08);
             position: sticky;
             top: calc(env(safe-area-inset-top) + 120px);
             z-index: 50;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
+            /* タイムツリー風の洗練されたデザイン */
+            padding: 4px 8px;
+            margin-bottom: 2px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        
+        .tab-nav::-webkit-scrollbar {
+            display: none;
         }
 
         /* タブレット・デスクトップでのタブ調整 */
@@ -237,25 +246,27 @@
 
         .tab-btn {
             flex: 1;
-            padding: 18px 8px; /* タッチしやすいサイズに拡大 */
-            background: none;
+            padding: 12px 16px;
+            background: transparent;
             border: none;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 13px;
+            font-weight: 600;
             color: #666;
             cursor: pointer;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-            border-radius: 12px 12px 0 0;
-            margin: 0 4px;
-            /* スマホ向けタッチ最適化 */
-            min-height: 52px; /* 最小タッチターゲットサイズ */
+            border-radius: 10px;
+            margin: 0 2px;
+            /* シンプルカレンダー風のミニマルデザイン */
+            min-height: 48px;
             -webkit-tap-highlight-color: rgba(76, 175, 80, 0.15);
             touch-action: manipulation;
             user-select: none;
             display: flex;
             align-items: center;
             justify-content: center;
+            /* タイムツリー風の色分けサポート */
+            overflow: hidden;
         }
         
         .tab-btn:hover,
@@ -273,21 +284,36 @@
 
         .tab-btn.active {
             color: #4CAF50;
-            background: rgba(76, 175, 80, 0.08);
-            font-weight: 600;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.15));
+            font-weight: 700;
+            /* シフトボード風のアクティブ表示 */
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+            transform: translateY(-1px);
         }
 
         .tab-btn.active::after {
             content: '';
             position: absolute;
-            bottom: 0;
+            bottom: -4px;
             left: 50%;
             transform: translateX(-50%);
-            width: 32px;
+            width: 24px;
             height: 3px;
             background: linear-gradient(90deg, #4CAF50, #66BB6A);
-            border-radius: 2px 2px 0 0;
-            box-shadow: 0 -2px 8px rgba(76, 175, 80, 0.3);
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+        }
+        
+        /* タイムツリー風のタブアイコン追加サポート */
+        .tab-btn::before {
+            content: attr(data-icon);
+            font-size: 16px;
+            margin-right: 4px;
+            opacity: 0.8;
+        }
+        
+        .tab-btn.active::before {
+            opacity: 1;
         }
 
         /* タブコンテンツ */
@@ -304,10 +330,18 @@
         /* カレンダータブ */
         .calendar-month {
             text-align: center;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: #333;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 20px 0 16px 0;
+            color: #2c3e50;
+            padding: 16px;
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid rgba(76, 175, 80, 0.1);
+            /* タイムツリー風のエレガント感 */
+            letter-spacing: 0.5px;
+            user-select: none;
         }
 
         .weekdays {
@@ -339,28 +373,40 @@
 
         .calendar-cell {
             aspect-ratio: 1;
-            background: white;
+            background: #ffffff;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             position: relative;
-            transition: background 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 6px;
+            margin: 1px;
+            /* シフトボード風の洗練されたセル */
+            border: 1px solid rgba(0,0,0,0.04);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
         }
 
         .calendar-cell:hover {
-            background: #f8f9fa;
+            background: rgba(76, 175, 80, 0.05);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
         }
 
         .calendar-cell.today {
-            background: #e8f5e8;
+            background: linear-gradient(135deg, #e8f5e8, #f1f8e9);
+            border: 2px solid #4CAF50;
+            box-shadow: 0 0 12px rgba(76, 175, 80, 0.2);
+            /* タイムツリー風の今日強調 */
+            font-weight: 700;
         }
 
         .calendar-cell.disabled {
             background: #f8f9fa;
-            color: #ccc;
+            color: #bbb;
             cursor: default;
+            opacity: 0.6;
         }
 
         .calendar-day {
@@ -1325,10 +1371,10 @@
 
         <!-- タブナビゲーション -->
         <nav class="tab-nav">
-            <button class="tab-btn active" data-tab="calendar">カレンダー</button>
-            <button class="tab-btn" data-tab="workplaces">バイト先</button>
-            <button class="tab-btn" data-tab="ai-analysis">AI分析</button>
-            <button class="tab-btn" data-tab="analytics">分析</button>
+            <button class="tab-btn active" data-tab="calendar" data-icon="📅">カレンダー</button>
+            <button class="tab-btn" data-tab="workplaces" data-icon="🏢">バイト先</button>
+            <button class="tab-btn" data-tab="ai-analysis" data-icon="🤖">AI分析</button>
+            <button class="tab-btn" data-tab="analytics" data-icon="📊">分析</button>
         </nav>
 
         <!-- カレンダータブ -->
