@@ -1,7 +1,15 @@
-# すべてのフォルダを除外（必要なHTMLファイルのみデプロイ）
-*
-!index.html
-!fuyou-pro-app.html
-!deploy/
-!deploy/index.html
-!deploy/vercel.json
+# 不要なファイルを除外
+node_modules/
+frontend/
+backend/
+optimization_service/
+*.log
+.env*
+.git/
+*.md
+!README.md
+*.cjs
+*.mjs
+database/
+calendar_data/
+data/
