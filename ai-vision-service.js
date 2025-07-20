@@ -12,9 +12,21 @@ class AIVisionService {
     }
     
     initializeAPIKey() {
+        // 🆕 セキュア設定ローダーから自動取得
+        if (typeof window !== 'undefined' && window.secureConfig) {
+            this.apiKey = window.secureConfig.getSecureKey('openai');
+            if (this.apiKey) {
+                console.log('✅ OpenAI APIキーを自動取得しました（全ユーザー利用可能）');
+                return;
+            }
+        }
+        
+        // フォールバック：設定ファイルから取得
         if (typeof window !== 'undefined' && window.FUYOU_CONFIG) {
             this.apiKey = window.FUYOU_CONFIG.api.openai.apiKey;
-            console.log('OpenAI APIキーを設定から取得しました');
+            if (this.apiKey) {
+                console.log('OpenAI APIキーを設定から取得しました');
+            }
         }
     }
 

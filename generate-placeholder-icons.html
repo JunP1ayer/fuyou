@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>プレースホルダーアイコン生成</title>
+</head>
+<body>
+    <h1>自動アイコン生成中...</h1>
+    <script>
+        // プレースホルダーアイコンを自動生成
+        function generatePlaceholderIcon(size, filename) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // 背景（緑）
+            ctx.fillStyle = '#4CAF50';
+            ctx.fillRect(0, 0, size, size);
+
+            // 内側の円（白）
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size/2 - size/8, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // ¥記号
+            ctx.fillStyle = '#4CAF50';
+            ctx.font = `bold ${size * 0.4}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('¥', size/2, size/2);
+
+            // DataURLを取得してダウンロード
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+
+        // 必要なアイコンサイズ
+        const icons = [
+            {size: 16, name: 'favicon-16x16.png'},
+            {size: 32, name: 'favicon-32x32.png'},
+            {size: 96, name: 'shortcut-96.png'},
+            {size: 180, name: 'apple-touch-icon.png'},
+            {size: 192, name: 'icon-192.png'},
+            {size: 512, name: 'icon-512.png'},
+            {size: 192, name: 'icon-maskable-192.png'},
+            {size: 512, name: 'icon-maskable-512.png'}
+        ];
+
+        // 順次生成（ブラウザの制限を避けるため間隔をあける）
+        let index = 0;
+        function generateNext() {
+            if (index < icons.length) {
+                const icon = icons[index];
+                console.log(`Generating ${icon.name}...`);
+                generatePlaceholderIcon(icon.size, icon.name);
+                index++;
+                setTimeout(generateNext, 100); // 100ms間隔
+            } else {
+                document.body.innerHTML = '<h1>✅ 全てのアイコンが生成されました！</h1><p>ダウンロードフォルダをチェックしてください。</p>';
+            }
+        }
+
+        // 1秒後に開始
+        setTimeout(generateNext, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PWAアイコン生成ツール</title>
+    <style>
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        .icon-container { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; }
+        .icon-item { text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>扶養プロ PWAアイコン生成</h1>
+    <button onclick="generateIcons()">アイコン生成</button>
+    <div id="icons" class="icon-container"></div>
+
+    <script>
+        function generateIcons() {
+            const sizes = [
+                { size: 16, name: 'favicon-16x16.png' },
+                { size: 32, name: 'favicon-32x32.png' },
+                { size: 96, name: 'shortcut-96.png' },
+                { size: 180, name: 'apple-touch-icon.png' },
+                { size: 192, name: 'icon-192.png' },
+                { size: 512, name: 'icon-512.png' }
+            ];
+
+            const container = document.getElementById('icons');
+            container.innerHTML = '';
+
+            sizes.forEach(({size, name}) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+
+                // 背景円（緑）
+                ctx.fillStyle = '#4CAF50';
+                ctx.beginPath();
+                ctx.arc(size/2, size/2, size/2 - 2, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // 内側の白い円
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(size/2, size/2, size/2 - size/8, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // ¥記号
+                ctx.fillStyle = '#4CAF50';
+                ctx.font = `bold ${size * 0.4}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('¥', size/2, size/2);
+
+                // 小さな星（大きなサイズのみ）
+                if (size >= 96) {
+                    ctx.fillStyle = '#FFC107';
+                    const starX = size * 0.75;
+                    const starY = size * 0.3;
+                    const starSize = size * 0.08;
+                    drawStar(ctx, starX, starY, starSize);
+                }
+
+                // ダウンロードリンク作成
+                const div = document.createElement('div');
+                div.className = 'icon-item';
+                div.innerHTML = `
+                    <div>${name}</div>
+                    <div>${size}x${size}</div>
+                `;
+                div.appendChild(canvas);
+                
+                const downloadLink = document.createElement('a');
+                downloadLink.download = name;
+                downloadLink.href = canvas.toDataURL();
+                downloadLink.textContent = 'ダウンロード';
+                downloadLink.style.display = 'block';
+                downloadLink.style.marginTop = '5px';
+                div.appendChild(downloadLink);
+
+                container.appendChild(div);
+            });
+        }
+
+        function drawStar(ctx, x, y, size) {
+            const spikes = 5;
+            const step = Math.PI / spikes;
+            let rot = Math.PI / 2 * 3;
+            let sx = x;
+            let sy = y;
+            
+            ctx.beginPath();
+            ctx.moveTo(x, y - size);
+            
+            for (let i = 0; i < spikes; i++) {
+                sx = x + Math.cos(rot) * size;
+                sy = y + Math.sin(rot) * size;
+                ctx.lineTo(sx, sy);
+                rot += step;
+                
+                sx = x + Math.cos(rot) * (size * 0.5);
+                sy = y + Math.sin(rot) * (size * 0.5);
+                ctx.lineTo(sx, sy);
+                rot += step;
+            }
+            
+            ctx.lineTo(x, y - size);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // 自動生成実行
+        window.onload = generateIcons;
+    </script>
+</body>
+</html>

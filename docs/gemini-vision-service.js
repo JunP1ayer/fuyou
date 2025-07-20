@@ -7,8 +7,25 @@ class GeminiVisionService {
         this.retryDelay = 1000;
         
         // 設定から API キーを取得
+        this.initializeAPIKey();
+    }
+    
+    initializeAPIKey() {
+        // 🆕 セキュア設定ローダーから自動取得
+        if (typeof window !== 'undefined' && window.secureConfig) {
+            this.apiKey = window.secureConfig.getSecureKey('gemini');
+            if (this.apiKey) {
+                console.log('✅ Gemini APIキーを自動取得しました（全ユーザー利用可能）');
+                return;
+            }
+        }
+        
+        // フォールバック：設定ファイルから取得
         if (typeof window !== 'undefined' && window.FUYOU_CONFIG) {
             this.apiKey = window.FUYOU_CONFIG.api.gemini.apiKey;
+            if (this.apiKey) {
+                console.log('Gemini APIキーを設定から取得しました');
+            }
         }
     }
 
