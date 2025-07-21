@@ -60,37 +60,6 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ファイル選択処理
-  const handleFileSelect = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-        processFile(file);
-      }
-    },
-    [processFile]
-  );
-
-  // ファイル処理
-  const processFile = useCallback(
-    (file: File) => {
-      // ファイル検証
-      if (!file.type.startsWith('image/')) {
-        setError('画像ファイルを選択してください');
-        return;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        setError('ファイルサイズは5MB以下にしてください');
-        return;
-      }
-
-      setError(null);
-      startOCRProcessing(file);
-    },
-    [startOCRProcessing]
-  );
-
   // OCR処理開始
   const startOCRProcessing = useCallback(
     async (file: File) => {
@@ -133,6 +102,37 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
       }
     },
     [token, onError]
+  );
+
+  // ファイル処理
+  const processFile = useCallback(
+    (file: File) => {
+      // ファイル検証
+      if (!file.type.startsWith('image/')) {
+        setError('画像ファイルを選択してください');
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        setError('ファイルサイズは5MB以下にしてください');
+        return;
+      }
+
+      setError(null);
+      startOCRProcessing(file);
+    },
+    [startOCRProcessing]
+  );
+
+  // ファイル選択処理
+  const handleFileSelect = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        processFile(file);
+      }
+    },
+    [processFile]
   );
 
   // 確認処理

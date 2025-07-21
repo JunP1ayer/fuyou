@@ -41,21 +41,27 @@ interface AnalysisResult {
 export const AIFileAnalyzer: React.FC<AIFileAnalyzerProps> = ({
   onShiftsSaved,
   onError,
-  onClose,
   compactMode = false,
 }) => {
   const [results, setResults] = useState<AnalysisResult[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleFilesProcessed = (processedResults: any[]) => {
-    const analysisResults: AnalysisResult[] = processedResults.map(result => ({
-      type: result.data.type || 'unknown',
-      filename: result.data.filename || 'unknown',
-      shifts: result.data.shifts || [],
-      confidence: result.data.confidence || 0,
-      provider: result.data.provider || 'unknown',
-      metadata: result.data.metadata,
-    }));
+  const handleFilesProcessed = (processedResults: unknown[]) => {
+    const analysisResults: AnalysisResult[] = processedResults.map(
+      (result: unknown) => {
+        const r = result as Record<string, unknown>;
+        return {
+          type: (r.type as string) || 'unknown',
+          filename: (r.filename as string) || 'unknown',
+          shifts: (r.shifts as CreateShiftData[]) || [],
+          confidence: (r.confidence as number) || 0,
+          provider: (r.provider as 'openai' | 'gemini') || 'openai',
+          metadata: r.metadata as
+            | { originalShiftsCount: number; analysisProvider: string }
+            | undefined,
+        };
+      }
+    );
 
     setResults(analysisResults);
     setIsProcessing(false);

@@ -14,8 +14,8 @@ import {
   Alert,
   Stack,
   Chip,
+  Grid,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import { Save, Notifications, Settings } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { apiService } from '../../services/api';

@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { Box, Typography, IconButton, Paper } from '@mui/material';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths } from 'date-fns';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  addMonths,
+  subMonths,
+} from 'date-fns';
 import { ja } from 'date-fns/locale';
 
 export const SimpleCalendarView: React.FC = () => {
@@ -28,7 +35,14 @@ export const SimpleCalendarView: React.FC = () => {
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
 
   return (
-    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', bgcolor: '#f5f5f5' }}>
+    <Box
+      sx={{
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: '#f5f5f5',
+      }}
+    >
       {/* ヘッダー */}
       <Box
         sx={{
@@ -43,11 +57,11 @@ export const SimpleCalendarView: React.FC = () => {
         <IconButton onClick={handlePrevMonth} size="small">
           <ChevronLeft />
         </IconButton>
-        
+
         <Typography variant="h6" sx={{ fontSize: '1.2rem', fontWeight: 500 }}>
           {format(currentDate, 'yyyy年M月', { locale: ja })}
         </Typography>
-        
+
         <IconButton onClick={handleNextMonth} size="small">
           <ChevronRight />
         </IconButton>
@@ -72,7 +86,8 @@ export const SimpleCalendarView: React.FC = () => {
                 py: 0.5,
                 fontSize: '0.75rem',
                 fontWeight: 'bold',
-                color: index === 0 ? '#ef5350' : index === 6 ? '#1976d2' : '#666',
+                color:
+                  index === 0 ? '#ef5350' : index === 6 ? '#1976d2' : '#666',
               }}
             >
               {day}
@@ -110,18 +125,21 @@ export const SimpleCalendarView: React.FC = () => {
                   <Typography
                     sx={{
                       fontSize: '0.875rem',
-                      fontWeight: format(date, 'd') === format(new Date(), 'd') ? 'bold' : 'normal',
+                      fontWeight:
+                        format(date, 'd') === format(new Date(), 'd')
+                          ? 'bold'
+                          : 'normal',
                       color:
                         date.getDay() === 0
                           ? '#ef5350'
                           : date.getDay() === 6
-                          ? '#1976d2'
-                          : '#333',
+                            ? '#1976d2'
+                            : '#333',
                     }}
                   >
                     {format(date, 'd')}
                   </Typography>
-                  
+
                   {/* シフト情報のプレースホルダー */}
                   <Box sx={{ flex: 1, mt: 0.5 }}>
                     <Typography sx={{ fontSize: '0.65rem', color: '#666' }}>

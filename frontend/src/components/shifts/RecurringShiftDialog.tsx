@@ -566,7 +566,7 @@ export const RecurringShiftDialog: React.FC<RecurringShiftDialogProps> = ({
                 {previewShifts.slice(0, 10).map((date, index) => (
                   <Chip
                     key={index}
-                    label={format(date, 'M/d (E)', { locale: ja })}
+                    label={format(date, 'M/d')}
                     color="primary"
                     variant="outlined"
                   />

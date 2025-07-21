@@ -33,11 +33,11 @@ interface FileInfo {
   status: 'pending' | 'uploading' | 'processing' | 'completed' | 'error';
   progress: number;
   error?: string;
-  result?: any;
+  result?: unknown;
 }
 
 interface EnhancedFileUploadProps {
-  onFilesProcessed: (results: any[]) => void;
+  onFilesProcessed: (results: unknown[]) => void;
   onError: (error: string) => void;
   maxFiles?: number;
   acceptedTypes?: string[];
@@ -141,7 +141,7 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
     const pendingFiles = files.filter(f => f.status === 'pending');
     if (pendingFiles.length === 0) return;
 
-    const results: any[] = [];
+    const results: unknown[] = [];
 
     for (const fileInfo of pendingFiles) {
       try {
@@ -171,10 +171,9 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
         }, 200);
 
         // API呼び出し（ファイルタイプに応じて）
-        let response;
         const endpoint = getEndpointForFileType(fileInfo.type);
 
-        response = await fetch(endpoint, {
+        const response = await fetch(endpoint, {
           method: 'POST',
           body: formData,
           headers: {
@@ -253,21 +252,6 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
         return <PictureAsPdf color="error" />;
       default:
         return <Description />;
-    }
-  };
-
-  // ステータス色
-  const getStatusColor = (status: FileInfo['status']) => {
-    switch (status) {
-      case 'completed':
-        return 'success';
-      case 'error':
-        return 'error';
-      case 'uploading':
-      case 'processing':
-        return 'warning';
-      default:
-        return 'default';
     }
   };
 

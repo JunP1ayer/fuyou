@@ -27,7 +27,7 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { apiService } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
+// Authentication handled via localStorage for demo
 
 export interface JobSource {
   id: string;
@@ -79,7 +79,7 @@ export default function JobSourceSelector({
   required = false,
   label = 'バイト先を選択',
 }: JobSourceSelectorProps) {
-  const { token } = useAuth();
+  const token = localStorage.getItem('demo_token') || '';
   const [jobSources, setJobSources] = useState<JobSource[]>([]);
   const [loading, setLoading] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -93,18 +93,13 @@ export default function JobSourceSelector({
     expectedMonthlyHours: '',
   });
 
-  useEffect(() => {
-    if (token) {
-      loadJobSources();
-    }
-  }, [token, loadJobSources]);
-
   const loadJobSources = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await apiService.getJobSources(token!);
-      setJobSources(response.data || []);
+      const r = response as { data?: JobSource[] };
+      setJobSources(r.data || []);
     } catch (error: unknown) {
       console.error('Failed to load job sources:', error);
       setError('バイト先の読み込みに失敗しました');
@@ -112,6 +107,12 @@ export default function JobSourceSelector({
       setLoading(false);
     }
   }, [token]);
+
+  useEffect(() => {
+    if (token) {
+      loadJobSources();
+    }
+  }, [token, loadJobSources]);
 
   const handleJobSourceChange = (event: SelectChangeEvent<string>) => {
     const jobSourceId = event.target.value;
@@ -149,8 +150,9 @@ export default function JobSourceSelector({
       await loadJobSources();
 
       // 新規作成したバイト先を自動選択
-      if (response.data) {
-        onJobSourceSelect(response.data);
+      const r = response as { data?: JobSource };
+      if (r.data) {
+        onJobSourceSelect(r.data);
       }
 
       // ダイアログを閉じる

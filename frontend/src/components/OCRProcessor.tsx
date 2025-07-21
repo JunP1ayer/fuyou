@@ -17,8 +17,8 @@ import {
   Fade,
   Grow,
   Collapse,
+  Grid,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import {
   CloudUpload,
   FindInPage,
@@ -27,7 +27,7 @@ import {
   Timer,
   Assessment,
 } from '@mui/icons-material';
-import { useAuth } from '../hooks/useAuth';
+// Authentication handled via localStorage for demo
 import { apiService } from '../services/api';
 import type { OCRResponse, OCRUsageStats } from '../types/ocr';
 
@@ -53,7 +53,7 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
   onError,
   onUsageUpdate,
 }) => {
-  const { token } = useAuth();
+  const token = localStorage.getItem('demo_token') || '';
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
@@ -100,6 +100,18 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
   const [estimatedTime, setEstimatedTime] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
 
+  const fetchUsage = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      const usageData = (await apiService.getOCRUsage(token)) as OCRUsageStats;
+      setUsage(usageData);
+      onUsageUpdate?.(usageData);
+    } catch (error) {
+      console.error('使用状況の取得に失敗:', error);
+    }
+  }, [token, onUsageUpdate]);
+
   // 使用状況を取得
   useEffect(() => {
     if (token) {
@@ -117,18 +129,6 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
     }
     return () => clearInterval(timer);
   }, [processing]);
-
-  const fetchUsage = useCallback(async () => {
-    if (!token) return;
-
-    try {
-      const usageData = (await apiService.getOCRUsage(token)) as OCRUsageStats;
-      setUsage(usageData);
-      onUsageUpdate?.(usageData);
-    } catch (error) {
-      console.error('使用状況の取得に失敗:', error);
-    }
-  }, [token, onUsageUpdate]);
 
   const updateStep = (stepIndex: number, updates: Partial<ProcessingStep>) => {
     setSteps(prev =>
@@ -237,7 +237,7 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
                 </Typography>
               </Box>
             </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid item xs={12} md={6}>
               {imageFile && (
                 <Box>
                   <Typography
@@ -330,7 +330,7 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
               </Typography>
 
               <Grid container spacing={2}>
-                <Grid size={{ xs: 12, md: 4 }}>
+                <Grid item xs={12} md={4}>
                   <Box display="flex" gap={1} flexWrap="wrap">
                     <Chip
                       label={`信頼度: ${Math.round((result.data?.confidence || 0) * 100)}%`}
@@ -352,7 +352,7 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
                   </Box>
                 </Grid>
 
-                <Grid size={{ xs: 12, md: 8 }}>
+                <Grid item xs={12} md={8}>
                   <Paper
                     sx={{
                       p: 2,
@@ -386,7 +386,7 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
               </Typography>
 
               <Grid container spacing={2}>
-                <Grid size={{ xs: 12, md: 4 }}>
+                <Grid item xs={12} md={4}>
                   <Box textAlign="center">
                     <Typography variant="h4" color="primary">
                       {usage.data?.currentHourUsage || 0}
@@ -400,7 +400,7 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
                   </Box>
                 </Grid>
 
-                <Grid size={{ xs: 12, md: 4 }}>
+                <Grid item xs={12} md={4}>
                   <Box textAlign="center">
                     <Typography variant="h4" color="secondary">
                       {usage.data?.currentDayUsage || 0}
@@ -411,7 +411,7 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
                   </Box>
                 </Grid>
 
-                <Grid size={{ xs: 12, md: 4 }}>
+                <Grid item xs={12} md={4}>
                   <Box textAlign="center">
                     <Typography variant="h4" color="info.main">
                       {usage.data?.currentMonthUsage || 0}

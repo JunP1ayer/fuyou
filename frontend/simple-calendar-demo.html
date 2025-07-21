@@ -1,298 +1,329 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>シンプルカレンダーデモ</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: #f5f5f5;
-      height: 100vh;
-      overflow: hidden;
-    }
-    
-    .calendar-container {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      background-color: #f5f5f5;
-    }
-    
-    /* ヘッダー */
-    .calendar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background-color: white;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    
-    .nav-button {
-      background: none;
-      border: none;
-      padding: 8px;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: background-color 0.2s;
-    }
-    
-    .nav-button:hover {
-      background-color: #f0f0f0;
-    }
-    
-    .month-title {
-      font-size: 1.2rem;
-      font-weight: 500;
-      color: #333;
-    }
-    
-    /* カレンダー本体 */
-    .calendar-body {
-      flex: 1;
-      padding: 8px;
-      overflow: hidden;
-    }
-    
-    /* 曜日ヘッダー */
-    .weekdays {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-      margin-bottom: 4px;
-    }
-    
-    .weekday {
-      text-align: center;
-      padding: 6px 0;
-      font-size: 0.75rem;
-      font-weight: bold;
-      color: #666;
-    }
-    
-    .weekday.sunday { color: #ef5350; }
-    .weekday.saturday { color: #1976d2; }
-    
-    /* 日付グリッド */
-    .dates-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      grid-template-rows: repeat(6, 1fr);
-      gap: 4px;
-      height: calc(100% - 40px);
-    }
-    
-    .date-cell {
-      background-color: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
-      padding: 6px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .date-cell:hover {
-      background-color: #f8f8f8;
-    }
-    
-    .date-cell.empty {
-      background-color: transparent;
-      border: none;
-      cursor: default;
-    }
-    
-    .date-cell.today {
-      background-color: #e3f2fd;
-      border-color: #1976d2;
-    }
-    
-    .date-number {
-      font-size: 0.875rem;
-      color: #333;
-      margin-bottom: 4px;
-    }
-    
-    .date-cell.sunday .date-number { color: #ef5350; }
-    .date-cell.saturday .date-number { color: #1976d2; }
-    .date-cell.today .date-number { font-weight: bold; }
-    
-    .date-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-    }
-    
-    .shift-count {
-      font-size: 0.65rem;
-      color: #666;
-      margin-bottom: 2px;
-    }
-    
-    .shift-amount {
-      font-size: 0.6rem;
-      color: #4caf50;
-      font-weight: 500;
-    }
-    
-    /* レスポンシブ調整 */
-    @media (max-width: 600px) {
-      .calendar-header {
-        padding: 10px 12px;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>シンプルカレンダーデモ</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
-      
-      .month-title {
-        font-size: 1.1rem;
-      }
-      
-      .date-cell {
-        padding: 4px;
-      }
-      
-      .date-number {
-        font-size: 0.75rem;
-      }
-      
-      .shift-count,
-      .shift-amount {
-        font-size: 0.55rem;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="calendar-container">
-    <!-- ヘッダー -->
-    <div class="calendar-header">
-      <button class="nav-button" onclick="changeMonth(-1)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
-      </button>
-      
-      <h2 class="month-title" id="monthTitle">2025年1月</h2>
-      
-      <button class="nav-button" onclick="changeMonth(1)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </button>
-    </div>
-    
-    <!-- カレンダー本体 -->
-    <div class="calendar-body">
-      <!-- 曜日ヘッダー -->
-      <div class="weekdays">
-        <div class="weekday sunday">日</div>
-        <div class="weekday">月</div>
-        <div class="weekday">火</div>
-        <div class="weekday">水</div>
-        <div class="weekday">木</div>
-        <div class="weekday">金</div>
-        <div class="weekday saturday">土</div>
-      </div>
-      
-      <!-- 日付グリッド -->
-      <div class="dates-grid" id="datesGrid"></div>
-    </div>
-  </div>
 
-  <script>
-    let currentDate = new Date();
-    
-    function renderCalendar() {
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      
-      // 月タイトル更新
-      document.getElementById('monthTitle').textContent = `${year}年${month + 1}月`;
-      
-      // 月初と月末の日付
-      const firstDay = new Date(year, month, 1);
-      const lastDay = new Date(year, month + 1, 0);
-      const today = new Date();
-      
-      // 月初の曜日（0:日曜〜6:土曜）
-      const firstDayOfWeek = firstDay.getDay();
-      
-      // グリッドをクリア
-      const grid = document.getElementById('datesGrid');
-      grid.innerHTML = '';
-      
-      // 空のセルを追加
-      for (let i = 0; i < firstDayOfWeek; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.className = 'date-cell empty';
-        grid.appendChild(emptyCell);
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          'Helvetica Neue', Arial, sans-serif;
+        background-color: #f5f5f5;
+        height: 100vh;
+        overflow: hidden;
       }
-      
-      // 日付セルを追加
-      for (let date = 1; date <= lastDay.getDate(); date++) {
-        const cell = document.createElement('div');
-        const currentCellDate = new Date(year, month, date);
-        const dayOfWeek = currentCellDate.getDay();
-        
-        // クラス設定
-        cell.className = 'date-cell';
-        if (dayOfWeek === 0) cell.classList.add('sunday');
-        if (dayOfWeek === 6) cell.classList.add('saturday');
-        if (year === today.getFullYear() && month === today.getMonth() && date === today.getDate()) {
-          cell.classList.add('today');
+
+      .calendar-container {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-color: #f5f5f5;
+      }
+
+      /* ヘッダー */
+      .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background-color: white;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .nav-button {
+        background: none;
+        border: none;
+        padding: 8px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+      }
+
+      .nav-button:hover {
+        background-color: #f0f0f0;
+      }
+
+      .month-title {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: #333;
+      }
+
+      /* カレンダー本体 */
+      .calendar-body {
+        flex: 1;
+        padding: 8px;
+        overflow: hidden;
+      }
+
+      /* 曜日ヘッダー */
+      .weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+        margin-bottom: 4px;
+      }
+
+      .weekday {
+        text-align: center;
+        padding: 6px 0;
+        font-size: 0.75rem;
+        font-weight: bold;
+        color: #666;
+      }
+
+      .weekday.sunday {
+        color: #ef5350;
+      }
+      .weekday.saturday {
+        color: #1976d2;
+      }
+
+      /* 日付グリッド */
+      .dates-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-template-rows: repeat(6, 1fr);
+        gap: 4px;
+        height: calc(100% - 40px);
+      }
+
+      .date-cell {
+        background-color: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        padding: 6px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .date-cell:hover {
+        background-color: #f8f8f8;
+      }
+
+      .date-cell.empty {
+        background-color: transparent;
+        border: none;
+        cursor: default;
+      }
+
+      .date-cell.today {
+        background-color: #e3f2fd;
+        border-color: #1976d2;
+      }
+
+      .date-number {
+        font-size: 0.875rem;
+        color: #333;
+        margin-bottom: 4px;
+      }
+
+      .date-cell.sunday .date-number {
+        color: #ef5350;
+      }
+      .date-cell.saturday .date-number {
+        color: #1976d2;
+      }
+      .date-cell.today .date-number {
+        font-weight: bold;
+      }
+
+      .date-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+
+      .shift-count {
+        font-size: 0.65rem;
+        color: #666;
+        margin-bottom: 2px;
+      }
+
+      .shift-amount {
+        font-size: 0.6rem;
+        color: #4caf50;
+        font-weight: 500;
+      }
+
+      /* レスポンシブ調整 */
+      @media (max-width: 600px) {
+        .calendar-header {
+          padding: 10px 12px;
         }
-        
-        // 日付番号
-        const dateNumber = document.createElement('div');
-        dateNumber.className = 'date-number';
-        dateNumber.textContent = date;
-        cell.appendChild(dateNumber);
-        
-        // コンテンツエリア
-        const content = document.createElement('div');
-        content.className = 'date-content';
-        
-        // ランダムでシフト情報を表示（デモ用）
-        if (Math.random() > 0.6) {
-          const shiftCount = document.createElement('div');
-          shiftCount.className = 'shift-count';
-          shiftCount.textContent = `${Math.ceil(Math.random() * 3)}件`;
-          content.appendChild(shiftCount);
-          
-          const shiftAmount = document.createElement('div');
-          shiftAmount.className = 'shift-amount';
-          shiftAmount.textContent = `¥${Math.ceil(Math.random() * 15)}K`;
-          content.appendChild(shiftAmount);
+
+        .month-title {
+          font-size: 1.1rem;
         }
-        
-        cell.appendChild(content);
-        grid.appendChild(cell);
+
+        .date-cell {
+          padding: 4px;
+        }
+
+        .date-number {
+          font-size: 0.75rem;
+        }
+
+        .shift-count,
+        .shift-amount {
+          font-size: 0.55rem;
+        }
       }
-      
-      // 残りの空セルを追加（6週分を確保）
-      const totalCells = firstDayOfWeek + lastDay.getDate();
-      const remainingCells = 42 - totalCells; // 6週 × 7日 = 42
-      for (let i = 0; i < remainingCells; i++) {
-        const emptyCell = document.createElement('div');
-        emptyCell.className = 'date-cell empty';
-        grid.appendChild(emptyCell);
+    </style>
+  </head>
+  <body>
+    <div class="calendar-container">
+      <!-- ヘッダー -->
+      <div class="calendar-header">
+        <button class="nav-button" onclick="changeMonth(-1)">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <h2 class="month-title" id="monthTitle">2025年1月</h2>
+
+        <button class="nav-button" onclick="changeMonth(1)">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <!-- カレンダー本体 -->
+      <div class="calendar-body">
+        <!-- 曜日ヘッダー -->
+        <div class="weekdays">
+          <div class="weekday sunday">日</div>
+          <div class="weekday">月</div>
+          <div class="weekday">火</div>
+          <div class="weekday">水</div>
+          <div class="weekday">木</div>
+          <div class="weekday">金</div>
+          <div class="weekday saturday">土</div>
+        </div>
+
+        <!-- 日付グリッド -->
+        <div class="dates-grid" id="datesGrid"></div>
+      </div>
+    </div>
+
+    <script>
+      let currentDate = new Date();
+
+      function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        // 月タイトル更新
+        document.getElementById('monthTitle').textContent =
+          `${year}年${month + 1}月`;
+
+        // 月初と月末の日付
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const today = new Date();
+
+        // 月初の曜日（0:日曜〜6:土曜）
+        const firstDayOfWeek = firstDay.getDay();
+
+        // グリッドをクリア
+        const grid = document.getElementById('datesGrid');
+        grid.innerHTML = '';
+
+        // 空のセルを追加
+        for (let i = 0; i < firstDayOfWeek; i++) {
+          const emptyCell = document.createElement('div');
+          emptyCell.className = 'date-cell empty';
+          grid.appendChild(emptyCell);
+        }
+
+        // 日付セルを追加
+        for (let date = 1; date <= lastDay.getDate(); date++) {
+          const cell = document.createElement('div');
+          const currentCellDate = new Date(year, month, date);
+          const dayOfWeek = currentCellDate.getDay();
+
+          // クラス設定
+          cell.className = 'date-cell';
+          if (dayOfWeek === 0) cell.classList.add('sunday');
+          if (dayOfWeek === 6) cell.classList.add('saturday');
+          if (
+            year === today.getFullYear() &&
+            month === today.getMonth() &&
+            date === today.getDate()
+          ) {
+            cell.classList.add('today');
+          }
+
+          // 日付番号
+          const dateNumber = document.createElement('div');
+          dateNumber.className = 'date-number';
+          dateNumber.textContent = date;
+          cell.appendChild(dateNumber);
+
+          // コンテンツエリア
+          const content = document.createElement('div');
+          content.className = 'date-content';
+
+          // ランダムでシフト情報を表示（デモ用）
+          if (Math.random() > 0.6) {
+            const shiftCount = document.createElement('div');
+            shiftCount.className = 'shift-count';
+            shiftCount.textContent = `${Math.ceil(Math.random() * 3)}件`;
+            content.appendChild(shiftCount);
+
+            const shiftAmount = document.createElement('div');
+            shiftAmount.className = 'shift-amount';
+            shiftAmount.textContent = `¥${Math.ceil(Math.random() * 15)}K`;
+            content.appendChild(shiftAmount);
+          }
+
+          cell.appendChild(content);
+          grid.appendChild(cell);
+        }
+
+        // 残りの空セルを追加（6週分を確保）
+        const totalCells = firstDayOfWeek + lastDay.getDate();
+        const remainingCells = 42 - totalCells; // 6週 × 7日 = 42
+        for (let i = 0; i < remainingCells; i++) {
+          const emptyCell = document.createElement('div');
+          emptyCell.className = 'date-cell empty';
+          grid.appendChild(emptyCell);
+        }
       }
-    }
-    
-    function changeMonth(delta) {
-      currentDate.setMonth(currentDate.getMonth() + delta);
+
+      function changeMonth(delta) {
+        currentDate.setMonth(currentDate.getMonth() + delta);
+        renderCalendar();
+      }
+
+      // 初期描画
       renderCalendar();
-    }
-    
-    // 初期描画
-    renderCalendar();
-  </script>
-</body>
+    </script>
+  </body>
 </html>

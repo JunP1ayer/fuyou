@@ -14,8 +14,8 @@ import {
   InputAdornment,
   Autocomplete,
   Divider,
+  Grid,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import { format } from '../../utils/dateUtils';
 import { Delete } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';

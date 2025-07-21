@@ -24,8 +24,8 @@ import {
   Tabs,
   Tab,
   LinearProgress,
+  Grid,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import {
   ExpandMore,
   ExpandLess,

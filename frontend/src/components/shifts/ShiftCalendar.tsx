@@ -17,8 +17,8 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Grid,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import {
   ChevronLeft,
   ChevronRight,
@@ -316,27 +316,30 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
             <Tooltip title="今月">
               <IconButton
                 onClick={handleToday}
-                size={{ xs: 'small', sm: 'medium' }}
+                size="small"
+                sx={{ p: { xs: 0.5, sm: 1 } }}
               >
-                <Today fontSize={{ xs: 'small', sm: 'medium' }} />
+                <Today fontSize="small" />
               </IconButton>
             </Tooltip>
 
             <Tooltip title="前月">
               <IconButton
                 onClick={handlePrevMonth}
-                size={{ xs: 'small', sm: 'medium' }}
+                size="small"
+                sx={{ p: { xs: 0.5, sm: 1 } }}
               >
-                <ChevronLeft fontSize={{ xs: 'small', sm: 'medium' }} />
+                <ChevronLeft fontSize="small" />
               </IconButton>
             </Tooltip>
 
             <Tooltip title="次月">
               <IconButton
                 onClick={handleNextMonth}
-                size={{ xs: 'small', sm: 'medium' }}
+                size="small"
+                sx={{ p: { xs: 0.5, sm: 1 } }}
               >
-                <ChevronRight fontSize={{ xs: 'small', sm: 'medium' }} />
+                <ChevronRight fontSize="small" />
               </IconButton>
             </Tooltip>
           </Box>
@@ -370,7 +373,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                     fontSize: { xs: '1rem', sm: '1.25rem' },
                   }}
                 >
-                  <TrendingUp fontSize={{ xs: 'small', sm: 'medium' }} />
+                  <TrendingUp fontSize="small" />
                   月間統計
                 </Typography>
                 <Grid container spacing={{ xs: 1, sm: 2 }}>
@@ -651,15 +654,17 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           <Fab
             color="primary"
             aria-label="add shift"
-            size={{ xs: 'medium', sm: 'large' }}
+            size="medium"
             sx={{
               position: 'fixed',
               bottom: { xs: 16, sm: 24 },
               right: { xs: 16, sm: 24 },
+              width: { xs: 48, sm: 56 },
+              height: { xs: 48, sm: 56 },
             }}
             onClick={() => onAddShift?.()}
           >
-            <Add fontSize={{ xs: 'medium', sm: 'large' }} />
+            <Add fontSize="medium" />
           </Fab>
         )}
       </CardContent>

@@ -16,8 +16,10 @@ import {
   InputAdornment,
   Tooltip,
   Badge,
+  Grid,
+  List,
+  ListItem,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import {
   Edit,
   Save,
@@ -86,12 +88,41 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
     Record<string, string>
   >({});
 
-  // 初期解析
-  useEffect(() => {
-    if (autoParseEnabled && extractedText) {
-      parseShiftsFromText(extractedText);
+  // Helper functions need to be defined before they're used in useCallback
+  // 日付文字列の正規化
+  const normalizeDateString = (dateStr: string): string => {
+    const currentYear = new Date().getFullYear();
+
+    if (dateStr.includes('/')) {
+      const [month, day] = dateStr.split('/');
+      return `${currentYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    } else if (dateStr.includes('-')) {
+      return dateStr;
+    } else if (dateStr.includes('日')) {
+      const day = dateStr.replace('日', '');
+      const currentMonth = new Date().getMonth() + 1;
+      return `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${day.padStart(2, '0')}`;
     }
-  }, [extractedText, autoParseEnabled, parseShiftsFromText]);
+
+    return dateStr;
+  };
+
+  // 信頼度の計算
+  const calculateConfidence = (
+    dateStr: string,
+    timeStr: string,
+    rateStr?: string
+  ): number => {
+    let confidence = 0.5;
+
+    if (dateStr.match(/\d{1,2}\/\d{1,2}|\d{4}-\d{1,2}-\d{1,2}/))
+      confidence += 0.2;
+    if (timeStr.match(/\d{1,2}:\d{2}\s*[-~]\s*\d{1,2}:\d{2}/))
+      confidence += 0.2;
+    if (rateStr) confidence += 0.1;
+
+    return Math.min(confidence, 1.0);
+  };
 
   // テキストからシフトデータを解析
   const parseShiftsFromText = useCallback((text: string) => {
@@ -141,42 +172,14 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
     } catch {
       setParseError('テキストの解析に失敗しました');
     }
-  }, []);
+  }, [setParsedShifts, setParseError]);
 
-  // 日付文字列の正規化
-  const normalizeDateString = (dateStr: string): string => {
-    const currentYear = new Date().getFullYear();
-
-    if (dateStr.includes('/')) {
-      const [month, day] = dateStr.split('/');
-      return `${currentYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    } else if (dateStr.includes('-')) {
-      return dateStr;
-    } else if (dateStr.includes('日')) {
-      const day = dateStr.replace('日', '');
-      const currentMonth = new Date().getMonth() + 1;
-      return `${currentYear}-${currentMonth.toString().padStart(2, '0')}-${day.padStart(2, '0')}`;
+  // 初期解析
+  useEffect(() => {
+    if (autoParseEnabled && extractedText) {
+      parseShiftsFromText(extractedText);
     }
-
-    return dateStr;
-  };
-
-  // 信頼度の計算
-  const calculateConfidence = (
-    dateStr: string,
-    timeStr: string,
-    rateStr?: string
-  ): number => {
-    let confidence = 0.5;
-
-    if (dateStr.match(/\d{1,2}\/\d{1,2}|\d{4}-\d{1,2}-\d{1,2}/))
-      confidence += 0.2;
-    if (timeStr.match(/\d{1,2}:\d{2}\s*[-~]\s*\d{1,2}:\d{2}/))
-      confidence += 0.2;
-    if (rateStr) confidence += 0.1;
-
-    return Math.min(confidence, 1.0);
-  };
+  }, [extractedText, autoParseEnabled, parseShiftsFromText]);
 
   // シフトの編集
   const handleEditShift = (shiftId: string, updates: Partial<ParsedShift>) => {

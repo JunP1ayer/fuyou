@@ -78,13 +78,17 @@ export const QuickShiftRegistration: React.FC<QuickShiftRegistrationProps> = ({
     if (!selectedJob || !selectedDate) {
       return {
         workingHours: 0,
+        totalEarnings: 0,
         earnings: 0,
         breakdown: [],
         regularHours: 0,
         nightHours: 0,
         weekendHours: 0,
         transportationCost: 0,
-      };
+        regularEarnings: 0,
+        nightEarnings: 0,
+        weekendEarnings: 0,
+      } as ShiftCalculationResult;
     }
 
     return calculateShiftEarnings(

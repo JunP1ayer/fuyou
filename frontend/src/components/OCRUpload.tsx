@@ -17,8 +17,8 @@ import {
   CardContent,
   Chip,
   ButtonGroup,
+  Grid,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import {
   PhotoCamera,
   Close,
@@ -79,41 +79,6 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
     quality: 0.8,
   };
 
-  // ファイル選択処理
-  const handleFileSelect = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-        processSelectedFile(file, 'file');
-      }
-    },
-    [processSelectedFile]
-  );
-
-  // ドラッグ&ドロップ処理
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragActive(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragActive(false);
-  }, []);
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setDragActive(false);
-
-      const file = e.dataTransfer.files[0];
-      if (file) {
-        processSelectedFile(file, 'drag-drop');
-      }
-    },
-    [processSelectedFile]
-  );
-
   // 選択されたファイルの処理
   const processSelectedFile = useCallback(
     (
@@ -155,6 +120,41 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
       reader.readAsDataURL(file);
     },
     [onError]
+  );
+
+  // ファイル選択処理
+  const handleFileSelect = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        processSelectedFile(file, 'file');
+      }
+    },
+    [processSelectedFile]
+  );
+
+  // ドラッグ&ドロップ処理
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragActive(false);
+
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        processSelectedFile(file, 'drag-drop');
+      }
+    },
+    [processSelectedFile]
   );
 
   // カメラ起動

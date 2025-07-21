@@ -236,7 +236,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
                       label="シフト表を撮影"
                       clickable
                       color="primary"
-                      size="large"
+                      size="medium"
                       sx={{ width: '100%', height: 48 }}
                       onClick={() => setOcrDialogOpen(true)}
                     />
@@ -248,7 +248,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
                   label="手動でシフト追加"
                   clickable
                   variant="outlined"
-                  size="large"
+                  size="medium"
                   sx={{ width: '100%', height: 48 }}
                 />
 
@@ -257,7 +257,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
                   label="給与明細アップロード"
                   clickable
                   variant="outlined"
-                  size="large"
+                  size="medium"
                   sx={{ width: '100%', height: 48 }}
                 />
               </Box>
@@ -296,8 +296,8 @@ export const ShiftBoardFuyouApp: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           <OCRShiftManager
-            onComplete={handleOCRComplete}
-            onCancel={() => setOcrDialogOpen(false)}
+            onShiftsSaved={handleOCRComplete}
+            onClose={() => setOcrDialogOpen(false)}
           />
         </DialogContent>
       </Dialog>

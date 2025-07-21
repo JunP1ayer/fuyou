@@ -51,9 +51,16 @@ export const CompactIncomeIndicator: React.FC<CompactIncomeIndicatorProps> = ({
         const month = now.getMonth() + 1;
 
         // 今月のシフトデータを取得
-        const response = await apiService.getShifts(token, year, month);
-        if (response.success && response.data) {
-          const shifts = response.data as { totalEarnings?: number }[];
+        const response = await apiService.getShifts(token, {
+          year: year.toString(),
+          month: month.toString(),
+        });
+        const r = response as {
+          success?: boolean;
+          data?: { totalEarnings?: number }[];
+        };
+        if (r.success && r.data) {
+          const shifts = r.data;
           const totalIncome = shifts.reduce(
             (sum, shift) => sum + (shift.totalEarnings || 0),
             0

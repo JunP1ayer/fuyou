@@ -26,8 +26,8 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   Divider,
+  Grid,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import {
   Add,
   Edit,

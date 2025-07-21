@@ -16,8 +16,16 @@ import {
   Stack,
   Chip,
   CircularProgress,
+  Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import {
   PlayArrow,
   Settings,
