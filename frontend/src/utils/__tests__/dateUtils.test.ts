@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { 
-  format, 
-  isToday, 
+import {
+  format,
+  isToday,
   isSameMonth,
   addMonths,
-  subMonths
+  subMonths,
 } from '../dateUtils';
 
 describe('dateUtils', () => {
@@ -19,8 +19,6 @@ describe('dateUtils', () => {
       expect(format(date, 'M/d/yyyy')).toBe('1/15/2024');
     });
   });
-
-
 
   describe('isToday', () => {
     it('should return true for today', () => {

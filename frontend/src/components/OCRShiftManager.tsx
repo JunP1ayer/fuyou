@@ -250,7 +250,14 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
         onError?.(errorMessage);
       }
     },
-    [token, updateState, showNotification, onShiftsSaved, onError, autoNavigateToShifts]
+    [
+      token,
+      updateState,
+      showNotification,
+      onShiftsSaved,
+      onError,
+      autoNavigateToShifts,
+    ]
   );
 
   // エラーハンドリング

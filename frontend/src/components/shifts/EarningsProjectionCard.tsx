@@ -112,9 +112,11 @@ export const EarningsProjectionCard: React.FC = () => {
     }
   };
 
-  const getRiskMessage = (riskLevel: string, 
+  const getRiskMessage = (
+    riskLevel: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _usageRate: number) => {
+    _usageRate: number
+  ) => {
     if (riskLevel === 'safe') {
       return '扶養範囲内で安全です';
     } else if (riskLevel === 'warning') {
@@ -176,7 +178,16 @@ export const EarningsProjectionCard: React.FC = () => {
             <Chip
               icon={getRiskIcon(projection.riskLevel)}
               label={getRiskMessage(projection.riskLevel, projection.usageRate)}
-              color={riskColor as 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'}
+              color={
+                riskColor as
+                  | 'default'
+                  | 'primary'
+                  | 'secondary'
+                  | 'error'
+                  | 'info'
+                  | 'success'
+                  | 'warning'
+              }
               size="small"
             />
           </Box>
@@ -202,7 +213,16 @@ export const EarningsProjectionCard: React.FC = () => {
           <LinearProgress
             variant="determinate"
             value={Math.min(100, usagePercentage)}
-            color={riskColor as 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' | 'inherit'}
+            color={
+              riskColor as
+                | 'primary'
+                | 'secondary'
+                | 'error'
+                | 'info'
+                | 'success'
+                | 'warning'
+                | 'inherit'
+            }
             sx={{ height: 8, borderRadius: 4 }}
           />
           <Box display="flex" justifyContent="space-between" mt={1}>

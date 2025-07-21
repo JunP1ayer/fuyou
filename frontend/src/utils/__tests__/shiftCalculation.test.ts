@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { 
+import {
   calculateShiftEarnings,
-  calculateSimpleEarnings
+  calculateSimpleEarnings,
 } from '../shiftCalculation';
 import { JobTemplate } from '../../components/JobManagement';
 
@@ -16,7 +16,7 @@ describe('shiftCalculation', () => {
     defaultBreakMinutes: 60,
     color: '#3f51b5',
     isActive: true,
-    nightHourlyRate: 1250
+    nightHourlyRate: 1250,
   };
 
   describe('calculateSimpleEarnings', () => {
@@ -35,16 +35,27 @@ describe('shiftCalculation', () => {
 
   describe('calculateShiftEarnings', () => {
     it('should calculate detailed earnings for day shift', () => {
-      const result = calculateShiftEarnings(mockJob, '2024-01-15', '09:00', '17:00', 60);
+      const result = calculateShiftEarnings(
+        mockJob,
+        '2024-01-15',
+        '09:00',
+        '17:00',
+        60
+      );
       expect(result.workingHours).toBe(7);
       expect(result.totalEarnings).toBeGreaterThan(7000);
     });
 
     it('should handle night shift premium', () => {
-      const result = calculateShiftEarnings(mockJob, '2024-01-15', '22:00', '06:00', 0);
+      const result = calculateShiftEarnings(
+        mockJob,
+        '2024-01-15',
+        '22:00',
+        '06:00',
+        0
+      );
       expect(result.nightHours).toBeGreaterThan(0);
       expect(result.nightEarnings).toBeGreaterThan(0);
     });
   });
-
 });

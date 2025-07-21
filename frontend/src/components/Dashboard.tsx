@@ -438,15 +438,16 @@ export function Dashboard() {
               </Box>
 
               {/* 扶養アラート（必要時のみ表示） */}
-              {fuyouStatus && (fuyouStatus as { risk?: string }).risk === 'high' && (
-                <Box sx={{ mt: 2 }}>
-                  <FuyouAlertSystem
-                    fuyouStatus={fuyouStatus}
-                    compactMode={true}
-                    showSnackbar={false}
-                  />
-                </Box>
-              )}
+              {fuyouStatus &&
+                (fuyouStatus as { risk?: string }).risk === 'high' && (
+                  <Box sx={{ mt: 2 }}>
+                    <FuyouAlertSystem
+                      fuyouStatus={fuyouStatus}
+                      compactMode={true}
+                      showSnackbar={false}
+                    />
+                  </Box>
+                )}
             </Box>
           )}
 
@@ -604,8 +605,8 @@ export function Dashboard() {
           PaperProps={{
             sx: {
               margin: { xs: 1, sm: 2 },
-              maxHeight: { xs: '95vh', sm: '80vh' }
-            }
+              maxHeight: { xs: '95vh', sm: '80vh' },
+            },
           }}
         >
           <DialogTitle>銀行明細CSVアップロード</DialogTitle>
@@ -644,10 +645,10 @@ export function Dashboard() {
           fullWidth
           fullScreen={mobilePreviewMode}
           PaperProps={{
-            sx: { 
+            sx: {
               borderRadius: { xs: 0, sm: 3 },
               margin: { xs: 0, sm: 2 },
-              maxHeight: { xs: '100vh', sm: '90vh' }
+              maxHeight: { xs: '100vh', sm: '90vh' },
             },
           }}
         >
@@ -683,9 +684,9 @@ export function Dashboard() {
           fullWidth
           fullScreen={mobilePreviewMode}
           PaperProps={{
-            sx: { 
+            sx: {
               height: { xs: '100vh', sm: '80vh' },
-              margin: { xs: 0, sm: 2 }
+              margin: { xs: 0, sm: 2 },
             },
           }}
         >

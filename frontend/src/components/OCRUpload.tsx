@@ -101,53 +101,61 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
     setDragActive(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragActive(false);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragActive(false);
 
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      processSelectedFile(file, 'drag-drop');
-    }
-  }, [processSelectedFile]);
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        processSelectedFile(file, 'drag-drop');
+      }
+    },
+    [processSelectedFile]
+  );
 
   // 選択されたファイルの処理
-  const processSelectedFile = useCallback((file: File, 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    source: ImageInputSource) => {
-    // ファイル形式チェック
-    if (!file.type.startsWith('image/')) {
-      setUploadState(prev => ({
-        ...prev,
-        error: '画像ファイルを選択してください',
-      }));
-      onError?.('画像ファイルを選択してください');
-      return;
-    }
+  const processSelectedFile = useCallback(
+    (
+      file: File,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      source: ImageInputSource
+    ) => {
+      // ファイル形式チェック
+      if (!file.type.startsWith('image/')) {
+        setUploadState(prev => ({
+          ...prev,
+          error: '画像ファイルを選択してください',
+        }));
+        onError?.('画像ファイルを選択してください');
+        return;
+      }
 
-    // サイズチェック (5MB制限)
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadState(prev => ({
-        ...prev,
-        error: 'ファイルサイズは5MB以下にしてください',
-      }));
-      onError?.('ファイルサイズは5MB以下にしてください');
-      return;
-    }
+      // サイズチェック (5MB制限)
+      if (file.size > 5 * 1024 * 1024) {
+        setUploadState(prev => ({
+          ...prev,
+          error: 'ファイルサイズは5MB以下にしてください',
+        }));
+        onError?.('ファイルサイズは5MB以下にしてください');
+        return;
+      }
 
-    // プレビュー画像の生成
-    const reader = new FileReader();
-    reader.onload = e => {
-      setUploadState({
-        file,
-        preview: e.target?.result as string,
-        uploading: false,
-        progress: 0,
-        error: null,
-      });
-    };
-    reader.readAsDataURL(file);
-  }, [onError]);
+      // プレビュー画像の生成
+      const reader = new FileReader();
+      reader.onload = e => {
+        setUploadState({
+          file,
+          preview: e.target?.result as string,
+          uploading: false,
+          progress: 0,
+          error: null,
+        });
+      };
+      reader.readAsDataURL(file);
+    },
+    [onError]
+  );
 
   // カメラ起動
   const startCamera = async () => {

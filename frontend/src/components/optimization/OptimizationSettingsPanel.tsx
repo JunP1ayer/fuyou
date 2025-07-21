@@ -254,7 +254,10 @@ export function OptimizationSettingsPanel({
                     onChange={e =>
                       setSettings({
                         ...settings,
-                        riskTolerance: e.target.value as 'conservative' | 'moderate' | 'aggressive',
+                        riskTolerance: e.target.value as
+                          | 'conservative'
+                          | 'moderate'
+                          | 'aggressive',
                       })
                     }
                   >
@@ -280,7 +283,10 @@ export function OptimizationSettingsPanel({
                     onChange={e =>
                       setSettings({
                         ...settings,
-                        timeHorizon: e.target.value as 'short' | 'medium' | 'long',
+                        timeHorizon: e.target.value as
+                          | 'short'
+                          | 'medium'
+                          | 'long',
                       })
                     }
                   >

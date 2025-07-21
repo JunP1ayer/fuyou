@@ -22,9 +22,7 @@ import {
   Autocomplete,
   CircularProgress,
 } from '@mui/material';
-import {
-  Repeat,
-} from '@mui/icons-material';
+import { Repeat } from '@mui/icons-material';
 import { format, addDays, addMonths } from '../../utils/dateUtils';
 import { useAuth } from '../../hooks/useAuth';
 import { apiService } from '../../services/api';

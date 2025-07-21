@@ -136,7 +136,13 @@ export const ShiftBoardFuyouApp: React.FC = () => {
               </Typography>
 
               <Alert
-                severity={getFuyouStatusColor(fuyouStatus.riskLevel) as 'error' | 'warning' | 'info' | 'success'}
+                severity={
+                  getFuyouStatusColor(fuyouStatus.riskLevel) as
+                    | 'error'
+                    | 'warning'
+                    | 'info'
+                    | 'success'
+                }
                 sx={{ mb: 2 }}
               >
                 {getFuyouStatusMessage(fuyouStatus)}
@@ -162,7 +168,15 @@ export const ShiftBoardFuyouApp: React.FC = () => {
                   value={
                     (fuyouStatus.currentEarnings / fuyouStatus.limit) * 100
                   }
-                  color={getFuyouStatusColor(fuyouStatus.riskLevel) as 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'}
+                  color={
+                    getFuyouStatusColor(fuyouStatus.riskLevel) as
+                      | 'primary'
+                      | 'secondary'
+                      | 'error'
+                      | 'info'
+                      | 'success'
+                      | 'warning'
+                  }
                   sx={{ height: 8, borderRadius: 4 }}
                 />
               </Box>

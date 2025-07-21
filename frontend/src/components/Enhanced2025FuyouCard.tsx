@@ -107,9 +107,7 @@ export const Enhanced2025FuyouCard: React.FC<Enhanced2025FuyouCardProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [, setSelectedLimit] = useState<FuyouLimit2025 | null>(
-    null
-  );
+  const [, setSelectedLimit] = useState<FuyouLimit2025 | null>(null);
 
   const fetchFuyouStatus = useCallback(async () => {
     if (!token) return;
@@ -193,7 +191,6 @@ export const Enhanced2025FuyouCard: React.FC<Enhanced2025FuyouCardProps> = ({
     fetchFuyouStatus();
   }, [fetchFuyouStatus]);
 
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ja-JP', {
       style: 'currency',
@@ -201,8 +198,6 @@ export const Enhanced2025FuyouCard: React.FC<Enhanced2025FuyouCardProps> = ({
       minimumFractionDigits: 0,
     }).format(amount);
   };
-
-
 
   const getProgressColor = (percentage: number) => {
     if (percentage < 70) return 'success';

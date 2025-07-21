@@ -72,62 +72,68 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
   );
 
   // ファイル処理
-  const processFile = useCallback((file: File) => {
-    // ファイル検証
-    if (!file.type.startsWith('image/')) {
-      setError('画像ファイルを選択してください');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setError('ファイルサイズは5MB以下にしてください');
-      return;
-    }
-
-    setError(null);
-    startOCRProcessing(file);
-  }, [startOCRProcessing]);
-
-  // OCR処理開始
-  const startOCRProcessing = useCallback(async (file: File) => {
-    if (!token) {
-      setError('認証が必要です');
-      return;
-    }
-
-    setStage('processing');
-    setError(null);
-
-    try {
-      // 自然言語OCR処理（GPT-4を使用したバックエンド処理）
-      const response = await apiService.uploadImageForNaturalLanguageOCR(
-        token,
-        file,
-        'ユーザー' // 実際のユーザー名を取得する場合は useAuth から取得
-      );
-
-      if (!response.success || !response.data) {
-        throw new Error('OCR処理に失敗しました');
+  const processFile = useCallback(
+    (file: File) => {
+      // ファイル検証
+      if (!file.type.startsWith('image/')) {
+        setError('画像ファイルを選択してください');
+        return;
       }
 
-      // バックエンドで処理済みの自然言語結果をそのまま使用
-      const naturalLanguageResult: NaturalLanguageResult = {
-        message: response.data.naturalLanguageMessage,
-        shifts: response.data.extractedShifts,
-        confidence: response.data.confidence,
-        needsReview: response.data.needsReview,
-      };
+      if (file.size > 5 * 1024 * 1024) {
+        setError('ファイルサイズは5MB以下にしてください');
+        return;
+      }
 
-      setResult(naturalLanguageResult);
-      setStage('result');
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'OCR処理に失敗しました';
-      setError(errorMessage);
-      setStage('input');
-      onError?.(errorMessage);
-    }
-  }, [token, onError]);
+      setError(null);
+      startOCRProcessing(file);
+    },
+    [startOCRProcessing]
+  );
+
+  // OCR処理開始
+  const startOCRProcessing = useCallback(
+    async (file: File) => {
+      if (!token) {
+        setError('認証が必要です');
+        return;
+      }
+
+      setStage('processing');
+      setError(null);
+
+      try {
+        // 自然言語OCR処理（GPT-4を使用したバックエンド処理）
+        const response = await apiService.uploadImageForNaturalLanguageOCR(
+          token,
+          file,
+          'ユーザー' // 実際のユーザー名を取得する場合は useAuth から取得
+        );
+
+        if (!response.success || !response.data) {
+          throw new Error('OCR処理に失敗しました');
+        }
+
+        // バックエンドで処理済みの自然言語結果をそのまま使用
+        const naturalLanguageResult: NaturalLanguageResult = {
+          message: response.data.naturalLanguageMessage,
+          shifts: response.data.extractedShifts,
+          confidence: response.data.confidence,
+          needsReview: response.data.needsReview,
+        };
+
+        setResult(naturalLanguageResult);
+        setStage('result');
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'OCR処理に失敗しました';
+        setError(errorMessage);
+        setStage('input');
+        onError?.(errorMessage);
+      }
+    },
+    [token, onError]
+  );
 
   // 確認処理
   const handleConfirm = async () => {

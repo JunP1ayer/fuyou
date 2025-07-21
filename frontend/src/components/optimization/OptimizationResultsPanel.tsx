@@ -38,9 +38,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { apiService } from '../../services/api';
-import type {
-  OptimizationRun,
-} from '../../types/optimization';
+import type { OptimizationRun } from '../../types/optimization';
 
 interface OptimizationResultsPanelProps {
   runs: OptimizationRun[];
@@ -67,9 +65,11 @@ export function OptimizationResultsPanel({
       setIsLoading(true);
       setError(null);
 
-      const [detailsResult, 
+      const [
+        detailsResult,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        suggestionsResult] = await Promise.all([
+        suggestionsResult,
+      ] = await Promise.all([
         apiService.getOptimizationRunDetails(user.token, run.id),
         apiService.getOptimizationSuggestions(user.token, run.id),
       ]);
@@ -316,7 +316,16 @@ export function OptimizationResultsPanel({
                         <TableCell>
                           <Chip
                             label={getStatusLabel(run.status)}
-                            color={getStatusColor(run.status) as 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'}
+                            color={
+                              getStatusColor(run.status) as
+                                | 'default'
+                                | 'primary'
+                                | 'secondary'
+                                | 'error'
+                                | 'info'
+                                | 'success'
+                                | 'warning'
+                            }
                             size="small"
                           />
                         </TableCell>

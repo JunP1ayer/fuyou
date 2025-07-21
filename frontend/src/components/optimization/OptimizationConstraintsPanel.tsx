@@ -325,8 +325,8 @@ export function OptimizationConstraintsPanel({
                           secondary={
                             <Typography variant="body2" color="textSecondary">
                               値: {constraint.constraintValue}{' '}
-                              {constraint.constraintUnit}
-                              , 優先度: {constraint.priority}/5
+                              {constraint.constraintUnit}, 優先度:{' '}
+                              {constraint.priority}/5
                             </Typography>
                           }
                         />
@@ -468,7 +468,13 @@ export function OptimizationConstraintsPanel({
                   onChange={e =>
                     setConstraintForm({
                       ...constraintForm,
-                      constraintType: e.target.value as 'max_weekly_hours' | 'max_monthly_hours' | 'min_monthly_income' | 'max_monthly_income' | 'fuyou_limit' | 'custom',
+                      constraintType: e.target.value as
+                        | 'max_weekly_hours'
+                        | 'max_monthly_hours'
+                        | 'min_monthly_income'
+                        | 'max_monthly_income'
+                        | 'fuyou_limit'
+                        | 'custom',
                     })
                   }
                 >
@@ -507,7 +513,11 @@ export function OptimizationConstraintsPanel({
                   onChange={e =>
                     setConstraintForm({
                       ...constraintForm,
-                      constraintUnit: e.target.value as 'hours' | 'yen' | 'percentage' | 'custom',
+                      constraintUnit: e.target.value as
+                        | 'hours'
+                        | 'yen'
+                        | 'percentage'
+                        | 'custom',
                     })
                   }
                 >

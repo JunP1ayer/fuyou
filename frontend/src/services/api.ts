@@ -518,7 +518,10 @@ class ApiService {
   // Phase 4: Optimization endpoints
 
   // Constraints management
-  async createOptimizationConstraint(token: string, constraint: Record<string, unknown>) {
+  async createOptimizationConstraint(
+    token: string,
+    constraint: Record<string, unknown>
+  ) {
     return this.request('/optimization/constraints', {
       method: 'POST',
       headers: {
@@ -588,7 +591,11 @@ class ApiService {
     });
   }
 
-  async updateAvailabilitySlot(token: string, slotId: string, updates: Record<string, unknown>) {
+  async updateAvailabilitySlot(
+    token: string,
+    slotId: string,
+    updates: Record<string, unknown>
+  ) {
     return this.request(`/optimization/availability/${slotId}`, {
       method: 'PUT',
       headers: {
@@ -616,7 +623,10 @@ class ApiService {
     });
   }
 
-  async updateOptimizationPreferences(token: string, preferences: Record<string, unknown>) {
+  async updateOptimizationPreferences(
+    token: string,
+    preferences: Record<string, unknown>
+  ) {
     return this.request('/optimization/preferences', {
       method: 'PUT',
       headers: {
@@ -704,7 +714,10 @@ class ApiService {
     });
   }
 
-  async bulkValidateConstraints(token: string, constraints: Record<string, unknown>[]) {
+  async bulkValidateConstraints(
+    token: string,
+    constraints: Record<string, unknown>[]
+  ) {
     return this.request('/optimization/constraints/bulk-validate', {
       method: 'POST',
       headers: {
@@ -753,7 +766,11 @@ class ApiService {
     });
   }
 
-  async updateJobSource(token: string, id: string, data: Record<string, unknown>) {
+  async updateJobSource(
+    token: string,
+    id: string,
+    data: Record<string, unknown>
+  ) {
     return this.request(`/job-sources/${id}`, {
       method: 'PUT',
       headers: {
