@@ -18,11 +18,11 @@
     },
     {
       "source": "/app",
-      "destination": "/fuyou-interactive-v6.html"
+      "destination": "/shiftboard-demo.html"
     },
     {
       "source": "/ai",
-      "destination": "/fuyou-serverless-v5.html"
+      "destination": "/shiftboard-demo.html"
     },
     {
       "source": "/latest",
