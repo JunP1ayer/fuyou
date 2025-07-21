@@ -235,6 +235,780 @@
     <script>
       let currentDate = new Date();
 
+      // LocalStorage管理
+      function getWorkplaces() {
+        const stored = localStorage.getItem('workplaces');
+        return stored ? JSON.parse(stored) : [];
+      }
+
+      function saveWorkplace(workplace) {
+        const workplaces = getWorkplaces();
+        const existingIndex = workplaces.findIndex(w => w.id === workplace.id);
+
+        if (existingIndex >= 0) {
+          workplaces[existingIndex] = workplace;
+        } else {
+          workplaces.push(workplace);
+        }
+
+        localStorage.setItem('workplaces', JSON.stringify(workplaces));
+      }
+
+      function getWorkplace(workplaceId) {
+        const workplaces = getWorkplaces();
+        return workplaces.find(w => w.id === workplaceId);
+      }
+
+      function getShifts() {
+        const stored = localStorage.getItem('shifts');
+        return stored ? JSON.parse(stored) : [];
+      }
+
+      function saveShift(shift) {
+        const shifts = getShifts();
+        const existingIndex = shifts.findIndex(s => s.id === shift.id);
+
+        if (existingIndex >= 0) {
+          shifts[existingIndex] = shift;
+        } else {
+          shifts.push(shift);
+        }
+
+        localStorage.setItem('shifts', JSON.stringify(shifts));
+        renderCalendar(); // カレンダーを再描画
+      }
+
+      function getShiftsForDate(date) {
+        const shifts = getShifts();
+        return shifts.filter(shift => shift.date === date);
+      }
+
+      // 高度な給与計算（フレキシブル料金レート対応）
+      function calculateAdvancedEarnings(
+        workplaceId,
+        date,
+        startTime,
+        endTime,
+        nextDayEnd = false
+      ) {
+        const workplace = getWorkplace(workplaceId);
+        if (!workplace) return 0;
+
+        const dayOfWeek = new Date(date).getDay();
+
+        // 基本時給を取得（曜日ごとの割増がある場合は適用）
+        let baseHourlyRate = workplace.hourlyRate;
+        if (workplace.dayRates && workplace.dayRates[dayOfWeek]) {
+          baseHourlyRate = workplace.dayRates[dayOfWeek];
+        }
+
+        // 労働時間を計算（次の日まで働く場合を考慮）
+        const [startHour, startMin] = startTime.split(':').map(Number);
+        let [endHour, endMin] = endTime.split(':').map(Number);
+
+        if (nextDayEnd && endHour < startHour) {
+          endHour += 24; // 次の日の時間として計算
+        }
+
+        const startTotalMinutes = startHour * 60 + startMin;
+        const endTotalMinutes = endHour * 60 + endMin;
+        const totalMinutes = endTotalMinutes - startTotalMinutes;
+
+        if (totalMinutes <= 0) return 0;
+
+        let totalEarnings = 0;
+
+        // 時間ごとに料金を計算（フレキシブルレート適用）
+        for (
+          let minute = startTotalMinutes;
+          minute < endTotalMinutes;
+          minute += 60
+        ) {
+          const currentHour = Math.floor(minute / 60) % 24;
+          let hourlyRate = baseHourlyRate;
+
+          // フレキシブル時間レートを確認
+          if (workplace.flexibleRates) {
+            const applicableRate = workplace.flexibleRates.find(rate =>
+              isTimeInSlot(currentHour, rate.startTime, rate.endTime)
+            );
+
+            if (applicableRate) {
+              hourlyRate =
+                baseHourlyRate * (1 + applicableRate.percentage / 100);
+            }
+          }
+
+          // 深夜割増（22時～翌5時は25%割増）- フレキシブルレートで設定されていない場合のデフォルト
+          if (
+            !workplace.flexibleRates &&
+            (currentHour >= 22 || currentHour < 5)
+          ) {
+            hourlyRate = baseHourlyRate * 1.25;
+          }
+
+          totalEarnings += hourlyRate;
+        }
+
+        // 分単位での調整
+        const workingHours = totalMinutes / 60;
+        totalEarnings =
+          (totalEarnings * workingHours) / Math.floor(workingHours);
+
+        // 交通費を加算
+        if (workplace.transportationFee) {
+          totalEarnings += workplace.transportationFee;
+        }
+
+        return Math.round(totalEarnings);
+      }
+
+      // 時間が指定されたスロット内にあるかチェック
+      function isTimeInSlot(hour, startTime, endTime) {
+        const start = parseInt(startTime.split(':')[0]);
+        const end = parseInt(endTime.split(':')[0]);
+
+        if (start <= end) {
+          return hour >= start && hour < end;
+        } else {
+          // 日跨ぎの場合（例：22:00-05:00）
+          return hour >= start || hour < end;
+        }
+      }
+
+      // シフト設定ポップアップを表示
+      function showShiftSettingPopup(displayDate, dateString) {
+        const workplaces = getWorkplaces();
+
+        if (workplaces.length === 0) {
+          // 勤務先が登録されていない場合は勤務先登録を促す
+          if (
+            confirm('勤務先が登録されていません。先に勤務先を登録しますか？')
+          ) {
+            showWorkplaceRegistrationPopup();
+          }
+          return;
+        }
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center;
+          z-index: 1000;
+        `;
+
+        const popup = document.createElement('div');
+        popup.style.cssText = `
+          background: white; padding: 20px; border-radius: 10px; max-width: 400px; width: 90%;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        `;
+
+        const title = document.createElement('h3');
+        title.textContent = `${displayDate} のシフト設定`;
+        title.style.cssText = 'margin-top: 0; color: #333; text-align: center;';
+
+        const form = document.createElement('form');
+
+        // 勤務先選択
+        const workplaceGroup = document.createElement('div');
+        workplaceGroup.style.cssText = 'margin-bottom: 15px;';
+        const workplaceLabel = document.createElement('label');
+        workplaceLabel.textContent = '勤務先:';
+        workplaceLabel.style.cssText =
+          'display: block; margin-bottom: 5px; font-weight: bold;';
+
+        const workplaceSelect = document.createElement('select');
+        workplaceSelect.style.cssText =
+          'width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;';
+        workplaceSelect.innerHTML =
+          '<option value="">選択してください</option>';
+
+        workplaces.forEach(workplace => {
+          const option = document.createElement('option');
+          option.value = workplace.id;
+          option.textContent = workplace.name;
+          workplaceSelect.appendChild(option);
+        });
+
+        workplaceGroup.appendChild(workplaceLabel);
+        workplaceGroup.appendChild(workplaceSelect);
+
+        // 開始時間
+        const startTimeGroup = document.createElement('div');
+        startTimeGroup.style.cssText = 'margin-bottom: 15px;';
+        const startTimeLabel = document.createElement('label');
+        startTimeLabel.textContent = '開始時間:';
+        startTimeLabel.style.cssText =
+          'display: block; margin-bottom: 5px; font-weight: bold;';
+
+        const startTimeInput = document.createElement('input');
+        startTimeInput.type = 'time';
+        startTimeInput.style.cssText =
+          'width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;';
+
+        startTimeGroup.appendChild(startTimeLabel);
+        startTimeGroup.appendChild(startTimeInput);
+
+        // 終了時間
+        const endTimeGroup = document.createElement('div');
+        endTimeGroup.style.cssText = 'margin-bottom: 15px;';
+        const endTimeLabel = document.createElement('label');
+        endTimeLabel.textContent = '終了時間:';
+        endTimeLabel.style.cssText =
+          'display: block; margin-bottom: 5px; font-weight: bold;';
+
+        const endTimeInput = document.createElement('input');
+        endTimeInput.type = 'time';
+        endTimeInput.style.cssText =
+          'width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;';
+
+        endTimeGroup.appendChild(endTimeLabel);
+        endTimeGroup.appendChild(endTimeInput);
+
+        // 次の日まで働くチェックボックス
+        const nextDayGroup = document.createElement('div');
+        nextDayGroup.style.cssText =
+          'margin-bottom: 15px; display: flex; align-items: center;';
+
+        const nextDayCheckbox = document.createElement('input');
+        nextDayCheckbox.type = 'checkbox';
+        nextDayCheckbox.id = 'nextDayEnd';
+        nextDayCheckbox.style.cssText = 'margin-right: 8px;';
+
+        const nextDayLabel = document.createElement('label');
+        nextDayLabel.setAttribute('for', 'nextDayEnd');
+        nextDayLabel.textContent = '次の日まで働く';
+        nextDayLabel.style.cssText = 'color: #555;';
+
+        nextDayGroup.appendChild(nextDayCheckbox);
+        nextDayGroup.appendChild(nextDayLabel);
+
+        // 予測収入表示
+        const earningsDiv = document.createElement('div');
+        earningsDiv.style.cssText =
+          'margin-bottom: 15px; padding: 10px; background: #f0f8ff; border-radius: 4px; text-align: center;';
+        const earningsText = document.createElement('span');
+        earningsText.textContent = '予測収入: ¥0';
+        earningsText.style.cssText =
+          'font-weight: bold; color: #4CAF50; font-size: 16px;';
+        earningsDiv.appendChild(earningsText);
+
+        // 予測収入を更新する関数
+        function updatePredictedEarnings() {
+          const workplaceId = workplaceSelect.value;
+          const startTime = startTimeInput.value;
+          const endTime = endTimeInput.value;
+          const nextDayEnd = nextDayCheckbox.checked;
+
+          if (workplaceId && startTime && endTime) {
+            const earnings = calculateAdvancedEarnings(
+              workplaceId,
+              dateString,
+              startTime,
+              endTime,
+              nextDayEnd
+            );
+            earningsText.textContent = `予測収入: ¥${earnings.toLocaleString()}`;
+          } else {
+            earningsText.textContent = '予測収入: ¥0';
+          }
+        }
+
+        // イベントリスナーを追加
+        workplaceSelect.addEventListener('change', updatePredictedEarnings);
+        startTimeInput.addEventListener('input', updatePredictedEarnings);
+        endTimeInput.addEventListener('input', updatePredictedEarnings);
+        nextDayCheckbox.addEventListener('change', updatePredictedEarnings);
+
+        // ボタン
+        const buttonGroup = document.createElement('div');
+        buttonGroup.style.cssText =
+          'display: flex; justify-content: space-between; gap: 10px; margin-top: 20px;';
+
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = 'キャンセル';
+        cancelButton.type = 'button';
+        cancelButton.style.cssText =
+          'flex: 1; padding: 10px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;';
+
+        const saveButton = document.createElement('button');
+        saveButton.textContent = '保存';
+        saveButton.type = 'submit';
+        saveButton.style.cssText =
+          'flex: 1; padding: 10px; border: none; background: #4CAF50; color: white; border-radius: 4px; cursor: pointer;';
+
+        const newWorkplaceButton = document.createElement('button');
+        newWorkplaceButton.textContent = '新しい勤務先';
+        newWorkplaceButton.type = 'button';
+        newWorkplaceButton.style.cssText =
+          'flex: 1; padding: 10px; border: 1px solid #2196F3; background: white; color: #2196F3; border-radius: 4px; cursor: pointer;';
+
+        buttonGroup.appendChild(cancelButton);
+        buttonGroup.appendChild(newWorkplaceButton);
+        buttonGroup.appendChild(saveButton);
+
+        form.appendChild(workplaceGroup);
+        form.appendChild(startTimeGroup);
+        form.appendChild(endTimeGroup);
+        form.appendChild(nextDayGroup);
+        form.appendChild(earningsDiv);
+        form.appendChild(buttonGroup);
+
+        popup.appendChild(title);
+        popup.appendChild(form);
+        overlay.appendChild(popup);
+        document.body.appendChild(overlay);
+
+        // イベントハンドラー
+        cancelButton.addEventListener('click', () => {
+          document.body.removeChild(overlay);
+        });
+
+        newWorkplaceButton.addEventListener('click', () => {
+          document.body.removeChild(overlay);
+          showWorkplaceRegistrationPopup(() => {
+            // 勤務先登録後、再度シフト設定ポップアップを表示
+            showShiftSettingPopup(displayDate, dateString);
+          });
+        });
+
+        form.addEventListener('submit', e => {
+          e.preventDefault();
+
+          const workplaceId = workplaceSelect.value;
+          const startTime = startTimeInput.value;
+          const endTime = endTimeInput.value;
+          const nextDayEnd = nextDayCheckbox.checked;
+
+          if (!workplaceId || !startTime || !endTime) {
+            alert('すべての項目を入力してください。');
+            return;
+          }
+
+          const earnings = calculateAdvancedEarnings(
+            workplaceId,
+            dateString,
+            startTime,
+            endTime,
+            nextDayEnd
+          );
+          const shift = {
+            id: Date.now().toString(),
+            date: dateString,
+            workplaceId: workplaceId,
+            startTime: startTime,
+            endTime: endTime,
+            nextDayEnd: nextDayEnd,
+            earnings: earnings,
+            createdAt: new Date().toISOString(),
+          };
+
+          saveShift(shift);
+          document.body.removeChild(overlay);
+        });
+
+        overlay.addEventListener('click', e => {
+          if (e.target === overlay) {
+            document.body.removeChild(overlay);
+          }
+        });
+      }
+
+      // 勤務先登録ポップアップを表示
+      function showWorkplaceRegistrationPopup(onComplete = null) {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: flex-start;
+          z-index: 1000; overflow-y: auto; padding: 20px 0;
+        `;
+
+        const popup = document.createElement('div');
+        popup.style.cssText = `
+          background: white; padding: 25px; border-radius: 12px; max-width: 500px; width: 95%;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.15); margin: auto;
+        `;
+
+        const title = document.createElement('h3');
+        title.textContent = '勤務先登録';
+        title.style.cssText =
+          'margin-top: 0; color: #333; text-align: center; margin-bottom: 25px;';
+
+        const form = document.createElement('form');
+
+        // 勤務先名
+        const nameGroup = document.createElement('div');
+        nameGroup.style.cssText = 'margin-bottom: 20px;';
+        const nameLabel = document.createElement('label');
+        nameLabel.textContent = '勤務先名:';
+        nameLabel.style.cssText =
+          'display: block; margin-bottom: 8px; font-weight: bold; color: #555;';
+
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.required = true;
+        nameInput.style.cssText =
+          'width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px;';
+        nameInput.placeholder = '例: スターバックス新宿店';
+
+        nameGroup.appendChild(nameLabel);
+        nameGroup.appendChild(nameInput);
+
+        // 基本時給
+        const rateGroup = document.createElement('div');
+        rateGroup.style.cssText = 'margin-bottom: 20px;';
+        const rateLabel = document.createElement('label');
+        rateLabel.textContent = '基本時給（円）:';
+        rateLabel.style.cssText =
+          'display: block; margin-bottom: 8px; font-weight: bold; color: #555;';
+
+        const rateInput = document.createElement('input');
+        rateInput.type = 'number';
+        rateInput.required = true;
+        rateInput.min = '800';
+        rateInput.max = '3000';
+        rateInput.value = '1000';
+        rateInput.style.cssText =
+          'width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px;';
+
+        rateGroup.appendChild(rateLabel);
+        rateGroup.appendChild(rateInput);
+
+        // 交通費
+        const transportGroup = document.createElement('div');
+        transportGroup.style.cssText = 'margin-bottom: 20px;';
+        const transportLabel = document.createElement('label');
+        transportLabel.textContent = '交通費（円）:';
+        transportLabel.style.cssText =
+          'display: block; margin-bottom: 8px; font-weight: bold; color: #555;';
+
+        const transportInput = document.createElement('input');
+        transportInput.type = 'number';
+        transportInput.min = '0';
+        transportInput.max = '2000';
+        transportInput.value = '0';
+        transportInput.style.cssText =
+          'width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 6px; font-size: 14px;';
+        transportInput.placeholder = '0（なしの場合は0）';
+
+        transportGroup.appendChild(transportLabel);
+        transportGroup.appendChild(transportInput);
+
+        // 色選択
+        const colorGroup = document.createElement('div');
+        colorGroup.style.cssText = 'margin-bottom: 25px;';
+        const colorLabel = document.createElement('label');
+        colorLabel.textContent = '表示色:';
+        colorLabel.style.cssText =
+          'display: block; margin-bottom: 10px; font-weight: bold; color: #555;';
+
+        const colorOptions = document.createElement('div');
+        colorOptions.style.cssText =
+          'display: flex; gap: 10px; flex-wrap: wrap;';
+
+        const colors = [
+          { name: 'グリーン', value: '#4CAF50' },
+          { name: 'ブルー', value: '#2196F3' },
+          { name: 'オレンジ', value: '#FF9800' },
+          { name: 'パープル', value: '#9C27B0' },
+          { name: 'レッド', value: '#F44336' },
+          { name: 'グレー', value: '#607D8B' },
+          { name: 'ブラウン', value: '#795548' },
+          { name: 'ピンク', value: '#E91E63' },
+        ];
+
+        let selectedColor = colors[0].value;
+
+        colors.forEach(color => {
+          const colorButton = document.createElement('button');
+          colorButton.type = 'button';
+          colorButton.style.cssText = `
+            width: 40px; height: 40px; border-radius: 50%; border: 3px solid transparent;
+            background: ${color.value}; cursor: pointer; transition: all 0.2s;
+          `;
+          colorButton.title = color.name;
+
+          colorButton.addEventListener('click', () => {
+            selectedColor = color.value;
+            colorOptions.querySelectorAll('button').forEach(btn => {
+              btn.style.border = '3px solid transparent';
+            });
+            colorButton.style.border = '3px solid #333';
+          });
+
+          colorOptions.appendChild(colorButton);
+        });
+
+        // デフォルトで最初の色を選択
+        colorOptions.firstChild.style.border = '3px solid #333';
+
+        colorGroup.appendChild(colorLabel);
+        colorGroup.appendChild(colorOptions);
+
+        // 高度な設定セクション
+        const advancedSection = document.createElement('div');
+        advancedSection.style.cssText =
+          'border-top: 2px solid #f0f0f0; margin: 25px 0; padding-top: 25px;';
+
+        const advancedTitle = document.createElement('h4');
+        advancedTitle.textContent = '高度な設定（オプション）';
+        advancedTitle.style.cssText =
+          'color: #555; margin-bottom: 15px; cursor: pointer; display: flex; align-items: center;';
+
+        const toggleIcon = document.createElement('span');
+        toggleIcon.textContent = '▼';
+        toggleIcon.style.cssText =
+          'margin-left: 10px; transition: transform 0.3s;';
+        advancedTitle.appendChild(toggleIcon);
+
+        const advancedContent = document.createElement('div');
+        advancedContent.style.cssText = 'display: block;';
+
+        // 曜日別時給設定
+        const dayRatesTitle = document.createElement('h5');
+        dayRatesTitle.textContent = '曜日別時給設定';
+        dayRatesTitle.style.cssText = 'color: #666; margin-bottom: 10px;';
+
+        const dayRatesContainer = document.createElement('div');
+        dayRatesContainer.style.cssText = 'margin-bottom: 20px;';
+
+        const dayNames = [
+          '日曜日',
+          '月曜日',
+          '火曜日',
+          '水曜日',
+          '木曜日',
+          '金曜日',
+          '土曜日',
+        ];
+        const dayRateInputs = [];
+
+        dayNames.forEach((dayName, index) => {
+          const dayGroup = document.createElement('div');
+          dayGroup.style.cssText =
+            'display: flex; align-items: center; margin-bottom: 8px; gap: 10px;';
+
+          const dayLabel = document.createElement('label');
+          dayLabel.textContent = dayName;
+          dayLabel.style.cssText = 'width: 80px; font-size: 13px; color: #666;';
+
+          const dayInput = document.createElement('input');
+          dayInput.type = 'number';
+          dayInput.min = '800';
+          dayInput.max = '3000';
+          dayInput.placeholder = '基本時給と同じ';
+          dayInput.style.cssText =
+            'flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;';
+          dayRateInputs.push(dayInput);
+
+          dayGroup.appendChild(dayLabel);
+          dayGroup.appendChild(dayInput);
+          dayRatesContainer.appendChild(dayGroup);
+        });
+
+        // フレキシブル時間レート設定
+        const flexRatesTitle = document.createElement('h5');
+        flexRatesTitle.textContent = 'フレキシブル時間レート設定';
+        flexRatesTitle.style.cssText = 'color: #666; margin: 20px 0 10px 0;';
+
+        const flexRatesContainer = document.createElement('div');
+        flexRatesContainer.style.cssText = 'margin-bottom: 20px;';
+
+        const flexRatesInfo = document.createElement('p');
+        flexRatesInfo.textContent =
+          '特定の時間帯に時給を割増しできます（例：深夜22時-5時は25%アップ）';
+        flexRatesInfo.style.cssText =
+          'font-size: 12px; color: #888; margin-bottom: 15px; line-height: 1.4;';
+
+        const flexRatesList = document.createElement('div');
+        flexRatesList.id = 'flexRatesList';
+
+        const addFlexRateButton = document.createElement('button');
+        addFlexRateButton.textContent = '+ 時間帯を追加';
+        addFlexRateButton.type = 'button';
+        addFlexRateButton.style.cssText =
+          'padding: 8px 16px; border: 1px solid #4CAF50; background: white; color: #4CAF50; border-radius: 4px; cursor: pointer; font-size: 13px;';
+
+        flexRatesContainer.appendChild(flexRatesInfo);
+        flexRatesContainer.appendChild(flexRatesList);
+        flexRatesContainer.appendChild(addFlexRateButton);
+
+        // フレキシブルレート追加機能
+        const flexRates = [];
+
+        function addFlexRateSlot(
+          startTime = '22:00',
+          endTime = '05:00',
+          percentage = 25
+        ) {
+          const rateId = Date.now().toString();
+          const rateSlot = document.createElement('div');
+          rateSlot.style.cssText =
+            'display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding: 10px; border: 1px solid #e0e0e0; border-radius: 6px; background: #f9f9f9;';
+
+          const startInput = document.createElement('input');
+          startInput.type = 'time';
+          startInput.value = startTime;
+          startInput.style.cssText =
+            'padding: 6px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px;';
+
+          const endInput = document.createElement('input');
+          endInput.type = 'time';
+          endInput.value = endTime;
+          endInput.style.cssText =
+            'padding: 6px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px;';
+
+          const percentageInput = document.createElement('input');
+          percentageInput.type = 'number';
+          percentageInput.value = percentage;
+          percentageInput.min = '0';
+          percentageInput.max = '100';
+          percentageInput.style.cssText =
+            'width: 60px; padding: 6px; border: 1px solid #ddd; border-radius: 3px; font-size: 12px;';
+
+          const percentLabel = document.createElement('span');
+          percentLabel.textContent = '%アップ';
+          percentLabel.style.cssText = 'font-size: 12px; color: #666;';
+
+          const removeButton = document.createElement('button');
+          removeButton.textContent = '削除';
+          removeButton.type = 'button';
+          removeButton.style.cssText =
+            'padding: 4px 8px; border: 1px solid #f44336; background: white; color: #f44336; border-radius: 3px; cursor: pointer; font-size: 11px;';
+
+          removeButton.addEventListener('click', () => {
+            flexRatesList.removeChild(rateSlot);
+            const index = flexRates.findIndex(r => r.id === rateId);
+            if (index >= 0) flexRates.splice(index, 1);
+          });
+
+          rateSlot.appendChild(startInput);
+          rateSlot.appendChild(document.createTextNode(' - '));
+          rateSlot.appendChild(endInput);
+          rateSlot.appendChild(percentageInput);
+          rateSlot.appendChild(percentLabel);
+          rateSlot.appendChild(removeButton);
+
+          flexRatesList.appendChild(rateSlot);
+
+          flexRates.push({
+            id: rateId,
+            getStartTime: () => startInput.value,
+            getEndTime: () => endInput.value,
+            getPercentage: () => parseInt(percentageInput.value) || 0,
+          });
+        }
+
+        addFlexRateButton.addEventListener('click', () => addFlexRateSlot());
+
+        advancedContent.appendChild(dayRatesTitle);
+        advancedContent.appendChild(dayRatesContainer);
+        advancedContent.appendChild(flexRatesTitle);
+        advancedContent.appendChild(flexRatesContainer);
+
+        advancedSection.appendChild(advancedTitle);
+        advancedSection.appendChild(advancedContent);
+
+        // 高度な設定の開閉
+        let advancedExpanded = true;
+        advancedTitle.addEventListener('click', () => {
+          advancedExpanded = !advancedExpanded;
+          advancedContent.style.display = advancedExpanded ? 'block' : 'none';
+          toggleIcon.style.transform = advancedExpanded
+            ? 'rotate(0deg)'
+            : 'rotate(-90deg)';
+        });
+
+        // ボタン
+        const buttonGroup = document.createElement('div');
+        buttonGroup.style.cssText =
+          'display: flex; justify-content: space-between; gap: 15px; margin-top: 30px;';
+
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = 'キャンセル';
+        cancelButton.type = 'button';
+        cancelButton.style.cssText =
+          'flex: 1; padding: 12px; border: 2px solid #ccc; background: white; border-radius: 6px; cursor: pointer; font-size: 14px;';
+
+        const saveButton = document.createElement('button');
+        saveButton.textContent = '勤務先を登録';
+        saveButton.type = 'submit';
+        saveButton.style.cssText =
+          'flex: 2; padding: 12px; border: none; background: #4CAF50; color: white; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold;';
+
+        buttonGroup.appendChild(cancelButton);
+        buttonGroup.appendChild(saveButton);
+
+        form.appendChild(nameGroup);
+        form.appendChild(rateGroup);
+        form.appendChild(transportGroup);
+        form.appendChild(colorGroup);
+        form.appendChild(advancedSection);
+        form.appendChild(buttonGroup);
+
+        popup.appendChild(title);
+        popup.appendChild(form);
+        overlay.appendChild(popup);
+        document.body.appendChild(overlay);
+
+        // イベントハンドラー
+        cancelButton.addEventListener('click', () => {
+          document.body.removeChild(overlay);
+        });
+
+        form.addEventListener('submit', e => {
+          e.preventDefault();
+
+          const name = nameInput.value.trim();
+          const hourlyRate = parseInt(rateInput.value);
+          const transportationFee = parseInt(transportInput.value) || 0;
+
+          if (!name || !hourlyRate) {
+            alert('勤務先名と基本時給は必須項目です。');
+            return;
+          }
+
+          // 曜日別時給を収集
+          const dayRates = {};
+          dayRateInputs.forEach((input, index) => {
+            if (input.value) {
+              dayRates[index] = parseInt(input.value);
+            }
+          });
+
+          // フレキシブルレートを収集
+          const flexibleRates = flexRates
+            .map(rate => ({
+              startTime: rate.getStartTime(),
+              endTime: rate.getEndTime(),
+              percentage: rate.getPercentage(),
+            }))
+            .filter(rate => rate.percentage > 0);
+
+          const workplace = {
+            id: Date.now().toString(),
+            name: name,
+            hourlyRate: hourlyRate,
+            transportationFee: transportationFee,
+            color: selectedColor,
+            dayRates: Object.keys(dayRates).length > 0 ? dayRates : null,
+            flexibleRates: flexibleRates.length > 0 ? flexibleRates : null,
+            createdAt: new Date().toISOString(),
+          };
+
+          saveWorkplace(workplace);
+          document.body.removeChild(overlay);
+
+          if (onComplete) onComplete();
+        });
+
+        overlay.addEventListener('click', e => {
+          if (e.target === overlay) {
+            document.body.removeChild(overlay);
+          }
+        });
+      }
+
       function renderCalendar() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
@@ -315,6 +1089,146 @@
           emptyCell.className = 'date-cell empty';
           grid.appendChild(emptyCell);
         }
+      }
+
+      function changeMonth(delta) {
+        currentDate.setMonth(currentDate.getMonth() + delta);
+        renderCalendar();
+      }
+
+      // 日付クリック時のシフト設定処理
+      function handleDateClick(dateString) {
+        // カレンダーからの日付は YYYY-MM-DD 形式
+        // 1月1日の場合、'1月1日' などを推測
+        const clickedDate = new Date(dateString);
+        const displayDate = `${clickedDate.getMonth() + 1}月${clickedDate.getDate()}日`;
+
+        // シフト設定ポップアップを表示
+        showShiftSettingPopup(displayDate, dateString);
+      }
+
+      // カレンダー再レンダリング時にクリックイベントを追加
+      function attachDateClickEvents() {
+        const dateCells = document.querySelectorAll('.date-cell:not(.empty)');
+        dateCells.forEach(cell => {
+          const dateNumber = cell.querySelector('.date-number');
+          if (dateNumber) {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const date = parseInt(dateNumber.textContent);
+            const fullDate = new Date(year, month, date);
+            const dateString = fullDate.toISOString().split('T')[0];
+
+            cell.addEventListener('click', () => handleDateClick(dateString));
+          }
+        });
+      }
+
+      function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        // 月タイトル更新
+        document.getElementById('monthTitle').textContent =
+          `${year}年${month + 1}月`;
+
+        // 月初と月末の日付
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const today = new Date();
+
+        // 月初の曜日（0:日曜〜6:土曜）
+        const firstDayOfWeek = firstDay.getDay();
+
+        // グリッドをクリア
+        const grid = document.getElementById('datesGrid');
+        grid.innerHTML = '';
+
+        // 空のセルを追加
+        for (let i = 0; i < firstDayOfWeek; i++) {
+          const emptyCell = document.createElement('div');
+          emptyCell.className = 'date-cell empty';
+          grid.appendChild(emptyCell);
+        }
+
+        // 日付セルを追加
+        for (let date = 1; date <= lastDay.getDate(); date++) {
+          const cell = document.createElement('div');
+          const currentCellDate = new Date(year, month, date);
+          const dayOfWeek = currentCellDate.getDay();
+
+          // クラス設定
+          cell.className = 'date-cell';
+          if (dayOfWeek === 0) cell.classList.add('sunday');
+          if (dayOfWeek === 6) cell.classList.add('saturday');
+          if (
+            year === today.getFullYear() &&
+            month === today.getMonth() &&
+            date === today.getDate()
+          ) {
+            cell.classList.add('today');
+          }
+
+          // 日付番号
+          const dateNumber = document.createElement('div');
+          dateNumber.className = 'date-number';
+          dateNumber.textContent = date;
+          cell.appendChild(dateNumber);
+
+          // コンテンツエリア
+          const content = document.createElement('div');
+          content.className = 'date-content';
+
+          // LocalStorageから実際のシフトデータを取得して表示
+          const dateString = currentCellDate.toISOString().split('T')[0];
+          const shifts = getShiftsForDate(dateString);
+
+          if (shifts.length > 0) {
+            shifts.forEach(shift => {
+              const workplace = getWorkplace(shift.workplaceId);
+              if (workplace) {
+                const shiftInfo = document.createElement('div');
+                shiftInfo.className = 'shift-info';
+                shiftInfo.style.fontSize = '0.6rem';
+                shiftInfo.style.backgroundColor = workplace.color;
+                shiftInfo.style.color = 'white';
+                shiftInfo.style.padding = '2px 4px';
+                shiftInfo.style.borderRadius = '3px';
+                shiftInfo.style.marginBottom = '2px';
+
+                const timeDisplay =
+                  shift.nextDayEnd && shift.endTime < shift.startTime
+                    ? `${shift.startTime}-翌${shift.endTime}`
+                    : `${shift.startTime}-${shift.endTime}`;
+
+                shiftInfo.textContent = `${workplace.name} ${timeDisplay}`;
+                content.appendChild(shiftInfo);
+
+                const earnings = document.createElement('div');
+                earnings.className = 'shift-earnings';
+                earnings.style.fontSize = '0.55rem';
+                earnings.style.color = '#4CAF50';
+                earnings.textContent = `¥${shift.earnings.toLocaleString()}`;
+                content.appendChild(earnings);
+              }
+            });
+          }
+
+          cell.appendChild(content);
+          grid.appendChild(cell);
+        }
+
+        // 残りの空セルを追加（6週分を確保）
+        const totalCells = firstDayOfWeek + lastDay.getDate();
+        const remainingCells = 42 - totalCells; // 6週 × 7日 = 42
+        for (let i = 0; i < remainingCells; i++) {
+          const emptyCell = document.createElement('div');
+          emptyCell.className = 'date-cell empty';
+          grid.appendChild(emptyCell);
+        }
+
+        // クリックイベントを添付
+        setTimeout(attachDateClickEvents, 0);
       }
 
       function changeMonth(delta) {

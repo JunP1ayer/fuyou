@@ -26,7 +26,7 @@ import {
 } from '@mui/icons-material';
 import { ShiftCalendar } from './shifts/ShiftCalendar';
 import { OCRShiftManager } from './OCRShiftManager';
-import type { Shift } from '../types/shift';
+import type { Shift, CreateShiftData } from '../types/shift';
 
 // 扶養状況の型定義
 interface FuyouStatus {
@@ -80,12 +80,30 @@ export const ShiftBoardFuyouApp: React.FC = () => {
   };
 
   // OCRシフト追加の処理
-  const handleOCRComplete = (newShifts: Shift[]) => {
-    setShifts(prev => [...prev, ...newShifts]);
+  const handleOCRComplete = (newShifts: CreateShiftData[]) => {
+    // CreateShiftDataをShiftに変換（簡易版）
+    const shiftsToAdd: Shift[] = newShifts.map(shift => ({
+      id: `shift-${Date.now()}-${Math.random()}`,
+      userId: 'demo-user',
+      date: shift.date,
+      startTime: shift.startTime,
+      endTime: shift.endTime,
+      hourlyRate: shift.hourlyRate,
+      location: shift.location || '本店',
+      workingHours: calculateWorkingHours(shift.startTime, shift.endTime),
+      calculatedEarnings:
+        calculateWorkingHours(shift.startTime, shift.endTime) *
+        shift.hourlyRate,
+      notes: shift.notes,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+
+    setShifts(prev => [...prev, ...shiftsToAdd]);
     setOcrDialogOpen(false);
 
-    // 扶養状況を再計算（簡易版）
-    const totalEarnings = [...shifts, ...newShifts].reduce(
+    // 扶養状況を再計算
+    const totalEarnings = [...shifts, ...shiftsToAdd].reduce(
       (sum, shift) => sum + shift.calculatedEarnings,
       0
     );
@@ -96,6 +114,20 @@ export const ShiftBoardFuyouApp: React.FC = () => {
       remaining: Math.max(0, prev.limit - totalEarnings),
       riskLevel: totalEarnings > prev.limit * 0.9 ? 'warning' : 'safe',
     }));
+  };
+
+  // 労働時間計算のヘルパー関数
+  const calculateWorkingHours = (
+    startTime: string,
+    endTime: string
+  ): number => {
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    const [endHour, endMin] = endTime.split(':').map(Number);
+
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+
+    return (endMinutes - startMinutes) / 60;
   };
 
   return (

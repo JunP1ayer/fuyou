@@ -1,17 +1,5 @@
-import { useState } from 'react';
-import {
-  ThemeProvider,
-  createTheme,
-  CssBaseline,
-  Container,
-  Box,
-  CircularProgress,
-} from '@mui/material';
-import { AuthProvider } from './contexts/AuthContext';
-import { useAuth } from './hooks/useAuth';
-import { Login } from './components/Login';
-import { Register } from './components/Register';
-import { Dashboard } from './components/Dashboard';
+import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { ShiftBoardFuyouApp } from './components/ShiftBoardFuyouApp';
 
 // Material-UI theme configuration
 const theme = createTheme({
@@ -28,45 +16,11 @@ const theme = createTheme({
   },
 });
 
-function AppContent() {
-  const { user, loading } = useAuth();
-  const [showRegister, setShowRegister] = useState(false);
-
-  if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh"
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (user) {
-    return <Dashboard />;
-  }
-
-  return (
-    <Container maxWidth="sm">
-      {showRegister ? (
-        <Register onSwitchToLogin={() => setShowRegister(false)} />
-      ) : (
-        <Login onSwitchToRegister={() => setShowRegister(true)} />
-      )}
-    </Container>
-  );
-}
-
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <ShiftBoardFuyouApp />
     </ThemeProvider>
   );
 }
