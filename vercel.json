@@ -14,7 +14,7 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/frontend/shiftboard-demo.html"
+      "destination": "/shiftboard-demo.html"
     },
     {
       "source": "/app",
@@ -26,11 +26,11 @@
     },
     {
       "source": "/latest",
-      "destination": "/frontend/shiftboard-demo.html"
+      "destination": "/shiftboard-demo.html"
     },
     {
       "source": "/shift",
-      "destination": "/frontend/shiftboard-demo.html"
+      "destination": "/shiftboard-demo.html"
     }
   ],
   "headers": [
