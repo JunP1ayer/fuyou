@@ -257,6 +257,216 @@
         box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
       }
 
+      .floating-workplace {
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 56px;
+        height: 56px;
+        background: #e74c3c;
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(231, 76, 60, 0.4);
+        transition: all 0.3s;
+      }
+
+      .floating-workplace:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
+      }
+
+      /* ポップアップ */
+      .popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1001;
+        display: none;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .shift-popup {
+        min-width: 320px;
+      }
+
+      .workplace-popup {
+        min-width: 480px;
+      }
+
+      .popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        display: none;
+      }
+
+      .popup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .popup-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2c3e50;
+      }
+
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: #7f8c8d;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+      }
+
+      .close-btn:hover {
+        background: #ecf0f1;
+      }
+
+      .form-group {
+        margin-bottom: 16px;
+      }
+
+      .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #2c3e50;
+        font-size: 14px;
+      }
+
+      .form-input,
+      .form-select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ecf0f1;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+      }
+
+      .form-input:focus,
+      .form-select:focus {
+        outline: none;
+        border-color: #3498db;
+      }
+
+      .time-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: #3498db;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #2980b9;
+      }
+
+      .btn-secondary {
+        background: #ecf0f1;
+        color: #7f8c8d;
+      }
+
+      .btn-secondary:hover {
+        background: #d5dbdb;
+      }
+
+      .btn-danger {
+        background: #e74c3c;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #c0392b;
+      }
+
+      .workplace-list {
+        max-height: 200px;
+        overflow-y: auto;
+        margin-bottom: 16px;
+      }
+
+      .workplace-item {
+        padding: 12px;
+        border: 1px solid #ecf0f1;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .workplace-info h4 {
+        color: #2c3e50;
+        margin-bottom: 4px;
+      }
+
+      .workplace-info p {
+        color: #7f8c8d;
+        font-size: 12px;
+      }
+
+      .workplace-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .btn-small {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+
+      .checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 12px;
+        align-items: end;
+      }
+
       /* レスポンシブ */
       @media (max-width: 768px) {
         .main-content {
@@ -275,6 +485,24 @@
         .shift-indicator {
           font-size: 8px;
           padding: 1px 4px;
+        }
+
+        .popup {
+          width: 90%;
+          min-width: 0;
+          max-width: 400px;
+        }
+
+        .workplace-popup {
+          min-width: 0;
+        }
+
+        .time-inputs {
+          grid-template-columns: 1fr;
+        }
+
+        .checkbox-group {
+          grid-template-columns: repeat(3, 1fr);
         }
       }
     </style>
@@ -333,22 +561,209 @@
 
     <!-- フローティングアクションボタン -->
     <button class="floating-action" onclick="showAddShiftDialog()" title="シフト追加">+</button>
+    
+    <!-- バイト先管理ボタン -->
+    <button class="floating-workplace" onclick="openWorkplaceManager()" title="バイト先管理">🏢</button>
+
+    <!-- ポップアップオーバーレイ -->
+    <div class="popup-overlay" id="popupOverlay" onclick="closePopups()"></div>
+
+    <!-- 職場管理ポップアップ -->
+    <div class="popup workplace-popup" id="workplacePopup">
+      <div class="popup-header">
+        <div class="popup-title">🏢 バイト先管理</div>
+        <button class="close-btn" onclick="closePopups()">&times;</button>
+      </div>
+
+      <div class="workplace-list" id="workplaceList">
+        <div style="text-align: center; padding: 20px; color: #666">
+          まだバイト先が登録されていません
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="openWorkplaceForm()" style="width: 100%;">
+        ➕ 新しいバイト先を追加
+      </button>
+    </div>
+
+    <!-- 職場登録・編集ポップアップ -->
+    <div class="popup workplace-popup" id="workplaceFormPopup">
+      <div class="popup-header">
+        <div class="popup-title">
+          🏢 <span id="workplaceFormTitle">新しいバイト先を追加</span>
+        </div>
+        <button class="close-btn" onclick="closePopups()">&times;</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">職場名 *</label>
+        <input
+          type="text"
+          class="form-input"
+          id="workplaceName"
+          placeholder="例: ファミリーマート新宿店"
+        />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">基本時給 (円) *</label>
+          <input
+            type="number"
+            class="form-input"
+            id="baseHourlyWage"
+            placeholder="1000"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">交通費 (円)</label>
+          <input
+            type="number"
+            class="form-input"
+            id="transportationFee"
+            placeholder="200"
+            value="0"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">曜日別時給設定</label>
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input type="checkbox" id="dayPremium_0" onchange="updateDayPremiumFields()" />
+            <label for="dayPremium_0">日</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="dayPremium_1" onchange="updateDayPremiumFields()" />
+            <label for="dayPremium_1">月</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="dayPremium_2" onchange="updateDayPremiumFields()" />
+            <label for="dayPremium_2">火</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="dayPremium_3" onchange="updateDayPremiumFields()" />
+            <label for="dayPremium_3">水</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="dayPremium_4" onchange="updateDayPremiumFields()" />
+            <label for="dayPremium_4">木</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="dayPremium_5" onchange="updateDayPremiumFields()" />
+            <label for="dayPremium_5">金</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="dayPremium_6" onchange="updateDayPremiumFields()" />
+            <label for="dayPremium_6">土</label>
+          </div>
+        </div>
+        <div class="form-row">
+          <input
+            type="number"
+            class="form-input"
+            id="dayPremiumRate"
+            placeholder="1100 (円)"
+            disabled
+          />
+          <select class="form-select" id="dayPremiumType" disabled onchange="updateDayPremiumFields()">
+            <option value="fixed">固定額</option>
+            <option value="rate">割増率 (%)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px;">
+        <button class="btn btn-secondary" onclick="closeWorkplaceForm()" style="flex: 1;">
+          キャンセル
+        </button>
+        <button class="btn btn-primary" onclick="saveWorkplace()" style="flex: 2;">
+          保存
+        </button>
+      </div>
+    </div>
+
+    <!-- シフト登録ポップアップ -->
+    <div class="popup shift-popup" id="shiftPopup">
+      <div class="popup-header">
+        <div class="popup-title">
+          📅 <span id="popupDate">2025年1月21日</span> のシフト登録
+        </div>
+        <button class="close-btn" onclick="closeShiftPopup()">&times;</button>
+      </div>
+
+      <input type="hidden" id="shiftDate" />
+
+      <div class="form-group">
+        <label class="form-label">職場</label>
+        <select class="form-select" id="workplaceSelect" onchange="updatePredictedEarnings()">
+          <option value="">まずバイト先を登録してください</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">勤務時間</label>
+        <div class="time-inputs">
+          <div>
+            <label style="font-size: 12px; color: #666">開始時間</label>
+            <input
+              type="time"
+              class="form-input"
+              id="startTime"
+              value="10:00"
+              onchange="updatePredictedEarnings()"
+            />
+          </div>
+          <div>
+            <label style="font-size: 12px; color: #666">終了時間</label>
+            <input 
+              type="time" 
+              class="form-input" 
+              id="endTime" 
+              value="18:00" 
+              onchange="updatePredictedEarnings()"
+            />
+            <label style="font-size: 11px; color: #888">
+              <input
+                type="checkbox"
+                id="crossMidnight"
+                style="margin-right: 4px"
+                onchange="updatePredictedEarnings()"
+              />
+              翌日
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">
+          予想収入: <span id="predictedEarnings">0円</span>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 20px;">
+        <button class="btn btn-danger" onclick="deleteShift()" style="flex: 1;">
+          削除
+        </button>
+        <button class="btn btn-primary" onclick="saveShift()" style="flex: 2;">
+          保存
+        </button>
+      </div>
+    </div>
 
     <script>
       // 現在の日付
       let currentDate = new Date();
       
-      // サンプルシフトデータ
-      const sampleShifts = {
-        '2025-01-15': { time: '10:00-18:00', earnings: 7200 },
-        '2025-01-16': { time: '14:00-22:00', earnings: 7200 },
-        '2025-01-18': { time: '09:00-17:00', earnings: 7200 },
-        '2025-01-22': { time: '10:00-18:00', earnings: 7200 },
-        '2025-01-23': { time: '14:00-22:00', earnings: 7200 },
-        '2025-01-25': { time: '09:00-17:00', earnings: 7200 },
-        '2025-01-29': { time: '10:00-18:00', earnings: 7200 },
-        '2025-01-30': { time: '14:00-22:00', earnings: 7200 }
-      };
+      // データ管理（LocalStorage）
+      let workplaces = JSON.parse(localStorage.getItem('workplaces') || '{}');
+      let shifts = JSON.parse(localStorage.getItem('shifts') || '{}');
+      let workplaceIdCounter = parseInt(
+        localStorage.getItem('workplaceIdCounter') || '1'
+      );
+      let editingWorkplaceId = null;
 
       // 月変更
       function changeMonth(direction) {
@@ -389,7 +804,7 @@
           const dateStr = date.toISOString().split('T')[0];
           const isCurrentMonth = date.getMonth() === month;
           const isToday = date.toDateString() === today.toDateString();
-          const hasShift = sampleShifts[dateStr];
+          const hasShift = shifts[dateStr];
 
           if (!isCurrentMonth) {
             dayElement.classList.add('other-month');
@@ -402,14 +817,15 @@
             if (isCurrentMonth) {
               monthlyEarnings += hasShift.earnings;
               monthlyDays++;
-              const hours = calculateHours(hasShift.time);
+              const hours = calculateHours(hasShift.start, hasShift.end);
               monthlyHours += hours;
             }
           }
 
+          const timeDisplay = hasShift ? `${hasShift.start}-${hasShift.end}` : '';
           dayElement.innerHTML = `
             <div class="day-number">${date.getDate()}</div>
-            ${hasShift ? `<div class="shift-indicator">${hasShift.time}</div>` : ''}
+            ${hasShift ? `<div class="shift-indicator">${timeDisplay}</div>` : ''}
           `;
 
           dayElement.onclick = () => showDayDetails(dateStr);
@@ -423,36 +839,480 @@
       }
 
       // 労働時間計算
-      function calculateHours(timeStr) {
-        const [start, end] = timeStr.split('-');
-        const [startH, startM] = start.split(':').map(Number);
-        const [endH, endM] = end.split(':').map(Number);
+      function calculateHours(startTime, endTime) {
+        const [startH, startM] = startTime.split(':').map(Number);
+        const [endH, endM] = endTime.split(':').map(Number);
         
-        const startMinutes = startH * 60 + startM;
-        const endMinutes = endH * 60 + endM;
+        let startMinutes = startH * 60 + startM;
+        let endMinutes = endH * 60 + endM;
         
-        return Math.round((endMinutes - startMinutes) / 60);
+        // 翌日対応
+        if (endMinutes < startMinutes) {
+          endMinutes += 24 * 60;
+        }
+        
+        return (endMinutes - startMinutes) / 60;
       }
 
       // 日詳細表示
       function showDayDetails(dateStr) {
-        const shift = sampleShifts[dateStr];
+        const shift = shifts[dateStr];
         if (shift) {
-          alert(`${dateStr}\n勤務時間: ${shift.time}\n予定収入: ¥${shift.earnings.toLocaleString()}`);
+          const workplace = workplaces[shift.workplace];
+          const workplaceName = workplace ? workplace.name : '不明な職場';
+          alert(`${dateStr}\n職場: ${workplaceName}\n勤務時間: ${shift.start}-${shift.end}\n収入: ¥${shift.earnings.toLocaleString()}`);
         } else {
-          showAddShiftDialog(dateStr);
+          openShiftPopup(dateStr);
         }
       }
 
       // シフト追加ダイアログ
       function showAddShiftDialog(dateStr = null) {
         const date = dateStr || new Date().toISOString().split('T')[0];
-        alert(`シフト追加機能 (${date})\n※ここに詳細な登録フォームを実装予定`);
+        openShiftPopup(date);
+      }
+
+      // ===== 職場管理機能 =====
+
+      // 職場管理ポップアップを開く
+      function openWorkplaceManager() {
+        document.getElementById('popupOverlay').style.display = 'block';
+        document.getElementById('workplacePopup').style.display = 'block';
+        renderWorkplaceList();
+      }
+
+      // 職場登録フォームを開く
+      function openWorkplaceForm(workplaceId = null) {
+        editingWorkplaceId = workplaceId;
+        document.getElementById('workplacePopup').style.display = 'none';
+        document.getElementById('workplaceFormPopup').style.display = 'block';
+
+        if (workplaceId) {
+          // 編集モード
+          document.getElementById('workplaceFormTitle').textContent = 'バイト先を編集';
+          loadWorkplaceForm(workplaces[workplaceId]);
+        } else {
+          // 新規作成モード
+          document.getElementById('workplaceFormTitle').textContent = '新しいバイト先を追加';
+          clearWorkplaceForm();
+        }
+      }
+
+      // 職場フォームをクリア
+      function clearWorkplaceForm() {
+        document.getElementById('workplaceName').value = '';
+        document.getElementById('baseHourlyWage').value = '';
+        document.getElementById('transportationFee').value = '0';
+        
+        // 曜日チェックボックスをクリア
+        ['0', '1', '2', '3', '4', '5', '6'].forEach(day => {
+          const checkbox = document.getElementById(`dayPremium_${day}`);
+          if (checkbox) checkbox.checked = false;
+        });
+        
+        document.getElementById('dayPremiumRate').value = '';
+        document.getElementById('dayPremiumType').value = 'fixed';
+        updateDayPremiumFields();
+      }
+
+      // 職場フォームに既存データを読み込み
+      function loadWorkplaceForm(workplace) {
+        document.getElementById('workplaceName').value = workplace.name;
+        document.getElementById('baseHourlyWage').value = workplace.baseHourly;
+        document.getElementById('transportationFee').value = workplace.transportation || 0;
+
+        // 曜日別設定
+        if (workplace.dayPremium && workplace.dayPremium.enabled) {
+          workplace.dayPremium.days.forEach(day => {
+            const checkbox = document.getElementById(`dayPremium_${day}`);
+            if (checkbox) checkbox.checked = true;
+          });
+          
+          document.getElementById('dayPremiumRate').value = workplace.dayPremium.rate;
+          document.getElementById('dayPremiumType').value = workplace.dayPremium.type || 'fixed';
+        }
+        
+        updateDayPremiumFields();
+      }
+
+      // 職場リストをレンダリング
+      function renderWorkplaceList() {
+        const listElement = document.getElementById('workplaceList');
+        const workplaceEntries = Object.entries(workplaces);
+
+        if (workplaceEntries.length === 0) {
+          listElement.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">まだバイト先が登録されていません</div>';
+          return;
+        }
+
+        listElement.innerHTML = workplaceEntries
+          .map(([id, workplace]) => `
+            <div class="workplace-item">
+              <div class="workplace-info">
+                <h4>${workplace.name}</h4>
+                <p>基本時給: ${workplace.baseHourly}円 | 交通費: ${workplace.transportation || 0}円</p>
+              </div>
+              <div class="workplace-actions">
+                <button class="btn btn-secondary btn-small" onclick="openWorkplaceForm('${id}')">編集</button>
+                <button class="btn btn-danger btn-small" onclick="deleteWorkplace('${id}')">削除</button>
+              </div>
+            </div>
+          `)
+          .join('');
+      }
+
+      // 職場を保存
+      function saveWorkplace() {
+        const name = document.getElementById('workplaceName').value.trim();
+        const baseHourly = parseInt(document.getElementById('baseHourlyWage').value);
+
+        if (!name || !baseHourly || baseHourly <= 0) {
+          alert('職場名と基本時給は必須です。');
+          return;
+        }
+
+        const workplace = {
+          name: name,
+          baseHourly: baseHourly,
+          transportation: parseInt(document.getElementById('transportationFee').value) || 0
+        };
+
+        // 曜日別設定
+        const selectedDays = [];
+        ['0', '1', '2', '3', '4', '5', '6'].forEach(day => {
+          if (document.getElementById(`dayPremium_${day}`)?.checked) {
+            selectedDays.push(parseInt(day));
+          }
+        });
+
+        if (selectedDays.length > 0) {
+          const rate = parseFloat(document.getElementById('dayPremiumRate').value);
+          const type = document.getElementById('dayPremiumType').value;
+
+          if (rate && rate > 0) {
+            workplace.dayPremium = {
+              enabled: true,
+              days: selectedDays,
+              rate: rate,
+              type: type,
+              multiplier: type === 'fixed' ? rate / baseHourly : 1 + (rate / 100)
+            };
+          }
+        }
+
+        // 保存
+        const workplaceId = editingWorkplaceId || `workplace-${workplaceIdCounter++}`;
+        workplaces[workplaceId] = workplace;
+
+        localStorage.setItem('workplaces', JSON.stringify(workplaces));
+        localStorage.setItem('workplaceIdCounter', workplaceIdCounter.toString());
+
+        closeWorkplaceForm();
+        renderWorkplaceList();
+        updateShiftWorkplaceOptions();
+      }
+
+      // 職場を削除
+      function deleteWorkplace(workplaceId) {
+        if (confirm('このバイト先を削除しますか？')) {
+          delete workplaces[workplaceId];
+          localStorage.setItem('workplaces', JSON.stringify(workplaces));
+          renderWorkplaceList();
+          updateShiftWorkplaceOptions();
+        }
+      }
+
+      // 職場フォームを閉じる
+      function closeWorkplaceForm() {
+        document.getElementById('workplaceFormPopup').style.display = 'none';
+        document.getElementById('workplacePopup').style.display = 'block';
+      }
+
+      // 曜日別設定フィールドの表示/非表示
+      function updateDayPremiumFields() {
+        const hasSelectedDays = Array.from(
+          document.querySelectorAll('[id^="dayPremium_"]')
+        ).some(checkbox => checkbox.checked);
+
+        const rateInput = document.getElementById('dayPremiumRate');
+        const typeSelect = document.getElementById('dayPremiumType');
+
+        rateInput.disabled = !hasSelectedDays;
+        typeSelect.disabled = !hasSelectedDays;
+
+        // プレースホルダーを動的に更新
+        if (hasSelectedDays) {
+          const baseHourly = parseInt(document.getElementById('baseHourlyWage').value) || 1000;
+          const type = typeSelect.value;
+
+          if (type === 'fixed') {
+            rateInput.placeholder = `${baseHourly + 100} (円)`;
+          } else if (type === 'rate') {
+            rateInput.placeholder = '10 (%)';
+          }
+        } else {
+          rateInput.placeholder = '時給 (円)';
+        }
+      }
+
+      // ===== シフト管理機能 =====
+
+      // ポップアップを開く
+      function openShiftPopup(date) {
+        const formattedDate = new Date(date).toLocaleDateString('ja-JP', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+
+        document.getElementById('popupDate').textContent = formattedDate;
+        document.getElementById('shiftDate').value = date;
+        document.getElementById('popupOverlay').style.display = 'block';
+        document.getElementById('shiftPopup').style.display = 'block';
+
+        // 職場選択肢を更新
+        updateShiftWorkplaceOptions();
+
+        // 既存シフトがあれば設定
+        const shift = shifts[date];
+        if (shift) {
+          document.getElementById('workplaceSelect').value = shift.workplace;
+          document.getElementById('startTime').value = shift.start;
+          document.getElementById('endTime').value = shift.end;
+          document.getElementById('crossMidnight').checked = shift.crossMidnight || false;
+          updatePredictedEarnings();
+        } else {
+          // フォームクリア
+          document.getElementById('startTime').value = '10:00';
+          document.getElementById('endTime').value = '18:00';
+          document.getElementById('crossMidnight').checked = false;
+          updatePredictedEarnings();
+        }
+      }
+
+      // シフトポップアップを閉じる
+      function closeShiftPopup() {
+        document.getElementById('popupOverlay').style.display = 'none';
+        document.getElementById('shiftPopup').style.display = 'none';
+      }
+
+      // 全ポップアップを閉じる
+      function closePopups() {
+        document.getElementById('popupOverlay').style.display = 'none';
+        document.getElementById('workplacePopup').style.display = 'none';
+        document.getElementById('workplaceFormPopup').style.display = 'none';
+        document.getElementById('shiftPopup').style.display = 'none';
+        editingWorkplaceId = null;
+      }
+
+      // 収入予測更新
+      function updatePredictedEarnings() {
+        const workplaceId = document.getElementById('workplaceSelect').value;
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
+        const crossMidnight = document.getElementById('crossMidnight')?.checked || false;
+
+        if (!workplaceId || !startTime || !endTime) {
+          document.getElementById('predictedEarnings').textContent = '0円';
+          return;
+        }
+
+        const result = calculateExactEarnings(workplaceId, startTime, endTime, crossMidnight);
+        document.getElementById('predictedEarnings').textContent = `${result.totalEarnings.toLocaleString()}円`;
+      }
+
+      // シフトを保存
+      function saveShift() {
+        const date = document.getElementById('shiftDate').value;
+        const workplaceId = document.getElementById('workplaceSelect').value;
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
+        const crossMidnight = document.getElementById('crossMidnight')?.checked || false;
+
+        if (!workplaceId || !startTime || !endTime) {
+          alert('バイト先、開始時間、終了時間を全て入力してください。');
+          return;
+        }
+
+        if (!workplaces[workplaceId]) {
+          alert('選択されたバイト先が見つかりません。');
+          return;
+        }
+
+        // 収入計算
+        const result = calculateExactEarnings(workplaceId, startTime, endTime, crossMidnight, date);
+
+        // シフトデータ作成
+        const shift = {
+          date: date,
+          workplace: workplaceId,
+          start: startTime,
+          end: endTime,
+          crossMidnight: crossMidnight,
+          hours: result.hours,
+          earnings: result.totalEarnings
+        };
+
+        // 保存
+        shifts[date] = shift;
+        localStorage.setItem('shifts', JSON.stringify(shifts));
+
+        closeShiftPopup();
+        updateCalendar();
+      }
+
+      // シフトを削除
+      function deleteShift() {
+        const date = document.getElementById('shiftDate').value;
+        if (confirm('このシフトを削除しますか？')) {
+          delete shifts[date];
+          localStorage.setItem('shifts', JSON.stringify(shifts));
+          closeShiftPopup();
+          updateCalendar();
+        }
+      }
+
+      // シフトの職場選択肢を更新
+      function updateShiftWorkplaceOptions() {
+        const selectElement = document.getElementById('workplaceSelect');
+        const workplaceEntries = Object.entries(workplaces);
+
+        if (workplaceEntries.length === 0) {
+          selectElement.innerHTML = '<option value="">まずバイト先を登録してください</option>';
+          return;
+        }
+
+        selectElement.innerHTML = workplaceEntries
+          .map(
+            ([id, workplace]) =>
+              `<option value="${id}">${workplace.name} (時給${workplace.baseHourly}円)</option>`
+          )
+          .join('');
+      }
+
+      // ===== 正確な収入計算 =====
+
+      function calculateExactEarnings(workplaceId, startTime, endTime, crossMidnight = false, workDate = null) {
+        const workplace = workplaces[workplaceId];
+        if (!workplace) return { totalEarnings: 0, breakdown: [], hours: 0 };
+
+        console.log('=== 収入計算開始 ===');
+        console.log('職場:', workplace.name);
+        console.log('勤務時間:', `${startTime} - ${endTime}`);
+        console.log('翌日フラグ:', crossMidnight);
+
+        const breakdown = [];
+        let totalEarnings = 0;
+
+        // 労働時間計算
+        const totalHours = calculateHours(startTime, endTime);
+        console.log('労働時間:', totalHours, 'h');
+
+        // 基本時給を決定（曜日別設定があるかチェック）
+        let hourlyRate = workplace.baseHourly;
+        let isWeekendPremium = false;
+
+        // 曜日の取得
+        let dayOfWeek;
+        if (workDate) {
+          dayOfWeek = new Date(workDate).getDay();
+        } else {
+          dayOfWeek = new Date().getDay();
+        }
+
+        console.log('曜日:', dayOfWeek, '(0:日 1:月 ... 6:土)');
+
+        // 曜日別割増の確認
+        if (workplace.dayPremium && workplace.dayPremium.enabled && workplace.dayPremium.days) {
+          if (workplace.dayPremium.days.includes(dayOfWeek)) {
+            hourlyRate = workplace.baseHourly * workplace.dayPremium.multiplier;
+            isWeekendPremium = true;
+
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            breakdown.push(
+              `${dayNames[dayOfWeek]}曜日割増: ${workplace.baseHourly}円 → ${Math.round(hourlyRate)}円 (×${workplace.dayPremium.multiplier})`
+            );
+            console.log('曜日割増適用:', hourlyRate);
+          }
+        }
+
+        // 基本時給計算
+        let baseEarnings = totalHours * hourlyRate;
+        totalEarnings += baseEarnings;
+
+        if (isWeekendPremium) {
+          breakdown.push(
+            `割増給与: ${totalHours}h × ${Math.round(hourlyRate)}円 = ${Math.round(baseEarnings)}円`
+          );
+        } else {
+          breakdown.push(
+            `基本給: ${totalHours}h × ${hourlyRate}円 = ${Math.round(baseEarnings)}円`
+          );
+        }
+
+        // 深夜手当計算（22:00-5:00, 25%割増）
+        const nightHours = calculateNightHours(startTime, endTime, crossMidnight);
+        console.log('深夜時間:', nightHours, 'h');
+
+        if (nightHours > 0) {
+          const nightBonus = nightHours * hourlyRate * 0.25; // 25%割増
+          totalEarnings += nightBonus;
+          breakdown.push(
+            `深夜手当: ${nightHours}h × ${Math.round(hourlyRate)}円 × 25% = ${Math.round(nightBonus)}円`
+          );
+          console.log('深夜手当適用:', nightBonus, '円');
+        }
+
+        // 交通費計算
+        if (workplace.transportation && workplace.transportation > 0) {
+          totalEarnings += workplace.transportation;
+          breakdown.push(`交通費: ${workplace.transportation}円`);
+        }
+
+        console.log('最終計算結果:', Math.round(totalEarnings), '円');
+        console.log('========================');
+
+        return {
+          totalEarnings: Math.round(totalEarnings),
+          breakdown: breakdown,
+          hours: totalHours,
+        };
+      }
+
+      // 深夜時間の計算（22時-5時）
+      function calculateNightHours(startTime, endTime, crossMidnight = false) {
+        const [startHour, startMin] = startTime.split(':').map(Number);
+        let [endHour, endMin] = endTime.split(':').map(Number);
+
+        if (crossMidnight && endHour < startHour) {
+          endHour += 24;
+        }
+
+        let nightMinutes = 0;
+
+        // 1分ごとに深夜時間をチェック
+        for (
+          let minute = startHour * 60 + startMin;
+          minute < endHour * 60 + endMin;
+          minute++
+        ) {
+          const currentHour = Math.floor(minute / 60) % 24;
+          if (currentHour >= 22 || currentHour < 5) {
+            nightMinutes++;
+          }
+        }
+
+        return nightMinutes / 60; // 時間に変換
       }
 
       // 初期化
       document.addEventListener('DOMContentLoaded', function() {
         updateCalendar();
+        
+        // 職場が空の場合は注意メッセージ
+        if (Object.keys(workplaces).length === 0) {
+          console.log('バイト先が登録されていません。まず「バイト先を管理」から職場を追加してください。');
+        }
       });
     </script>
     
