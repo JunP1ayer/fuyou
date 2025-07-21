@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>扶養状況確認 - 扶養管理</title>
+    <!-- Cache busting: 2025-01-21T23:40 -->
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Roboto', 'Noto Sans JP', sans-serif;
+        background: #f8f9fa;
+        min-height: 100vh;
+        color: #333;
+      }
+
+      /* ヘッダー */
+      .header {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header h1 {
+        font-size: 24px;
+        color: #2c3e50;
+        font-weight: 600;
+      }
+
+      .nav-buttons {
+        display: flex;
+        gap: 12px;
+      }
+
+      .nav-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .nav-btn.active {
+        background: #e74c3c;
+        color: white;
+      }
+
+      .nav-btn:not(.active) {
+        background: #ecf0f1;
+        color: #7f8c8d;
+      }
+
+      .nav-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      /* メインコンテンツ */
+      .main-content {
+        max-width: 900px;
+        margin: 20px auto;
+        padding: 0 20px;
+      }
+
+      /* 扶養ステータスカード */
+      .status-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      }
+
+      .status-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .status-header h2 {
+        color: #2c3e50;
+        font-size: 22px;
+      }
+
+      .status-icon {
+        font-size: 28px;
+      }
+
+      /* アラート */
+      .alert {
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .alert.success {
+        background: linear-gradient(135deg, #d5f4e6, #c3f0d7);
+        color: #27ae60;
+        border-left: 4px solid #27ae60;
+      }
+
+      .alert.warning {
+        background: linear-gradient(135deg, #fff4e6, #ffeccc);
+        color: #f39c12;
+        border-left: 4px solid #f39c12;
+      }
+
+      .alert.danger {
+        background: linear-gradient(135deg, #ffebee, #ffcdd2);
+        color: #e74c3c;
+        border-left: 4px solid #e74c3c;
+      }
+
+      /* プログレスバー */
+      .progress-section {
+        margin: 24px 0;
+      }
+
+      .progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .progress-label {
+        font-size: 14px;
+        color: #7f8c8d;
+      }
+
+      .progress-percentage {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .progress-bar {
+        background: #ecf0f1;
+        height: 12px;
+        border-radius: 6px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #27ae60, #2ecc71);
+        width: 63%;
+        transition: width 0.8s ease;
+        border-radius: 6px;
+      }
+
+      .progress-fill.warning {
+        background: linear-gradient(90deg, #f39c12, #f1c40f);
+      }
+
+      .progress-fill.danger {
+        background: linear-gradient(90deg, #e74c3c, #c0392b);
+      }
+
+      /* 統計グリッド */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin: 24px 0;
+      }
+
+      .stat-card {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        border: 2px solid transparent;
+        transition: all 0.3s;
+      }
+
+      .stat-card:hover {
+        border-color: #3498db;
+        transform: translateY(-2px);
+      }
+
+      .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 4px;
+      }
+
+      .stat-value.earnings {
+        color: #27ae60;
+      }
+
+      .stat-value.remaining {
+        color: #3498db;
+      }
+
+      .stat-value.projection {
+        color: #9b59b6;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      /* 詳細セクション */
+      .detail-section {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .detail-title {
+        color: #2c3e50;
+        font-size: 18px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #ecf0f1;
+      }
+
+      .detail-row:last-child {
+        border-bottom: none;
+      }
+
+      .detail-label {
+        color: #7f8c8d;
+        font-size: 14px;
+      }
+
+      .detail-value {
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      /* レスポンシブ */
+      @media (max-width: 768px) {
+        .main-content {
+          padding: 0 10px;
+        }
+        
+        .stats-grid {
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 12px;
+        }
+        
+        .status-card, .detail-section {
+          padding: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ヘッダー -->
+    <header class="header">
+      <h1>扶養状況確認</h1>
+      <nav class="nav-buttons">
+        <a href="calendar-main.html" class="nav-btn">📅 カレンダー</a>
+        <a href="#" class="nav-btn active">📊 扶養状況</a>
+      </nav>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="main-content">
+      <!-- 扶養ステータス -->
+      <div class="status-card">
+        <div class="status-header">
+          <span class="status-icon">🛡️</span>
+          <h2>扶養控除ステータス</h2>
+        </div>
+        
+        <div class="alert success">
+          <span>✅</span>
+          <div>
+            <strong>扶養内です！</strong><br>
+            あと367,000円まで安全に稼ぐことができます
+          </div>
+        </div>
+
+        <div class="progress-section">
+          <div class="progress-header">
+            <span class="progress-label">年収進捗</span>
+            <span class="progress-percentage">63%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 63%"></div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value earnings">¥663,000</div>
+            <div class="stat-label">今年の収入</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value remaining">¥367,000</div>
+            <div class="stat-label">残り余裕</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">¥1,030,000</div>
+            <div class="stat-label">扶養限度額</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value projection">¥980,000</div>
+            <div class="stat-label">年末予測</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 月別収入詳細 -->
+      <div class="detail-section">
+        <h3 class="detail-title">
+          <span>📊</span>
+          月別収入詳細
+        </h3>
+        <div class="detail-row">
+          <span class="detail-label">1月予定収入</span>
+          <span class="detail-value">¥85,200</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">12月実績収入</span>
+          <span class="detail-value">¥78,400</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">11月実績収入</span>
+          <span class="detail-value">¥92,800</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">10月実績収入</span>
+          <span class="detail-value">¥67,200</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">月平均収入</span>
+          <span class="detail-value">¥81,750</span>
+        </div>
+      </div>
+
+      <!-- リスク分析 -->
+      <div class="detail-section">
+        <h3 class="detail-title">
+          <span>⚠️</span>
+          リスク分析
+        </h3>
+        <div class="detail-row">
+          <span class="detail-label">現在のペース</span>
+          <span class="detail-value" style="color: #27ae60;">安全</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">年末予測リスク</span>
+          <span class="detail-value" style="color: #27ae60;">低</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">推奨月上限</span>
+          <span class="detail-value">¥91,667</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">次回確認推奨</span>
+          <span class="detail-value">2025年2月末</span>
+        </div>
+      </div>
+
+      <!-- アクションアイテム -->
+      <div class="detail-section">
+        <h3 class="detail-title">
+          <span>💡</span>
+          推奨アクション
+        </h3>
+        <div class="detail-row">
+          <span class="detail-label">✅ 今月はあと¥6,467稼げます</span>
+          <span class="detail-value" style="color: #27ae60;">OK</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">✅ 現在のペースを維持</span>
+          <span class="detail-value" style="color: #27ae60;">推奨</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">📅 次回チェック</span>
+          <span class="detail-value">1ヶ月後</span>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // ページ読み込み時の処理
+      document.addEventListener('DOMContentLoaded', function() {
+        // プログレスバーのアニメーション
+        setTimeout(() => {
+          const progressFill = document.querySelector('.progress-fill');
+          progressFill.style.width = '63%';
+        }, 500);
+
+        // カードのホバー効果
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach(card => {
+          card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-4px)';
+            this.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.15)';
+          });
+          
+          card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = 'none';
+          });
+        });
+
+        console.log('扶養状況ページが読み込まれました');
+      });
+    </script>
+    
+    <!-- Force deploy: Mon Jul 21 23:40:00 JST 2025 -->
+  </body>
+</html>

@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>シフトカレンダー - 扶養管理</title>
+    <!-- Cache busting: 2025-01-21T23:35 -->
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Roboto', 'Noto Sans JP', sans-serif;
+        background: #f8f9fa;
+        min-height: 100vh;
+        color: #333;
+      }
+
+      /* ヘッダー */
+      .header {
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header h1 {
+        font-size: 24px;
+        color: #2c3e50;
+        font-weight: 600;
+      }
+
+      .nav-buttons {
+        display: flex;
+        gap: 12px;
+      }
+
+      .nav-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .nav-btn.active {
+        background: #3498db;
+        color: white;
+      }
+
+      .nav-btn:not(.active) {
+        background: #ecf0f1;
+        color: #7f8c8d;
+      }
+
+      .nav-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      /* メインコンテンツ */
+      .main-content {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 0 20px;
+      }
+
+      /* 月間ナビゲーション */
+      .month-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        background: white;
+        padding: 16px 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .month-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .month-btn {
+        background: #ecf0f1;
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #7f8c8d;
+        transition: all 0.2s;
+      }
+
+      .month-btn:hover {
+        background: #3498db;
+        color: white;
+      }
+
+      /* カレンダーグリッド */
+      .calendar {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .calendar-header {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        margin-bottom: 16px;
+      }
+
+      .day-header {
+        text-align: center;
+        padding: 12px 8px;
+        font-weight: 600;
+        font-size: 14px;
+        color: #7f8c8d;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+
+      .day-header.saturday {
+        color: #3498db;
+      }
+
+      .day-header.sunday {
+        color: #e74c3c;
+      }
+
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+      }
+
+      .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 8px 4px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-height: 80px;
+        position: relative;
+      }
+
+      .calendar-day:hover {
+        background: #ecf0f1;
+      }
+
+      .calendar-day.other-month {
+        color: #bdc3c7;
+      }
+
+      .calendar-day.today {
+        background: #3498db;
+        color: white;
+      }
+
+      .calendar-day.has-shift {
+        background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+        border: 2px solid #4caf50;
+      }
+
+      .day-number {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      .shift-indicator {
+        background: #4caf50;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 10px;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+
+      /* 月収サマリー */
+      .monthly-summary {
+        background: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-top: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .summary-item {
+        text-align: center;
+      }
+
+      .summary-label {
+        font-size: 12px;
+        color: #7f8c8d;
+        margin-bottom: 4px;
+      }
+
+      .summary-value {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .summary-value.earnings {
+        color: #27ae60;
+      }
+
+      /* アクションボタン */
+      .floating-action {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 56px;
+        height: 56px;
+        background: #3498db;
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(52, 152, 219, 0.4);
+        transition: all 0.3s;
+      }
+
+      .floating-action:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+      }
+
+      /* レスポンシブ */
+      @media (max-width: 768px) {
+        .main-content {
+          padding: 0 10px;
+        }
+        
+        .calendar-day {
+          min-height: 60px;
+          padding: 4px 2px;
+        }
+        
+        .day-number {
+          font-size: 12px;
+        }
+        
+        .shift-indicator {
+          font-size: 8px;
+          padding: 1px 4px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ヘッダー -->
+    <header class="header">
+      <h1>シフトカレンダー</h1>
+      <nav class="nav-buttons">
+        <a href="#" class="nav-btn active">📅 カレンダー</a>
+        <a href="fuyou-status.html" class="nav-btn">📊 扶養状況</a>
+      </nav>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="main-content">
+      <!-- 月間ナビゲーション -->
+      <div class="month-nav">
+        <button class="month-btn" onclick="changeMonth(-1)">‹</button>
+        <h2 class="month-title" id="currentMonth">2025年1月</h2>
+        <button class="month-btn" onclick="changeMonth(1)">›</button>
+      </div>
+
+      <!-- カレンダー -->
+      <div class="calendar">
+        <div class="calendar-header">
+          <div class="day-header sunday">日</div>
+          <div class="day-header">月</div>
+          <div class="day-header">火</div>
+          <div class="day-header">水</div>
+          <div class="day-header">木</div>
+          <div class="day-header">金</div>
+          <div class="day-header saturday">土</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid">
+          <!-- JavaScript で生成 -->
+        </div>
+      </div>
+
+      <!-- 月収サマリー -->
+      <div class="monthly-summary">
+        <div class="summary-item">
+          <div class="summary-label">今月勤務日数</div>
+          <div class="summary-value" id="monthlyDays">12日</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">今月予定収入</div>
+          <div class="summary-value earnings" id="monthlyEarnings">¥85,200</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">今月勤務時間</div>
+          <div class="summary-value" id="monthlyHours">68h</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- フローティングアクションボタン -->
+    <button class="floating-action" onclick="showAddShiftDialog()" title="シフト追加">+</button>
+
+    <script>
+      // 現在の日付
+      let currentDate = new Date();
+      
+      // サンプルシフトデータ
+      const sampleShifts = {
+        '2025-01-15': { time: '10:00-18:00', earnings: 7200 },
+        '2025-01-16': { time: '14:00-22:00', earnings: 7200 },
+        '2025-01-18': { time: '09:00-17:00', earnings: 7200 },
+        '2025-01-22': { time: '10:00-18:00', earnings: 7200 },
+        '2025-01-23': { time: '14:00-22:00', earnings: 7200 },
+        '2025-01-25': { time: '09:00-17:00', earnings: 7200 },
+        '2025-01-29': { time: '10:00-18:00', earnings: 7200 },
+        '2025-01-30': { time: '14:00-22:00', earnings: 7200 }
+      };
+
+      // 月変更
+      function changeMonth(direction) {
+        currentDate.setMonth(currentDate.getMonth() + direction);
+        updateCalendar();
+      }
+
+      // カレンダー更新
+      function updateCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        
+        // 月タイトル更新
+        document.getElementById('currentMonth').textContent = 
+          `${year}年${month + 1}月`;
+
+        // カレンダーグリッド作成
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+        const today = new Date();
+        let monthlyEarnings = 0;
+        let monthlyDays = 0;
+        let monthlyHours = 0;
+
+        for (let i = 0; i < 42; i++) {
+          const date = new Date(startDate);
+          date.setDate(startDate.getDate() + i);
+
+          const dayElement = document.createElement('div');
+          dayElement.className = 'calendar-day';
+          
+          const dateStr = date.toISOString().split('T')[0];
+          const isCurrentMonth = date.getMonth() === month;
+          const isToday = date.toDateString() === today.toDateString();
+          const hasShift = sampleShifts[dateStr];
+
+          if (!isCurrentMonth) {
+            dayElement.classList.add('other-month');
+          }
+          if (isToday) {
+            dayElement.classList.add('today');
+          }
+          if (hasShift) {
+            dayElement.classList.add('has-shift');
+            if (isCurrentMonth) {
+              monthlyEarnings += hasShift.earnings;
+              monthlyDays++;
+              const hours = calculateHours(hasShift.time);
+              monthlyHours += hours;
+            }
+          }
+
+          dayElement.innerHTML = `
+            <div class="day-number">${date.getDate()}</div>
+            ${hasShift ? `<div class="shift-indicator">${hasShift.time}</div>` : ''}
+          `;
+
+          dayElement.onclick = () => showDayDetails(dateStr);
+          grid.appendChild(dayElement);
+        }
+
+        // サマリー更新
+        document.getElementById('monthlyDays').textContent = `${monthlyDays}日`;
+        document.getElementById('monthlyEarnings').textContent = `¥${monthlyEarnings.toLocaleString()}`;
+        document.getElementById('monthlyHours').textContent = `${monthlyHours}h`;
+      }
+
+      // 労働時間計算
+      function calculateHours(timeStr) {
+        const [start, end] = timeStr.split('-');
+        const [startH, startM] = start.split(':').map(Number);
+        const [endH, endM] = end.split(':').map(Number);
+        
+        const startMinutes = startH * 60 + startM;
+        const endMinutes = endH * 60 + endM;
+        
+        return Math.round((endMinutes - startMinutes) / 60);
+      }
+
+      // 日詳細表示
+      function showDayDetails(dateStr) {
+        const shift = sampleShifts[dateStr];
+        if (shift) {
+          alert(`${dateStr}\n勤務時間: ${shift.time}\n予定収入: ¥${shift.earnings.toLocaleString()}`);
+        } else {
+          showAddShiftDialog(dateStr);
+        }
+      }
+
+      // シフト追加ダイアログ
+      function showAddShiftDialog(dateStr = null) {
+        const date = dateStr || new Date().toISOString().split('T')[0];
+        alert(`シフト追加機能 (${date})\n※ここに詳細な登録フォームを実装予定`);
+      }
+
+      // 初期化
+      document.addEventListener('DOMContentLoaded', function() {
+        updateCalendar();
+      });
+    </script>
+    
+    <!-- Force deploy: Mon Jul 21 23:35:00 JST 2025 -->
+  </body>
+</html>

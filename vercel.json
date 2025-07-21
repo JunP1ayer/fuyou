@@ -14,7 +14,7 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/shiftboard-demo.html"
+      "destination": "/calendar-main.html"
     },
     {
       "source": "/app",
