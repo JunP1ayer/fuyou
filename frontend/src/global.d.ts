@@ -2,19 +2,19 @@
 
 // Vite module declarations
 declare module 'vite' {
-  const vite: any;
+  const vite: unknown;
   export default vite;
   export * from 'vite';
 }
 
 declare module '@vitejs/plugin-react' {
-  const pluginReact: any;
+  const pluginReact: unknown;
   export default pluginReact;
 }
 
 // React DOM client module declarations
 declare module 'react-dom/client' {
-  import * as ReactDOM from 'react-dom';
+  // import * as ReactDOM from 'react-dom';
 
   export interface Root {
     render(children: React.ReactNode): void;

@@ -42,7 +42,7 @@ export const FuyouStatusCard: React.FC<FuyouStatusCardProps> = ({
       const response = (await apiService.getEnhancedCalculation(token)) as {
         success: boolean;
         data?: unknown;
-        error?: any;
+        error?: unknown;
       };
 
       if (

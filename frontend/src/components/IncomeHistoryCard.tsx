@@ -53,7 +53,7 @@ export const IncomeHistoryCard: React.FC<IncomeHistoryCardProps> = ({
       const response = (await apiService.getRecentIncomes(token, 5)) as {
         success: boolean;
         data?: unknown;
-        error?: any;
+        error?: unknown;
       };
 
       if (

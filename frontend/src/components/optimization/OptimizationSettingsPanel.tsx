@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   Typography,
-  TextField,
   Select,
   MenuItem,
   FormControl,
@@ -14,11 +13,10 @@ import {
   Button,
   Alert,
   Stack,
-  Divider,
   Chip,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
-import { Save, Notifications, Security, Settings } from '@mui/icons-material';
+import { Save, Notifications, Settings } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { apiService } from '../../services/api';
 import type {
@@ -256,7 +254,7 @@ export function OptimizationSettingsPanel({
                     onChange={e =>
                       setSettings({
                         ...settings,
-                        riskTolerance: e.target.value as any,
+                        riskTolerance: e.target.value as 'conservative' | 'moderate' | 'aggressive',
                       })
                     }
                   >
@@ -282,7 +280,7 @@ export function OptimizationSettingsPanel({
                     onChange={e =>
                       setSettings({
                         ...settings,
-                        timeHorizon: e.target.value as any,
+                        timeHorizon: e.target.value as 'short' | 'medium' | 'long',
                       })
                     }
                   >

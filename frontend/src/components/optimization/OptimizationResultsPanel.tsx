@@ -17,11 +17,6 @@ import {
   IconButton,
   Collapse,
   Alert,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -29,46 +24,33 @@ import {
   Tabs,
   Tab,
   LinearProgress,
-  CircularProgress,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import {
   ExpandMore,
   ExpandLess,
   Visibility,
-  GetApp,
-  TrendingUp,
-  TrendingDown,
-  Schedule,
-  MonetizationOn,
-  Assessment,
   CheckCircle,
   Error,
-  Warning,
-  Info,
   PlayArrow,
   History,
   Analytics,
-  Compare,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { apiService } from '../../services/api';
 import type {
   OptimizationRun,
-  OptimizationResult,
-  OptimizationRecommendation,
-  OptimizedShift,
-  OptimizationMetrics,
 } from '../../types/optimization';
 
 interface OptimizationResultsPanelProps {
   runs: OptimizationRun[];
-  onUpdate: () => void;
+  onUpdate?: () => void;
 }
 
 export function OptimizationResultsPanel({
   runs,
-  onUpdate,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onUpdate: _,
 }: OptimizationResultsPanelProps) {
   const { user } = useAuth();
   const [selectedRun, setSelectedRun] = useState<OptimizationRun | null>(null);
@@ -85,7 +67,9 @@ export function OptimizationResultsPanel({
       setIsLoading(true);
       setError(null);
 
-      const [detailsResult, suggestionsResult] = await Promise.all([
+      const [detailsResult, 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        suggestionsResult] = await Promise.all([
         apiService.getOptimizationRunDetails(user.token, run.id),
         apiService.getOptimizationSuggestions(user.token, run.id),
       ]);
@@ -176,6 +160,7 @@ export function OptimizationResultsPanel({
   };
 
   const completedRuns = runs.filter(run => run.status === 'completed');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const failedRuns = runs.filter(run => run.status === 'failed');
   const runningRuns = runs.filter(
     run => run.status === 'running' || run.status === 'pending'
@@ -331,7 +316,7 @@ export function OptimizationResultsPanel({
                         <TableCell>
                           <Chip
                             label={getStatusLabel(run.status)}
-                            color={getStatusColor(run.status) as any}
+                            color={getStatusColor(run.status) as 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'}
                             size="small"
                           />
                         </TableCell>

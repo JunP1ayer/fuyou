@@ -73,7 +73,6 @@ export const RealTimeIncomeDisplay: React.FC<RealTimeIncomeDisplayProps> = ({
       }
 
       // 日平均計算（今月の稼働日数で割る）
-      const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
       const currentDay = now.getDate();
       if (currentDay > 0) {
         setDailyAverage(monthlyIncome / currentDay);

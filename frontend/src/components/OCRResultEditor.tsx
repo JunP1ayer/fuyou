@@ -1,28 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   TextField,
   Button,
   Card,
   CardContent,
   CardMedia,
-  Divider,
   Chip,
   Alert,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Switch,
   FormControlLabel,
   Autocomplete,
@@ -32,21 +19,12 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import {
-  ExpandMore,
   Edit,
   Save,
   Cancel,
   Add,
   Delete,
-  Visibility,
-  VisibilityOff,
   AutoAwesome,
-  Schedule,
-  DateRange,
-  AttachMoney,
-  LocationOn,
-  CheckCircle,
-  Warning,
   Info,
 } from '@mui/icons-material';
 import { format } from '../utils/dateUtils';
@@ -99,7 +77,7 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
     ocrResult.data?.extractedText || ''
   );
   const [parsedShifts, setParsedShifts] = useState<ParsedShift[]>([]);
-  const [editingShift, setEditingShift] = useState<string | null>(null);
+  const [, setEditingShift] = useState<string | null>(null);
   const [showOriginalImage, setShowOriginalImage] = useState(true);
   const [showBoundingBoxes, setShowBoundingBoxes] = useState(false);
   const [autoParseEnabled, setAutoParseEnabled] = useState(true);
@@ -113,10 +91,10 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
     if (autoParseEnabled && extractedText) {
       parseShiftsFromText(extractedText);
     }
-  }, [extractedText, autoParseEnabled]);
+  }, [extractedText, autoParseEnabled, parseShiftsFromText]);
 
   // テキストからシフトデータを解析
-  const parseShiftsFromText = (text: string) => {
+  const parseShiftsFromText = useCallback((text: string) => {
     try {
       const shifts: ParsedShift[] = [];
       const lines = text.split('\n').filter(line => line.trim());
@@ -160,10 +138,10 @@ export const OCRResultEditor: React.FC<OCRResultEditorProps> = ({
 
       setParsedShifts(shifts);
       setParseError(null);
-    } catch (error) {
+    } catch {
       setParseError('テキストの解析に失敗しました');
     }
-  };
+  }, []);
 
   // 日付文字列の正規化
   const normalizeDateString = (dateStr: string): string => {

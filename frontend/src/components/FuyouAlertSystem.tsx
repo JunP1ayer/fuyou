@@ -25,7 +25,6 @@ import {
   CheckCircle,
   TrendingUp,
   Schedule,
-  MonetizationOn,
   Close,
   ExpandMore,
   ExpandLess,
@@ -33,7 +32,6 @@ import {
   NotificationImportant,
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
-import { apiService } from '../services/api';
 import type { FuyouStatus } from '../types/fuyou';
 
 interface FuyouAlert {
@@ -68,7 +66,7 @@ export const FuyouAlertSystem: React.FC<FuyouAlertSystemProps> = ({
   compactMode = false,
   showSnackbar = true,
 }) => {
-  const { token } = useAuth();
+  useAuth();
   const [alerts, setAlerts] = useState<FuyouAlert[]>([]);
   const [expandedAlerts, setExpandedAlerts] = useState<Set<string>>(new Set());
   const [snackbarOpen, setSnackbarOpen] = useState(false);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   FormControl,
@@ -97,21 +97,21 @@ export default function JobSourceSelector({
     if (token) {
       loadJobSources();
     }
-  }, [token]);
+  }, [token, loadJobSources]);
 
-  const loadJobSources = async () => {
+  const loadJobSources = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await apiService.getJobSources(token!);
       setJobSources(response.data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to load job sources:', error);
       setError('バイト先の読み込みに失敗しました');
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   const handleJobSourceChange = (event: SelectChangeEvent<string>) => {
     const jobSourceId = event.target.value;
@@ -163,7 +163,7 @@ export default function JobSourceSelector({
         hourlyRate: '',
         expectedMonthlyHours: '',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create job source:', error);
       setError('バイト先の作成に失敗しました');
     }

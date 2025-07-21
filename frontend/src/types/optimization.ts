@@ -15,7 +15,7 @@ export interface OptimizationConstraint {
   constraintUnit: 'hours' | 'yen' | 'percentage' | 'custom';
   priority: number; // 1-5, 1 is highest priority
   isActive: boolean;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
@@ -187,7 +187,7 @@ export interface CreateOptimizationConstraintRequest {
   constraintUnit: OptimizationConstraint['constraintUnit'];
   priority?: number;
   isActive?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface UpdateOptimizationConstraintRequest {
@@ -195,7 +195,7 @@ export interface UpdateOptimizationConstraintRequest {
   constraintUnit?: OptimizationConstraint['constraintUnit'];
   priority?: number;
   isActive?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface CreateAvailabilitySlotRequest {

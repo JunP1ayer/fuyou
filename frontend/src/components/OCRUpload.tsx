@@ -16,18 +16,14 @@ import {
   CardMedia,
   CardContent,
   Chip,
-  Divider,
   ButtonGroup,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import {
   PhotoCamera,
-  Upload,
   Close,
-  Refresh,
   CloudUpload,
   Image as ImageIcon,
-  Smartphone,
   CameraAlt,
   FileUpload,
 } from '@mui/icons-material';
@@ -91,7 +87,7 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
         processSelectedFile(file, 'file');
       }
     },
-    []
+    [processSelectedFile]
   );
 
   // ドラッグ&ドロップ処理
@@ -113,10 +109,12 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
     if (file) {
       processSelectedFile(file, 'drag-drop');
     }
-  }, []);
+  }, [processSelectedFile]);
 
   // 選択されたファイルの処理
-  const processSelectedFile = (file: File, source: ImageInputSource) => {
+  const processSelectedFile = useCallback((file: File, 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    source: ImageInputSource) => {
     // ファイル形式チェック
     if (!file.type.startsWith('image/')) {
       setUploadState(prev => ({
@@ -149,7 +147,7 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
       });
     };
     reader.readAsDataURL(file);
-  };
+  }, [onError]);
 
   // カメラ起動
   const startCamera = async () => {
@@ -281,8 +279,9 @@ export const OCRUpload: React.FC<OCRUploadProps> = ({
 
     // 簡単な日付と時間の抽出パターン
     const datePattern = /(\d{1,2})\/(\d{1,2})|(\d{4})-(\d{1,2})-(\d{1,2})/g;
-    const timePattern = /(\d{1,2}):(\d{2})/g;
-    const ratePattern = /(\d+)円/g;
+    // TODO: Implement time and rate extraction
+    // const timePattern = /(\d{1,2}):(\d{2})/g;
+    // const ratePattern = /(\d+)円/g;
 
     let dateMatch;
     while ((dateMatch = datePattern.exec(text)) !== null) {

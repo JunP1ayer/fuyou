@@ -17,23 +17,15 @@ import {
   DialogActions,
   TextField,
   Grid,
-  Chip,
-  Divider,
   IconButton,
 } from '@mui/material';
 import {
   CameraAlt,
-  PhotoLibrary,
   CheckCircle,
   Edit,
   SmartToy,
-  Person,
   Refresh,
   Close,
-  AutoAwesome,
-  Schedule,
-  LocationOn,
-  AttachMoney,
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
 import { apiService } from '../services/api';
@@ -61,7 +53,6 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
 }) => {
   const { token } = useAuth();
   const [stage, setStage] = useState<OCRStage>('input');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [result, setResult] = useState<NaturalLanguageResult | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingShifts, setEditingShifts] = useState<CreateShiftData[]>([]);
@@ -77,11 +68,11 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
         processFile(file);
       }
     },
-    []
+    [processFile]
   );
 
   // ファイル処理
-  const processFile = (file: File) => {
+  const processFile = useCallback((file: File) => {
     // ファイル検証
     if (!file.type.startsWith('image/')) {
       setError('画像ファイルを選択してください');
@@ -93,13 +84,12 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
       return;
     }
 
-    setSelectedFile(file);
     setError(null);
     startOCRProcessing(file);
-  };
+  }, [startOCRProcessing]);
 
   // OCR処理開始
-  const startOCRProcessing = async (file: File) => {
+  const startOCRProcessing = useCallback(async (file: File) => {
     if (!token) {
       setError('認証が必要です');
       return;
@@ -137,7 +127,7 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
       setStage('input');
       onError?.(errorMessage);
     }
-  };
+  }, [token, onError]);
 
   // 確認処理
   const handleConfirm = async () => {
@@ -193,7 +183,6 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
   // リセット
   const handleReset = () => {
     setStage('input');
-    setSelectedFile(null);
     setResult(null);
     setError(null);
     if (fileInputRef.current) {

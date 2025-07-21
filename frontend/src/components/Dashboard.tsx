@@ -600,6 +600,13 @@ export function Dashboard() {
           onClose={() => setCsvUploadOpen(false)}
           maxWidth="md"
           fullWidth
+          fullScreen={mobilePreviewMode}
+          PaperProps={{
+            sx: {
+              margin: { xs: 1, sm: 2 },
+              maxHeight: { xs: '95vh', sm: '80vh' }
+            }
+          }}
         >
           <DialogTitle>銀行明細CSVアップロード</DialogTitle>
           <DialogContent>
@@ -635,8 +642,13 @@ export function Dashboard() {
           onClose={handleOCRClose}
           maxWidth="sm"
           fullWidth
+          fullScreen={mobilePreviewMode}
           PaperProps={{
-            sx: { borderRadius: 3 },
+            sx: { 
+              borderRadius: { xs: 0, sm: 3 },
+              margin: { xs: 0, sm: 2 },
+              maxHeight: { xs: '100vh', sm: '90vh' }
+            },
           }}
         >
           <DialogContent sx={{ p: 0 }}>
@@ -669,8 +681,12 @@ export function Dashboard() {
           onClose={() => setJobManagementOpen(false)}
           maxWidth="lg"
           fullWidth
+          fullScreen={mobilePreviewMode}
           PaperProps={{
-            sx: { height: '80vh' },
+            sx: { 
+              height: { xs: '100vh', sm: '80vh' },
+              margin: { xs: 0, sm: 2 }
+            },
           }}
         >
           <DialogTitle>バイト先管理</DialogTitle>

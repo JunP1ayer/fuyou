@@ -4,7 +4,6 @@ import {
   Stepper,
   Step,
   StepLabel,
-  StepContent,
   Button,
   Typography,
   Card,
@@ -89,6 +88,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
   onShiftsSaved,
   onError,
   onClose,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   compactMode = false,
   autoNavigateToShifts = false,
 }) => {
@@ -145,20 +145,20 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
     return state.step !== 'upload' && !state.loading;
   };
 
-  // 画像アップロード完了時
-  const handleImageSelected = useCallback(
-    (file: File, preview: string) => {
-      updateState({
-        imageFile: file,
-        imagePreview: preview,
-        ocrResult: null,
-        extractedShifts: [],
-        error: null,
-      });
-      showNotification('画像が選択されました', 'success');
-    },
-    [updateState, showNotification]
-  );
+  // 画像アップロード完了時 - 未使用のため削除
+  // const handleImageSelected = useCallback(
+  //   (file: File, preview: string) => {
+  //     updateState({
+  //       imageFile: file,
+  //       imagePreview: preview,
+  //       ocrResult: null,
+  //       extractedShifts: [],
+  //       error: null,
+  //     });
+  //     showNotification('画像が選択されました', 'success');
+  //   },
+  //   [updateState, showNotification]
+  // );
 
   // OCR処理完了時
   const handleOCRComplete = useCallback(
@@ -250,7 +250,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
         onError?.(errorMessage);
       }
     },
-    [token, updateState, showNotification, onShiftsSaved, onError]
+    [token, updateState, showNotification, onShiftsSaved, onError, autoNavigateToShifts]
   );
 
   // エラーハンドリング

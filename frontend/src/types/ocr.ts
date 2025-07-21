@@ -20,7 +20,7 @@ export interface OCRResponse {
   error?: {
     code: string;
     message: string;
-    details?: any;
+    details?: unknown;
   };
   metadata?: {
     processingTimeMs: number;

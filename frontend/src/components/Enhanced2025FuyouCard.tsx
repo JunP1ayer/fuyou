@@ -22,15 +22,12 @@ import {
   AccordionDetails,
 } from '@mui/material';
 import {
-  Warning,
   CheckCircle,
-  Error as ErrorIcon,
   TrendingUp,
   Info,
   ExpandMore,
   School,
   Business,
-  AccountBalance,
   Star,
   FiberNew,
 } from '@mui/icons-material';
@@ -110,7 +107,7 @@ export const Enhanced2025FuyouCard: React.FC<Enhanced2025FuyouCardProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [selectedLimit, setSelectedLimit] = useState<FuyouLimit2025 | null>(
+  const [, setSelectedLimit] = useState<FuyouLimit2025 | null>(
     null
   );
 
@@ -124,7 +121,7 @@ export const Enhanced2025FuyouCard: React.FC<Enhanced2025FuyouCardProps> = ({
       const response = (await apiService.getEnhancedCalculation(token)) as {
         success: boolean;
         data?: unknown;
-        error?: any;
+        error?: unknown;
       };
 
       if (
@@ -196,23 +193,6 @@ export const Enhanced2025FuyouCard: React.FC<Enhanced2025FuyouCardProps> = ({
     fetchFuyouStatus();
   }, [fetchFuyouStatus]);
 
-  // ユーザーに最適な制度を推奨
-  const getRecommendedLimit = (): FuyouLimit2025 => {
-    const isStudent = user?.isStudent;
-
-    if (isStudent) {
-      return (
-        FUYOU_LIMITS_2025.find(limit => limit.amount === 1500000) ||
-        FUYOU_LIMITS_2025[1]
-      );
-    }
-
-    // 2025年制度の123万円を基本推奨
-    return (
-      FUYOU_LIMITS_2025.find(limit => limit.amount === 1230000) ||
-      FUYOU_LIMITS_2025[1]
-    );
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ja-JP', {
@@ -222,31 +202,7 @@ export const Enhanced2025FuyouCard: React.FC<Enhanced2025FuyouCardProps> = ({
     }).format(amount);
   };
 
-  const getRiskIcon = (riskLevel: string) => {
-    switch (riskLevel) {
-      case 'safe':
-        return <CheckCircle color="success" />;
-      case 'warning':
-        return <Warning color="warning" />;
-      case 'danger':
-        return <ErrorIcon color="error" />;
-      default:
-        return <CheckCircle color="success" />;
-    }
-  };
 
-  const getRiskColor = (riskLevel: string): 'success' | 'warning' | 'error' => {
-    switch (riskLevel) {
-      case 'safe':
-        return 'success';
-      case 'warning':
-        return 'warning';
-      case 'danger':
-        return 'error';
-      default:
-        return 'success';
-    }
-  };
 
   const getProgressColor = (percentage: number) => {
     if (percentage < 70) return 'success';

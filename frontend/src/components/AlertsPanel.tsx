@@ -58,7 +58,7 @@ export const AlertsPanel: React.FC<AlertsPanelProps> = ({
       const response = (await apiService.getAlerts(token)) as {
         success: boolean;
         data?: unknown;
-        error?: any;
+        error?: unknown;
       };
 
       if (

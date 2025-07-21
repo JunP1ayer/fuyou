@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -21,7 +21,6 @@ import {
 import Grid from '@mui/material/Grid';
 import {
   CloudUpload,
-  Image as ImageIcon,
   FindInPage,
   CheckCircle,
   ErrorOutline,
@@ -106,7 +105,7 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
     if (token) {
       fetchUsage();
     }
-  }, [token]);
+  }, [token, fetchUsage]);
 
   // 処理時間の計測
   useEffect(() => {
@@ -119,7 +118,7 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
     return () => clearInterval(timer);
   }, [processing]);
 
-  const fetchUsage = async () => {
+  const fetchUsage = useCallback(async () => {
     if (!token) return;
 
     try {
@@ -129,7 +128,7 @@ export const OCRProcessor: React.FC<OCRProcessorProps> = ({
     } catch (error) {
       console.error('使用状況の取得に失敗:', error);
     }
-  };
+  }, [token, onUsageUpdate]);
 
   const updateStep = (stepIndex: number, updates: Partial<ProcessingStep>) => {
     setSteps(prev =>

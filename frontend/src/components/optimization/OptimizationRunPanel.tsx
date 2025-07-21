@@ -6,10 +6,6 @@ import {
   Typography,
   Button,
   TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Alert,
   LinearProgress,
   Stepper,
@@ -20,36 +16,17 @@ import {
   Stack,
   Chip,
   CircularProgress,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import {
   PlayArrow,
-  Stop,
   Settings,
   Timeline,
-  Speed,
   Assessment,
-  ExpandMore,
-  CheckCircle,
   Error,
   Warning,
-  Info,
   Schedule,
   MonetizationOn,
-  TrendingUp,
-  Analytics,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { apiService } from '../../services/api';
@@ -61,7 +38,6 @@ import type {
   OptimizationConstraint,
   CreateOptimizationRunRequest,
   ObjectiveType,
-  AlgorithmType,
 } from '../../types/optimization';
 
 interface OptimizationRunPanelProps {
@@ -76,12 +52,14 @@ interface OptimizationRunPanelProps {
 
 export function OptimizationRunPanel({
   algorithms,
-  tiers,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  tiers: _tiers,
   preferences,
   constraints,
   activeRun,
   onRunStart,
-  onUpdate,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onUpdate: _onUpdate,
 }: OptimizationRunPanelProps) {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);

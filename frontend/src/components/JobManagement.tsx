@@ -14,11 +14,6 @@ import {
   Chip,
   Grid,
   Alert,
-  Fab,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   InputAdornment,
   FormControlLabel,
   Switch,
@@ -31,7 +26,6 @@ import {
   Schedule,
   AttachMoney,
   DirectionsBus,
-  Palette,
 } from '@mui/icons-material';
 // カラーピッカーを削除してMaterial-UIの色選択に変更
 
@@ -92,7 +86,7 @@ export const JobManagement: React.FC<JobManagementProps> = ({
   const [jobs, setJobs] = useState<JobTemplate[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<JobTemplate | null>(null);
-  const [colorSelectorOpen, setColorSelectorOpen] = useState(false);
+  // カラーセレクター機能は将来実装予定
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<JobTemplate>>({
     name: '',

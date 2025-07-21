@@ -19,13 +19,10 @@ import {
 import Grid from '@mui/material/Grid';
 import {
   TrendingUp,
-  Schedule,
   Settings,
   Assessment,
   PlayArrow,
-  Pause,
   Refresh,
-  Info,
   CheckCircle,
   Warning,
   Error,
@@ -34,7 +31,6 @@ import { useAuth } from '../hooks/useAuth';
 import { apiService } from '../services/api';
 import { OptimizationConstraintsPanel } from './optimization/OptimizationConstraintsPanel';
 import { OptimizationResultsPanel } from './optimization/OptimizationResultsPanel';
-import { OptimizationSettingsPanel } from './optimization/OptimizationSettingsPanel';
 import { OptimizationRunPanel } from './optimization/OptimizationRunPanel';
 import type {
   OptimizationConstraint,
@@ -410,10 +406,13 @@ function OptimizationOverview({
   constraints,
   runs,
   algorithms,
-  tiers,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  tiers: _tiers,
   preferences,
-  activeRun,
-  onStartRun,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  activeRun: _activeRun,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onStartRun: _onStartRun,
 }: OptimizationOverviewProps) {
   const completedRuns = runs.filter(run => run.status === 'completed');
   const successRate =

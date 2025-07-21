@@ -41,7 +41,6 @@ import {
   isToday,
   addMonths,
   subMonths,
-  ja,
 } from '../../utils/dateUtils';
 import { apiService } from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
@@ -50,7 +49,6 @@ import type {
   ShiftStats,
   CalendarDate,
   ViewMode,
-  EarningsProjection,
 } from '../../types/shift';
 import { EarningsProjectionCard } from './EarningsProjectionCard';
 
@@ -76,7 +74,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('month');
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [, setSelectedDate] = useState<string | null>(null);
 
   // カレンダーの日付を生成
   const generateCalendarDates = useCallback(
@@ -125,7 +123,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
       const response = (await apiService.getShifts(token, {
         startDate,
         endDate,
-      })) as { success: boolean; data?: Shift[]; error?: any };
+      })) as { success: boolean; data?: Shift[]; error?: unknown };
 
       if (
         !('success' in response) ||
@@ -143,7 +141,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         token,
         currentDate.getFullYear(),
         currentDate.getMonth() + 1
-      )) as { success: boolean; data?: ShiftStats; error?: any };
+      )) as { success: boolean; data?: ShiftStats; error?: unknown };
 
       if (
         'success' in statsResponse &&
@@ -247,12 +245,6 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   };
 
   // シフトの状態に応じた色を取得
-  const getShiftColor = (shift: Shift) => {
-    if (shift.isConfirmed) {
-      return 'success';
-    }
-    return 'warning';
-  };
 
   // シフトチップの背景色を取得
   const getShiftChipStyle = (shift: Shift) => {
@@ -274,19 +266,28 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
     <Card sx={{ height: '100%' }}>
       <CardHeader
         title={
-          <Box display="flex" alignItems="center" gap={2}>
-            <Schedule color="primary" />
-            <Typography variant="h6">シフト管理</Typography>
+          <Box display="flex" alignItems="center" gap={{ xs: 1, sm: 2 }}>
+            <Schedule color="primary" sx={{ display: { xs: 'none', sm: 'block' } }} />
+            <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+              シフト管理
+            </Typography>
             <Chip
               label={format(currentDate, 'yyyy年M月')}
               variant="outlined"
               color="primary"
+              sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
             />
           </Box>
         }
         action={
-          <Box display="flex" alignItems="center" gap={1}>
-            <FormControl size="small" sx={{ minWidth: 100 }}>
+          <Box display="flex" alignItems="center" gap={{ xs: 0.5, sm: 1 }}>
+            <FormControl 
+              size="small" 
+              sx={{ 
+                minWidth: { xs: 60, sm: 100 },
+                display: { xs: 'none', sm: 'block' }
+              }}
+            >
               <InputLabel>表示</InputLabel>
               <Select
                 value={viewMode}
@@ -307,20 +308,29 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
             </FormControl>
 
             <Tooltip title="今月">
-              <IconButton onClick={handleToday}>
-                <Today />
+              <IconButton 
+                onClick={handleToday}
+                size={{ xs: 'small', sm: 'medium' }}
+              >
+                <Today fontSize={{ xs: 'small', sm: 'medium' }} />
               </IconButton>
             </Tooltip>
 
             <Tooltip title="前月">
-              <IconButton onClick={handlePrevMonth}>
-                <ChevronLeft />
+              <IconButton 
+                onClick={handlePrevMonth}
+                size={{ xs: 'small', sm: 'medium' }}
+              >
+                <ChevronLeft fontSize={{ xs: 'small', sm: 'medium' }} />
               </IconButton>
             </Tooltip>
 
             <Tooltip title="次月">
-              <IconButton onClick={handleNextMonth}>
-                <ChevronRight />
+              <IconButton 
+                onClick={handleNextMonth}
+                size={{ xs: 'small', sm: 'medium' }}
+              >
+                <ChevronRight fontSize={{ xs: 'small', sm: 'medium' }} />
               </IconButton>
             </Tooltip>
           </Box>
@@ -335,7 +345,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         )}
 
         {/* 統計情報と収入予測 */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
           {/* 統計情報 */}
           {stats && (
             <Grid item xs={12} lg={8}>
@@ -343,51 +353,88 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                 <Typography
                   variant="h6"
                   gutterBottom
-                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1,
+                    fontSize: { xs: '1rem', sm: '1.25rem' }
+                  }}
                 >
-                  <TrendingUp />
+                  <TrendingUp fontSize={{ xs: 'small', sm: 'medium' }} />
                   月間統計
                 </Typography>
-                <Grid container spacing={2}>
+                <Grid container spacing={{ xs: 1, sm: 2 }}>
                   <Grid item xs={6} md={3}>
-                    <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <Typography variant="h6" color="primary">
+                    <Paper sx={{ p: { xs: 1, sm: 2 }, textAlign: 'center' }}>
+                      <Typography 
+                        variant="h6" 
+                        color="primary"
+                        sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+                      >
                         {stats.thisMonth.shifts}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
+                      >
                         今月のシフト数
                       </Typography>
                     </Paper>
                   </Grid>
                   <Grid item xs={6} md={3}>
-                    <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <Typography variant="h6" color="primary">
+                    <Paper sx={{ p: { xs: 1, sm: 2 }, textAlign: 'center' }}>
+                      <Typography 
+                        variant="h6" 
+                        color="primary"
+                        sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+                      >
                         {formatHours(stats.thisMonth.hours)}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
+                      >
                         今月の労働時間
                       </Typography>
                     </Paper>
                   </Grid>
                   <Grid item xs={6} md={3}>
-                    <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <Typography variant="h6" color="primary">
+                    <Paper sx={{ p: { xs: 1, sm: 2 }, textAlign: 'center' }}>
+                      <Typography 
+                        variant="h6" 
+                        color="primary"
+                        sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+                      >
                         {formatCurrency(stats.thisMonth.earnings)}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
+                      >
                         今月の収入
                       </Typography>
                     </Paper>
                   </Grid>
                   <Grid item xs={6} md={3}>
-                    <Paper sx={{ p: 2, textAlign: 'center' }}>
-                      <Typography variant="h6" color="primary">
+                    <Paper sx={{ p: { xs: 1, sm: 2 }, textAlign: 'center' }}>
+                      <Typography 
+                        variant="h6" 
+                        color="primary"
+                        sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+                      >
                         {Math.round(
                           stats.thisMonth.earnings /
                             Math.max(stats.thisMonth.hours, 1)
                         )}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
+                      >
                         平均時給
                       </Typography>
                     </Paper>
@@ -423,14 +470,15 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           )}
 
           {/* 曜日ヘッダー */}
-          <Grid container spacing={1} sx={{ mb: 1 }}>
+          <Grid container spacing={{ xs: 0.5, sm: 1 }} sx={{ mb: 1 }}>
             {getWeekDays().map((day, index) => (
               <Grid item xs key={index}>
                 <Box
                   textAlign="center"
-                  py={1}
+                  py={{ xs: 0.5, sm: 1 }}
                   sx={{
                     fontWeight: 'bold',
+                    fontSize: { xs: '0.8rem', sm: '1rem' },
                     color:
                       index === 0
                         ? 'error.main'
@@ -446,13 +494,16 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           </Grid>
 
           {/* 日付グリッド */}
-          <Grid container spacing={1}>
+          <Grid container spacing={{ xs: 0.5, sm: 1 }}>
             {calendarDates.map(calendarDate => (
               <Grid item xs key={calendarDate.date}>
                 <Paper
                   elevation={calendarDate.isToday ? 3 : 1}
                   sx={{
-                    minHeight: compactMode ? 80 : 120,
+                    minHeight: { 
+                      xs: compactMode ? 60 : 100,
+                      sm: compactMode ? 80 : 120 
+                    },
                     cursor: 'pointer',
                     position: 'relative',
                     border: calendarDate.isToday ? '2px solid' : '1px solid',
@@ -466,7 +517,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                   }}
                   onClick={() => handleDateClick(calendarDate.date)}
                 >
-                  <Box p={1}>
+                  <Box p={{ xs: 0.5, sm: 1 }}>
                     {/* 日付 */}
                     <Box
                       display="flex"
@@ -477,6 +528,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                       <Typography
                         variant="body2"
                         sx={{
+                          fontSize: { xs: '0.8rem', sm: '0.875rem' },
                           fontWeight: calendarDate.isToday ? 'bold' : 'normal',
                           color:
                             calendarDate.dayOfWeek === 0
@@ -513,12 +565,19 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                                 ) : (
                                   <RadioButtonUnchecked sx={{ fontSize: 12 }} />
                                 )}
-                                <Typography variant="caption">
+                                <Typography 
+                                  variant="caption"
+                                  sx={{ fontSize: { xs: '0.6rem', sm: '0.75rem' } }}
+                                >
                                   {shift.startTime}-{shift.endTime}
                                 </Typography>
                                 <Typography
                                   variant="caption"
-                                  sx={{ opacity: 0.8 }}
+                                  sx={{ 
+                                    opacity: 0.8,
+                                    fontSize: { xs: '0.6rem', sm: '0.75rem' },
+                                    display: { xs: 'none', sm: 'block' }
+                                  }}
                                 >
                                   {shift.jobSourceName || 'バイト'}
                                 </Typography>
@@ -545,7 +604,11 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                         ))}
 
                       {calendarDate.shifts.length > (compactMode ? 1 : 2) && (
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography 
+                          variant="caption" 
+                          color="text.secondary"
+                          sx={{ fontSize: { xs: '0.6rem', sm: '0.75rem' } }}
+                        >
                           +{calendarDate.shifts.length - (compactMode ? 1 : 2)}{' '}
                           more
                         </Typography>
@@ -554,8 +617,12 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
 
                     {/* 収入表示 */}
                     {calendarDate.totalEarnings > 0 && (
-                      <Box mt={1}>
-                        <Typography variant="caption" color="success.main">
+                      <Box mt={{ xs: 0.5, sm: 1 }}>
+                        <Typography 
+                          variant="caption" 
+                          color="success.main"
+                          sx={{ fontSize: { xs: '0.6rem', sm: '0.75rem' } }}
+                        >
                           {formatCurrency(calendarDate.totalEarnings)}
                         </Typography>
                       </Box>
@@ -572,14 +639,15 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           <Fab
             color="primary"
             aria-label="add shift"
+            size={{ xs: 'medium', sm: 'large' }}
             sx={{
               position: 'fixed',
-              bottom: 16,
-              right: 16,
+              bottom: { xs: 16, sm: 24 },
+              right: { xs: 16, sm: 24 },
             }}
             onClick={() => onAddShift?.()}
           >
-            <Add />
+            <Add fontSize={{ xs: 'medium', sm: 'large' }} />
           </Fab>
         )}
       </CardContent>

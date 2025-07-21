@@ -9,16 +9,10 @@ import {
   Step,
   StepLabel,
   Alert,
-  Fade,
-  Paper,
-  Divider,
 } from '@mui/material';
 import {
   Work as WorkIcon,
-  CloudUpload as CloudUploadIcon,
   Psychology as PsychologyIcon,
-  Assignment as AssignmentIcon,
-  Check as CheckIcon,
   ArrowBack as ArrowBackIcon,
   ArrowForward as ArrowForwardIcon,
 } from '@mui/icons-material';
@@ -28,7 +22,7 @@ import { useAuth } from '../hooks/useAuth';
 import { apiService } from '../services/api';
 
 interface OCRWithJobSourceSelectorProps {
-  onShiftsCreated?: (shifts: any[]) => void;
+  onShiftsCreated?: (shifts: unknown[]) => void;
   onError?: (error: string) => void;
   onClose?: () => void;
 }
@@ -80,7 +74,7 @@ export default function OCRWithJobSourceSelector({
     }
   };
 
-  const handleShiftsSaved = async (shifts: any[]) => {
+  const handleShiftsSaved = async (shifts: unknown[]) => {
     if (!selectedJobSource) {
       setError('バイト先が選択されていません');
       return;
@@ -106,7 +100,7 @@ export default function OCRWithJobSourceSelector({
 
       // 成功時の処理
       setError(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage =
         'シフトの保存に失敗しました: ' + (error.message || 'Unknown error');
       setError(errorMessage);

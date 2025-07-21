@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -23,13 +23,9 @@ import {
   CircularProgress,
 } from '@mui/material';
 import {
-  Schedule,
   Repeat,
-  DateRange,
-  CheckCircle,
-  Warning,
 } from '@mui/icons-material';
-import { format, addDays, addWeeks, addMonths } from '../../utils/dateUtils';
+import { format, addDays, addMonths } from '../../utils/dateUtils';
 import { useAuth } from '../../hooks/useAuth';
 import { apiService } from '../../services/api';
 import type { CreateShiftData } from '../../types/shift';
@@ -134,7 +130,7 @@ export const RecurringShiftDialog: React.FC<RecurringShiftDialogProps> = ({
   };
 
   // 繰り返しシフトの日付を生成
-  const generateShiftDates = () => {
+  const generateShiftDates = useCallback(() => {
     const dates: Date[] = [];
     let currentDate = new Date(formData.startDate);
     const endDate = new Date(formData.endDate);
@@ -181,17 +177,17 @@ export const RecurringShiftDialog: React.FC<RecurringShiftDialogProps> = ({
     }
 
     return dates.slice(0, 50); // 最大50個のシフトに制限
-  };
+  }, [formData]);
 
   // プレビュー更新
-  const updatePreview = () => {
+  const updatePreview = useCallback(() => {
     if (formData.jobSourceName && formData.startDate && formData.endDate) {
       const dates = generateShiftDates();
       setPreviewShifts(dates);
     } else {
       setPreviewShifts([]);
     }
-  };
+  }, [formData, generateShiftDates]);
 
   // フォームデータ更新
   const updateField = <K extends keyof RecurringShiftData>(
@@ -220,7 +216,7 @@ export const RecurringShiftDialog: React.FC<RecurringShiftDialogProps> = ({
   // プレビュー更新（フォームデータ変更時）
   React.useEffect(() => {
     updatePreview();
-  }, [formData]);
+  }, [formData, updatePreview]);
 
   // 労働時間と収入の計算
   const calculateEarnings = () => {

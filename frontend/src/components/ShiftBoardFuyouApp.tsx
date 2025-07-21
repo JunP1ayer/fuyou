@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -9,7 +9,6 @@ import {
   Chip,
   Alert,
   LinearProgress,
-  IconButton,
   Fab,
   Dialog,
   DialogContent,
@@ -19,17 +18,14 @@ import {
 } from '@mui/material';
 import {
   CameraAlt,
-  Warning,
   TrendingUp,
   AccountBalance,
-  Schedule,
   Add,
   PhotoCamera,
   Upload,
 } from '@mui/icons-material';
 import { ShiftCalendar } from './shifts/ShiftCalendar';
 import { OCRShiftManager } from './OCRShiftManager';
-import { FuyouStatusCard } from './FuyouStatusCard';
 import type { Shift } from '../types/shift';
 
 // 扶養状況の型定義
@@ -140,7 +136,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
               </Typography>
 
               <Alert
-                severity={getFuyouStatusColor(fuyouStatus.riskLevel) as any}
+                severity={getFuyouStatusColor(fuyouStatus.riskLevel) as 'error' | 'warning' | 'info' | 'success'}
                 sx={{ mb: 2 }}
               >
                 {getFuyouStatusMessage(fuyouStatus)}
@@ -166,7 +162,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
                   value={
                     (fuyouStatus.currentEarnings / fuyouStatus.limit) * 100
                   }
-                  color={getFuyouStatusColor(fuyouStatus.riskLevel) as any}
+                  color={getFuyouStatusColor(fuyouStatus.riskLevel) as 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'}
                   sx={{ height: 8, borderRadius: 4 }}
                 />
               </Box>
