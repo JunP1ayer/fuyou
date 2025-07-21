@@ -628,6 +628,30 @@
       </div>
 
       <div class="form-group">
+        <label class="form-label">深夜・時間帯別割増</label>
+        <div class="form-row">
+          <select class="form-select" id="nightShiftType" onchange="updateNightShiftFields()">
+            <option value="none">割増なし</option>
+            <option value="legal">法定深夜割増 (22:00-5:00, 25%)</option>
+            <option value="flexible">柔軟な時間帯設定</option>
+          </select>
+          <button
+            type="button"
+            class="form-input"
+            id="configureFlexible"
+            onclick="openFlexibleRateConfig()"
+            style="display: none; background: #f5f5f5; border: 2px dashed #ccc; cursor: pointer;"
+          >
+            時間帯を設定
+          </button>
+        </div>
+        <div id="flexibleRatesDisplay" style="margin-top: 8px; display: none;">
+          <div style="font-size: 12px; color: #666;">設定された時間帯割増：</div>
+          <div id="flexibleRatesList" style="font-size: 11px; color: #888; margin-top: 4px;"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label class="form-label">曜日別時給設定</label>
         <div class="checkbox-group">
           <div class="checkbox-item">
@@ -753,6 +777,31 @@
       </div>
     </div>
 
+    <!-- フレキシブル時間帯設定ポップアップ -->
+    <div class="popup" id="flexibleRatePopup" style="min-width: 500px; display: none;">
+      <div class="popup-header">
+        <div class="popup-title">⏰ 時間帯別割増設定</div>
+        <button class="close-btn" onclick="closeFlexibleRateConfig()">&times;</button>
+      </div>
+
+      <div id="flexibleRateSlots">
+        <!-- JavaScript で動的生成 -->
+      </div>
+
+      <button class="btn btn-secondary" onclick="addFlexibleTimeSlot()" style="width: 100%; margin: 12px 0;">
+        ➕ 時間帯を追加
+      </button>
+
+      <div style="display: flex; gap: 12px;">
+        <button class="btn btn-secondary" onclick="closeFlexibleRateConfig()" style="flex: 1;">
+          キャンセル
+        </button>
+        <button class="btn btn-primary" onclick="saveFlexibleRateConfig()" style="flex: 2;">
+          保存
+        </button>
+      </div>
+    </div>
+
     <script>
       // 現在の日付
       let currentDate = new Date();
@@ -764,6 +813,8 @@
         localStorage.getItem('workplaceIdCounter') || '1'
       );
       let editingWorkplaceId = null;
+      let currentFlexibleRates = [];
+      let flexibleRateIdCounter = 1;
 
       // 月変更
       function changeMonth(direction) {
@@ -904,6 +955,11 @@
         document.getElementById('baseHourlyWage').value = '';
         document.getElementById('transportationFee').value = '0';
         
+        // 深夜設定をクリア
+        document.getElementById('nightShiftType').value = 'none';
+        currentFlexibleRates = [];
+        updateNightShiftFields();
+        
         // 曜日チェックボックスをクリア
         ['0', '1', '2', '3', '4', '5', '6'].forEach(day => {
           const checkbox = document.getElementById(`dayPremium_${day}`);
@@ -920,6 +976,13 @@
         document.getElementById('workplaceName').value = workplace.name;
         document.getElementById('baseHourlyWage').value = workplace.baseHourly;
         document.getElementById('transportationFee').value = workplace.transportation || 0;
+
+        // 深夜・時間帯別設定
+        document.getElementById('nightShiftType').value = workplace.nightRate?.type || 'none';
+        if (workplace.flexibleRates) {
+          currentFlexibleRates = [...workplace.flexibleRates];
+        }
+        updateNightShiftFields();
 
         // 曜日別設定
         if (workplace.dayPremium && workplace.dayPremium.enabled) {
@@ -976,6 +1039,20 @@
           baseHourly: baseHourly,
           transportation: parseInt(document.getElementById('transportationFee').value) || 0
         };
+
+        // 深夜・時間帯別設定
+        const nightShiftType = document.getElementById('nightShiftType').value;
+        if (nightShiftType && nightShiftType !== 'none') {
+          workplace.nightRate = {
+            enabled: true,
+            multiplier: nightShiftType === 'legal' ? 1.25 : 1.25,
+            type: nightShiftType
+          };
+        }
+
+        if (nightShiftType === 'flexible') {
+          workplace.flexibleRates = [...currentFlexibleRates];
+        }
 
         // 曜日別設定
         const selectedDays = [];
@@ -1053,6 +1130,118 @@
         } else {
           rateInput.placeholder = '時給 (円)';
         }
+      }
+
+      // 深夜設定フィールドの表示/非表示
+      function updateNightShiftFields() {
+        const nightShiftType = document.getElementById('nightShiftType').value;
+        const configureButton = document.getElementById('configureFlexible');
+        const display = document.getElementById('flexibleRatesDisplay');
+
+        if (nightShiftType === 'flexible') {
+          configureButton.style.display = 'block';
+          updateFlexibleRatesDisplay();
+        } else {
+          configureButton.style.display = 'none';
+          display.style.display = 'none';
+        }
+      }
+
+      // フレキシブルレート設定を開く
+      function openFlexibleRateConfig() {
+        currentFlexibleRates = [
+          ...(editingWorkplaceId && workplaces[editingWorkplaceId]?.flexibleRates || [])
+        ];
+        if (currentFlexibleRates.length === 0) {
+          addFlexibleTimeSlot();
+        }
+        document.getElementById('flexibleRatePopup').style.display = 'block';
+        renderFlexibleRateSlots();
+      }
+
+      // フレキシブルレート設定を閉じる
+      function closeFlexibleRateConfig() {
+        document.getElementById('flexibleRatePopup').style.display = 'none';
+      }
+
+      // フレキシブル時間帯を追加
+      function addFlexibleTimeSlot(startTime = '22:00', endTime = '05:00', rate = 125) {
+        currentFlexibleRates.push({
+          id: flexibleRateIdCounter++,
+          startTime: startTime,
+          endTime: endTime,
+          rate: rate,
+          crossMidnight: true
+        });
+        renderFlexibleRateSlots();
+      }
+
+      // フレキシブル時間帯を削除
+      function removeFlexibleTimeSlot(id) {
+        currentFlexibleRates = currentFlexibleRates.filter(slot => slot.id !== id);
+        renderFlexibleRateSlots();
+      }
+
+      // フレキシブルレートスロットを描画
+      function renderFlexibleRateSlots() {
+        const container = document.getElementById('flexibleRateSlots');
+        
+        container.innerHTML = currentFlexibleRates.map(slot => `
+          <div class="form-group" style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 100px auto; gap: 12px; align-items: end;">
+              <div>
+                <label style="font-size: 12px; color: #666;">開始時間</label>
+                <input type="time" class="form-input" value="${slot.startTime}" 
+                       onchange="updateFlexibleSlot(${slot.id}, 'startTime', this.value)">
+              </div>
+              <div>
+                <label style="font-size: 12px; color: #666;">終了時間</label>
+                <input type="time" class="form-input" value="${slot.endTime}"
+                       onchange="updateFlexibleSlot(${slot.id}, 'endTime', this.value)">
+                <label style="font-size: 11px; color: #888;">
+                  <input type="checkbox" ${slot.crossMidnight ? 'checked' : ''} 
+                         onchange="updateFlexibleSlot(${slot.id}, 'crossMidnight', this.checked)" style="margin-right: 4px;">翌日
+                </label>
+              </div>
+              <div>
+                <label style="font-size: 12px; color: #666;">割増率(%)</label>
+                <input type="number" class="form-input" value="${slot.rate}" min="100" max="200"
+                       onchange="updateFlexibleSlot(${slot.id}, 'rate', parseFloat(this.value))">
+              </div>
+              <button type="button" class="btn btn-danger btn-small" onclick="removeFlexibleTimeSlot(${slot.id})">削除</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // フレキシブルスロットの値を更新
+      function updateFlexibleSlot(id, field, value) {
+        const slot = currentFlexibleRates.find(s => s.id === id);
+        if (slot) {
+          slot[field] = value;
+        }
+      }
+
+      // フレキシブルレート設定を保存
+      function saveFlexibleRateConfig() {
+        updateFlexibleRatesDisplay();
+        closeFlexibleRateConfig();
+      }
+
+      // フレキシブルレート表示を更新
+      function updateFlexibleRatesDisplay() {
+        const display = document.getElementById('flexibleRatesDisplay');
+        const list = document.getElementById('flexibleRatesList');
+
+        if (currentFlexibleRates.length === 0) {
+          display.style.display = 'none';
+          return;
+        }
+
+        display.style.display = 'block';
+        list.innerHTML = currentFlexibleRates
+          .map(slot => `${slot.startTime}-${slot.endTime} (${slot.rate}%)`)
+          .join(' • ');
       }
 
       // ===== シフト管理機能 =====
@@ -1250,17 +1439,36 @@
           );
         }
 
-        // 深夜手当計算（22:00-5:00, 25%割増）
-        const nightHours = calculateNightHours(startTime, endTime, crossMidnight);
-        console.log('深夜時間:', nightHours, 'h');
+        // 深夜・時間帯別手当計算
+        if (workplace.nightRate && workplace.nightRate.enabled) {
+          if (workplace.nightRate.type === 'legal') {
+            // 法定深夜割増（22:00-5:00, 25%）
+            const nightHours = calculateNightHours(startTime, endTime, crossMidnight);
+            console.log('深夜時間:', nightHours, 'h');
 
-        if (nightHours > 0) {
-          const nightBonus = nightHours * hourlyRate * 0.25; // 25%割増
-          totalEarnings += nightBonus;
-          breakdown.push(
-            `深夜手当: ${nightHours}h × ${Math.round(hourlyRate)}円 × 25% = ${Math.round(nightBonus)}円`
-          );
-          console.log('深夜手当適用:', nightBonus, '円');
+            if (nightHours > 0) {
+              const nightBonus = nightHours * hourlyRate * 0.25; // 25%割増
+              totalEarnings += nightBonus;
+              breakdown.push(
+                `深夜手当: ${nightHours}h × ${Math.round(hourlyRate)}円 × 25% = ${Math.round(nightBonus)}円`
+              );
+              console.log('深夜手当適用:', nightBonus, '円');
+            }
+          } else if (workplace.nightRate.type === 'flexible' && workplace.flexibleRates) {
+            // フレキシブル時間帯割増
+            const flexibleBonus = calculateFlexibleRateEarnings(
+              workplace.flexibleRates,
+              startTime,
+              endTime,
+              crossMidnight,
+              hourlyRate
+            );
+            if (flexibleBonus.total > 0) {
+              totalEarnings += flexibleBonus.total;
+              breakdown.push(...flexibleBonus.breakdown);
+              console.log('フレキシブル時間帯手当適用:', flexibleBonus.total, '円');
+            }
+          }
         }
 
         // 交通費計算
@@ -1303,6 +1511,71 @@
         }
 
         return nightMinutes / 60; // 時間に変換
+      }
+
+      // フレキシブル時間帯での収入計算
+      function calculateFlexibleRateEarnings(flexibleRates, startTime, endTime, crossMidnight, baseHourlyRate) {
+        console.log('フレキシブル時間帯計算開始:', flexibleRates);
+        
+        let totalBonus = 0;
+        const breakdown = [];
+        
+        const [startHour, startMin] = startTime.split(':').map(Number);
+        let [endHour, endMin] = endTime.split(':').map(Number);
+
+        if (crossMidnight && endHour < startHour) {
+          endHour += 24;
+        }
+
+        // 各フレキシブル時間帯をチェック
+        flexibleRates.forEach((slot, index) => {
+          const slotHours = calculateTimeInSlot(
+            startHour * 60 + startMin,
+            endHour * 60 + endMin,
+            slot
+          );
+          
+          if (slotHours > 0) {
+            const rateMultiplier = slot.rate / 100;
+            const bonusAmount = slotHours * baseHourlyRate * (rateMultiplier - 1);
+            totalBonus += bonusAmount;
+            
+            breakdown.push(
+              `時間帯${index + 1}(${slot.startTime}-${slot.endTime}, ${slot.rate}%): ` +
+              `${slotHours.toFixed(2)}h × ${Math.round(baseHourlyRate)}円 × ${((rateMultiplier - 1) * 100).toFixed(0)}% = ${Math.round(bonusAmount)}円`
+            );
+            console.log(`時間帯${index + 1}適用:`, slotHours, 'h', bonusAmount, '円');
+          }
+        });
+
+        return {
+          total: Math.round(totalBonus),
+          breakdown: breakdown
+        };
+      }
+
+      // 特定の時間帯内での労働時間を計算
+      function calculateTimeInSlot(workStartMinutes, workEndMinutes, slot) {
+        const [slotStartHour, slotStartMin] = slot.startTime.split(':').map(Number);
+        let [slotEndHour, slotEndMin] = slot.endTime.split(':').map(Number);
+
+        let slotStartMinutes = slotStartHour * 60 + slotStartMin;
+        let slotEndMinutes = slotEndHour * 60 + slotEndMin;
+
+        // 翌日対応
+        if (slot.crossMidnight && slotEndMinutes < slotStartMinutes) {
+          slotEndMinutes += 24 * 60;
+        }
+
+        // 勤務時間と時間帯の重複部分を計算
+        const overlapStart = Math.max(workStartMinutes, slotStartMinutes);
+        const overlapEnd = Math.min(workEndMinutes, slotEndMinutes);
+
+        if (overlapEnd > overlapStart) {
+          return (overlapEnd - overlapStart) / 60; // 時間に変換
+        }
+
+        return 0;
       }
 
       // 初期化
