@@ -532,9 +532,7 @@ class ApiService {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.error?.message || 'AI file analysis failed'
-      );
+      throw new Error(data.error?.message || 'AI file analysis failed');
     }
 
     return data;

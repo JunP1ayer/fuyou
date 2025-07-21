@@ -85,7 +85,7 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
     // サポートされているファイル形式をチェック
     const supportedTypes = [
       'image/jpeg',
-      'image/png', 
+      'image/png',
       'image/webp',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'application/vnd.ms-excel',
@@ -93,11 +93,25 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
       'application/pdf',
     ];
 
-    const supportedExtensions = ['.xlsx', '.xls', '.csv', '.pdf', '.jpg', '.jpeg', '.png', '.webp'];
+    const supportedExtensions = [
+      '.xlsx',
+      '.xls',
+      '.csv',
+      '.pdf',
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.webp',
+    ];
     const fileExtension = file.name.toLowerCase().split('.').pop();
-    
-    if (!supportedTypes.includes(file.type) && !supportedExtensions.includes(`.${fileExtension}`)) {
-      setError('サポートされていないファイル形式です。画像、Excel、CSV、PDFファイルを選択してください');
+
+    if (
+      !supportedTypes.includes(file.type) &&
+      !supportedExtensions.includes(`.${fileExtension}`)
+    ) {
+      setError(
+        'サポートされていないファイル形式です。画像、Excel、CSV、PDFファイルを選択してください'
+      );
       return;
     }
 
@@ -133,7 +147,7 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
       const shifts = response.data.shifts || [];
       const confidence = response.data.confidence || 0.8;
       const provider = response.data.provider || 'AI';
-      
+
       let message = '';
       if (shifts.length > 0) {
         message = `${provider.toUpperCase()}がファイルを解析しました。\n\n`;
@@ -290,7 +304,8 @@ export const SimplifiedOCRComponent: React.FC<SimplifiedOCRComponentProps> = ({
                 </Box>
 
                 <Typography variant="caption" color="text.secondary">
-                  対応形式: 画像(JPG, PNG), Excel(.xlsx, .xls), CSV(.csv), PDF(.pdf)（最大10MB）
+                  対応形式: 画像(JPG, PNG), Excel(.xlsx, .xls), CSV(.csv),
+                  PDF(.pdf)（最大10MB）
                 </Typography>
               </Box>
             </Fade>

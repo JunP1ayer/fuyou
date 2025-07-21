@@ -62,11 +62,13 @@ export const AIFileAnalyzer: React.FC<AIFileAnalyzerProps> = ({
 
     // 全てのシフトを統合
     const allShifts = analysisResults.flatMap(result => result.shifts);
-    
+
     if (allShifts.length > 0) {
       onShiftsSaved(allShifts);
     } else {
-      onError('シフト情報が見つかりませんでした。ファイル形式やデータの配置を確認してください。');
+      onError(
+        'シフト情報が見つかりませんでした。ファイル形式やデータの配置を確認してください。'
+      );
     }
   };
 
@@ -110,14 +112,17 @@ export const AIFileAnalyzer: React.FC<AIFileAnalyzerProps> = ({
   return (
     <Box>
       {/* ヘッダー */}
-      <Card sx={{ mb: 2, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+      <Card
+        sx={{
+          mb: 2,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        }}
+      >
         <CardContent sx={{ color: 'white', py: 2 }}>
           <Box display="flex" alignItems="center" gap={2}>
             <AutoAwesome sx={{ fontSize: 32 }} />
             <Box>
-              <Typography variant="h6">
-                AI ファイル解析
-              </Typography>
+              <Typography variant="h6">AI ファイル解析</Typography>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>
                 OpenAI・Gemini を使用した高精度シフト表解析
               </Typography>
@@ -142,7 +147,11 @@ export const AIFileAnalyzer: React.FC<AIFileAnalyzerProps> = ({
               AI解析処理中...
             </Typography>
             <LinearProgress />
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mt: 1, display: 'block' }}
+            >
               OpenAI または Gemini がファイルを解析しています
             </Typography>
           </CardContent>
@@ -189,16 +198,29 @@ export const AIFileAnalyzer: React.FC<AIFileAnalyzerProps> = ({
                 {/* シフト詳細 */}
                 {result.shifts.length > 0 && (
                   <Box ml={4} mb={2}>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
                       検出されたシフト:
                     </Typography>
                     {result.shifts.slice(0, 3).map((shift, shiftIndex) => (
-                      <Typography key={shiftIndex} variant="body2" sx={{ ml: 1 }}>
-                        • {shift.date} {shift.startTime}-{shift.endTime} ({shift.jobSourceName})
+                      <Typography
+                        key={shiftIndex}
+                        variant="body2"
+                        sx={{ ml: 1 }}
+                      >
+                        • {shift.date} {shift.startTime}-{shift.endTime} (
+                        {shift.jobSourceName})
                       </Typography>
                     ))}
                     {result.shifts.length > 3 && (
-                      <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ ml: 1 }}
+                      >
                         他 {result.shifts.length - 3} 件...
                       </Typography>
                     )}
@@ -212,8 +234,9 @@ export const AIFileAnalyzer: React.FC<AIFileAnalyzerProps> = ({
             {/* 総合情報 */}
             <Divider sx={{ my: 2 }} />
             <Alert severity="success">
-              合計 {results.reduce((sum, result) => sum + result.shifts.length, 0)} 件のシフトを検出しました。
-              カレンダーに反映されます。
+              合計{' '}
+              {results.reduce((sum, result) => sum + result.shifts.length, 0)}{' '}
+              件のシフトを検出しました。 カレンダーに反映されます。
             </Alert>
           </CardContent>
         </Card>
@@ -226,33 +249,29 @@ export const AIFileAnalyzer: React.FC<AIFileAnalyzerProps> = ({
             <Typography variant="h6" gutterBottom>
               対応ファイル形式
             </Typography>
-            <Box display="grid" gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={2}>
+            <Box
+              display="grid"
+              gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))"
+              gap={2}
+            >
               <Box display="flex" alignItems="center" gap={1}>
                 <Image color="primary" />
-                <Typography variant="body2">
-                  画像 (JPG, PNG, WebP)
-                </Typography>
+                <Typography variant="body2">画像 (JPG, PNG, WebP)</Typography>
               </Box>
               <Box display="flex" alignItems="center" gap={1}>
                 <TableChart color="success" />
-                <Typography variant="body2">
-                  Excel (.xlsx, .xls)
-                </Typography>
+                <Typography variant="body2">Excel (.xlsx, .xls)</Typography>
               </Box>
               <Box display="flex" alignItems="center" gap={1}>
                 <Description color="info" />
-                <Typography variant="body2">
-                  CSV (.csv)
-                </Typography>
+                <Typography variant="body2">CSV (.csv)</Typography>
               </Box>
               <Box display="flex" alignItems="center" gap={1}>
                 <PictureAsPdf color="error" />
-                <Typography variant="body2">
-                  PDF (.pdf)
-                </Typography>
+                <Typography variant="body2">PDF (.pdf)</Typography>
               </Box>
             </Box>
-            
+
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               AI（OpenAI/Gemini）を使用することで、複雑なレイアウトのシフト表も高精度で解析できます。
             </Typography>

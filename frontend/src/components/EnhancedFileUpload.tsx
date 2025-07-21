@@ -56,12 +56,12 @@ const SUPPORTED_TYPES = {
 
 const DEFAULT_ACCEPTED_TYPES = [
   'image/jpeg',
-  'image/png', 
+  'image/png',
   'image/webp',
   '.xlsx',
   '.xls',
   '.csv',
-  '.pdf'
+  '.pdf',
 ];
 
 export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
@@ -80,7 +80,7 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
     if (SUPPORTED_TYPES[file.type as keyof typeof SUPPORTED_TYPES]) {
       return SUPPORTED_TYPES[file.type as keyof typeof SUPPORTED_TYPES];
     }
-    
+
     // 拡張子で判定
     const extension = file.name.toLowerCase().split('.').pop();
     switch (extension) {
@@ -104,7 +104,7 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
   // ファイル追加
   const addFiles = (newFiles: FileList | File[]) => {
     const fileArray = Array.from(newFiles);
-    
+
     // ファイル数制限チェック
     if (files.length + fileArray.length > maxFiles) {
       onError(`最大${maxFiles}個までのファイルをアップロードできます`);
@@ -122,7 +122,9 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
     // サポートされていないファイルをチェック
     const unsupportedFiles = fileInfos.filter(f => f.type === 'unknown');
     if (unsupportedFiles.length > 0) {
-      onError(`サポートされていないファイル形式: ${unsupportedFiles.map(f => f.file.name).join(', ')}`);
+      onError(
+        `サポートされていないファイル形式: ${unsupportedFiles.map(f => f.file.name).join(', ')}`
+      );
       return;
     }
 
@@ -144,11 +146,13 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
     for (const fileInfo of pendingFiles) {
       try {
         // ステータス更新
-        setFiles(prev => prev.map(f => 
-          f.id === fileInfo.id 
-            ? { ...f, status: 'uploading', progress: 0 }
-            : f
-        ));
+        setFiles(prev =>
+          prev.map(f =>
+            f.id === fileInfo.id
+              ? { ...f, status: 'uploading', progress: 0 }
+              : f
+          )
+        );
 
         // FormData作成
         const formData = new FormData();
@@ -157,22 +161,24 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
 
         // アップロード進捗シミュレーション
         const progressInterval = setInterval(() => {
-          setFiles(prev => prev.map(f => 
-            f.id === fileInfo.id && f.progress < 90
-              ? { ...f, progress: f.progress + 10 }
-              : f
-          ));
+          setFiles(prev =>
+            prev.map(f =>
+              f.id === fileInfo.id && f.progress < 90
+                ? { ...f, progress: f.progress + 10 }
+                : f
+            )
+          );
         }, 200);
 
         // API呼び出し（ファイルタイプに応じて）
         let response;
         const endpoint = getEndpointForFileType(fileInfo.type);
-        
+
         response = await fetch(endpoint, {
           method: 'POST',
           body: formData,
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('demo_token')}`,
+            Authorization: `Bearer ${localStorage.getItem('demo_token')}`,
           },
         });
 
@@ -183,27 +189,33 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
         }
 
         const result = await response.json();
-        
+
         // 成功
-        setFiles(prev => prev.map(f => 
-          f.id === fileInfo.id 
-            ? { ...f, status: 'completed', progress: 100, result }
-            : f
-        ));
+        setFiles(prev =>
+          prev.map(f =>
+            f.id === fileInfo.id
+              ? { ...f, status: 'completed', progress: 100, result }
+              : f
+          )
+        );
 
         results.push(result);
-
       } catch (error) {
-        setFiles(prev => prev.map(f => 
-          f.id === fileInfo.id 
-            ? { 
-                ...f, 
-                status: 'error', 
-                progress: 0, 
-                error: error instanceof Error ? error.message : 'アップロードエラー'
-              }
-            : f
-        ));
+        setFiles(prev =>
+          prev.map(f =>
+            f.id === fileInfo.id
+              ? {
+                  ...f,
+                  status: 'error',
+                  progress: 0,
+                  error:
+                    error instanceof Error
+                      ? error.message
+                      : 'アップロードエラー',
+                }
+              : f
+          )
+        );
       }
     }
 
@@ -274,7 +286,7 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
     e.preventDefault();
     setIsDragOver(false);
     if (disabled) return;
-    
+
     const droppedFiles = e.dataTransfer.files;
     if (droppedFiles.length > 0) {
       addFiles(droppedFiles);
@@ -323,14 +335,20 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
           <Typography variant="body2" color="text.secondary" mb={2}>
             または クリックしてファイルを選択
           </Typography>
-          
-          <Box display="flex" flexWrap="wrap" justifyContent="center" gap={1} mb={2}>
+
+          <Box
+            display="flex"
+            flexWrap="wrap"
+            justifyContent="center"
+            gap={1}
+            mb={2}
+          >
             <Chip label="画像 (JPG, PNG)" size="small" />
             <Chip label="Excel (.xlsx, .xls)" size="small" />
             <Chip label="CSV (.csv)" size="small" />
             <Chip label="PDF (.pdf)" size="small" />
           </Box>
-          
+
           <Typography variant="caption" color="text.secondary">
             最大{maxFiles}個まで • 各ファイル10MB以下
           </Typography>
@@ -352,23 +370,28 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
       {files.length > 0 && (
         <Card sx={{ mb: 2 }}>
           <CardContent>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
               <Typography variant="h6">
                 アップロードファイル ({files.length})
               </Typography>
               <Box display="flex" gap={1}>
                 {completedCount > 0 && (
-                  <Chip 
-                    label={`完了: ${completedCount}`} 
-                    color="success" 
-                    size="small" 
+                  <Chip
+                    label={`完了: ${completedCount}`}
+                    color="success"
+                    size="small"
                   />
                 )}
                 {errorCount > 0 && (
-                  <Chip 
-                    label={`エラー: ${errorCount}`} 
-                    color="error" 
-                    size="small" 
+                  <Chip
+                    label={`エラー: ${errorCount}`}
+                    color="error"
+                    size="small"
                   />
                 )}
               </Box>
@@ -381,18 +404,19 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
                     <Box display="flex" alignItems="center" mr={2}>
                       {getFileIcon(fileInfo.type)}
                     </Box>
-                    
+
                     <ListItemText
                       primary={fileInfo.file.name}
                       secondary={
                         <Box>
                           <Typography variant="caption" color="text.secondary">
-                            {(fileInfo.file.size / 1024 / 1024).toFixed(2)} MB • {fileInfo.type}
+                            {(fileInfo.file.size / 1024 / 1024).toFixed(2)} MB •{' '}
+                            {fileInfo.type}
                           </Typography>
                           {fileInfo.status === 'uploading' && (
-                            <LinearProgress 
-                              variant="determinate" 
-                              value={fileInfo.progress} 
+                            <LinearProgress
+                              variant="determinate"
+                              value={fileInfo.progress}
                               sx={{ mt: 1 }}
                             />
                           )}
@@ -404,7 +428,7 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
                         </Box>
                       }
                     />
-                    
+
                     <ListItemSecondaryAction>
                       <Box display="flex" alignItems="center" gap={1}>
                         {fileInfo.status === 'completed' && (
@@ -413,8 +437,8 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
                         {fileInfo.status === 'error' && (
                           <ErrorIcon color="error" />
                         )}
-                        <IconButton 
-                          edge="end" 
+                        <IconButton
+                          edge="end"
                           onClick={() => removeFile(fileInfo.id)}
                           disabled={fileInfo.status === 'uploading'}
                         >
