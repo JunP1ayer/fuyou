@@ -27,6 +27,7 @@ import {
   Computer,
 } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
+import { useDesignTokens } from '../hooks/useDesignTokens';
 import { CSVUpload, type ParsedIncomeData } from './CSVUpload';
 import { FuyouStatusCard } from './FuyouStatusCard';
 import { IncomeHistoryCard } from './IncomeHistoryCard';
@@ -49,6 +50,7 @@ import type { Shift, CreateShiftData } from '../types/shift';
 
 export function Dashboard() {
   const { user, logout } = useAuth();
+  const { isEnhanced } = useDesignTokens(); // 透明なデザイン向上システム
   const [csvUploadOpen, setCsvUploadOpen] = useState(false);
   const [fuyouStatus, setFuyouStatus] = useState<FuyouStatus | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
@@ -593,6 +595,7 @@ export function Dashboard() {
               <OptimizationDashboard simplified={isShiftBoardMode} />
             </Box>
           )}
+
         </Box>
 
         {/* CSV アップロードダイアログ */}
