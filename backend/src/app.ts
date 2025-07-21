@@ -20,7 +20,10 @@ import { alertRoutes } from './routes/alerts';
 import { demoRoutes } from './routes/demo';
 import { shiftRoutes } from './routes/shifts';
 import ocrRoutes from './routes/ocr'; // Re-enabled for OpenAI integration
+import fileOcrRoutes from './routes/fileOcr'; // AI-powered file analysis
 import jobSourcesRouter from './routes/jobSources'; // Job sources management
+import designTokenRoutes from './routes/designTokens'; // Transparent Figma integration
+import intelligenceRoutes from './routes/intelligence'; // Gemini-style AI intelligence
 // import { optimizationRoutes } from './routes/optimization'; // Temporarily disabled
 
 const app = express();
@@ -100,6 +103,9 @@ app.use('/api/demo', demoRoutes);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/job-sources', jobSourcesRouter); // Job sources management
 app.use('/api/ocr', ocrRoutes); // Re-enabled for OpenAI integration
+app.use('/api/file-ocr', fileOcrRoutes); // AI-powered file analysis
+app.use('/api/design', designTokenRoutes); // Transparent Figma design system integration
+app.use('/api/intelligence', intelligenceRoutes); // Gemini-style AI intelligence system
 // app.use('/api/optimization', optimizationRoutes); // Temporarily disabled for debugging
 
 // 404 handler

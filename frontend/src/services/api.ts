@@ -515,6 +515,29 @@ class ApiService {
     });
   }
 
+  // AI File Analysis endpoint
+  async uploadFileForAIAnalysis(token: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const url = `${this.baseURL}/file-ocr/analyze`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || 'AI file analysis failed');
+    }
+
+    return data;
+  }
+
   // Phase 4: Optimization endpoints
 
   // Constraints management
