@@ -192,8 +192,9 @@
       }
 
       .calendar-day.today {
-        background: #3498db;
-        color: white;
+        background: #e3f2fd;
+        color: #1976d2;
+        border: 1px solid #bbdefb;
       }
 
       .calendar-day.has-shift {
@@ -529,19 +530,19 @@
           min-height: 0;
           display: grid;
           grid-template-columns: repeat(7, 1fr);
-          grid-template-rows: repeat(6, 1fr); /* 6行を等分 */
+          grid-auto-rows: 1fr;
         }
         
         .calendar-day {
-          min-height: unset;
           aspect-ratio: 1;
-          height: auto;
-          padding: 3px 2px;
-          font-size: 10px;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: flex-start;
+          padding: 3px;
+          font-size: 10px;
+          box-sizing: border-box;
+          overflow: hidden;
         }
         
         .day-header {
@@ -621,14 +622,15 @@
         }
         
         .calendar-day {
-          padding: 2px 1px;
-          font-size: 9px;
           aspect-ratio: 1;
-          height: auto;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: flex-start;
+          padding: 2px;
+          font-size: 9px;
+          box-sizing: border-box;
+          overflow: hidden;
         }
         
         .day-number {
