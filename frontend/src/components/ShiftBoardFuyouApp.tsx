@@ -17,6 +17,8 @@ import {
   Tooltip,
   Switch,
   FormControlLabel,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   CameraAlt,
@@ -31,6 +33,7 @@ import {
 import { ShiftCalendar } from './shifts/ShiftCalendar';
 import { OCRShiftManager } from './OCRShiftManager';
 import { ProfessionalFuyouStatusCard } from './ProfessionalFuyouStatusCard';
+import EnhancedShiftBoard from './shifts/EnhancedShiftBoard';
 import type { Shift, CreateShiftData } from '../types/shift';
 
 // 扶養状況の型定義
@@ -58,6 +61,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
     },
   });
   const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
+  const [currentTab, setCurrentTab] = useState(0);
 
   // 新機能: 学生モードと新UI切替
   const [isStudentMode, setIsStudentMode] = useState(true);
@@ -403,18 +407,37 @@ export const ShiftBoardFuyouApp: React.FC = () => {
         </Grid>
       </Grid>
 
-      {/* シフトカレンダー */}
+      {/* シフトカレンダータブ */}
       <Card>
-        <CardContent>
-          <ShiftCalendar
-            compactMode={false}
-            onAddShift={(date: string) => {
-              console.log('Add shift for date:', date);
-            }}
-            onEditShift={(shift: Shift) => {
-              console.log('Edit shift:', shift);
-            }}
-          />
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs 
+            value={currentTab} 
+            onChange={(_, newValue) => setCurrentTab(newValue)}
+            aria-label="シフト管理タブ"
+          >
+            <Tab label="📅 従来版カレンダー" />
+            <Tab label="🚀 新シフトボード" />
+          </Tabs>
+        </Box>
+        
+        <CardContent sx={{ p: currentTab === 1 ? 0 : 3 }}>
+          {currentTab === 0 && (
+            <ShiftCalendar
+              compactMode={false}
+              onAddShift={(date: string) => {
+                console.log('Add shift for date:', date);
+              }}
+              onEditShift={(shift: Shift) => {
+                console.log('Edit shift:', shift);
+              }}
+            />
+          )}
+          
+          {currentTab === 1 && (
+            <Box sx={{ minHeight: '600px' }}>
+              <EnhancedShiftBoard />
+            </Box>
+          )}
         </CardContent>
       </Card>
 

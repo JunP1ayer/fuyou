@@ -50,4 +50,68 @@ export const apiService = {
       },
     };
   },
+
+  // Shift API methods
+  async getShifts(_token: string, _filters?: { startDate?: string; endDate?: string }) {
+    // Mock shifts API - will be replaced with real API calls
+    return {
+      success: true,
+      data: []
+    };
+  },
+
+  async createShift(_token: string, shiftData: Record<string, unknown>) {
+    // Mock create shift API
+    return {
+      success: true,
+      data: {
+        id: `shift_${Date.now()}`,
+        ...shiftData
+      }
+    };
+  },
+
+  async updateShift(_token: string, _shiftId: string, updateData: Record<string, unknown>) {
+    // Mock update shift API
+    return {
+      success: true,
+      data: {
+        id: _shiftId,
+        ...updateData
+      }
+    };
+  },
+
+  async deleteShift(_token: string, _shiftId: string) {
+    // Mock delete shift API
+    return {
+      success: true,
+      message: 'Shift deleted successfully'
+    };
+  },
+
+  async getShiftStats(_token: string, _year?: number, _month?: number) {
+    // Mock shift statistics API
+    return {
+      success: true,
+      data: {
+        totalHours: 0,
+        totalEarnings: 0,
+        shiftCount: 0,
+        avgHours: 0
+      }
+    };
+  },
+
+  async getShiftProjection(_token: string) {
+    // Mock earnings projection API
+    return {
+      success: true,
+      data: {
+        projectedMonthlyEarnings: 0,
+        projectedYearlyEarnings: 0,
+        fuyouRiskAssessment: 'safe'
+      }
+    };
+  }
 };
