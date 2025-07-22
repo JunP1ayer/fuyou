@@ -14,9 +14,9 @@
 
       body {
         font-family: 'Roboto', 'Noto Sans JP', sans-serif;
-        background: linear-gradient(135deg, #e8f5e8 0%, #f3e5f5 100%);
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
         min-height: 100vh;
-        color: #1a1a1a;
+        color: #0f172a;
         line-height: 1.6;
       }
 
@@ -169,13 +169,14 @@
 
       /* ヒーローセクション - ユーザー最重要情報 */
       .hero-section {
-        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        background: linear-gradient(135deg, #e0f7fa 0%, #b3e5fc 100%);
         border-radius: 20px;
         padding: 40px 32px;
         margin-bottom: 32px;
-        color: white;
+        color: #0f172a;
         position: relative;
         overflow: hidden;
+        border: 1px solid rgba(3, 169, 244, 0.2);
       }
 
       .hero-section::before {
@@ -185,7 +186,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(3, 169, 244, 0.05);
         backdrop-filter: blur(10px);
         z-index: -1;
       }
@@ -201,10 +202,10 @@
       .hero-stat {
         text-align: center;
         padding: 16px;
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.7);
         border-radius: 16px;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(3, 169, 244, 0.2);
       }
 
       .hero-value {
@@ -215,20 +216,20 @@
       }
 
       .hero-value.success {
-        color: #4ade80;
-        text-shadow: 0 0 20px rgba(74, 222, 128, 0.5);
+        color: #0ea5e9;
+        text-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
       }
 
       .hero-label {
         font-size: 1.1rem;
         font-weight: 600;
         margin-bottom: 4px;
-        color: rgba(255, 255, 255, 0.95);
+        color: #0f172a;
       }
 
       .hero-subtitle {
         font-size: 0.85rem;
-        color: rgba(255, 255, 255, 0.7);
+        color: #475569;
         font-weight: 400;
       }
 
@@ -238,15 +239,17 @@
         justify-content: center;
         font-size: 2rem;
         font-weight: 300;
-        color: rgba(255, 255, 255, 0.6);
+        color: #64748b;
       }
 
       .divider-text {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.8);
         padding: 8px 16px;
         border-radius: 50px;
         font-size: 1rem;
         font-weight: 500;
+        color: #0f172a;
+        border: 1px solid rgba(3, 169, 244, 0.2);
       }
 
       /* 簡潔な進捗表示 */
@@ -263,25 +266,26 @@
       .simple-progress {
         flex: 1;
         height: 12px;
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.6);
         border-radius: 6px;
         overflow: hidden;
+        border: 1px solid rgba(3, 169, 244, 0.2);
       }
 
       .simple-progress .progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, #10b981, #059669);
+        background: linear-gradient(90deg, #0ea5e9, #0284c7);
         border-radius: 6px;
         transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
       }
 
       .simple-progress .progress-fill.warning {
-        background: linear-gradient(90deg, #f59e0b, #d97706);
+        background: linear-gradient(90deg, #06b6d4, #0891b2);
       }
 
       .simple-progress .progress-fill.danger {
-        background: linear-gradient(90deg, #ef4444, #dc2626);
+        background: linear-gradient(90deg, #0284c7, #0369a1);
       }
 
       .progress-percentage {
@@ -290,7 +294,7 @@
         gap: 8px;
         font-size: 1.2rem;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.95);
+        color: #0f172a;
       }
 
       .status-icon {
@@ -299,11 +303,11 @@
 
       /* シンプルな提案セクション */
       .simple-suggestion {
-        background: rgba(16, 185, 129, 0.1);
+        background: rgba(14, 165, 233, 0.1);
         border-radius: 16px;
         padding: 20px;
         margin: 24px 0;
-        border-left: 4px solid #10b981;
+        border-left: 4px solid #0ea5e9;
       }
 
       .suggestion-content {
@@ -319,7 +323,7 @@
 
       .suggestion-text {
         font-size: 16px;
-        color: #2e7d32;
+        color: #0c4a6e;
         font-weight: 500;
       }
 
@@ -355,6 +359,12 @@
         cursor: pointer;
         transition: all 0.3s ease;
         text-align: center;
+        min-height: 64px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: rgba(14, 165, 233, 0.1);
       }
 
       .limit-option:hover {
@@ -363,10 +373,10 @@
       }
 
       .limit-option.active {
-        border-color: #10b981;
-        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        border-color: #0ea5e9;
+        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
         transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+        box-shadow: 0 8px 24px rgba(14, 165, 233, 0.2);
       }
 
       .option-title {
@@ -409,27 +419,62 @@
       }
 
 
-      /* レスポンシブ */
+      /* レスポンシブ - スマホUX完全対応 */
       @media (max-width: 768px) {
+        body {
+          font-size: 16px; /* iOS zoom防止 */
+        }
+
         .main-content {
-          padding: 0 16px;
+          padding: 0 12px;
+          gap: 16px;
         }
         
         .professional-card {
-          padding: 20px;
-        }
-        
-        
-        .status-header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 16px;
+          padding: 16px;
+          margin: 8px;
         }
 
+        .status-header {
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          text-align: center;
+        }
+
+        .status-title {
+          font-size: 24px;
+        }
+
+        /* 限度額選択セクション モバイル対応 */
+        .limit-selector {
+          padding: 16px;
+          margin-bottom: 16px;
+        }
+
+        .limit-options {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+
+        .limit-option {
+          padding: 16px;
+          min-height: 72px;
+        }
+
+        .option-title {
+          font-size: 18px;
+          margin-bottom: 2px;
+        }
+
+        .option-subtitle {
+          font-size: 13px;
+        }
 
         /* ヒーローセクション モバイル対応 */
         .hero-section {
-          padding: 24px 20px;
+          padding: 24px 16px;
+          margin: 16px 8px;
         }
 
         .hero-stats {
@@ -438,39 +483,94 @@
           text-align: center;
         }
 
+        .hero-stat {
+          padding: 20px;
+        }
+
         .hero-divider {
           display: none;
         }
 
         .hero-value {
-          font-size: 2rem;
+          font-size: 2.2rem;
+          margin-bottom: 12px;
+        }
+
+        .hero-label {
+          font-size: 1rem;
+          margin-bottom: 6px;
+        }
+
+        .hero-subtitle {
+          font-size: 0.9rem;
         }
 
         .progress-container {
           flex-direction: column;
-          gap: 12px;
+          gap: 16px;
+          margin-top: 20px;
+        }
+
+        .simple-progress {
+          height: 16px;
         }
 
         .progress-percentage {
           justify-content: center;
+          font-size: 1.1rem;
         }
 
-        /* 限度額選択セクション モバイル対応 */
-        .limit-options {
-          grid-template-columns: 1fr;
-          gap: 8px;
+        /* 提案セクション モバイル対応 */
+        .simple-suggestion {
+          margin: 16px 8px;
+          padding: 16px;
         }
 
-        .limit-option {
+        .suggestion-content {
+          gap: 12px;
+        }
+
+        .suggestion-text {
+          font-size: 15px;
+        }
+
+        /* フッター モバイル対応 */
+        .info-footer {
+          margin: 16px 8px;
           padding: 12px;
         }
 
-        .option-title {
-          font-size: 16px;
+        .info-footer p {
+          font-size: 13px;
         }
 
-        .option-subtitle {
-          font-size: 11px;
+        /* ヘッダー モバイル対応 */
+        .header {
+          padding: 16px 12px;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .nav-buttons {
+          gap: 8px;
+        }
+
+        .nav-btn {
+          padding: 10px 16px;
+          font-size: 13px;
+          min-height: 44px; /* タップしやすいサイズ */
+        }
+      }
+
+      /* タブレット対応 */
+      @media (min-width: 769px) and (max-width: 1024px) {
+        .limit-options {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+        }
+
+        .hero-stats {
+          gap: 20px;
         }
       }
     </style>
