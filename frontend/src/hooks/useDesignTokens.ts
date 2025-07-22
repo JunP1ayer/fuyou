@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 interface DesignTokens {
   colors: Record<string, string>;
-  typography: Record<string, string | number>;
+  typography: Record<string, string | number | Record<string, string | number>>;
   spacing: Record<string, string>;
   lastUpdated: string;
 }
@@ -12,7 +12,7 @@ interface UseDesignTokensReturn {
   tokens: DesignTokens | null;
   loading: boolean;
   error: string | null;
-  isEnhanced: boolean; // Figma連携による拡張適用中
+  isEnhanced: boolean; // デザイントークン拡張適用中
 }
 
 // デフォルトトークン
@@ -49,6 +49,49 @@ export const useDesignTokens = (): UseDesignTokensReturn => {
   const [userId] = useState(
     () => `user_${Math.random().toString(36).substr(2, 9)}`
   ); // 簡易ユーザーID生成
+
+  // Gemini式パフォーマンス計測＆学習データ送信
+  const sendPerformanceMetrics = useCallback(
+    async (intelligence: Record<string, unknown>) => {
+      try {
+        // 簡易パフォーマンス計測
+        const performanceEntry = performance.getEntriesByType(
+          'navigation'
+        )[0] as PerformanceNavigationTiming;
+        const loadTime = performanceEntry
+          ? performanceEntry.loadEventEnd - performanceEntry.fetchStart
+          : 0;
+
+        await fetch('http://localhost:3001/api/intelligence/performance', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId,
+            metrics: {
+              taskTime: loadTime,
+              errors: 0, // 簡易版では0固定
+              totalActions: 1,
+              satisfaction: 0.8, // デフォルト満足度
+              accessibility: {
+                highContrast: window.matchMedia('(prefers-contrast: high)')
+                  .matches,
+                reducedMotion: window.matchMedia(
+                  '(prefers-reduced-motion: reduce)'
+                ).matches,
+              },
+            },
+            context: intelligence.context,
+            timestamp: new Date().toISOString(),
+          }),
+        });
+      } catch (error) {
+        console.warn('📊 パフォーマンス計測送信エラー:', error);
+      }
+    },
+    [userId]
+  );
 
   const fetchDesignTokens = useCallback(async () => {
     try {
@@ -134,7 +177,7 @@ export const useDesignTokens = (): UseDesignTokensReturn => {
     if (designTokens.typography['font-family']) {
       root.style.setProperty(
         '--design-font-family',
-        designTokens.typography['font-family']
+        String(designTokens.typography['font-family'])
       );
     }
 
@@ -160,49 +203,6 @@ export const useDesignTokens = (): UseDesignTokensReturn => {
       designTokens.colors.error
     );
   };
-
-  // Gemini式パフォーマンス計測＆学習データ送信
-  const sendPerformanceMetrics = useCallback(
-    async (intelligence: Record<string, unknown>) => {
-      try {
-        // 簡易パフォーマンス計測
-        const performanceEntry = performance.getEntriesByType(
-          'navigation'
-        )[0] as PerformanceNavigationTiming;
-        const loadTime = performanceEntry
-          ? performanceEntry.loadEventEnd - performanceEntry.fetchStart
-          : 0;
-
-        await fetch('http://localhost:3001/api/intelligence/performance', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId,
-            metrics: {
-              taskTime: loadTime,
-              errors: 0, // 簡易版では0固定
-              totalActions: 1,
-              satisfaction: 0.8, // デフォルト満足度
-              accessibility: {
-                highContrast: window.matchMedia('(prefers-contrast: high)')
-                  .matches,
-                reducedMotion: window.matchMedia(
-                  '(prefers-reduced-motion: reduce)'
-                ).matches,
-              },
-            },
-            context: intelligence.context,
-            timestamp: new Date().toISOString(),
-          }),
-        });
-      } catch (error) {
-        console.warn('📊 パフォーマンス計測送信エラー:', error);
-      }
-    },
-    [userId]
-  );
 
   // ユーザー行動トラッキング（Gemini学習用）
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
