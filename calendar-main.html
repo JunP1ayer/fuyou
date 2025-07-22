@@ -956,7 +956,11 @@
           const dayElement = document.createElement('div');
           dayElement.className = 'calendar-day';
           
-          const dateStr = date.toISOString().split('T')[0];
+          // 時差の影響を避けるためローカル時間でISO文字列を作成
+          const year = date.getFullYear();
+          const monthNum = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          const dateStr = `${year}-${monthNum}-${day}`;
           const isCurrentMonth = date.getMonth() === month;
           const isToday = date.toDateString() === today.toDateString();
           const hasShift = shifts[dateStr];
@@ -1023,8 +1027,14 @@
 
       // シフト追加ダイアログ
       function showAddShiftDialog(dateStr = null) {
-        const date = dateStr || new Date().toISOString().split('T')[0];
-        openShiftPopup(date);
+        if (!dateStr) {
+          const today = new Date();
+          const year = today.getFullYear();
+          const month = String(today.getMonth() + 1).padStart(2, '0');
+          const day = String(today.getDate()).padStart(2, '0');
+          dateStr = `${year}-${month}-${day}`;
+        }
+        openShiftPopup(dateStr);
       }
 
       // ===== 職場管理機能 =====
@@ -1540,15 +1550,28 @@
         if (workDate) {
           // workDateが文字列の場合（YYYY-MM-DD形式）を正しくパース
           const dateStr = typeof workDate === 'string' ? workDate : workDate.toString();
-          console.log('workDate文字列:', dateStr);
+          console.log('🔍 workDate文字列:', dateStr);
           const [year, month, day] = dateStr.split('-').map(n => parseInt(n));
           const dateObj = new Date(year, month - 1, day);
           dayOfWeek = dateObj.getDay(); // monthは0ベース
-          console.log('パース結果:', dateObj.toDateString(), '曜日番号:', dayOfWeek);
+          console.log('📅 パース結果:', {
+            input: `${year}-${month}-${day}`,
+            dateObject: dateObj.toDateString(),
+            dayOfWeek: dayOfWeek
+          });
           
           // 実際の曜日名をチェック
           const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-          console.log('実際の曜日:', dayNames[dayOfWeek]);
+          console.log('🗓️ 判定された曜日:', dayNames[dayOfWeek]);
+          
+          // さらに詳細確認のため
+          console.log('🧮 詳細:', {
+            年: year,
+            月: month,
+            日: day,
+            'Date作成時の月': month - 1,
+            'getDay結果': dayOfWeek
+          });
         } else {
           dayOfWeek = new Date().getDay();
           console.log('現在の曜日:', dayOfWeek);
