@@ -1335,7 +1335,8 @@
           return;
         }
 
-        const result = calculateExactEarnings(workplaceId, startTime, endTime, crossMidnight);
+        const workDate = document.getElementById('shiftDate').value; // 日付を取得
+        const result = calculateExactEarnings(workplaceId, startTime, endTime, crossMidnight, workDate);
         document.getElementById('predictedEarnings').textContent = `${result.totalEarnings.toLocaleString()}円`;
       }
 
@@ -1433,7 +1434,11 @@
         // 曜日の取得
         let dayOfWeek;
         if (workDate) {
-          dayOfWeek = new Date(workDate).getDay();
+          // workDateが文字列の場合（YYYY-MM-DD形式）を正しくパース
+          const dateStr = typeof workDate === 'string' ? workDate : workDate.toString();
+          console.log('workDate文字列:', dateStr);
+          const [year, month, day] = dateStr.split('-').map(n => parseInt(n));
+          dayOfWeek = new Date(year, month - 1, day).getDay(); // monthは0ベース
         } else {
           dayOfWeek = new Date().getDay();
         }
@@ -1441,7 +1446,9 @@
         console.log('曜日:', dayOfWeek, '(0:日 1:月 ... 6:土)');
 
         // 曜日別割増の確認
+        console.log('曜日別設定チェック:', workplace.dayPremium);
         if (workplace.dayPremium && workplace.dayPremium.enabled && workplace.dayPremium.days) {
+          console.log('設定対象曜日:', workplace.dayPremium.days, '今日の曜日:', dayOfWeek);
           if (workplace.dayPremium.days.includes(dayOfWeek)) {
             // multiplierを再計算して確実に適用
             let multiplier;
@@ -1465,7 +1472,11 @@
               multiplier: multiplier,
               result: hourlyRate
             });
+          } else {
+            console.log('曜日割増対象外');
           }
+        } else {
+          console.log('曜日別設定なし');
         }
 
         // 基本時給計算
