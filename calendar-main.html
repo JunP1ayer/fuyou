@@ -469,28 +469,85 @@
 
       /* レスポンシブ */
       @media (max-width: 768px) {
+        body {
+          height: 100vh;
+          overflow: hidden;
+        }
+        
         .main-content {
-          padding: 0 10px;
+          padding: 0 8px;
+          height: calc(100vh - 80px); /* ヘッダー分を除く */
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+        
+        .header {
+          flex-shrink: 0;
+          padding: 12px 16px;
+        }
+        
+        .calendar {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          margin: 8px 0;
+          padding: 12px;
+          min-height: 0;
+          overflow: hidden;
+        }
+        
+        .calendar-header {
+          flex-shrink: 0;
+          margin-bottom: 8px;
+        }
+        
+        .calendar-grid {
+          flex: 1;
+          gap: 1px;
+          min-height: 0;
+          display: grid;
+          grid-template-rows: repeat(6, 1fr); /* 6行を等分 */
         }
         
         .calendar-day {
-          min-height: 60px;
-          padding: 4px 2px;
+          min-height: unset;
+          height: 100%;
+          padding: 2px 1px;
+          font-size: 10px;
+        }
+        
+        .day-header {
+          padding: 6px 2px;
+          font-size: 11px;
         }
         
         .day-number {
-          font-size: 12px;
+          font-size: 10px;
+          font-weight: 600;
+          line-height: 1.2;
         }
         
         .shift-indicator {
-          font-size: 8px;
-          padding: 1px 4px;
+          font-size: 7px;
+          padding: 1px 2px;
+          margin-top: 1px;
+          line-height: 1;
+        }
+        
+        .monthly-summary {
+          flex-shrink: 0;
+          margin-top: 8px;
+          padding: 8px;
+          font-size: 11px;
         }
 
         .popup {
           width: 90%;
           min-width: 0;
           max-width: 400px;
+          max-height: 90vh;
+          overflow-y: auto;
         }
 
         .workplace-popup {
@@ -503,6 +560,54 @@
 
         .checkbox-group {
           grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      /* 非常に小さい画面対応 */
+      @media (max-width: 480px) {
+        .main-content {
+          height: calc(100vh - 70px);
+        }
+        
+        .header {
+          padding: 8px 12px;
+        }
+        
+        .header h1 {
+          font-size: 18px;
+        }
+        
+        .nav-btn {
+          padding: 6px 12px;
+          font-size: 12px;
+        }
+        
+        .calendar {
+          padding: 8px;
+        }
+        
+        .day-header {
+          padding: 4px 1px;
+          font-size: 10px;
+        }
+        
+        .calendar-day {
+          padding: 1px;
+          font-size: 9px;
+        }
+        
+        .day-number {
+          font-size: 9px;
+        }
+        
+        .shift-indicator {
+          font-size: 6px;
+          padding: 0px 1px;
+        }
+        
+        .monthly-summary {
+          padding: 6px;
+          font-size: 10px;
         }
       }
     </style>
