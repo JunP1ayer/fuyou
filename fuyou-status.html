@@ -169,7 +169,7 @@
 
       /* ヒーローセクション - ユーザー最重要情報 */
       .hero-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         border-radius: 20px;
         padding: 40px 32px;
         margin-bottom: 32px;
@@ -270,18 +270,18 @@
 
       .simple-progress .progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, #4ade80, #22c55e);
+        background: linear-gradient(90deg, #10b981, #059669);
         border-radius: 6px;
         transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
       }
 
       .simple-progress .progress-fill.warning {
-        background: linear-gradient(90deg, #fbbf24, #f59e0b);
+        background: linear-gradient(90deg, #f59e0b, #d97706);
       }
 
       .simple-progress .progress-fill.danger {
-        background: linear-gradient(90deg, #f87171, #ef4444);
+        background: linear-gradient(90deg, #ef4444, #dc2626);
       }
 
       .progress-percentage {
@@ -299,11 +299,11 @@
 
       /* シンプルな提案セクション */
       .simple-suggestion {
-        background: rgba(76, 175, 80, 0.1);
+        background: rgba(16, 185, 129, 0.1);
         border-radius: 16px;
         padding: 20px;
         margin: 24px 0;
-        border-left: 4px solid #4caf50;
+        border-left: 4px solid #10b981;
       }
 
       .suggestion-content {
@@ -320,6 +320,65 @@
       .suggestion-text {
         font-size: 16px;
         color: #2e7d32;
+        font-weight: 500;
+      }
+
+      /* 限度額選択セクション */
+      .limit-selector {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+      }
+
+      .limit-selector h3 {
+        margin: 0 0 16px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e293b;
+        text-align: center;
+      }
+
+      .limit-options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+
+      .limit-option {
+        background: #ffffff;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+      }
+
+      .limit-option:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      }
+
+      .limit-option.active {
+        border-color: #10b981;
+        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+      }
+
+      .option-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 4px;
+      }
+
+      .option-subtitle {
+        font-size: 12px;
+        color: #6b7280;
         font-weight: 500;
       }
 
@@ -395,6 +454,24 @@
         .progress-percentage {
           justify-content: center;
         }
+
+        /* 限度額選択セクション モバイル対応 */
+        .limit-options {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        .limit-option {
+          padding: 12px;
+        }
+
+        .option-title {
+          font-size: 16px;
+        }
+
+        .option-subtitle {
+          font-size: 11px;
+        }
       }
     </style>
   </head>
@@ -403,8 +480,8 @@
     <header class="header">
       <div>
         <h1>
-          🏛️ 扶養控除ステータス
-          <span class="badge">税理士監修</span>
+          💰 扶養控除ステータス
+          <span class="badge">2025年対応</span>
         </h1>
       </div>
       <nav class="nav-buttons">
@@ -424,6 +501,25 @@
           </div>
         </div>
 
+        <!-- 限度額選択セクション -->
+        <div class="limit-selector">
+          <h3>どこまで働きますか？</h3>
+          <div class="limit-options">
+            <button class="limit-option active" data-limit="1030000" data-label="103万円">
+              <div class="option-title">103万円</div>
+              <div class="option-subtitle">親の扶養内</div>
+            </button>
+            <button class="limit-option" data-limit="1300000" data-label="130万円">
+              <div class="option-title">130万円</div>
+              <div class="option-subtitle">社会保険扶養内</div>
+            </button>
+            <button class="limit-option" data-limit="1500000" data-label="150万円">
+              <div class="option-title">150万円</div>
+              <div class="option-subtitle">学生特例上限</div>
+            </button>
+          </div>
+        </div>
+
         <!-- ユーザー最重要情報ヒーローセクション -->
         <div class="hero-section">
           <div class="hero-stats">
@@ -438,9 +534,9 @@
             </div>
             
             <div class="hero-stat limit">
-              <div class="hero-value">¥1,030,000</div>
-              <div class="hero-label">扶養限度額</div>
-              <div class="hero-subtitle">年間の上限金額</div>
+              <div class="hero-value" id="limitAmount">¥1,030,000</div>
+              <div class="hero-label" id="limitLabel">扶養限度額</div>
+              <div class="hero-subtitle" id="limitSubtitle">年間の上限金額</div>
             </div>
             
             <div class="hero-divider">
@@ -528,6 +624,7 @@
         loadCalendarData();
         updateFuyouStatus();
         animateProgressBar();
+        initLimitSelector();
         
         // 5秒ごとにカレンダーデータをチェック（リアルタイム更新）
         setInterval(function() {
@@ -539,6 +636,55 @@
           }
         }, 5000);
       });
+
+      // 限度額選択機能の初期化
+      function initLimitSelector() {
+        const limitOptions = document.querySelectorAll('.limit-option');
+        
+        limitOptions.forEach(option => {
+          option.addEventListener('click', function() {
+            // アクティブ状態を切り替え
+            limitOptions.forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            
+            // 選択された限度額を更新
+            const selectedLimit = parseInt(this.dataset.limit);
+            const selectedLabel = this.dataset.label;
+            
+            fuyouData.limit = selectedLimit;
+            
+            // UI表示を更新
+            updateLimitDisplay(selectedLimit, selectedLabel);
+            updateFuyouStatus();
+            animateProgressBar();
+          });
+        });
+      }
+
+      // 限度額表示の更新
+      function updateLimitDisplay(limit, label) {
+        const limitAmountElement = document.getElementById('limitAmount');
+        const limitLabelElement = document.getElementById('limitLabel');
+        const limitSubtitleElement = document.getElementById('limitSubtitle');
+        
+        limitAmountElement.textContent = '¥' + limit.toLocaleString();
+        
+        // ラベルと説明を更新
+        switch(limit) {
+          case 1030000:
+            limitLabelElement.textContent = '親の扶養限度額';
+            limitSubtitleElement.textContent = '所得税・住民税の基準';
+            break;
+          case 1300000:
+            limitLabelElement.textContent = '社会保険扶養限度額';
+            limitSubtitleElement.textContent = '健康保険・年金の基準';
+            break;
+          case 1500000:
+            limitLabelElement.textContent = '学生特例上限額';
+            limitSubtitleElement.textContent = '勤労学生控除適用時';
+            break;
+        }
+      }
 
       // 扶養ステータスの更新
       function updateFuyouStatus() {
