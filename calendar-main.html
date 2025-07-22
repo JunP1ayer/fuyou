@@ -75,49 +75,65 @@
         padding: 0 20px;
       }
 
-      /* 月間ナビゲーション */
+      /* 月間ナビゲーション - シンプル化 */
       .month-nav {
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
-        margin-bottom: 20px;
-        background: white;
-        padding: 16px 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 8px;
+        padding: 8px 0;
+        position: relative;
+        touch-action: pan-y; /* 将来のスワイプ対応 */
       }
 
       .month-title {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 600;
         color: #2c3e50;
+        text-align: center;
+        min-width: 100px;
+        margin: 0;
       }
 
       .month-btn {
-        background: #ecf0f1;
+        background: transparent;
         border: none;
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
-        color: #7f8c8d;
+        font-size: 20px;
+        color: #3498db;
         transition: all 0.2s;
+        position: absolute;
+      }
+
+      .month-btn:first-child {
+        left: 10px;
+      }
+
+      .month-btn:last-child {
+        right: 10px;
       }
 
       .month-btn:hover {
-        background: #3498db;
-        color: white;
+        background: rgba(52, 152, 219, 0.1);
+        transform: scale(1.1);
       }
 
-      /* カレンダーグリッド */
+      .month-btn:active {
+        background: rgba(52, 152, 219, 0.2);
+        transform: scale(0.95);
+      }
+
+      /* カレンダーグリッド - より大きく */
       .calendar {
         background: white;
         border-radius: 12px;
-        padding: 20px;
+        padding: 16px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       }
 
@@ -454,8 +470,8 @@
         }
         
         .main-content {
-          padding: 0 8px;
-          height: calc(100vh - 80px); /* ヘッダー分を除く */
+          padding: 0 4px;
+          height: calc(100vh - 70px); /* ヘッダー分を除く */
           display: flex;
           flex-direction: column;
           overflow: hidden;
@@ -463,17 +479,42 @@
         
         .header {
           flex-shrink: 0;
-          padding: 12px 16px;
+          padding: 10px 12px;
+        }
+        
+        .month-nav {
+          flex-shrink: 0;
+          margin-bottom: 4px;
+          padding: 4px 0;
+        }
+        
+        .month-title {
+          font-size: 16px;
+        }
+        
+        .month-btn {
+          width: 36px;
+          height: 36px;
+          font-size: 18px;
+        }
+        
+        .month-btn:first-child {
+          left: 8px;
+        }
+
+        .month-btn:last-child {
+          right: 8px;
         }
         
         .calendar {
           flex: 1;
           display: flex;
           flex-direction: column;
-          margin: 8px 0;
-          padding: 12px;
+          margin: 4px 0;
+          padding: 8px;
           min-height: 0;
           overflow: hidden;
+          box-shadow: none;
         }
         
         .calendar-header {
@@ -516,9 +557,11 @@
         
         .monthly-summary {
           flex-shrink: 0;
-          margin-top: 8px;
-          padding: 8px;
-          font-size: 11px;
+          margin-top: 4px;
+          padding: 6px;
+          font-size: 10px;
+          background: transparent;
+          box-shadow: none;
         }
 
         .popup {
@@ -1761,12 +1804,53 @@
       // 初期化
       document.addEventListener('DOMContentLoaded', function() {
         updateCalendar();
+        initSwipeGestures(); // スワイプ機能初期化
         
         // 職場が空の場合は注意メッセージ
         if (Object.keys(workplaces).length === 0) {
           console.log('バイト先が登録されていません。まず「バイト先を管理」から職場を追加してください。');
         }
       });
+
+      // スワイプ機能の準備（将来のアプリ化対応）
+      function initSwipeGestures() {
+        const calendar = document.querySelector('.calendar');
+        if (!calendar) return;
+        
+        let startX = null;
+        let startY = null;
+        
+        calendar.addEventListener('touchstart', function(e) {
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+        });
+        
+        calendar.addEventListener('touchend', function(e) {
+          if (!startX || !startY) return;
+          
+          const endX = e.changedTouches[0].clientX;
+          const endY = e.changedTouches[0].clientY;
+          
+          const diffX = startX - endX;
+          const diffY = startY - endY;
+          
+          // 横スワイプが縦スワイプより大きく、50px以上の場合
+          if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+            if (diffX > 0) {
+              // 左スワイプ（次月）
+              changeMonth(1);
+            } else {
+              // 右スワイプ（前月）  
+              changeMonth(-1);
+            }
+          }
+          
+          startX = null;
+          startY = null;
+        });
+        
+        console.log('📱 スワイプ機能が有効になりました');
+      }
     </script>
     
     <!-- Force deploy: Mon Jul 21 23:35:00 JST 2025 -->
