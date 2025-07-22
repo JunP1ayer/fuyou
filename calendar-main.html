@@ -166,6 +166,7 @@
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         gap: 2px;
+        width: 100%;
       }
 
       .calendar-day {
@@ -527,14 +528,20 @@
           gap: 1px;
           min-height: 0;
           display: grid;
+          grid-template-columns: repeat(7, 1fr);
           grid-template-rows: repeat(6, 1fr); /* 6行を等分 */
         }
         
         .calendar-day {
           min-height: unset;
-          height: 100%;
-          padding: 2px 1px;
+          aspect-ratio: 1;
+          height: auto;
+          padding: 3px 2px;
           font-size: 10px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-start;
         }
         
         .day-header {
@@ -614,8 +621,14 @@
         }
         
         .calendar-day {
-          padding: 1px;
+          padding: 2px 1px;
           font-size: 9px;
+          aspect-ratio: 1;
+          height: auto;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-start;
         }
         
         .day-number {
