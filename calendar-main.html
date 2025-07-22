@@ -129,13 +129,12 @@
         transform: scale(0.95);
       }
 
-      /* カレンダーグリッド - 1画面収まり最適化 */
+      /* カレンダーグリッド - 完全表示 */
       .calendar {
         background: white;
         border-radius: 12px;
         padding: 12px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        max-height: calc(100vh - 140px);
       }
 
       .calendar-header {
@@ -268,29 +267,6 @@
         color: #27ae60;
       }
 
-      /* プライバシー配慮の集計セクション */
-      .summary-section {
-        margin-top: 20px;
-        padding: 0 16px 40px;
-        max-width: 800px;
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      .summary-container {
-        background: white;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-      }
-
-      .summary-title {
-        margin: 0 0 16px 0;
-        font-size: 18px;
-        font-weight: 600;
-        color: #2c3e50;
-        text-align: center;
-      }
 
 
       .floating-workplace {
@@ -506,16 +482,14 @@
       /* レスポンシブ */
       @media (max-width: 768px) {
         body {
-          height: 100vh;
-          overflow: hidden;
+          min-height: 100vh;
         }
         
         .main-content {
           padding: 0 4px;
-          height: calc(100vh - 70px); /* ヘッダー分を除く */
+          min-height: calc(100vh - 70px);
           display: flex;
           flex-direction: column;
-          overflow: hidden;
         }
         
         .header {
@@ -548,13 +522,10 @@
         }
         
         .calendar {
-          flex: 1;
           display: flex;
           flex-direction: column;
           margin: 4px 0;
           padding: 8px;
-          min-height: 0;
-          overflow: hidden;
           box-shadow: none;
         }
         
@@ -564,9 +535,7 @@
         }
         
         .calendar-grid {
-          flex: 1;
           gap: 1px;
-          min-height: 0;
           display: grid;
           grid-template-columns: repeat(7, 1fr);
           grid-auto-rows: 1fr;
@@ -637,45 +606,6 @@
           line-height: 1;
         }
         
-        .summary-section {
-          margin-top: 16px;
-          padding: 0 8px 24px;
-        }
-        
-        .summary-container {
-          padding: 16px;
-        }
-        
-        .summary-title {
-          font-size: 16px;
-          margin-bottom: 12px;
-        }
-        
-        .monthly-summary {
-          flex-direction: column;
-          gap: 8px;
-        }
-        
-        .summary-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 8px 0;
-          border-bottom: 1px solid #ecf0f1;
-        }
-        
-        .summary-item:last-child {
-          border-bottom: none;
-        }
-        
-        .summary-label {
-          font-size: 12px;
-          margin-bottom: 0;
-        }
-        
-        .summary-value {
-          font-size: 16px;
-        }
 
         .popup {
           width: 90%;
@@ -765,17 +695,6 @@
           padding: 0px 1px;
         }
         
-        .summary-section {
-          padding: 0 6px 20px;
-        }
-        
-        .summary-container {
-          padding: 12px;
-        }
-        
-        .summary-title {
-          font-size: 14px;
-        }
       }
     </style>
   </head>
@@ -815,27 +734,6 @@
       </div>
 
     </main>
-
-    <!-- プライバシー配慮: 集計セクションをスクロール位置に配置 -->
-    <section class="summary-section">
-      <div class="summary-container">
-        <h3 class="summary-title">📊 今月の集計</h3>
-        <div class="monthly-summary">
-          <div class="summary-item">
-            <div class="summary-label">今月勤務日数</div>
-            <div class="summary-value" id="monthlyDays">0日</div>
-          </div>
-          <div class="summary-item">
-            <div class="summary-label">今月予定収入</div>
-            <div class="summary-value earnings" id="monthlyEarnings">¥0</div>
-          </div>
-          <div class="summary-item">
-            <div class="summary-label">今月勤務時間</div>
-            <div class="summary-value" id="monthlyHours">0h</div>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- バイト先管理ボタン -->
     <button class="floating-workplace" onclick="openWorkplaceManager()" title="バイト先管理">+</button>
@@ -1184,10 +1082,10 @@
           grid.appendChild(dayElement);
         }
 
-        // サマリー更新
-        document.getElementById('monthlyDays').textContent = `${monthlyDays}日`;
-        document.getElementById('monthlyEarnings').textContent = `¥${monthlyEarnings.toLocaleString()}`;
-        document.getElementById('monthlyHours').textContent = `${monthlyHours}h`;
+        // サマリー更新は削除（UI非表示のため）
+        // document.getElementById('monthlyDays').textContent = `${monthlyDays}日`;
+        // document.getElementById('monthlyEarnings').textContent = `¥${monthlyEarnings.toLocaleString()}`;
+        // document.getElementById('monthlyHours').textContent = `${monthlyHours}h`;
       }
 
       // 労働時間計算
