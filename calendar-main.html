@@ -73,6 +73,9 @@
         max-width: 800px;
         margin: 8px auto;
         padding: 0 16px;
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 100px);
       }
 
       /* 月間ナビゲーション - 圧縮 */
@@ -135,6 +138,9 @@
         border-radius: 12px;
         padding: 12px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
       }
 
       .calendar-header {
@@ -168,8 +174,10 @@
       .calendar-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
+        grid-template-rows: repeat(6, 1fr);
         gap: 2px;
         width: 100%;
+        flex: 1;
       }
 
       .calendar-day {
@@ -483,24 +491,27 @@
       @media (max-width: 768px) {
         body {
           min-height: 100vh;
-        }
-        
-        .main-content {
-          padding: 0 4px;
-          min-height: calc(100vh - 70px);
           display: flex;
           flex-direction: column;
         }
         
         .header {
           flex-shrink: 0;
-          padding: 10px 12px;
+          padding: 8px 12px;
+        }
+        
+        .main-content {
+          flex: 1;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
         }
         
         .month-nav {
           flex-shrink: 0;
-          margin-bottom: 4px;
-          padding: 4px 0;
+          margin-bottom: 2px;
+          padding: 8px 0;
         }
         
         .month-title {
@@ -522,27 +533,30 @@
         }
         
         .calendar {
+          flex: 1;
           display: flex;
           flex-direction: column;
-          margin: 4px 0;
-          padding: 8px;
+          margin: 0;
+          padding: 4px;
           box-shadow: none;
+          min-height: 0;
         }
         
         .calendar-header {
           flex-shrink: 0;
-          margin-bottom: 8px;
+          margin-bottom: 4px;
         }
         
         .calendar-grid {
+          flex: 1;
           gap: 1px;
           display: grid;
           grid-template-columns: repeat(7, 1fr);
-          grid-auto-rows: 1fr;
+          grid-template-rows: repeat(6, 1fr);
+          min-height: 0;
         }
         
         .calendar-day {
-          aspect-ratio: 0.8;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -552,7 +566,7 @@
           box-sizing: border-box;
           overflow: hidden;
           position: relative;
-          min-height: 80px;
+          min-height: 0;
         }
         
         .calendar-day::before {
@@ -634,12 +648,8 @@
 
       /* 非常に小さい画面対応 */
       @media (max-width: 480px) {
-        .main-content {
-          height: calc(100vh - 70px);
-        }
-        
         .header {
-          padding: 8px 12px;
+          padding: 6px 8px;
         }
         
         .header h1 {
@@ -652,11 +662,11 @@
         }
         
         .calendar {
-          padding: 8px;
+          padding: 2px;
         }
         
         .day-header {
-          padding: 4px 0;
+          padding: 3px 0;
           font-size: 10px;
           display: flex;
           align-items: center;
@@ -664,7 +674,6 @@
         }
         
         .calendar-day {
-          aspect-ratio: 0.7;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -673,7 +682,7 @@
           font-size: 10px;
           box-sizing: border-box;
           overflow: hidden;
-          min-height: 70px;
+          min-height: 0;
         }
         
         .day-number {
