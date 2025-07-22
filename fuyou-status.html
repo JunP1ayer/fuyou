@@ -426,65 +426,71 @@
         }
 
         .main-content {
-          padding: 0 12px;
-          gap: 16px;
+          padding: 0 6px;
+          gap: 8px;
         }
         
         .professional-card {
-          padding: 16px;
-          margin: 8px;
+          padding: 12px;
+          margin: 4px;
         }
 
         .status-header {
           flex-direction: column;
           align-items: center;
-          gap: 12px;
+          gap: 8px;
           text-align: center;
         }
 
         .status-title {
-          font-size: 24px;
+          font-size: 20px;
         }
 
-        /* 限度額選択セクション モバイル対応 */
+        /* 限度額選択セクション モバイル対応 - Ultra Compact */
         .limit-selector {
-          padding: 16px;
-          margin-bottom: 16px;
+          padding: 12px;
+          margin-bottom: 12px;
+        }
+
+        .limit-selector h3 {
+          font-size: 14px;
+          margin-bottom: 8px;
         }
 
         .limit-options {
-          grid-template-columns: 1fr;
-          gap: 12px;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 6px;
         }
 
         .limit-option {
-          padding: 16px;
-          min-height: 72px;
+          padding: 8px 4px;
+          min-height: 44px;
+          font-size: 11px;
         }
 
         .option-title {
-          font-size: 18px;
-          margin-bottom: 2px;
+          font-size: 13px;
+          margin-bottom: 1px;
         }
 
         .option-subtitle {
-          font-size: 13px;
+          font-size: 9px;
         }
 
-        /* ヒーローセクション モバイル対応 */
+        /* ヒーローセクション モバイル対応 - Ultra Compact */
         .hero-section {
-          padding: 24px 16px;
-          margin: 16px 8px;
+          padding: 16px 12px;
+          margin: 12px 4px;
         }
 
         .hero-stats {
           grid-template-columns: 1fr;
-          gap: 16px;
+          gap: 12px;
           text-align: center;
         }
 
         .hero-stat {
-          padding: 20px;
+          padding: 12px;
         }
 
         .hero-divider {
@@ -492,73 +498,77 @@
         }
 
         .hero-value {
-          font-size: 2.2rem;
-          margin-bottom: 12px;
-        }
-
-        .hero-label {
-          font-size: 1rem;
+          font-size: 1.8rem;
           margin-bottom: 6px;
         }
 
+        .hero-label {
+          font-size: 0.85rem;
+          margin-bottom: 3px;
+        }
+
         .hero-subtitle {
-          font-size: 0.9rem;
+          font-size: 0.75rem;
         }
 
         .progress-container {
           flex-direction: column;
-          gap: 16px;
-          margin-top: 20px;
+          gap: 10px;
+          margin-top: 12px;
         }
 
         .simple-progress {
-          height: 16px;
+          height: 12px;
         }
 
         .progress-percentage {
           justify-content: center;
-          font-size: 1.1rem;
+          font-size: 0.9rem;
         }
 
-        /* 提案セクション モバイル対応 */
+        /* 提案セクション モバイル対応 - Ultra Compact */
         .simple-suggestion {
-          margin: 16px 8px;
-          padding: 16px;
+          margin: 8px 4px;
+          padding: 10px;
         }
 
         .suggestion-content {
-          gap: 12px;
-        }
-
-        .suggestion-text {
-          font-size: 15px;
-        }
-
-        /* フッター モバイル対応 */
-        .info-footer {
-          margin: 16px 8px;
-          padding: 12px;
-        }
-
-        .info-footer p {
-          font-size: 13px;
-        }
-
-        /* ヘッダー モバイル対応 */
-        .header {
-          padding: 16px 12px;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .nav-buttons {
           gap: 8px;
         }
 
-        .nav-btn {
-          padding: 10px 16px;
+        .suggestion-text {
           font-size: 13px;
-          min-height: 44px; /* タップしやすいサイズ */
+        }
+
+        /* フッター モバイル対応 - Ultra Compact */
+        .info-footer {
+          margin: 8px 4px;
+          padding: 8px;
+        }
+
+        .info-footer p {
+          font-size: 11px;
+        }
+
+        /* ヘッダー モバイル対応 - Ultra Compact */
+        .header {
+          padding: 10px 8px;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .header h1 {
+          font-size: 20px;
+        }
+
+        .nav-buttons {
+          gap: 6px;
+        }
+
+        .nav-btn {
+          padding: 8px 12px;
+          font-size: 12px;
+          min-height: 40px; /* タップしやすいサイズ維持 */
         }
       }
 
