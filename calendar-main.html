@@ -178,11 +178,11 @@
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        padding: 8px 0;
+        padding: 10px 0;
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s;
-        min-height: 80px;
+        min-height: 100px;
         position: relative;
         box-sizing: border-box;
       }
@@ -192,6 +192,11 @@
       }
 
       .calendar-day.other-month {
+        color: #bdc3c7;
+        opacity: 0.5;
+      }
+      
+      .calendar-day.other-month .day-number {
         color: #bdc3c7;
       }
 
@@ -207,9 +212,9 @@
       }
 
       .day-number {
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 600;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
         width: 100%;
         text-align: center;
         display: flex;
@@ -548,8 +553,8 @@
           flex-direction: column;
           align-items: center;
           justify-content: flex-start;
-          padding: 3px 0;
-          font-size: 10px;
+          padding: 4px 0;
+          font-size: 11px;
           box-sizing: border-box;
           overflow: hidden;
         }
@@ -563,7 +568,7 @@
         }
         
         .day-number {
-          font-size: 10px;
+          font-size: 12px;
           font-weight: 600;
           line-height: 1.2;
           width: 100%;
@@ -571,6 +576,7 @@
           display: flex;
           align-items: center;
           justify-content: center;
+          margin-bottom: 2px;
         }
         
         .calendar-day.today {
@@ -653,19 +659,20 @@
           flex-direction: column;
           align-items: center;
           justify-content: flex-start;
-          padding: 2px 0;
-          font-size: 9px;
+          padding: 3px 0;
+          font-size: 10px;
           box-sizing: border-box;
           overflow: hidden;
         }
         
         .day-number {
-          font-size: 9px;
+          font-size: 11px;
           width: 100%;
           text-align: center;
           display: flex;
           align-items: center;
           justify-content: center;
+          margin-bottom: 1px;
         }
         
         .calendar-day.today {
@@ -1052,18 +1059,13 @@
             }
           }
 
-          // 月外の日付は数字を表示せず、空のセルにする
-          if (!isCurrentMonth) {
-            dayElement.innerHTML = '';
-            dayElement.onclick = null; // クリック無効化
-          } else {
-            const timeDisplay = hasShift ? `${hasShift.start}-${hasShift.end}` : '';
-            dayElement.innerHTML = `
-              <div class="day-number">${date.getDate()}</div>
-              ${hasShift ? `<div class="shift-indicator">${timeDisplay}</div>` : ''}
-            `;
-            dayElement.onclick = () => showDayDetails(dateStr);
-          }
+          // 全ての日付を表示（月外の日付は薄い色で）
+          const timeDisplay = hasShift ? `${hasShift.start}-${hasShift.end}` : '';
+          dayElement.innerHTML = `
+            <div class="day-number">${date.getDate()}</div>
+            ${hasShift ? `<div class="shift-indicator">${timeDisplay}</div>` : ''}
+          `;
+          dayElement.onclick = () => showDayDetails(dateStr);
           grid.appendChild(dayElement);
         }
 
