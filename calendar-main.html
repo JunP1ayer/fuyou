@@ -716,7 +716,6 @@
         </div>
         <button class="close-btn" onclick="closeShiftPopup()">&times;</button>
       </div>
-
       <input type="hidden" id="shiftDate" />
 
       <div class="form-group">
@@ -1438,9 +1437,16 @@
           const dateStr = typeof workDate === 'string' ? workDate : workDate.toString();
           console.log('workDate文字列:', dateStr);
           const [year, month, day] = dateStr.split('-').map(n => parseInt(n));
-          dayOfWeek = new Date(year, month - 1, day).getDay(); // monthは0ベース
+          const dateObj = new Date(year, month - 1, day);
+          dayOfWeek = dateObj.getDay(); // monthは0ベース
+          console.log('パース結果:', dateObj.toDateString(), '曜日番号:', dayOfWeek);
+          
+          // 実際の曜日名をチェック
+          const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+          console.log('実際の曜日:', dayNames[dayOfWeek]);
         } else {
           dayOfWeek = new Date().getDay();
+          console.log('現在の曜日:', dayOfWeek);
         }
 
         console.log('曜日:', dayOfWeek, '(0:日 1:月 ... 6:土)');
