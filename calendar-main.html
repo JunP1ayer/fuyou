@@ -552,11 +552,29 @@
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: flex-start;
-          padding: 4px 0;
+          justify-content: center;
+          padding: 2px;
           font-size: 11px;
           box-sizing: border-box;
           overflow: hidden;
+          position: relative;
+        }
+        
+        .calendar-day::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 80%;
+          height: 80%;
+          transform: translate(-50%, -50%);
+          border-radius: 8px;
+          background: transparent;
+          z-index: 1;
+        }
+        
+        .calendar-day:active::before {
+          background: rgba(52, 152, 219, 0.1);
         }
         
         .day-header {
@@ -570,13 +588,15 @@
         .day-number {
           font-size: 12px;
           font-weight: 600;
-          line-height: 1.2;
+          line-height: 1;
           width: 100%;
+          height: auto;
           text-align: center;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 2px;
+          margin: 0;
+          padding: 0;
         }
         
         .calendar-day.today {
@@ -668,11 +688,14 @@
         .day-number {
           font-size: 11px;
           width: 100%;
+          height: auto;
           text-align: center;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 1px;
+          margin: 0;
+          padding: 0;
+          line-height: 1;
         }
         
         .calendar-day.today {
@@ -732,15 +755,15 @@
       <div class="monthly-summary">
         <div class="summary-item">
           <div class="summary-label">今月勤務日数</div>
-          <div class="summary-value" id="monthlyDays">12日</div>
+          <div class="summary-value" id="monthlyDays">0日</div>
         </div>
         <div class="summary-item">
           <div class="summary-label">今月予定収入</div>
-          <div class="summary-value earnings" id="monthlyEarnings">¥85,200</div>
+          <div class="summary-value earnings" id="monthlyEarnings">¥0</div>
         </div>
         <div class="summary-item">
           <div class="summary-label">今月勤務時間</div>
-          <div class="summary-value" id="monthlyHours">68h</div>
+          <div class="summary-value" id="monthlyHours">0h</div>
         </div>
       </div>
     </main>
