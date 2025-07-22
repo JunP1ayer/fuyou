@@ -146,12 +146,15 @@
 
       .day-header {
         text-align: center;
-        padding: 12px 8px;
+        padding: 12px 0;
         font-weight: 600;
         font-size: 14px;
         color: #7f8c8d;
         background: #f8f9fa;
         border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .day-header.saturday {
@@ -175,12 +178,13 @@
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        padding: 8px 4px;
+        padding: 8px 0;
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s;
         min-height: 80px;
         position: relative;
+        box-sizing: border-box;
       }
 
       .calendar-day:hover {
@@ -539,15 +543,18 @@
           flex-direction: column;
           align-items: center;
           justify-content: flex-start;
-          padding: 3px;
+          padding: 3px 0;
           font-size: 10px;
           box-sizing: border-box;
           overflow: hidden;
         }
         
         .day-header {
-          padding: 6px 2px;
+          padding: 6px 0;
           font-size: 11px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         
         .day-number {
@@ -617,8 +624,11 @@
         }
         
         .day-header {
-          padding: 4px 1px;
+          padding: 4px 0;
           font-size: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         
         .calendar-day {
@@ -627,7 +637,7 @@
           flex-direction: column;
           align-items: center;
           justify-content: flex-start;
-          padding: 2px;
+          padding: 2px 0;
           font-size: 9px;
           box-sizing: border-box;
           overflow: hidden;
