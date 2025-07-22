@@ -210,6 +210,11 @@
         font-size: 14px;
         font-weight: 600;
         margin-bottom: 4px;
+        width: 100%;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .shift-indicator {
@@ -561,6 +566,17 @@
           font-size: 10px;
           font-weight: 600;
           line-height: 1.2;
+          width: 100%;
+          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .calendar-day.today {
+          background: #f0f8ff;
+          color: #1976d2;
+          border: 1px solid #e3f2fd;
         }
         
         .shift-indicator {
@@ -645,6 +661,17 @@
         
         .day-number {
           font-size: 9px;
+          width: 100%;
+          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .calendar-day.today {
+          background: #f8fcff;
+          color: #1976d2;
+          border: 1px solid #e8f4f8;
         }
         
         .shift-indicator {
@@ -1025,13 +1052,18 @@
             }
           }
 
-          const timeDisplay = hasShift ? `${hasShift.start}-${hasShift.end}` : '';
-          dayElement.innerHTML = `
-            <div class="day-number">${date.getDate()}</div>
-            ${hasShift ? `<div class="shift-indicator">${timeDisplay}</div>` : ''}
-          `;
-
-          dayElement.onclick = () => showDayDetails(dateStr);
+          // 月外の日付は数字を表示せず、空のセルにする
+          if (!isCurrentMonth) {
+            dayElement.innerHTML = '';
+            dayElement.onclick = null; // クリック無効化
+          } else {
+            const timeDisplay = hasShift ? `${hasShift.start}-${hasShift.end}` : '';
+            dayElement.innerHTML = `
+              <div class="day-number">${date.getDate()}</div>
+              ${hasShift ? `<div class="shift-indicator">${timeDisplay}</div>` : ''}
+            `;
+            dayElement.onclick = () => showDayDetails(dateStr);
+          }
           grid.appendChild(dayElement);
         }
 
