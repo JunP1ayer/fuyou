@@ -896,43 +896,61 @@
     </div>
 
     <!-- 職場登録・編集ポップアップ -->
-    <div class="popup workplace-popup" id="workplaceFormPopup">
-      <div class="popup-header">
-        <div class="popup-title">
-          🏢 <span id="workplaceFormTitle">新しいバイト先を追加</span>
+    <div class="popup workplace-popup shiftboard-style" id="workplaceFormPopup">
+      <div class="popup-header shiftboard-header">
+        <button class="close-btn-green" onclick="closePopups()">✕</button>
+        <div class="popup-title-centered">
+          <span id="workplaceFormTitle">バイト先の追加</span>
         </div>
-        <button class="close-btn" onclick="closePopups()">&times;</button>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">職場名 *</label>
-        <input
-          type="text"
-          class="form-input"
-          id="workplaceName"
-          placeholder="例: ファミリーマート新宿店"
-        />
+      <!-- 職場名 -->
+      <div class="shiftboard-form-group">
+        <div class="form-row">
+          <label class="form-label-left">職場名</label>
+          <div class="form-value-right">
+            <input
+              type="text"
+              class="shiftboard-input"
+              id="workplaceName"
+              placeholder="職場名を入力"
+            />
+          </div>
+        </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">基本時給 (円) *</label>
-          <input
-            type="number"
-            class="form-input"
-            id="baseHourlyWage"
-            placeholder="1000"
-          />
+      <!-- 基本時給 -->
+      <div class="shiftboard-form-group">
+        <div class="form-row">
+          <label class="form-label-left">基本時給</label>
+          <div class="form-value-right">
+            <input
+              type="number"
+              class="shiftboard-input"
+              id="baseHourlyWage"
+              placeholder="1100"
+              style="text-align: right;"
+            />
+            <span style="color: #666; margin-left: 4px;">円</span>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">交通費 (円)</label>
-          <input
-            type="number"
-            class="form-input"
-            id="transportationFee"
-            placeholder="200"
-            value="0"
-          />
+      </div>
+
+      <!-- 交通費 -->
+      <div class="shiftboard-form-group">
+        <div class="form-row">
+          <label class="form-label-left">交通費</label>
+          <div class="form-value-right">
+            <input
+              type="number"
+              class="shiftboard-input"
+              id="transportationFee"
+              placeholder="420"
+              value="0"
+              style="text-align: right;"
+            />
+            <span style="color: #666; margin-left: 4px;">円</span>
+          </div>
         </div>
       </div>
 
@@ -1007,14 +1025,8 @@
         </div>
       </div>
 
-      <div style="display: flex; gap: 12px;">
-        <button class="btn btn-secondary" onclick="closeWorkplaceForm()" style="flex: 1;">
-          キャンセル
-        </button>
-        <button class="btn btn-primary" onclick="saveWorkplace()" style="flex: 2;">
-          保存
-        </button>
-      </div>
+      <!-- 保存ボタン -->
+      <button class="complete-btn-green" onclick="saveWorkplace()">保存する</button>
     </div>
 
     <!-- シフト登録ポップアップ（シフトボード風） -->
