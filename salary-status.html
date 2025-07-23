@@ -68,6 +68,38 @@
         color: #2c3e50;
       }
 
+      /* 月/年切り替えタブ */
+      .view-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        margin: 16px 0;
+        padding: 0 20px;
+      }
+
+      .view-tab {
+        padding: 8px 20px;
+        border-radius: 20px;
+        border: 2px solid #e9ecef;
+        background: white;
+        color: #6c757d;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .view-tab.active {
+        background: #3498db;
+        color: white;
+        border-color: #3498db;
+      }
+
+      .view-tab:hover:not(.active) {
+        background: #f8f9fa;
+        border-color: #dee2e6;
+      }
+
       /* メインコンテンツ */
       .main-content {
         max-width: 800px;
@@ -451,6 +483,12 @@
       </nav>
     </header>
 
+    <!-- 月/年切り替えタブ -->
+    <div class="view-tabs">
+      <div class="view-tab active" onclick="switchViewMode('month')">📅 月間</div>
+      <div class="view-tab" onclick="switchViewMode('year')">📊 年間</div>
+    </div>
+
     <!-- メインコンテンツ -->
     <main class="main-content">
       <!-- メイン給料カード -->
@@ -546,6 +584,7 @@
       let workplaces = {};
       let shifts = {};
       let monthlyTargets = {};
+      let viewMode = 'month'; // 'month' or 'year'
 
       // LocalStorageからデータを読み込み
       function loadData() {
@@ -601,6 +640,67 @@
         return Math.floor(salary);
       }
 
+      // 年間統計を計算
+      function calculateYearlyStats() {
+        const year = currentDate.getFullYear();
+        let totalMinutes = 0;
+        let totalEarnings = 0;
+        const workplaceStats = {};
+        const monthlyBreakdown = {};
+
+        // 各職場の統計を初期化
+        Object.keys(workplaces).forEach(id => {
+          workplaceStats[id] = {
+            minutes: 0,
+            earnings: 0,
+            shifts: 0
+          };
+        });
+
+        // 年間の全シフトデータを集計
+        for (let month = 1; month <= 12; month++) {
+          const monthKey = `${year}-${month.toString().padStart(2, '0')}`;
+          const monthlyShifts = shifts[monthKey] || {};
+          
+          let monthMinutes = 0;
+          let monthEarnings = 0;
+
+          Object.entries(monthlyShifts).forEach(([date, dayShifts]) => {
+            Object.entries(dayShifts).forEach(([shiftId, shift]) => {
+              const startMinutes = timeToMinutes(shift.startTime);
+              const endMinutes = timeToMinutes(shift.endTime);
+              const workMinutes = endMinutes > startMinutes ? 
+                endMinutes - startMinutes : 
+                (24 * 60 - startMinutes) + endMinutes;
+
+              totalMinutes += workMinutes;
+              monthMinutes += workMinutes;
+              const salary = calculateSalary(shift.workplaceId, workMinutes, date);
+              totalEarnings += salary;
+              monthEarnings += salary;
+
+              if (workplaceStats[shift.workplaceId]) {
+                workplaceStats[shift.workplaceId].minutes += workMinutes;
+                workplaceStats[shift.workplaceId].earnings += salary;
+                workplaceStats[shift.workplaceId].shifts += 1;
+              }
+            });
+          });
+
+          monthlyBreakdown[month] = {
+            minutes: monthMinutes,
+            earnings: monthEarnings
+          };
+        }
+
+        return {
+          totalMinutes,
+          totalEarnings,
+          workplaceStats,
+          monthlyBreakdown
+        };
+      }
+
       // 月間統計を計算
       function calculateMonthlyStats() {
         const monthlyShifts = getMonthlyShifts();
@@ -649,32 +749,51 @@
       function updateDisplay() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth() + 1;
-        document.getElementById('currentMonth').textContent = `${year}年${month}月`;
 
-        // 月間目標を表示
-        const monthKey = getMonthKey();
-        const target = monthlyTargets[monthKey] || 50000;
-        document.getElementById('targetAmount').textContent = '¥' + target.toLocaleString();
+        // 表示タイトルを更新
+        if (viewMode === 'month') {
+          document.getElementById('currentMonth').textContent = `${year}年${month}月`;
+        } else {
+          document.getElementById('currentMonth').textContent = `${year}年`;
+        }
 
         // 統計を計算
-        const stats = calculateMonthlyStats();
+        const stats = viewMode === 'month' ? calculateMonthlyStats() : calculateYearlyStats();
 
-        // 今日までの給料を表示
-        document.getElementById('currentEarnings').textContent = '¥' + stats.totalEarnings.toLocaleString();
+        if (viewMode === 'month') {
+          // 月間表示
+          const monthKey = getMonthKey();
+          const target = monthlyTargets[monthKey] || 50000;
+          document.getElementById('targetAmount').textContent = '¥' + target.toLocaleString();
+          
+          // 今月までの給料を表示
+          document.getElementById('currentEarnings').textContent = '¥' + stats.totalEarnings.toLocaleString();
+          document.querySelector('.current-salary-label').textContent = '今月の給料';
+        } else {
+          // 年間表示
+          document.getElementById('targetAmount').textContent = '年間表示';
+          
+          // 今年の給料を表示
+          document.getElementById('currentEarnings').textContent = '¥' + stats.totalEarnings.toLocaleString();
+          document.querySelector('.current-salary-label').textContent = '今年の合計収入';
+        }
 
         // 勤務時間と給料見込を表示
         document.getElementById('workingHours').textContent = minutesToTime(stats.totalMinutes);
         document.getElementById('expectedSalary').textContent = '¥' + stats.totalEarnings.toLocaleString();
 
         // 職場別内訳を表示
-        updateWorkplaceList(stats.workplaceStats);
+        updateWorkplaceList(stats.workplaceStats, viewMode === 'year' ? stats.monthlyBreakdown : null);
 
         // 合計を更新
         updateTotalStats(stats.totalMinutes, stats.totalEarnings);
+
+        // タブの状態を更新
+        updateTabDisplay();
       }
 
       // 職場別内訳を更新
-      function updateWorkplaceList(workplaceStats) {
+      function updateWorkplaceList(workplaceStats, monthlyBreakdown = null) {
         const container = document.getElementById('workplaceList');
         container.innerHTML = '';
 
@@ -690,8 +809,29 @@
           return;
         }
 
+        // 年間表示の場合は月別内訳も表示
+        if (viewMode === 'year' && monthlyBreakdown) {
+          const monthlyItem = document.createElement('div');
+          monthlyItem.className = 'workplace-item';
+          monthlyItem.innerHTML = `
+            <div class="workplace-name">📊 月別内訳</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 12px; margin-top: 8px;">
+              ${Array.from({length: 12}, (_, i) => {
+                const month = i + 1;
+                const data = monthlyBreakdown[month];
+                return `<div style="text-align: center; padding: 4px; background: #f8f9fa; border-radius: 4px;">
+                  <div>${month}月</div>
+                  <div style="color: #666;">¥${data.earnings.toLocaleString()}</div>
+                </div>`;
+              }).join('')}
+            </div>
+          `;
+          container.appendChild(monthlyItem);
+        }
+
         Object.entries(workplaces).forEach(([id, workplace]) => {
           const stats = workplaceStats[id] || { minutes: 0, earnings: 0, shifts: 0 };
+          const period = viewMode === 'year' ? '年間' : '月間';
           
           const workplaceItem = document.createElement('div');
           workplaceItem.className = 'workplace-item';
@@ -700,11 +840,31 @@
             <div class="workplace-stats">
               <span>${minutesToTime(stats.minutes)}</span>
               <span>¥${stats.earnings.toLocaleString()}</span>
-              <span style="color: #adb5bd;">${stats.shifts}回 📊</span>
+              <span style="color: #adb5bd;">${stats.shifts}回 (${period})</span>
             </div>
           `;
           container.appendChild(workplaceItem);
         });
+      }
+
+      // タブの表示状態を更新
+      function updateTabDisplay() {
+        const monthTab = document.querySelector('.view-tab:nth-child(1)');
+        const yearTab = document.querySelector('.view-tab:nth-child(2)');
+        
+        if (viewMode === 'month') {
+          monthTab.classList.add('active');
+          yearTab.classList.remove('active');
+        } else {
+          monthTab.classList.remove('active');
+          yearTab.classList.add('active');
+        }
+      }
+
+      // 表示モードを切り替え
+      function switchViewMode(mode) {
+        viewMode = mode;
+        updateDisplay();
       }
 
       // 合計統計を更新
@@ -718,7 +878,11 @@
       }
 
       function changeMonth(direction) {
-        currentDate.setMonth(currentDate.getMonth() + direction);
+        if (viewMode === 'month') {
+          currentDate.setMonth(currentDate.getMonth() + direction);
+        } else {
+          currentDate.setFullYear(currentDate.getFullYear() + direction);
+        }
         updateDisplay();
       }
 
