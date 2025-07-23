@@ -1000,37 +1000,6 @@
         color: white;
       }
 
-      .save-btn {
-        background: #3498db;
-        color: white;
-        border: none;
-        padding: 14px;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      .save-btn:hover {
-        background: #2980b9;
-      }
-
-      .delete-btn {
-        background: #e74c3c;
-        color: white;
-        border: none;
-        padding: 14px;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      .delete-btn:hover {
-        background: #c0392b;
-      }
     </style>
   </head>
   <body>
@@ -1291,18 +1260,13 @@
         </div>
       </div>
 
-      <!-- 保存・削除ボタン -->
-      <div class="button-group" style="display: flex; gap: 10px; padding: 16px 20px;">
-        <button class="delete-btn" onclick="deleteShift()" style="flex: 1;">削除</button>
-        <button class="save-btn" onclick="saveShift()" style="flex: 2;">保存</button>
-      </div>
-
       <div class="form-group">
         <label class="form-label">
           予想収入: <span id="predictedEarnings">0円</span>
         </label>
       </div>
 
+      <!-- 保存・削除ボタン -->
       <div style="display: flex; gap: 12px; margin-top: 20px;">
         <button class="btn btn-danger" onclick="deleteShift()" style="flex: 1;" id="deleteShiftBtn">
           削除
