@@ -841,7 +841,7 @@
         gap: 8px;
       }
 
-      .shiftboard-input, .shiftboard-select, .shiftboard-date, .shiftboard-time {
+      .shiftboard-input, .shiftboard-select, .shiftboard-time {
         border: none;
         outline: none;
         text-align: center;
@@ -869,7 +869,7 @@
         font-size: 16px;
       }
 
-      .shiftboard-date, .shiftboard-time {
+      .shiftboard-time {
         font-size: 14px;
         color: #666;
       }
@@ -1221,8 +1221,7 @@
         <div class="form-row">
           <label class="form-label-left">開始</label>
           <div class="form-value-right">
-            <input type="date" class="shiftboard-date" id="startDate" onchange="updatePredictedEarnings()">
-            <input type="time" class="shiftboard-time" id="startTime" value="22:00" onchange="updatePredictedEarnings()">
+            <input type="time" class="shiftboard-time" id="startTime" value="10:00" onchange="updatePredictedEarnings()">
           </div>
         </div>
       </div>
@@ -1232,8 +1231,7 @@
         <div class="form-row">
           <label class="form-label-left">終了</label>
           <div class="form-value-right">
-            <input type="date" class="shiftboard-date" id="endDate" onchange="updatePredictedEarnings()">
-            <input type="time" class="shiftboard-time" id="endTime" value="23:00" onchange="updatePredictedEarnings()">
+            <input type="time" class="shiftboard-time" id="endTime" value="18:00" onchange="updatePredictedEarnings()">
           </div>
         </div>
       </div>
