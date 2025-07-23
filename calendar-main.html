@@ -198,6 +198,18 @@
         background: #ecf0f1;
       }
 
+      .calendar-day:active {
+        background: #d5dbdb;
+        transform: scale(0.98);
+        transition: all 0.1s ease;
+      }
+
+      .calendar-day.selected {
+        background: #e8f5e8;
+        border: 2px solid #4caf50;
+        transform: scale(1.02);
+      }
+
       .calendar-day.other-month {
         color: #bdc3c7;
         opacity: 0.5;
@@ -684,6 +696,18 @@
           overflow: hidden;
           touch-action: manipulation;
           min-height: 0;
+        }
+
+        .calendar-day:active {
+          background: #d5dbdb;
+          transform: scale(0.95);
+          transition: all 0.1s ease;
+        }
+
+        .calendar-day.selected {
+          background: #e8f5e8;
+          border: 2px solid #4caf50;
+          transform: scale(1.0);
         }
         
         .day-number {
@@ -1298,6 +1322,7 @@
             <div class="day-number">${date.getDate()}</div>
             ${hasShift ? `<div class="shift-indicator">${timeDisplay}</div>` : ''}
           `;
+          dayElement.setAttribute('data-date', dateStr);
           dayElement.onclick = () => showDayDetails(dateStr);
           grid.appendChild(dayElement);
         }
@@ -1326,6 +1351,15 @@
 
       // 日詳細表示
       function showDayDetails(dateStr) {
+        // タップした日付を一時的にハイライト
+        const dayElement = document.querySelector(`[data-date="${dateStr}"]`);
+        if (dayElement) {
+          dayElement.classList.add('selected');
+          setTimeout(() => {
+            dayElement.classList.remove('selected');
+          }, 200);
+        }
+
         const shift = shifts[dateStr];
         if (shift) {
           // 既存シフトがある場合は編集画面を開く
