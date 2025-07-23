@@ -192,6 +192,8 @@
         position: relative;
         box-sizing: border-box;
         min-height: 0;
+        width: 100%;
+        height: 100%;
       }
 
       .calendar-day:hover {
@@ -696,6 +698,8 @@
           overflow: hidden;
           touch-action: manipulation;
           min-height: 0;
+          width: 100%;
+          height: 100%;
         }
 
         .calendar-day:active {
@@ -926,7 +930,7 @@
     <div class="popup-overlay" id="popupOverlay" onclick="closePopups()"></div>
 
     <!-- 職場管理ポップアップ -->
-    <div class="popup workplace-popup" id="workplacePopup">
+    <div class="popup workplace-popup" id="workplacePopup" style="display: none;">
       <div class="popup-header">
         <div class="popup-title">🏢 バイト先管理</div>
         <button class="close-btn" onclick="closePopups()">&times;</button>
@@ -944,7 +948,7 @@
     </div>
 
     <!-- 職場登録・編集ポップアップ -->
-    <div class="popup workplace-popup shiftboard-style" id="workplaceFormPopup">
+    <div class="popup workplace-popup shiftboard-style" id="workplaceFormPopup" style="display: none;">
       <div class="popup-header shiftboard-header">
         <button class="close-btn-green" onclick="closePopups()">✕</button>
         <div class="popup-title-centered">
@@ -1078,7 +1082,7 @@
     </div>
 
     <!-- シフト登録ポップアップ（シフトボード風） -->
-    <div class="popup shift-popup shiftboard-style" id="shiftPopup">
+    <div class="popup shift-popup shiftboard-style" id="shiftPopup" style="display: none;">
       <div class="popup-header shiftboard-header">
         <button class="close-btn-green" onclick="closeShiftPopup()">✕</button>
         <div class="popup-title-centered">
@@ -1713,7 +1717,7 @@
           day: 'numeric'
         });
 
-        document.getElementById('popupDate').textContent = formattedDate;
+        document.getElementById('popupTitle').textContent = formattedDate;
         document.getElementById('shiftDate').value = date;
         document.getElementById('popupOverlay').style.display = 'block';
         document.getElementById('shiftPopup').style.display = 'block';
@@ -1730,7 +1734,7 @@
           document.getElementById('crossMidnight').checked = shift.crossMidnight || false;
           
           // タイトルを「編集」に変更
-          document.getElementById('popupDate').textContent = 
+          document.getElementById('popupTitle').textContent = 
             new Date(date).toLocaleDateString('ja-JP', {
               year: 'numeric',
               month: 'long', 
