@@ -19,7 +19,13 @@ import {
   AttachMoney,
   Schedule,
 } from '@mui/icons-material';
-import { format, startOfMonth, endOfMonth, isSameMonth, parseISO } from 'date-fns';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  isSameMonth,
+  parseISO,
+} from 'date-fns';
 import { ja } from 'date-fns/locale';
 import type { Shift } from '../types/shift';
 
@@ -36,12 +42,15 @@ export const MonthlySalaryCard: React.FC<MonthlySalaryCardProps> = ({
 }) => {
   // 給料日ごとのグループを作成
   const salaryGroups = useMemo(() => {
-    const groups: Record<number, {
-      shifts: Shift[];
-      totalEarnings: number;
-      totalHours: number;
-      payDay: number;
-    }> = {};
+    const groups: Record<
+      number,
+      {
+        shifts: Shift[];
+        totalEarnings: number;
+        totalHours: number;
+        payDay: number;
+      }
+    > = {};
 
     shifts.forEach(shift => {
       const payDay = shift.payDay || 25;
@@ -53,7 +62,7 @@ export const MonthlySalaryCard: React.FC<MonthlySalaryCardProps> = ({
           payDay,
         };
       }
-      
+
       groups[payDay].shifts.push(shift);
       groups[payDay].totalEarnings += shift.calculatedEarnings;
       groups[payDay].totalHours += shift.workingHours;
@@ -101,13 +110,17 @@ export const MonthlySalaryCard: React.FC<MonthlySalaryCardProps> = ({
           <Select
             value={format(selectedMonth, 'yyyy-MM')}
             label="対象月"
-            onChange={(e) => {
+            onChange={e => {
               const [year, month] = e.target.value.split('-');
               onMonthChange?.(new Date(Number(year), Number(month) - 1));
             }}
           >
             {[...Array(12)].map((_, i) => {
-              const date = new Date(new Date().getFullYear(), new Date().getMonth() - i, 1);
+              const date = new Date(
+                new Date().getFullYear(),
+                new Date().getMonth() - i,
+                1
+              );
               return (
                 <MenuItem key={i} value={format(date, 'yyyy-MM')}>
                   {format(date, 'yyyy年M月', { locale: ja })}
@@ -120,7 +133,13 @@ export const MonthlySalaryCard: React.FC<MonthlySalaryCardProps> = ({
         {/* 月間統計 */}
         <Box sx={{ bgcolor: 'primary.50', p: 2, borderRadius: 2, mb: 3 }}>
           <Stack spacing={2}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <AttachMoney />
                 <Typography variant="subtitle1">月間総給料</Typography>
@@ -130,7 +149,13 @@ export const MonthlySalaryCard: React.FC<MonthlySalaryCardProps> = ({
               </Typography>
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Schedule />
                 <Typography variant="subtitle1">総労働時間</Typography>
@@ -140,9 +165,19 @@ export const MonthlySalaryCard: React.FC<MonthlySalaryCardProps> = ({
               </Typography>
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
               <Typography variant="subtitle1">シフト数</Typography>
-              <Chip label={`${monthlyStats.shiftCount}件`} color="primary" size="small" />
+              <Chip
+                label={`${monthlyStats.shiftCount}件`}
+                color="primary"
+                size="small"
+              />
             </Box>
           </Stack>
         </Box>
@@ -152,18 +187,24 @@ export const MonthlySalaryCard: React.FC<MonthlySalaryCardProps> = ({
           <Typography variant="subtitle2" gutterBottom>
             月間目標額に対する進捗
           </Typography>
-          <LinearProgress 
-            variant="determinate" 
+          <LinearProgress
+            variant="determinate"
             value={Math.min(progressPercentage, 100)}
             sx={{ height: 10, borderRadius: 5, mb: 1 }}
-            color={progressPercentage > 100 ? 'error' : progressPercentage > 80 ? 'warning' : 'success'}
+            color={
+              progressPercentage > 100
+                ? 'error'
+                : progressPercentage > 80
+                  ? 'warning'
+                  : 'success'
+            }
           />
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Typography variant="caption" color="text.secondary">
               月間目標: ¥{Math.floor(monthlyLimit).toLocaleString()}
             </Typography>
-            <Typography 
-              variant="caption" 
+            <Typography
+              variant="caption"
               color={progressPercentage > 100 ? 'error.main' : 'text.secondary'}
               fontWeight="bold"
             >
@@ -175,7 +216,11 @@ export const MonthlySalaryCard: React.FC<MonthlySalaryCardProps> = ({
         <Divider sx={{ my: 2 }} />
 
         {/* 給料日別集計 */}
-        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
+        <Typography
+          variant="subtitle1"
+          gutterBottom
+          sx={{ fontWeight: 'bold' }}
+        >
           給料日別集計
         </Typography>
         <Stack spacing={2}>
@@ -192,13 +237,19 @@ export const MonthlySalaryCard: React.FC<MonthlySalaryCardProps> = ({
                   borderColor: 'divider',
                 }}
               >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    mb: 1,
+                  }}
+                >
                   <Typography variant="subtitle2" fontWeight="bold">
                     毎月{payDay}日締め
                   </Typography>
-                  <Chip 
-                    label={`${group.shifts.length}件`} 
-                    size="small" 
+                  <Chip
+                    label={`${group.shifts.length}件`}
+                    size="small"
                     variant="outlined"
                   />
                 </Box>
@@ -206,7 +257,11 @@ export const MonthlySalaryCard: React.FC<MonthlySalaryCardProps> = ({
                   <Typography variant="body2" color="text.secondary">
                     {group.totalHours.toFixed(1)}時間
                   </Typography>
-                  <Typography variant="body1" color="primary.main" fontWeight="bold">
+                  <Typography
+                    variant="body1"
+                    color="primary.main"
+                    fontWeight="bold"
+                  >
                     ¥{group.totalEarnings.toLocaleString()}
                   </Typography>
                 </Box>

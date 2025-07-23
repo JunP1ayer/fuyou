@@ -1,5 +1,36 @@
 // シフト関連の型定義
 
+export interface Workplace {
+  id: string;
+  userId: string;
+  name: string;
+  hourlyRate: number;
+  color: string; // カレンダー表示色
+  payDay?: number; // 給料日 (1-31)
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateWorkplaceData {
+  name: string;
+  hourlyRate: number;
+  color: string;
+  payDay?: number;
+  description?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateWorkplaceData {
+  name?: string;
+  hourlyRate?: number;
+  color?: string;
+  payDay?: number;
+  description?: string;
+  isActive?: boolean;
+}
+
 export interface Shift {
   id: string;
   userId: string;

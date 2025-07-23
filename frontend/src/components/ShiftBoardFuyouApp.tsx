@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   Grid,
   Chip,
@@ -10,11 +8,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  Badge,
   Tooltip,
-  SpeedDial,
-  SpeedDialAction,
-  SpeedDialIcon,
   List,
   ListItem,
   ListItemIcon,
@@ -26,36 +20,68 @@ import {
   AccountBalance,
   Add,
   PhotoCamera,
-  Upload,
   EventNote,
-  Close,
 } from '@mui/icons-material';
 import { ShiftManager } from './shifts/ShiftManager';
 import { OCRShiftManager } from './OCRShiftManager';
 import { IntelligentOCRWorkflow } from './ocr/IntelligentOCRWorkflow';
-import { ShiftboardSalaryCard } from './ShiftboardSalaryCard';
 import { ShiftFormDialog } from './shifts/ShiftFormDialog';
 import { MonthlySalaryCard } from './MonthlySalaryCard';
+import { WorkplaceManager } from './workplaces/WorkplaceManager';
 import * as api from '../services/api';
-import type { Shift, CreateShiftData } from '../types/shift';
+import type { Shift, CreateShiftData, Workplace } from '../types/shift';
 
 export const ShiftBoardFuyouApp: React.FC = () => {
   const [shifts, setShifts] = useState<Shift[]>([]);
+  const [workplaces, setWorkplaces] = useState<Workplace[]>([]);
   const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
   const [intelligentOCROpen, setIntelligentOCROpen] = useState(false);
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [manualShiftDialogOpen, setManualShiftDialogOpen] = useState(false);
+  const [workplaceManagerOpen, setWorkplaceManagerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
 
+  // 初期職場データを設定
+  React.useEffect(() => {
+    const demoWorkplaces: Workplace[] = [
+      {
+        id: 'wp-1',
+        userId: 'demo-user',
+        name: 'コンビニA',
+        hourlyRate: 1000,
+        color: '#2196F3',
+        payDay: 25,
+        description: '近所のコンビニ',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: 'wp-2',
+        userId: 'demo-user',
+        name: 'ファミレスB',
+        hourlyRate: 1200,
+        color: '#4CAF50',
+        payDay: 15,
+        description: 'キッチンスタッフ',
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+    setWorkplaces(demoWorkplaces);
+  }, []);
+
   // アクション選択の処理
-  const handleActionSelect = (action: 'manual' | 'ocr') => {
+  const handleActionSelect = (action: 'manual' | 'ocr' | 'workplace') => {
     setActionDialogOpen(false);
     if (action === 'manual') {
       setManualShiftDialogOpen(true);
-    } else {
+    } else if (action === 'ocr') {
       setIntelligentOCROpen(true);
+    } else if (action === 'workplace') {
+      setWorkplaceManagerOpen(true);
     }
   };
 
@@ -69,7 +95,9 @@ export const ShiftBoardFuyouApp: React.FC = () => {
         setShifts(prev => [...prev, response.data!]);
         setManualShiftDialogOpen(false);
       } else {
-        throw new Error(response.error?.message || 'シフトの登録に失敗しました');
+        throw new Error(
+          response.error?.message || 'シフトの登録に失敗しました'
+        );
       }
     } catch (error: any) {
       console.error('Shift creation error:', error);
@@ -174,10 +202,14 @@ export const ShiftBoardFuyouApp: React.FC = () => {
       {/* シフトボード風給料計算UI */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={8}>
-          <ShiftManager showAddButton={false} onShiftsChange={setShifts} />
+          <ShiftManager 
+            showAddButton={false} 
+            onShiftsChange={setShifts} 
+            workplaces={workplaces}
+          />
         </Grid>
         <Grid item xs={12} md={4}>
-          <MonthlySalaryCard 
+          <MonthlySalaryCard
             shifts={shifts}
             selectedMonth={selectedMonth}
             onMonthChange={setSelectedMonth}
@@ -192,9 +224,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>
-          追加方法を選択
-        </DialogTitle>
+        <DialogTitle>追加方法を選択</DialogTitle>
         <DialogContent>
           <List>
             <ListItem disablePadding>
@@ -202,7 +232,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
                 <ListItemIcon>
                   <EventNote color="primary" />
                 </ListItemIcon>
-                <ListItemText 
+                <ListItemText
                   primary="シフト登録"
                   secondary="手動でシフトを入力"
                 />
@@ -213,9 +243,20 @@ export const ShiftBoardFuyouApp: React.FC = () => {
                 <ListItemIcon>
                   <CameraAlt color="primary" />
                 </ListItemIcon>
-                <ListItemText 
+                <ListItemText
                   primary="シフト表提出"
                   secondary="写真からAIで読み取り"
+                />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => handleActionSelect('workplace')}>
+                <ListItemIcon>
+                  <AccountBalance color="primary" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="バイト先管理"
+                  secondary="職場の追加・編集・削除"
                 />
               </ListItemButton>
             </ListItem>
@@ -282,7 +323,29 @@ export const ShiftBoardFuyouApp: React.FC = () => {
         onClose={() => setManualShiftDialogOpen(false)}
         onSubmit={handleManualShiftSubmit}
         loading={loading}
+        workplaces={workplaces}
       />
+
+      {/* バイト先管理ダイアログ */}
+      <Dialog
+        open={workplaceManagerOpen}
+        onClose={() => setWorkplaceManagerOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AccountBalance />
+            バイト先管理
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <WorkplaceManager 
+            workplaces={workplaces}
+            onWorkplacesChange={setWorkplaces}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* フローティングボタン */}
       <Tooltip title="シフト追加" placement="left">

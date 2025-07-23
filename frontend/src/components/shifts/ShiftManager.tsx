@@ -21,16 +21,19 @@ import type {
   Shift,
   CreateShiftData,
   UpdateShiftData,
+  Workplace,
 } from '../../types/shift';
 
 interface ShiftManagerProps {
   showAddButton?: boolean;
   onShiftsChange?: (shifts: Shift[]) => void;
+  workplaces?: Workplace[];
 }
 
-export const ShiftManager: React.FC<ShiftManagerProps> = ({ 
+export const ShiftManager: React.FC<ShiftManagerProps> = ({
   showAddButton = true,
-  onShiftsChange 
+  onShiftsChange,
+  workplaces = [],
 }) => {
   const { user } = useAuth();
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -194,6 +197,7 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
       {/* メインコンテンツ */}
       <ShiftCalendar
         shifts={shifts}
+        workplaces={workplaces}
         onAddShift={handleAddShift}
         onEditShift={handleEditShift}
         onDeleteShift={handleDeleteShift}
@@ -224,6 +228,7 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
         onSubmit={handleShiftSubmit}
         editingShift={editingShift}
         loading={loading}
+        workplaces={workplaces}
       />
 
       {/* 削除確認ダイアログ */}

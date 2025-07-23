@@ -26,6 +26,7 @@ import type {
   CreateShiftData,
   UpdateShiftData,
   Shift,
+  Workplace,
 } from '../../types/shift';
 
 interface ShiftFormDialogProps {
@@ -34,6 +35,7 @@ interface ShiftFormDialogProps {
   onSubmit: (data: CreateShiftData | UpdateShiftData) => Promise<void>;
   editingShift?: Shift;
   loading?: boolean;
+  workplaces?: Workplace[];
 }
 
 export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
@@ -42,8 +44,10 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
   onSubmit,
   editingShift,
   loading = false,
+  workplaces = [],
 }) => {
   const [formData, setFormData] = useState<CreateShiftData>({
+    jobSourceId: '',
     jobSourceName: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     startTime: '09:00',
@@ -57,6 +61,20 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [conflictError, setConflictError] = useState<string>('');
+
+  // 職場選択時の処理
+  const handleWorkplaceSelect = (workplaceId: string) => {
+    const selectedWorkplace = workplaces.find(wp => wp.id === workplaceId);
+    if (selectedWorkplace) {
+      setFormData(prev => ({
+        ...prev,
+        jobSourceId: selectedWorkplace.id,
+        jobSourceName: selectedWorkplace.name,
+        hourlyRate: selectedWorkplace.hourlyRate,
+        payDay: selectedWorkplace.payDay || 25,
+      }));
+    }
+  };
 
   // editingShiftが変更されたときにフォームデータを更新
   useEffect(() => {
@@ -75,6 +93,7 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
       });
     } else {
       setFormData({
+        jobSourceId: '',
         jobSourceName: '',
         date: format(new Date(), 'yyyy-MM-dd'),
         startTime: '09:00',
@@ -194,18 +213,51 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
             {/* エラー表示 */}
             {conflictError && <Alert severity="error">{conflictError}</Alert>}
 
-            {/* バイト先名 */}
-            <TextField
-              label="バイト先名"
-              value={formData.jobSourceName}
-              onChange={e =>
-                setFormData({ ...formData, jobSourceName: e.target.value })
-              }
-              error={!!errors.jobSourceName}
-              helperText={errors.jobSourceName}
-              required
-              fullWidth
-            />
+            {/* バイト先選択 */}
+            {workplaces.length > 0 ? (
+              <FormControl fullWidth required error={!!errors.jobSourceName}>
+                <InputLabel>バイト先</InputLabel>
+                <Select
+                  value={formData.jobSourceId || ''}
+                  label="バイト先"
+                  onChange={e => handleWorkplaceSelect(e.target.value as string)}
+                >
+                  {workplaces.map(workplace => (
+                    <MenuItem key={workplace.id} value={workplace.id}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box
+                          sx={{
+                            width: 12,
+                            height: 12,
+                            borderRadius: '50%',
+                            backgroundColor: workplace.color,
+                            flexShrink: 0,
+                          }}
+                        />
+                        {workplace.name} (¥{workplace.hourlyRate.toLocaleString()})
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.jobSourceName && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 2 }}>
+                    {errors.jobSourceName}
+                  </Typography>
+                )}
+              </FormControl>
+            ) : (
+              <TextField
+                label="バイト先名"
+                value={formData.jobSourceName}
+                onChange={e =>
+                  setFormData({ ...formData, jobSourceName: e.target.value })
+                }
+                error={!!errors.jobSourceName}
+                helperText={errors.jobSourceName}
+                required
+                fullWidth
+              />
+            )}
 
             {/* 日付 */}
             <DatePicker
