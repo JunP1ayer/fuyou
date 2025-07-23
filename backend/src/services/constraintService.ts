@@ -6,8 +6,6 @@ import { createError } from '../middleware/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
 import {
   ConstraintType,
-  ConstraintUnit,
-  TierLevel,
   TIER_LIMITS,
   OptimizationConstraintResponse,
   AvailabilitySlotResponse,
@@ -535,7 +533,7 @@ export class ConstraintService {
     // you would check against actual user data
     
     switch (constraint.constraintType) {
-      case ConstraintType.FUYOU_LIMIT:
+      case ConstraintType.FUYOU_LIMIT: {
         // Check current year income against fuyou limit
         const currentIncome = await this.getCurrentYearIncome(userId);
         const isValid = currentIncome <= constraint.constraintValue;
@@ -549,6 +547,7 @@ export class ConstraintService {
             : `Current income (¥${currentIncome.toLocaleString()}) exceeds fuyou limit of ¥${constraint.constraintValue.toLocaleString()}`,
           suggestion: isValid ? undefined : 'Consider reducing your shift hours or optimizing your schedule'
         };
+      }
       
       default:
         return {

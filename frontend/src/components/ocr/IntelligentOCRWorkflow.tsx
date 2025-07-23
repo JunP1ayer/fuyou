@@ -101,9 +101,12 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   // ワークフロー状態
-  const [currentStage, setCurrentStage] = useState<ProcessingStage['stage']>('upload');
+  const [currentStage, setCurrentStage] =
+    useState<ProcessingStage['stage']>('upload');
   const [session, setSession] = useState<ProcessingSession | null>(null);
-  const [ocrResults, setOcrResults] = useState<OCRProcessingResponse | null>(null);
+  const [ocrResults, setOcrResults] = useState<OCRProcessingResponse | null>(
+    null
+  );
   const [editableShifts, setEditableShifts] = useState<EditableShift[]>([]);
   const [uploadState, setUploadState] = useState<UploadState>({
     isDragging: false,
@@ -121,41 +124,47 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const currentStageConfig = PROCESSING_STAGES.find(s => s.stage === currentStage)!;
-  const currentStageIndex = PROCESSING_STAGES.findIndex(s => s.stage === currentStage);
+  const currentStageConfig = PROCESSING_STAGES.find(
+    s => s.stage === currentStage
+  )!;
+  const currentStageIndex = PROCESSING_STAGES.findIndex(
+    s => s.stage === currentStage
+  );
 
   /**
    * ファイルアップロード処理
    */
-  const handleFileUpload = useCallback(async (file: File, method: UploadState['uploadMethod']) => {
-    setError('');
-    setIsLoading(true);
-    
-    try {
-      // 画像プレビュー生成
-      const preview = await createImagePreview(file);
-      
-      setUploadState(prev => ({
-        ...prev,
-        selectedImage: file,
-        imagePreview: preview,
-        uploadMethod: method,
-        isProcessing: true,
-      }));
+  const handleFileUpload = useCallback(
+    async (file: File, method: UploadState['uploadMethod']) => {
+      setError('');
+      setIsLoading(true);
 
-      // 次のステージに進む
-      setCurrentStage('processing');
+      try {
+        // 画像プレビュー生成
+        const preview = await createImagePreview(file);
 
-      // AI処理開始
-      await processWithIntelligentOCR(file);
-      
-    } catch (err: any) {
-      setError(err.message || 'ファイルアップロードに失敗しました');
-      setUploadState(prev => ({ ...prev, isProcessing: false }));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+        setUploadState(prev => ({
+          ...prev,
+          selectedImage: file,
+          imagePreview: preview,
+          uploadMethod: method,
+          isProcessing: true,
+        }));
+
+        // 次のステージに進む
+        setCurrentStage('processing');
+
+        // AI処理開始
+        await processWithIntelligentOCR(file);
+      } catch (err: any) {
+        setError(err.message || 'ファイルアップロードに失敗しました');
+        setUploadState(prev => ({ ...prev, isProcessing: false }));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
 
   /**
    * 画像プレビュー生成
@@ -163,7 +172,7 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
   const createImagePreview = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target?.result as string);
+      reader.onload = e => resolve(e.target?.result as string);
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
@@ -177,16 +186,20 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
       const formData = new FormData();
       formData.append('image', file);
       formData.append('userName', userProfile?.shiftFilterName || '');
-      formData.append('processingOptions', JSON.stringify({
-        aiProviders: ['gemini', 'openai', 'vision'],
-        enableComparison: true,
-        confidenceThreshold: userProfile?.preferences.ocrConfidenceThreshold || 0.7,
-      }));
+      formData.append(
+        'processingOptions',
+        JSON.stringify({
+          aiProviders: ['gemini', 'openai', 'vision'],
+          enableComparison: true,
+          confidenceThreshold:
+            userProfile?.preferences.ocrConfidenceThreshold || 0.7,
+        })
+      );
 
       const response = await fetch('/api/intelligent-ocr/upload-and-process', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: formData,
       });
@@ -196,20 +209,21 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
       }
 
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.error?.message || 'OCR処理でエラーが発生しました');
       }
 
       setOcrResults(data.data);
-      
+
       // 編集可能なシフトデータに変換
-      const shifts = convertToEditableShifts(data.data.consolidatedResult.recommendedShifts);
+      const shifts = convertToEditableShifts(
+        data.data.consolidatedResult.recommendedShifts
+      );
       setEditableShifts(shifts);
 
       // 結果表示ステージに進む
       setCurrentStage('results');
-      
     } catch (err: any) {
       setError(err.message);
       setCurrentStage('upload');
@@ -233,7 +247,10 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
    * ステージ遷移
    */
   const goToNextStage = useCallback(() => {
-    const nextIndex = Math.min(currentStageIndex + 1, PROCESSING_STAGES.length - 1);
+    const nextIndex = Math.min(
+      currentStageIndex + 1,
+      PROCESSING_STAGES.length - 1
+    );
     setCurrentStage(PROCESSING_STAGES[nextIndex].stage);
   }, [currentStageIndex]);
 
@@ -262,14 +279,13 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
 
       // 親コンポーネントに結果を渡す
       onShiftsSaved(shiftsToSave);
-      
+
       setCurrentStage('saving');
-      
+
       // 完了後、少し待ってから閉じる
       setTimeout(() => {
         onClose?.();
       }, 2000);
-      
     } catch (err: any) {
       setError(err.message || 'シフト保存に失敗しました');
     } finally {
@@ -309,8 +325,11 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
             </Typography>
             {ocrResults && (
               <Alert severity="info" sx={{ mb: 2 }}>
-                信頼度: {Math.round(ocrResults.consolidatedResult.overallConfidence * 100)}% 
-                {ocrResults.consolidatedResult.needsReview && ' (要確認)'}
+                信頼度:{' '}
+                {Math.round(
+                  ocrResults.consolidatedResult.overallConfidence * 100
+                )}
+                %{ocrResults.consolidatedResult.needsReview && ' (要確認)'}
               </Alert>
             )}
             <Box display="flex" gap={1} flexWrap="wrap" mb={2}>
@@ -354,7 +373,12 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
     <Container maxWidth="lg">
       <Paper elevation={3} sx={{ p: 3, minHeight: '80vh' }}>
         {/* ヘッダー */}
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          mb={3}
+        >
           <Typography variant="h4" component="h1" fontWeight="bold">
             🤖 インテリジェント シフト解析
           </Typography>
@@ -367,8 +391,8 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
 
         {/* プログレスステッパー */}
         <Box mb={4}>
-          <Stepper 
-            activeStep={currentStageIndex} 
+          <Stepper
+            activeStep={currentStageIndex}
             alternativeLabel={!isMobile}
             orientation={isMobile ? 'vertical' : 'horizontal'}
           >
@@ -384,8 +408,11 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
                       height={40}
                       borderRadius="50%"
                       bgcolor={
-                        index < currentStageIndex ? 'success.main' :
-                        index === currentStageIndex ? 'primary.main' : 'grey.300'
+                        index < currentStageIndex
+                          ? 'success.main'
+                          : index === currentStageIndex
+                            ? 'primary.main'
+                            : 'grey.300'
                       }
                       color="white"
                     >
@@ -399,7 +426,10 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
                     </Box>
                   )}
                 >
-                  <Typography variant={isMobile ? 'body2' : 'subtitle1'} fontWeight="medium">
+                  <Typography
+                    variant={isMobile ? 'body2' : 'subtitle1'}
+                    fontWeight="medium"
+                  >
                     {stage.title}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -421,14 +451,17 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
         {/* メインコンテンツ */}
         <Box minHeight="400px">
           <Fade in={true} timeout={500}>
-            <Box>
-              {renderStageContent()}
-            </Box>
+            <Box>{renderStageContent()}</Box>
           </Fade>
         </Box>
 
         {/* ナビゲーションボタン */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mt={4}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mt={4}
+        >
           <Button
             startIcon={<ArrowBack />}
             onClick={goToPreviousStage}
@@ -439,7 +472,11 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
           </Button>
 
           <Box flex={1} mx={2}>
-            <Typography variant="body2" color="text.secondary" textAlign="center">
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              textAlign="center"
+            >
               Step {currentStageIndex + 1} of {PROCESSING_STAGES.length}
             </Typography>
           </Box>
@@ -459,7 +496,9 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
             <Button
               endIcon={<ArrowForward />}
               onClick={goToNextStage}
-              disabled={currentStageIndex === PROCESSING_STAGES.length - 1 || isLoading}
+              disabled={
+                currentStageIndex === PROCESSING_STAGES.length - 1 || isLoading
+              }
               variant="contained"
             >
               次へ
@@ -478,7 +517,10 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
       </Paper>
 
       {/* ローディングオーバーレイ */}
-      <Backdrop open={isLoading && currentStage === 'processing'} sx={{ zIndex: theme.zIndex.drawer + 1 }}>
+      <Backdrop
+        open={isLoading && currentStage === 'processing'}
+        sx={{ zIndex: theme.zIndex.drawer + 1 }}
+      >
         <Box textAlign="center" color="white">
           <CircularProgress color="inherit" size={60} />
           <Typography variant="h6" mt={2}>

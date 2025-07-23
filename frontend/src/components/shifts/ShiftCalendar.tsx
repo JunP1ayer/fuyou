@@ -21,7 +21,16 @@ import {
   AccessTime,
   AttachMoney,
 } from '@mui/icons-material';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, addMonths, subMonths } from 'date-fns';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameDay,
+  isToday,
+  addMonths,
+  subMonths,
+} from 'date-fns';
 import { ja } from 'date-fns/locale';
 
 import type { Shift } from '../../types/shift';
@@ -53,7 +62,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   // 日付別のシフトをグループ化
   const shiftsByDate = useMemo(() => {
     const grouped: Record<string, Shift[]> = {};
-    
+
     shifts.forEach(shift => {
       const dateKey = shift.date;
       if (!grouped[dateKey]) {
@@ -100,12 +109,23 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         },
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: 'bold', display: 'block' }}
+          >
             {shift.jobSourceName}
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+          <Box
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}
+          >
             <AccessTime sx={{ fontSize: 12 }} />
             <Typography variant="caption">
               {shift.startTime} - {shift.endTime}
@@ -126,7 +146,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
             </Typography>
           </Box>
         </Box>
-        
+
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           <Tooltip title="編集">
             <IconButton size="small" onClick={() => onEditShift(shift)}>
@@ -134,7 +154,11 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
             </IconButton>
           </Tooltip>
           <Tooltip title="削除">
-            <IconButton size="small" onClick={() => onDeleteShift(shift.id)} color="error">
+            <IconButton
+              size="small"
+              onClick={() => onDeleteShift(shift.id)}
+              color="error"
+            >
               <Delete sx={{ fontSize: 14 }} />
             </IconButton>
           </Tooltip>
@@ -147,18 +171,28 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
     <Card>
       <CardContent>
         {/* ヘッダー */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 3,
+          }}
+        >
           <Typography variant="h6">シフトカレンダー</Typography>
-          
+
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <IconButton onClick={goToPreviousMonth} disabled={loading}>
               <ChevronLeft />
             </IconButton>
-            
-            <Typography variant="h6" sx={{ minWidth: 120, textAlign: 'center' }}>
+
+            <Typography
+              variant="h6"
+              sx={{ minWidth: 120, textAlign: 'center' }}
+            >
               {format(currentDate, 'yyyy年M月', { locale: ja })}
             </Typography>
-            
+
             <IconButton onClick={goToNextMonth} disabled={loading}>
               <ChevronRight />
             </IconButton>
@@ -174,7 +208,12 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                 align="center"
                 sx={{
                   fontWeight: 'bold',
-                  color: index === 0 ? 'error.main' : index === 6 ? 'primary.main' : 'text.primary',
+                  color:
+                    index === 0
+                      ? 'error.main'
+                      : index === 6
+                        ? 'primary.main'
+                        : 'text.primary',
                 }}
               >
                 {day}
@@ -185,7 +224,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
 
         {/* カレンダーグリッド */}
         <Grid container spacing={1}>
-          {monthDays.map((date) => {
+          {monthDays.map(date => {
             const dateKey = format(date, 'yyyy-MM-dd');
             const dayShifts = shiftsByDate[dateKey] || [];
             const isCurrentDay = isToday(date);
@@ -207,17 +246,29 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                   }}
                 >
                   {/* 日付と追加ボタン */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      mb: 1,
+                    }}
+                  >
                     <Typography
                       variant="body2"
                       sx={{
                         fontWeight: isCurrentDay ? 'bold' : 'normal',
-                        color: dayOfWeek === 0 ? 'error.main' : dayOfWeek === 6 ? 'primary.main' : 'text.primary',
+                        color:
+                          dayOfWeek === 0
+                            ? 'error.main'
+                            : dayOfWeek === 6
+                              ? 'primary.main'
+                              : 'text.primary',
                       }}
                     >
                       {format(date, 'd')}
                     </Typography>
-                    
+
                     <Tooltip title="シフト追加">
                       <IconButton
                         size="small"
@@ -233,17 +284,23 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                   {/* シフト一覧 */}
                   <Box sx={{ height: 140, overflowY: 'auto' }}>
                     {dayShifts.length === 0 ? (
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 2 }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ display: 'block', textAlign: 'center', mt: 2 }}
+                      >
                         シフトなし
                       </Typography>
                     ) : (
-                      dayShifts.map((shift) => renderShiftCard(shift, true))
+                      dayShifts.map(shift => renderShiftCard(shift, true))
                     )}
                   </Box>
 
                   {/* シフト数の表示 */}
                   {dayShifts.length > 0 && (
-                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
+                    <Box
+                      sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}
+                    >
                       <Chip
                         size="small"
                         label={`${dayShifts.length}件`}
@@ -260,22 +317,36 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
 
         {/* 月間統計 */}
         <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-          <Typography variant="subtitle1" gutterBottom>今月の統計</Typography>
+          <Typography variant="subtitle1" gutterBottom>
+            今月の統計
+          </Typography>
           <Stack direction="row" spacing={3}>
             <Box>
-              <Typography variant="body2" color="text.secondary">総シフト数</Typography>
+              <Typography variant="body2" color="text.secondary">
+                総シフト数
+              </Typography>
               <Typography variant="h6">{shifts.length}件</Typography>
             </Box>
             <Box>
-              <Typography variant="body2" color="text.secondary">総労働時間</Typography>
+              <Typography variant="body2" color="text.secondary">
+                総労働時間
+              </Typography>
               <Typography variant="h6">
-                {shifts.reduce((sum, shift) => sum + shift.workingHours, 0).toFixed(1)}時間
+                {shifts
+                  .reduce((sum, shift) => sum + shift.workingHours, 0)
+                  .toFixed(1)}
+                時間
               </Typography>
             </Box>
             <Box>
-              <Typography variant="body2" color="text.secondary">総給与</Typography>
+              <Typography variant="body2" color="text.secondary">
+                総給与
+              </Typography>
               <Typography variant="h6" color="primary.main">
-                ¥{shifts.reduce((sum, shift) => sum + shift.calculatedEarnings, 0).toLocaleString()}
+                ¥
+                {shifts
+                  .reduce((sum, shift) => sum + shift.calculatedEarnings, 0)
+                  .toLocaleString()}
               </Typography>
             </Box>
           </Stack>

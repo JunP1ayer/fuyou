@@ -14,6 +14,7 @@ export interface Shift {
   calculatedEarnings: number;
   description?: string;
   isConfirmed: boolean;
+  payDay?: number; // 給料日 (1-31)
   createdAt: string;
   updatedAt: string;
 }
@@ -28,6 +29,7 @@ export interface CreateShiftData {
   breakMinutes?: number;
   description?: string;
   isConfirmed?: boolean;
+  payDay?: number; // 給料日 (1-31)
 }
 
 export interface UpdateShiftData {
@@ -40,6 +42,7 @@ export interface UpdateShiftData {
   breakMinutes?: number;
   description?: string;
   isConfirmed?: boolean;
+  payDay?: number; // 給料日 (1-31)
 }
 
 export interface ShiftStats {

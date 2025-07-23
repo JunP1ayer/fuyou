@@ -78,7 +78,7 @@ router.get(
         .limit(3);
       
       if (!error && recentUploads && recentUploads.length > 0) {
-        recentUploads.forEach((upload, index) => {
+        recentUploads.forEach((upload) => {
           if (upload.saved_incomes > 0) {
             alerts.push({
               id: `income-detected-${upload.id}`,

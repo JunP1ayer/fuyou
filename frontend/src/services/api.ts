@@ -7,7 +7,8 @@ import type {
 } from '../types/shift';
 
 // API configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 // Get token from localStorage if available
 const getAuthToken = (): string | null => {
@@ -30,7 +31,7 @@ async function apiCall<T>(
 ): Promise<{ success: boolean; data?: T; error?: any }> {
   const { token, ...fetchOptions } = options;
   const authToken = token || getAuthToken();
-  
+
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...fetchOptions,
@@ -74,14 +75,20 @@ async function apiCall<T>(
 }
 
 // Demo authentication
-export const loginDemo = async (): Promise<{ success: boolean; data?: { token: string; user: any }; error?: any }> => {
+export const loginDemo = async (): Promise<{
+  success: boolean;
+  data?: { token: string; user: any };
+  error?: any;
+}> => {
   return apiCall<{ token: string; user: any }>('/demo/login', {
     method: 'POST',
   });
 };
 
 // Shift API functions
-export const createShift = async (shiftData: CreateShiftData): Promise<{ success: boolean; data?: Shift; error?: any }> => {
+export const createShift = async (
+  shiftData: CreateShiftData
+): Promise<{ success: boolean; data?: Shift; error?: any }> => {
   return apiCall<Shift>('/shifts', {
     method: 'POST',
     body: JSON.stringify(shiftData),
@@ -108,31 +115,45 @@ export const getShifts = async (filters?: {
   return apiCall<Shift[]>(endpoint);
 };
 
-export const updateShift = async (shiftId: string, shiftData: UpdateShiftData): Promise<{ success: boolean; data?: Shift; error?: any }> => {
+export const updateShift = async (
+  shiftId: string,
+  shiftData: UpdateShiftData
+): Promise<{ success: boolean; data?: Shift; error?: any }> => {
   return apiCall<Shift>(`/shifts/${shiftId}`, {
     method: 'PUT',
     body: JSON.stringify(shiftData),
   });
 };
 
-export const deleteShift = async (shiftId: string): Promise<{ success: boolean; error?: any }> => {
+export const deleteShift = async (
+  shiftId: string
+): Promise<{ success: boolean; error?: any }> => {
   return apiCall(`/shifts/${shiftId}`, {
     method: 'DELETE',
   });
 };
 
-export const getShiftStats = async (year?: number, month?: number): Promise<{ success: boolean; data?: ShiftStats; error?: any }> => {
+export const getShiftStats = async (
+  year?: number,
+  month?: number
+): Promise<{ success: boolean; data?: ShiftStats; error?: any }> => {
   const params = new URLSearchParams();
   if (year) params.append('year', year.toString());
   if (month) params.append('month', month.toString());
 
   const queryString = params.toString();
-  const endpoint = queryString ? `/shifts/stats?${queryString}` : '/shifts/stats';
+  const endpoint = queryString
+    ? `/shifts/stats?${queryString}`
+    : '/shifts/stats';
 
   return apiCall<ShiftStats>(endpoint);
 };
 
-export const getEarningsProjection = async (): Promise<{ success: boolean; data?: EarningsProjection; error?: any }> => {
+export const getEarningsProjection = async (): Promise<{
+  success: boolean;
+  data?: EarningsProjection;
+  error?: any;
+}> => {
   return apiCall<EarningsProjection>('/shifts/projection');
 };
 
@@ -254,7 +275,9 @@ export const apiService = {
     if (month) params.append('month', month.toString());
 
     const queryString = params.toString();
-    const endpoint = queryString ? `/shifts/stats?${queryString}` : '/shifts/stats';
+    const endpoint = queryString
+      ? `/shifts/stats?${queryString}`
+      : '/shifts/stats';
 
     return apiCall<ShiftStats>(endpoint, { token });
   },

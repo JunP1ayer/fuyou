@@ -4,7 +4,6 @@ import { CSVParserService } from '../services/csvParserService';
 import { logger } from '../utils/logger';
 import { supabase } from '../utils/supabase';
 import { requireAuthOrDemo } from '../middleware/validation';
-import { randomUUID } from 'crypto';
 
 const router = express.Router();
 const csvParser = new CSVParserService();

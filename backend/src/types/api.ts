@@ -317,6 +317,7 @@ export interface ShiftResponse {
   calculatedEarnings: number;
   description?: string;
   isConfirmed: boolean;
+  payDay?: number;
   createdAt: string;
   updatedAt: string;
 }

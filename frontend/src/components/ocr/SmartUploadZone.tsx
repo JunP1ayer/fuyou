@@ -28,14 +28,22 @@ import {
 import type { UploadState, UserProfile } from '../../types/intelligentOCR';
 
 interface SmartUploadZoneProps {
-  onFileUpload: (file: File, method: UploadState['uploadMethod']) => Promise<void>;
+  onFileUpload: (
+    file: File,
+    method: UploadState['uploadMethod']
+  ) => Promise<void>;
   uploadState: UploadState;
   setUploadState: React.Dispatch<React.SetStateAction<UploadState>>;
   userProfile?: UserProfile;
 }
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const SUPPORTED_FORMATS = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const SUPPORTED_FORMATS = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+];
 
 export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
   onFileUpload,
@@ -55,7 +63,7 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
     if (file.size > MAX_FILE_SIZE) {
       return `ファイルサイズが大きすぎます (最大: ${MAX_FILE_SIZE / 1024 / 1024}MB)`;
     }
-    
+
     if (!SUPPORTED_FORMATS.includes(file.type)) {
       return 'サポートされていないファイル形式です (JPG, PNG, WebP, GIF のみ)';
     }
@@ -66,69 +74,84 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
   /**
    * ファイル処理の共通ロジック
    */
-  const processFile = useCallback(async (file: File, method: UploadState['uploadMethod']) => {
-    const error = validateFile(file);
-    if (error) {
-      setValidationError(error);
-      return;
-    }
+  const processFile = useCallback(
+    async (file: File, method: UploadState['uploadMethod']) => {
+      const error = validateFile(file);
+      if (error) {
+        setValidationError(error);
+        return;
+      }
 
-    setValidationError('');
-    await onFileUpload(file, method);
-  }, [onFileUpload]);
+      setValidationError('');
+      await onFileUpload(file, method);
+    },
+    [onFileUpload]
+  );
 
   /**
    * ファイル選択ハンドラー
    */
-  const handleFileSelect = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      await processFile(file, 'file');
-    }
-  }, [processFile]);
+  const handleFileSelect = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        await processFile(file, 'file');
+      }
+    },
+    [processFile]
+  );
 
   /**
    * ドラッグ&ドロップハンドラー
    */
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragCounter(prev => prev + 1);
-    
-    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
-      setUploadState(prev => ({ ...prev, isDragging: true }));
-    }
-  }, [setUploadState]);
+  const handleDragEnter = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragCounter(prev => prev + 1);
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragCounter(prev => {
-      const newCounter = prev - 1;
-      if (newCounter === 0) {
-        setUploadState(prev => ({ ...prev, isDragging: false }));
+      if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+        setUploadState(prev => ({ ...prev, isDragging: true }));
       }
-      return newCounter;
-    });
-  }, [setUploadState]);
+    },
+    [setUploadState]
+  );
+
+  const handleDragLeave = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragCounter(prev => {
+        const newCounter = prev - 1;
+        if (newCounter === 0) {
+          setUploadState(prev => ({ ...prev, isDragging: false }));
+        }
+        return newCounter;
+      });
+    },
+    [setUploadState]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
   }, []);
 
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    setDragCounter(0);
-    setUploadState(prev => ({ ...prev, isDragging: false }));
+  const handleDrop = useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      await processFile(files[0], 'drag');
-    }
-  }, [processFile, setUploadState]);
+      setDragCounter(0);
+      setUploadState(prev => ({ ...prev, isDragging: false }));
+
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        await processFile(files[0], 'drag');
+      }
+    },
+    [processFile, setUploadState]
+  );
 
   /**
    * クリップボードから画像を処理
@@ -136,7 +159,7 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
   const handlePasteFromClipboard = useCallback(async () => {
     try {
       const clipboardItems = await navigator.clipboard.read();
-      
+
       for (const clipboardItem of clipboardItems) {
         for (const type of clipboardItem.types) {
           if (type.startsWith('image/')) {
@@ -147,7 +170,7 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
           }
         }
       }
-      
+
       setValidationError('クリップボードに画像が見つかりません');
     } catch (error) {
       setValidationError('クリップボードアクセスに失敗しました');
@@ -207,13 +230,13 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           border: `2px dashed ${
-            uploadState.isDragging 
-              ? theme.palette.primary.main 
+            uploadState.isDragging
+              ? theme.palette.primary.main
               : theme.palette.divider
           }`,
           borderRadius: 2,
-          bgcolor: uploadState.isDragging 
-            ? alpha(theme.palette.primary.main, 0.04) 
+          bgcolor: uploadState.isDragging
+            ? alpha(theme.palette.primary.main, 0.04)
             : 'background.paper',
           transition: 'all 0.3s ease',
           cursor: 'pointer',
@@ -246,7 +269,9 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
         {uploadState.isProcessing ? (
           <Fade in={true}>
             <Box textAlign="center" position="relative" zIndex={1}>
-              <CloudUpload sx={{ fontSize: 80, color: 'primary.main', mb: 2 }} />
+              <CloudUpload
+                sx={{ fontSize: 80, color: 'primary.main', mb: 2 }}
+              />
               <Typography variant="h6" gutterBottom>
                 アップロード中...
               </Typography>
@@ -272,14 +297,14 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
                 <CheckCircle sx={{ mr: 1, verticalAlign: 'middle' }} />
                 画像を選択しました
               </Typography>
-              <Chip 
-                label={uploadState.uploadMethod} 
-                color="primary" 
-                size="small" 
+              <Chip
+                label={uploadState.uploadMethod}
+                color="primary"
+                size="small"
               />
               <IconButton
                 size="small"
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   setUploadState(prev => ({
                     ...prev,
@@ -297,34 +322,44 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
         ) : (
           /* 初期状態 */
           <Box textAlign="center" position="relative" zIndex={1}>
-            <DragIndicator 
-              sx={{ 
-                fontSize: 80, 
-                color: uploadState.isDragging ? 'primary.main' : 'text.secondary',
+            <DragIndicator
+              sx={{
+                fontSize: 80,
+                color: uploadState.isDragging
+                  ? 'primary.main'
+                  : 'text.secondary',
                 mb: 2,
                 transition: 'color 0.3s ease',
-              }} 
+              }}
             />
-            <Typography 
-              variant="h5" 
-              gutterBottom 
+            <Typography
+              variant="h5"
+              gutterBottom
               color={uploadState.isDragging ? 'primary.main' : 'text.primary'}
               fontWeight="bold"
             >
-              {uploadState.isDragging ? 'ドロップして解析開始！' : 'シフト表をアップロード'}
+              {uploadState.isDragging
+                ? 'ドロップして解析開始！'
+                : 'シフト表をアップロード'}
             </Typography>
             <Typography variant="body1" color="text.secondary" paragraph>
               画像をドラッグ&ドロップするか、下のボタンから選択してください
             </Typography>
-            
+
             {/* サポート形式表示 */}
-            <Box display="flex" gap={1} justifyContent="center" flexWrap="wrap" mb={3}>
+            <Box
+              display="flex"
+              gap={1}
+              justifyContent="center"
+              flexWrap="wrap"
+              mb={3}
+            >
               {['JPG', 'PNG', 'WebP', 'GIF'].map(format => (
-                <Chip 
-                  key={format} 
-                  label={format} 
-                  size="small" 
-                  variant="outlined" 
+                <Chip
+                  key={format}
+                  label={format}
+                  size="small"
+                  variant="outlined"
                 />
               ))}
             </Box>
@@ -342,7 +377,13 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
       </Paper>
 
       {/* アップロード方法ボタン */}
-      <Box display="flex" gap={2} justifyContent="center" mt={3} flexWrap="wrap">
+      <Box
+        display="flex"
+        gap={2}
+        justifyContent="center"
+        mt={3}
+        flexWrap="wrap"
+      >
         <Button
           variant="outlined"
           startIcon={<Image />}
@@ -351,7 +392,7 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
         >
           ファイル選択
         </Button>
-        
+
         <Button
           variant="outlined"
           startIcon={<ContentPaste />}
@@ -360,7 +401,7 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
         >
           クリップボード
         </Button>
-        
+
         <Button
           variant="outlined"
           startIcon={<PhotoCamera />}
@@ -381,8 +422,8 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
 
       {/* エラー表示 */}
       {validationError && (
-        <Alert 
-          severity="error" 
+        <Alert
+          severity="error"
           sx={{ mt: 2 }}
           onClose={() => setValidationError('')}
         >
@@ -394,10 +435,9 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
       <Alert severity="info" sx={{ mt: 2 }}>
         <Typography variant="body2">
           📋 <strong>最適な結果のためのヒント:</strong>
-          <br />
-          • 文字がはっきり見える画像を使用してください
-          • ファイルサイズは5MB以下にしてください
-          • シフト表全体が写っている画像が推奨です
+          <br />• 文字がはっきり見える画像を使用してください •
+          ファイルサイズは5MB以下にしてください •
+          シフト表全体が写っている画像が推奨です
         </Typography>
       </Alert>
     </Box>

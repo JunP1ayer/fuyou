@@ -273,7 +273,7 @@ export class CSVParserService {
     const lowerDescription = description.toLowerCase();
     
     let incomeScore = 0;
-    let totalKeywords = INCOME_KEYWORDS.length;
+    const totalKeywords = INCOME_KEYWORDS.length;
     
     for (const keyword of INCOME_KEYWORDS) {
       if (lowerDescription.includes(keyword.toLowerCase())) {

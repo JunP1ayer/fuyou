@@ -10,7 +10,8 @@ export const errorHandler = (
   error: AppError,
   req: Request,
   res: Response,
-  next: NextFunction
+  // eslint-disable-next-line no-unused-vars
+  _next: NextFunction
 ) => {
   const statusCode = error.statusCode || 500;
   const isOperational = error.isOperational || false;

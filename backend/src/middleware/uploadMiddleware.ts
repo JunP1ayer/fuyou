@@ -1,12 +1,11 @@
 import multer from 'multer';
-import path from 'path';
 import { Request } from 'express';
 
 // セキュアなファイルアップロード設定
 const storage = multer.memoryStorage(); // メモリ保存（ファイルを残さない）
 
 // ファイル検証関数
-const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   // MIME型の検証
   const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];
   

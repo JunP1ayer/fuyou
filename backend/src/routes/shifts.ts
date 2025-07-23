@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/errorHandler';
 import { validateSchema, requireAuth } from '../middleware/validation';
-import { CreateShiftSchema, UpdateShiftSchema, GetShiftsSchema } from '../types/api';
+import { CreateShiftSchema, UpdateShiftSchema } from '../types/api';
 import { shiftService } from '../services/shiftService';
 
 const router = Router();

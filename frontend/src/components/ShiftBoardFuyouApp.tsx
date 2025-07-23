@@ -12,6 +12,14 @@ import {
   DialogTitle,
   Badge,
   Tooltip,
+  SpeedDial,
+  SpeedDialAction,
+  SpeedDialIcon,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemButton,
 } from '@mui/material';
 import {
   CameraAlt,
@@ -19,17 +27,57 @@ import {
   Add,
   PhotoCamera,
   Upload,
+  EventNote,
+  Close,
 } from '@mui/icons-material';
 import { ShiftManager } from './shifts/ShiftManager';
 import { OCRShiftManager } from './OCRShiftManager';
 import { IntelligentOCRWorkflow } from './ocr/IntelligentOCRWorkflow';
 import { ShiftboardSalaryCard } from './ShiftboardSalaryCard';
+import { ShiftFormDialog } from './shifts/ShiftFormDialog';
+import { MonthlySalaryCard } from './MonthlySalaryCard';
+import * as api from '../services/api';
 import type { Shift, CreateShiftData } from '../types/shift';
 
 export const ShiftBoardFuyouApp: React.FC = () => {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
   const [intelligentOCROpen, setIntelligentOCROpen] = useState(false);
+  const [actionDialogOpen, setActionDialogOpen] = useState(false);
+  const [manualShiftDialogOpen, setManualShiftDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+
+  // アクション選択の処理
+  const handleActionSelect = (action: 'manual' | 'ocr') => {
+    setActionDialogOpen(false);
+    if (action === 'manual') {
+      setManualShiftDialogOpen(true);
+    } else {
+      setIntelligentOCROpen(true);
+    }
+  };
+
+  // 手動シフト登録の処理
+  const handleManualShiftSubmit = async (data: CreateShiftData) => {
+    try {
+      setLoading(true);
+      const response = await api.createShift(data);
+      if (response.success && response.data) {
+        // 新しいシフトを追加
+        setShifts(prev => [...prev, response.data!]);
+        setManualShiftDialogOpen(false);
+      } else {
+        throw new Error(response.error?.message || 'シフトの登録に失敗しました');
+      }
+    } catch (error: any) {
+      console.error('Shift creation error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // OCRシフト追加の処理
   const handleOCRComplete = (newShifts: CreateShiftData[]) => {
@@ -43,10 +91,17 @@ export const ShiftBoardFuyouApp: React.FC = () => {
       hourlyRate: shift.hourlyRate,
       jobSourceName: shift.jobSourceName,
       breakMinutes: shift.breakMinutes || 0,
-      workingHours: calculateWorkingHours(shift.startTime, shift.endTime, shift.breakMinutes || 0),
+      workingHours: calculateWorkingHours(
+        shift.startTime,
+        shift.endTime,
+        shift.breakMinutes || 0
+      ),
       calculatedEarnings:
-        calculateWorkingHours(shift.startTime, shift.endTime, shift.breakMinutes || 0) *
-        shift.hourlyRate,
+        calculateWorkingHours(
+          shift.startTime,
+          shift.endTime,
+          shift.breakMinutes || 0
+        ) * shift.hourlyRate,
       description: shift.description,
       isConfirmed: shift.isConfirmed || false,
       createdAt: new Date().toISOString(),
@@ -68,7 +123,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
 
     const startMinutes = startHour * 60 + startMin;
     let endMinutes = endHour * 60 + endMin;
-    
+
     // 翌日跨ぎの場合
     if (endMinutes < startMinutes) {
       endMinutes += 24 * 60;
@@ -118,12 +173,55 @@ export const ShiftBoardFuyouApp: React.FC = () => {
 
       {/* シフトボード風給料計算UI */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12}>
-          <ShiftManager />
+        <Grid item xs={12} md={8}>
+          <ShiftManager showAddButton={false} onShiftsChange={setShifts} />
         </Grid>
-
+        <Grid item xs={12} md={4}>
+          <MonthlySalaryCard 
+            shifts={shifts}
+            selectedMonth={selectedMonth}
+            onMonthChange={setSelectedMonth}
+          />
+        </Grid>
       </Grid>
 
+      {/* アクション選択ダイアログ */}
+      <Dialog
+        open={actionDialogOpen}
+        onClose={() => setActionDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>
+          追加方法を選択
+        </DialogTitle>
+        <DialogContent>
+          <List>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => handleActionSelect('manual')}>
+                <ListItemIcon>
+                  <EventNote color="primary" />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="シフト登録"
+                  secondary="手動でシフトを入力"
+                />
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => handleActionSelect('ocr')}>
+                <ListItemIcon>
+                  <CameraAlt color="primary" />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="シフト表提出"
+                  secondary="写真からAIで読み取り"
+                />
+              </ListItemButton>
+            </ListItem>
+          </List>
+        </DialogContent>
+      </Dialog>
 
       {/* 従来のOCRダイアログ */}
       <Dialog
@@ -160,7 +258,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
         }}
       >
         <IntelligentOCRWorkflow
-          onShiftsSaved={(newShifts) => {
+          onShiftsSaved={newShifts => {
             handleOCRComplete(newShifts);
             setIntelligentOCROpen(false);
           }}
@@ -178,47 +276,30 @@ export const ShiftBoardFuyouApp: React.FC = () => {
         />
       </Dialog>
 
-      {/* フローティングボタン群 */}
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: 24,
-          right: 24,
-          zIndex: 1000,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-        }}
-      >
-        {/* メインのインテリジェントOCRボタン */}
-        <Tooltip title="🤖 AI シフト解析 (推奨)" placement="left">
-          <Fab
-            color="primary"
-            size="large"
-            onClick={() => setIntelligentOCROpen(true)}
-            sx={{
-              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-              boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
-            }}
-          >
-            <Badge badgeContent="NEW" color="secondary">
-              <CameraAlt />
-            </Badge>
-          </Fab>
-        </Tooltip>
+      {/* 手動シフト登録ダイアログ */}
+      <ShiftFormDialog
+        open={manualShiftDialogOpen}
+        onClose={() => setManualShiftDialogOpen(false)}
+        onSubmit={handleManualShiftSubmit}
+        loading={loading}
+      />
 
-        {/* シンプルOCRボタン */}
-        <Tooltip title="シンプルOCR読み取り" placement="left">
-          <Fab
-            color="default"
-            size="medium"
-            onClick={() => setOcrDialogOpen(true)}
-            sx={{ opacity: 0.7 }}
-          >
-            <Upload />
-          </Fab>
-        </Tooltip>
-      </Box>
+      {/* フローティングボタン */}
+      <Tooltip title="シフト追加" placement="left">
+        <Fab
+          color="primary"
+          size="large"
+          onClick={() => setActionDialogOpen(true)}
+          sx={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            zIndex: 1000,
+          }}
+        >
+          <Add />
+        </Fab>
+      </Tooltip>
     </Box>
   );
 };

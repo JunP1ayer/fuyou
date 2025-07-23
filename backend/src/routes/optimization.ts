@@ -11,7 +11,6 @@ import {
   UpdateOptimizationConstraintSchema,
   CreateAvailabilitySlotSchema,
   UpdateAvailabilitySlotSchema,
-  CreateUserOptimizationPreferencesSchema,
   UpdateUserOptimizationPreferencesSchema,
   CreateOptimizationRunSchema
 } from '../types/optimization';
@@ -269,7 +268,7 @@ router.post('/run',
   validateSchema(CreateOptimizationRunSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user!.id;
-    const { objectiveType, timePeriodStart, timePeriodEnd, algorithmUsed } = req.body;
+    const { objectiveType, timePeriodStart, timePeriodEnd } = req.body;
     
     // Get user constraints
     const constraints = await constraintService.getConstraints(userId);
@@ -382,8 +381,7 @@ router.get('/runs/:runId/status',
  * Get optimization run history
  */
 router.get('/runs',
-  asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.user!.id;
+  asyncHandler(async (_req: Request, res: Response) => {
     
     // TODO: Implement optimization run history from database
     
@@ -402,9 +400,7 @@ router.get('/runs',
  * Get specific optimization run details
  */
 router.get('/runs/:runId',
-  asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.user!.id;
-    const { runId } = req.params;
+  asyncHandler(async (_req: Request, res: Response) => {
     
     // TODO: Implement optimization run details
     
@@ -420,9 +416,7 @@ router.get('/runs/:runId',
  * Get optimization suggestions for a run
  */
 router.get('/runs/:runId/suggestions',
-  asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.user!.id;
-    const { runId } = req.params;
+  asyncHandler(async (_req: Request, res: Response) => {
     
     // TODO: Implement optimization suggestions
     

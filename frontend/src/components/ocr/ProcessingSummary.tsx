@@ -30,7 +30,7 @@ import {
   CalendarToday,
 } from '@mui/icons-material';
 
-import type { 
+import type {
   EditableShift,
   OCRProcessingResponse,
 } from '../../types/intelligentOCR';
@@ -52,36 +52,36 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
     const totalHours = shifts.reduce((sum, shift) => {
       const [startHour, startMin] = shift.startTime.split(':').map(Number);
       const [endHour, endMin] = shift.endTime.split(':').map(Number);
-      
+
       const startMinutes = startHour * 60 + startMin;
       let endMinutes = endHour * 60 + endMin;
-      
+
       if (endMinutes < startMinutes) {
         endMinutes += 24 * 60;
       }
-      
+
       const workMinutes = endMinutes - startMinutes - (shift.breakMinutes || 0);
       return sum + workMinutes / 60;
     }, 0);
-    
+
     const totalEarnings = shifts.reduce((sum, shift) => {
       const [startHour, startMin] = shift.startTime.split(':').map(Number);
       const [endHour, endMin] = shift.endTime.split(':').map(Number);
-      
+
       const startMinutes = startHour * 60 + startMin;
       let endMinutes = endHour * 60 + endMin;
-      
+
       if (endMinutes < startMinutes) {
         endMinutes += 24 * 60;
       }
-      
+
       const workMinutes = endMinutes - startMinutes - (shift.breakMinutes || 0);
       return sum + (workMinutes / 60) * shift.hourlyRate;
     }, 0);
 
     const editedCount = shifts.filter(shift => shift.isEdited).length;
-    const averageConfidence = ocrResults 
-      ? ocrResults.consolidatedResult.overallConfidence 
+    const averageConfidence = ocrResults
+      ? ocrResults.consolidatedResult.overallConfidence
       : 0;
 
     return {
@@ -99,14 +99,20 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
 
     return Object.entries(ocrResults.results).map(([provider, result]) => ({
       name: provider,
-      displayName: 
-        provider === 'gemini' ? 'Gemini AI' :
-        provider === 'openai' ? 'OpenAI GPT-4o' :
-        'Google Vision',
-      icon: 
-        provider === 'gemini' ? <AutoAwesome /> :
-        provider === 'openai' ? <SmartToy /> :
-        <Visibility />,
+      displayName:
+        provider === 'gemini'
+          ? 'Gemini AI'
+          : provider === 'openai'
+            ? 'OpenAI GPT-4o'
+            : 'Google Vision',
+      icon:
+        provider === 'gemini' ? (
+          <AutoAwesome />
+        ) : provider === 'openai' ? (
+          <SmartToy />
+        ) : (
+          <Visibility />
+        ),
       confidence: result.confidence,
       processingTime: result.processingTime,
       shiftsDetected: result.shifts.length,
@@ -119,18 +125,23 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
       {/* 完了ヘッダー */}
       <Paper sx={{ p: 4, mb: 3, textAlign: 'center', bgcolor: 'success.50' }}>
         <CheckCircle sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
-        <Typography variant="h4" fontWeight="bold" color="success.main" gutterBottom>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          color="success.main"
+          gutterBottom
+        >
           🎉 シフト解析完了！
         </Typography>
         <Typography variant="h6" color="text.secondary">
           {statistics.totalShifts}件のシフトをカレンダーに保存しました
         </Typography>
-        
+
         {isComplete && (
           <Box mt={2}>
-            <LinearProgress 
-              variant="determinate" 
-              value={100} 
+            <LinearProgress
+              variant="determinate"
+              value={100}
               sx={{ height: 8, borderRadius: 4 }}
             />
             <Typography variant="body2" color="text.secondary" mt={1}>
@@ -155,7 +166,7 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
             </Typography>
           </Card>
         </Grid>
-        
+
         <Grid item xs={6} md={3}>
           <Card sx={{ textAlign: 'center', p: 2 }}>
             <Avatar sx={{ bgcolor: 'info.main', mx: 'auto', mb: 1 }}>
@@ -169,7 +180,7 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
             </Typography>
           </Card>
         </Grid>
-        
+
         <Grid item xs={6} md={3}>
           <Card sx={{ textAlign: 'center', p: 2 }}>
             <Avatar sx={{ bgcolor: 'success.main', mx: 'auto', mb: 1 }}>
@@ -183,7 +194,7 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
             </Typography>
           </Card>
         </Grid>
-        
+
         <Grid item xs={6} md={3}>
           <Card sx={{ textAlign: 'center', p: 2 }}>
             <Avatar sx={{ bgcolor: 'warning.main', mx: 'auto', mb: 1 }}>
@@ -205,31 +216,40 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
           <Typography variant="h6" fontWeight="bold" gutterBottom>
             🤖 AI解析パフォーマンス
           </Typography>
-          
+
           <Grid container spacing={2}>
-            {aiPerformance.map((ai) => (
+            {aiPerformance.map(ai => (
               <Grid item xs={12} md={4} key={ai.name}>
                 <Card variant="outlined">
                   <CardContent>
                     <Box display="flex" alignItems="center" gap={2} mb={2}>
-                      <Avatar sx={{ bgcolor: ai.success ? 'success.main' : 'error.main' }}>
+                      <Avatar
+                        sx={{
+                          bgcolor: ai.success ? 'success.main' : 'error.main',
+                        }}
+                      >
                         {ai.icon}
                       </Avatar>
                       <Box>
                         <Typography variant="subtitle1" fontWeight="bold">
                           {ai.displayName}
                         </Typography>
-                        <Chip 
-                          label={ai.success ? '成功' : '失敗'} 
+                        <Chip
+                          label={ai.success ? '成功' : '失敗'}
                           color={ai.success ? 'success' : 'error'}
                           size="small"
                         />
                       </Box>
                     </Box>
-                    
+
                     {ai.success && (
                       <Box>
-                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          mb={1}
+                        >
                           <Typography variant="body2" color="text.secondary">
                             信頼度
                           </Typography>
@@ -237,8 +257,13 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
                             {Math.round(ai.confidence * 100)}%
                           </Typography>
                         </Box>
-                        
-                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          mb={1}
+                        >
                           <Typography variant="body2" color="text.secondary">
                             処理時間
                           </Typography>
@@ -246,8 +271,12 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
                             {ai.processingTime}ms
                           </Typography>
                         </Box>
-                        
-                        <Box display="flex" justifyContent="space-between" alignItems="center">
+
+                        <Box
+                          display="flex"
+                          justifyContent="space-between"
+                          alignItems="center"
+                        >
                           <Typography variant="body2" color="text.secondary">
                             検出数
                           </Typography>
@@ -270,7 +299,7 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
         <Typography variant="h6" fontWeight="bold" gutterBottom>
           📊 処理フロー
         </Typography>
-        
+
         <Timeline>
           <TimelineItem>
             <TimelineSeparator>
@@ -288,7 +317,7 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
               </Typography>
             </TimelineContent>
           </TimelineItem>
-          
+
           <TimelineItem>
             <TimelineSeparator>
               <TimelineDot color="success">
@@ -305,7 +334,7 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
               </Typography>
             </TimelineContent>
           </TimelineItem>
-          
+
           <TimelineItem>
             <TimelineSeparator>
               <TimelineDot color="success">
@@ -322,7 +351,7 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
               </Typography>
             </TimelineContent>
           </TimelineItem>
-          
+
           {statistics.editedCount > 0 && (
             <TimelineItem>
               <TimelineSeparator>
@@ -341,7 +370,7 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
               </TimelineContent>
             </TimelineItem>
           )}
-          
+
           <TimelineItem>
             <TimelineSeparator>
               <TimelineDot color="success">
@@ -376,12 +405,17 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
         <Typography variant="h6" fontWeight="bold" gutterBottom>
           📅 登録されたシフト一覧
         </Typography>
-        
+
         <Grid container spacing={2}>
           {shifts.map((shift, index) => (
             <Grid item xs={12} md={6} key={shift.id}>
               <Card variant="outlined" sx={{ p: 2 }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  mb={1}
+                >
                   <Typography variant="subtitle1" fontWeight="bold">
                     {shift.date}
                   </Typography>
@@ -389,20 +423,28 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
                     <Chip label="編集済み" color="primary" size="small" />
                   )}
                 </Box>
-                
+
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   {shift.jobSourceName}
                 </Typography>
-                
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
                   <Typography variant="body2">
                     {shift.startTime} - {shift.endTime}
                   </Typography>
-                  <Typography variant="body2" fontWeight="bold" color="success.main">
+                  <Typography
+                    variant="body2"
+                    fontWeight="bold"
+                    color="success.main"
+                  >
                     ¥{shift.hourlyRate}/h
                   </Typography>
                 </Box>
-                
+
                 {shift.breakMinutes && shift.breakMinutes > 0 && (
                   <Typography variant="caption" color="text.secondary">
                     休憩: {shift.breakMinutes}分

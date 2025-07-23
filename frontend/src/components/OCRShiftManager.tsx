@@ -94,7 +94,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
 
     // Base64に変換
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
       setSelectedImage(e.target?.result as string);
       setError('');
     };
@@ -116,7 +116,8 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: selectedImage,
-          prompt: 'この画像からシフト情報を抽出してください。日付、開始時間、終了時間、職場名、時給を含むJSONデータで出力してください。',
+          prompt:
+            'この画像からシフト情報を抽出してください。日付、開始時間、終了時間、職場名、時給を含むJSONデータで出力してください。',
         }),
       });
 
@@ -163,13 +164,17 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
             解析エンジン選択
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap">
-            {availableProviders.map((provider) => (
+            {availableProviders.map(provider => (
               <Chip
                 key={provider.name}
                 icon={provider.icon}
                 label={provider.description}
-                variant={selectedProvider === provider.name ? 'filled' : 'outlined'}
-                color={selectedProvider === provider.name ? 'primary' : 'default'}
+                variant={
+                  selectedProvider === provider.name ? 'filled' : 'outlined'
+                }
+                color={
+                  selectedProvider === provider.name ? 'primary' : 'default'
+                }
                 clickable
                 onClick={() => setSelectedProvider(provider.name)}
                 size="small"

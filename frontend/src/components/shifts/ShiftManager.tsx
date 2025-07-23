@@ -17,9 +17,21 @@ import { ShiftCalendar } from './ShiftCalendar';
 import { ShiftFormDialog } from './ShiftFormDialog';
 import { useAuth } from '../../contexts/AuthContext';
 import * as api from '../../services/api';
-import type { Shift, CreateShiftData, UpdateShiftData } from '../../types/shift';
+import type {
+  Shift,
+  CreateShiftData,
+  UpdateShiftData,
+} from '../../types/shift';
 
-export const ShiftManager: React.FC = () => {
+interface ShiftManagerProps {
+  showAddButton?: boolean;
+  onShiftsChange?: (shifts: Shift[]) => void;
+}
+
+export const ShiftManager: React.FC<ShiftManagerProps> = ({ 
+  showAddButton = true,
+  onShiftsChange 
+}) => {
   const { user } = useAuth();
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(false);
@@ -28,12 +40,16 @@ export const ShiftManager: React.FC = () => {
 
   // フォームダイアログの状態
   const [formDialogOpen, setFormDialogOpen] = useState(false);
-  const [editingShift, setEditingShift] = useState<Shift | undefined>(undefined);
+  const [editingShift, setEditingShift] = useState<Shift | undefined>(
+    undefined
+  );
   const [selectedDate, setSelectedDate] = useState<string>('');
 
   // 削除確認ダイアログの状態
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [shiftToDelete, setShiftToDelete] = useState<Shift | undefined>(undefined);
+  const [shiftToDelete, setShiftToDelete] = useState<Shift | undefined>(
+    undefined
+  );
 
   // シフト一覧の取得
   const fetchShifts = useCallback(async () => {
@@ -46,6 +62,7 @@ export const ShiftManager: React.FC = () => {
       const response = await api.getShifts();
       if (response.success && response.data) {
         setShifts(response.data);
+        onShiftsChange?.(response.data);
       } else {
         setError(response.error?.message || 'シフトの取得に失敗しました');
       }
@@ -83,7 +100,10 @@ export const ShiftManager: React.FC = () => {
 
       if (editingShift) {
         // 更新
-        const response = await api.updateShift(editingShift.id, data as UpdateShiftData);
+        const response = await api.updateShift(
+          editingShift.id,
+          data as UpdateShiftData
+        );
         if (response.success) {
           setSuccess('シフトを更新しました');
           await fetchShifts();
@@ -93,9 +113,9 @@ export const ShiftManager: React.FC = () => {
         }
       } else {
         // 新規作成
-        const createData = selectedDate 
-          ? { ...data as CreateShiftData, date: selectedDate }
-          : data as CreateShiftData;
+        const createData = selectedDate
+          ? { ...(data as CreateShiftData), date: selectedDate }
+          : (data as CreateShiftData);
 
         const response = await api.createShift(createData);
         if (response.success) {
@@ -181,19 +201,21 @@ export const ShiftManager: React.FC = () => {
       />
 
       {/* シフト追加ボタン */}
-      <Fab
-        color="primary"
-        aria-label="add shift"
-        sx={{
-          position: 'fixed',
-          bottom: 16,
-          right: 16,
-        }}
-        onClick={() => handleAddShift()}
-        disabled={loading}
-      >
-        <Add />
-      </Fab>
+      {showAddButton && (
+        <Fab
+          color="primary"
+          aria-label="add shift"
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+          }}
+          onClick={() => handleAddShift()}
+          disabled={loading}
+        >
+          <Add />
+        </Fab>
+      )}
 
       {/* シフト作成・編集ダイアログ */}
       <ShiftFormDialog
@@ -216,7 +238,8 @@ export const ShiftManager: React.FC = () => {
                 <br />
                 <strong>{shiftToDelete.jobSourceName}</strong>
                 <br />
-                {shiftToDelete.date} {shiftToDelete.startTime} - {shiftToDelete.endTime}
+                {shiftToDelete.date} {shiftToDelete.startTime} -{' '}
+                {shiftToDelete.endTime}
                 <br />
                 給与: ¥{shiftToDelete.calculatedEarnings.toLocaleString()}
               </>
@@ -227,9 +250,9 @@ export const ShiftManager: React.FC = () => {
           <Button onClick={handleCloseDeleteDialog} disabled={loading}>
             キャンセル
           </Button>
-          <Button 
-            onClick={handleConfirmDelete} 
-            color="error" 
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
             variant="contained"
             disabled={loading}
           >
@@ -245,7 +268,11 @@ export const ShiftManager: React.FC = () => {
         onClose={handleCloseError}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleCloseError}
+          severity="error"
+          sx={{ width: '100%' }}
+        >
           {error}
         </Alert>
       </Snackbar>
@@ -257,7 +284,11 @@ export const ShiftManager: React.FC = () => {
         onClose={handleCloseSuccess}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleCloseSuccess}
+          severity="success"
+          sx={{ width: '100%' }}
+        >
           {success}
         </Alert>
       </Snackbar>

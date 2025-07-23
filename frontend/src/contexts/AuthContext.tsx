@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
 import { loginDemo } from '../services/api';
 
 interface User {
@@ -65,18 +71,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(true);
     try {
       const response = await loginDemo();
-      
+
       if (response.success && response.data) {
         const { token: newToken, user: newUser } = response.data;
-        
+
         setUser(newUser);
         setToken(newToken);
-        
+
         // Save to localStorage
-        localStorage.setItem('auth', JSON.stringify({
-          user: newUser,
-          token: newToken,
-        }));
+        localStorage.setItem(
+          'auth',
+          JSON.stringify({
+            user: newUser,
+            token: newToken,
+          })
+        );
       } else {
         throw new Error(response.error?.message || 'Demo login failed');
       }
@@ -103,11 +112,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {

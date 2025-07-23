@@ -127,7 +127,11 @@ export interface ComparisonView {
 }
 
 export interface SmartSuggestion {
-  type: 'time_correction' | 'workplace_suggestion' | 'rate_adjustment' | 'break_optimization';
+  type:
+    | 'time_correction'
+    | 'workplace_suggestion'
+    | 'rate_adjustment'
+    | 'break_optimization';
   message: string;
   originalValue: any;
   suggestedValue: any;
@@ -138,11 +142,14 @@ export interface SmartSuggestion {
 
 export interface ProcessingAnalytics {
   totalProcessingTime: number;
-  aiProviderPerformance: Record<string, {
-    processingTime: number;
-    confidence: number;
-    successRate: number;
-  }>;
+  aiProviderPerformance: Record<
+    string,
+    {
+      processingTime: number;
+      confidence: number;
+      successRate: number;
+    }
+  >;
   accuracyMetrics: {
     dateAccuracy: number;
     timeAccuracy: number;

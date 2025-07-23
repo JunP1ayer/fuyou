@@ -40,7 +40,7 @@ import {
   ContentCopy,
 } from '@mui/icons-material';
 
-import type { 
+import type {
   EditableShift,
   OCRProcessingResponse,
   UserProfile,
@@ -69,129 +69,144 @@ function TabPanel({ children, value, index }: TabPanelProps) {
   );
 }
 
-export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> = ({
-  shifts,
-  onShiftsChange,
-  ocrResults,
-  userProfile,
-}) => {
+export const IntelligentResultsEditor: React.FC<
+  IntelligentResultsEditorProps
+> = ({ shifts, onShiftsChange, ocrResults, userProfile }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState(0);
   const [editingShift, setEditingShift] = useState<string | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
-  const [suggestions, setSuggestions] = useState<Record<string, SmartSuggestion[]>>({});
+  const [suggestions, setSuggestions] = useState<
+    Record<string, SmartSuggestion[]>
+  >({});
 
   // スマート提案の生成
-  const generateSuggestions = useCallback((shift: EditableShift): SmartSuggestion[] => {
-    const suggestions: SmartSuggestion[] = [];
+  const generateSuggestions = useCallback(
+    (shift: EditableShift): SmartSuggestion[] => {
+      const suggestions: SmartSuggestion[] = [];
 
-    // 時間の妥当性チェック
-    const startHour = parseInt(shift.startTime.split(':')[0]);
-    const endHour = parseInt(shift.endTime.split(':')[0]);
-    
-    if (startHour >= endHour) {
-      suggestions.push({
-        type: 'time_correction',
-        message: '終了時間が開始時間より早いか同じです',
-        originalValue: `${shift.startTime} - ${shift.endTime}`,
-        suggestedValue: `${shift.startTime} - ${(endHour + 12).toString().padStart(2, '0')}:00`,
-        confidence: 0.8,
-        reason: '一般的なシフト時間パターンから推測',
-        actionable: true,
-      });
-    }
+      // 時間の妥当性チェック
+      const startHour = parseInt(shift.startTime.split(':')[0]);
+      const endHour = parseInt(shift.endTime.split(':')[0]);
 
-    // 時給の提案
-    if (shift.hourlyRate < 900) {
-      suggestions.push({
-        type: 'rate_adjustment',
-        message: '時給が最低賃金を下回っている可能性があります',
-        originalValue: shift.hourlyRate,
-        suggestedValue: userProfile?.preferences.defaultHourlyRate || 1000,
-        confidence: 0.9,
-        reason: '法定最低賃金および設定値から推測',
-        actionable: true,
-      });
-    }
+      if (startHour >= endHour) {
+        suggestions.push({
+          type: 'time_correction',
+          message: '終了時間が開始時間より早いか同じです',
+          originalValue: `${shift.startTime} - ${shift.endTime}`,
+          suggestedValue: `${shift.startTime} - ${(endHour + 12).toString().padStart(2, '0')}:00`,
+          confidence: 0.8,
+          reason: '一般的なシフト時間パターンから推測',
+          actionable: true,
+        });
+      }
 
-    // 休憩時間の最適化
-    const workHours = calculateWorkHours(shift.startTime, shift.endTime);
-    if (workHours > 6 && (!shift.breakMinutes || shift.breakMinutes < 45)) {
-      suggestions.push({
-        type: 'break_optimization',
-        message: '6時間以上の勤務には45分以上の休憩が必要です',
-        originalValue: shift.breakMinutes || 0,
-        suggestedValue: 60,
-        confidence: 0.95,
-        reason: '労働基準法の規定',
-        actionable: true,
-      });
-    }
+      // 時給の提案
+      if (shift.hourlyRate < 900) {
+        suggestions.push({
+          type: 'rate_adjustment',
+          message: '時給が最低賃金を下回っている可能性があります',
+          originalValue: shift.hourlyRate,
+          suggestedValue: userProfile?.preferences.defaultHourlyRate || 1000,
+          confidence: 0.9,
+          reason: '法定最低賃金および設定値から推測',
+          actionable: true,
+        });
+      }
 
-    return suggestions;
-  }, [userProfile]);
+      // 休憩時間の最適化
+      const workHours = calculateWorkHours(shift.startTime, shift.endTime);
+      if (workHours > 6 && (!shift.breakMinutes || shift.breakMinutes < 45)) {
+        suggestions.push({
+          type: 'break_optimization',
+          message: '6時間以上の勤務には45分以上の休憩が必要です',
+          originalValue: shift.breakMinutes || 0,
+          suggestedValue: 60,
+          confidence: 0.95,
+          reason: '労働基準法の規定',
+          actionable: true,
+        });
+      }
+
+      return suggestions;
+    },
+    [userProfile]
+  );
 
   // 働く時間を計算
   const calculateWorkHours = (startTime: string, endTime: string): number => {
     const [startHour, startMin] = startTime.split(':').map(Number);
     const [endHour, endMin] = endTime.split(':').map(Number);
-    
+
     const startMinutes = startHour * 60 + startMin;
     let endMinutes = endHour * 60 + endMin;
-    
+
     if (endMinutes < startMinutes) {
       endMinutes += 24 * 60; // 翌日の場合
     }
-    
+
     return (endMinutes - startMinutes) / 60;
   };
 
   // シフト更新
-  const updateShift = useCallback((shiftId: string, updates: Partial<EditableShift>) => {
-    onShiftsChange(shifts.map(shift => {
-      if (shift.id === shiftId) {
-        const updatedShift = { ...shift, ...updates, isEdited: true };
-        
-        // 提案を再生成
-        const newSuggestions = generateSuggestions(updatedShift);
-        setSuggestions(prev => ({ ...prev, [shiftId]: newSuggestions }));
-        
-        return updatedShift;
-      }
-      return shift;
-    }));
-  }, [shifts, onShiftsChange, generateSuggestions]);
+  const updateShift = useCallback(
+    (shiftId: string, updates: Partial<EditableShift>) => {
+      onShiftsChange(
+        shifts.map(shift => {
+          if (shift.id === shiftId) {
+            const updatedShift = { ...shift, ...updates, isEdited: true };
+
+            // 提案を再生成
+            const newSuggestions = generateSuggestions(updatedShift);
+            setSuggestions(prev => ({ ...prev, [shiftId]: newSuggestions }));
+
+            return updatedShift;
+          }
+          return shift;
+        })
+      );
+    },
+    [shifts, onShiftsChange, generateSuggestions]
+  );
 
   // 提案を適用
-  const applySuggestion = useCallback((shiftId: string, suggestion: SmartSuggestion) => {
-    const updates: Partial<EditableShift> = {};
-    
-    switch (suggestion.type) {
-      case 'time_correction':
-        const [newStart, newEnd] = (suggestion.suggestedValue as string).split(' - ');
-        updates.endTime = newEnd;
-        break;
-      case 'rate_adjustment':
-        updates.hourlyRate = suggestion.suggestedValue as number;
-        break;
-      case 'break_optimization':
-        updates.breakMinutes = suggestion.suggestedValue as number;
-        break;
-    }
-    
-    updateShift(shiftId, updates);
-  }, [updateShift]);
+  const applySuggestion = useCallback(
+    (shiftId: string, suggestion: SmartSuggestion) => {
+      const updates: Partial<EditableShift> = {};
+
+      switch (suggestion.type) {
+        case 'time_correction':
+          const [newStart, newEnd] = (
+            suggestion.suggestedValue as string
+          ).split(' - ');
+          updates.endTime = newEnd;
+          break;
+        case 'rate_adjustment':
+          updates.hourlyRate = suggestion.suggestedValue as number;
+          break;
+        case 'break_optimization':
+          updates.breakMinutes = suggestion.suggestedValue as number;
+          break;
+      }
+
+      updateShift(shiftId, updates);
+    },
+    [updateShift]
+  );
 
   // シフト削除
-  const deleteShift = useCallback((shiftId: string) => {
-    onShiftsChange(shifts.filter(shift => shift.id !== shiftId));
-    setSuggestions(prev => {
-      const newSuggestions = { ...prev };
-      delete newSuggestions[shiftId];
-      return newSuggestions;
-    });
-  }, [shifts, onShiftsChange]);
+  const deleteShift = useCallback(
+    (shiftId: string) => {
+      onShiftsChange(shifts.filter(shift => shift.id !== shiftId));
+      setSuggestions(prev => {
+        const newSuggestions = { ...prev };
+        delete newSuggestions[shiftId];
+        return newSuggestions;
+      });
+    },
+    [shifts, onShiftsChange]
+  );
 
   // 新しいシフト追加
   const addNewShift = useCallback(() => {
@@ -209,7 +224,7 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
       originalData: {} as EditableShift,
       validationErrors: [],
     };
-    
+
     onShiftsChange([...shifts, newShift]);
   }, [shifts, onShiftsChange, userProfile]);
 
@@ -267,7 +282,7 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
         <Typography variant="h5" gutterBottom fontWeight="bold">
           📝 シフト詳細編集
         </Typography>
-        
+
         <Grid container spacing={3}>
           <Grid item xs={6} md={3}>
             <Box textAlign="center">
@@ -316,44 +331,40 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
 
       {/* タブナビゲーション */}
       <Paper sx={{ mb: 2 }}>
-        <Tabs 
-          value={selectedTab} 
+        <Tabs
+          value={selectedTab}
           onChange={(_, value) => setSelectedTab(value)}
           variant="fullWidth"
         >
-          <Tab 
-            label="編集" 
-            icon={<Edit />} 
-          />
-          <Tab 
+          <Tab label="編集" icon={<Edit />} />
+          <Tab
             label={
               <Badge badgeContent={statistics.issuesCount} color="error">
                 提案
               </Badge>
             }
-            icon={<AutoFixHigh />} 
+            icon={<AutoFixHigh />}
           />
-          <Tab 
-            label="比較" 
-            icon={<Compare />} 
-            disabled={!ocrResults}
-          />
+          <Tab label="比較" icon={<Compare />} disabled={!ocrResults} />
         </Tabs>
       </Paper>
 
       {/* 編集タブ */}
       <TabPanel value={selectedTab} index={0}>
         <Grid container spacing={2}>
-          {shifts.map((shift) => {
+          {shifts.map(shift => {
             const isExpanded = expandedCards.has(shift.id);
             const shiftSuggestions = suggestions[shift.id] || [];
-            const workHours = calculateWorkHours(shift.startTime, shift.endTime);
+            const workHours = calculateWorkHours(
+              shift.startTime,
+              shift.endTime
+            );
             const netHours = workHours - (shift.breakMinutes || 0) / 60;
             const earnings = netHours * shift.hourlyRate;
-            
+
             return (
               <Grid item xs={12} md={6} key={shift.id}>
-                <Card 
+                <Card
                   elevation={shift.isEdited ? 4 : 1}
                   sx={{
                     border: shift.isEdited ? 2 : 0,
@@ -378,31 +389,41 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
 
                   <CardContent>
                     {/* ヘッダー */}
-                    <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                    <Box
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      mb={2}
+                    >
                       <Typography variant="h6" fontWeight="bold">
                         {shift.date}
                       </Typography>
-                      
+
                       <Box display="flex" gap={1}>
                         {shiftSuggestions.length > 0 && (
-                          <Tooltip title={`${shiftSuggestions.length}件の提案があります`}>
+                          <Tooltip
+                            title={`${shiftSuggestions.length}件の提案があります`}
+                          >
                             <IconButton size="small" color="warning">
-                              <Badge badgeContent={shiftSuggestions.length} color="error">
+                              <Badge
+                                badgeContent={shiftSuggestions.length}
+                                color="error"
+                              >
                                 <Warning />
                               </Badge>
                             </IconButton>
                           </Tooltip>
                         )}
-                        
-                        <IconButton 
-                          size="small" 
+
+                        <IconButton
+                          size="small"
                           color="error"
                           onClick={() => deleteShift(shift.id)}
                         >
                           <Delete />
                         </IconButton>
-                        
-                        <IconButton 
+
+                        <IconButton
                           size="small"
                           onClick={() => toggleCardExpansion(shift.id)}
                         >
@@ -418,7 +439,9 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
                           label="開始時間"
                           type="time"
                           value={shift.startTime}
-                          onChange={(e) => updateShift(shift.id, { startTime: e.target.value })}
+                          onChange={e =>
+                            updateShift(shift.id, { startTime: e.target.value })
+                          }
                           size="small"
                           fullWidth
                           InputLabelProps={{ shrink: true }}
@@ -429,7 +452,9 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
                           label="終了時間"
                           type="time"
                           value={shift.endTime}
-                          onChange={(e) => updateShift(shift.id, { endTime: e.target.value })}
+                          onChange={e =>
+                            updateShift(shift.id, { endTime: e.target.value })
+                          }
                           size="small"
                           fullWidth
                           InputLabelProps={{ shrink: true }}
@@ -445,7 +470,11 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
                             <TextField
                               label="勤務先"
                               value={shift.jobSourceName}
-                              onChange={(e) => updateShift(shift.id, { jobSourceName: e.target.value })}
+                              onChange={e =>
+                                updateShift(shift.id, {
+                                  jobSourceName: e.target.value,
+                                })
+                              }
                               size="small"
                               fullWidth
                             />
@@ -455,7 +484,11 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
                               label="時給 (円)"
                               type="number"
                               value={shift.hourlyRate}
-                              onChange={(e) => updateShift(shift.id, { hourlyRate: parseInt(e.target.value) || 0 })}
+                              onChange={e =>
+                                updateShift(shift.id, {
+                                  hourlyRate: parseInt(e.target.value) || 0,
+                                })
+                              }
                               size="small"
                               fullWidth
                             />
@@ -465,7 +498,11 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
                               label="休憩時間 (分)"
                               type="number"
                               value={shift.breakMinutes || 0}
-                              onChange={(e) => updateShift(shift.id, { breakMinutes: parseInt(e.target.value) || 0 })}
+                              onChange={e =>
+                                updateShift(shift.id, {
+                                  breakMinutes: parseInt(e.target.value) || 0,
+                                })
+                              }
                               size="small"
                               fullWidth
                             />
@@ -474,7 +511,11 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
                             <TextField
                               label="メモ"
                               value={shift.description || ''}
-                              onChange={(e) => updateShift(shift.id, { description: e.target.value })}
+                              onChange={e =>
+                                updateShift(shift.id, {
+                                  description: e.target.value,
+                                })
+                              }
                               size="small"
                               fullWidth
                               multiline
@@ -486,7 +527,11 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
                     </Collapse>
 
                     {/* 計算結果 */}
-                    <Box mt={2} pt={2} borderTop={`1px solid ${theme.palette.divider}`}>
+                    <Box
+                      mt={2}
+                      pt={2}
+                      borderTop={`1px solid ${theme.palette.divider}`}
+                    >
                       <Grid container spacing={2}>
                         <Grid item xs={4}>
                           <Typography variant="caption" color="text.secondary">
@@ -500,14 +545,21 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
                           <Typography variant="caption" color="text.secondary">
                             予想収入
                           </Typography>
-                          <Typography variant="body2" fontWeight="bold" color="success.main">
+                          <Typography
+                            variant="body2"
+                            fontWeight="bold"
+                            color="success.main"
+                          >
                             ¥{Math.round(earnings).toLocaleString()}
                           </Typography>
                         </Grid>
                         <Grid item xs={4}>
                           {shift.confidence && (
                             <>
-                              <Typography variant="caption" color="text.secondary">
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
                                 信頼度
                               </Typography>
                               <Typography variant="body2" fontWeight="bold">
@@ -526,11 +578,11 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
 
           {/* 新規追加ボタン */}
           <Grid item xs={12} md={6}>
-            <Card 
-              sx={{ 
-                minHeight: 200, 
-                display: 'flex', 
-                alignItems: 'center', 
+            <Card
+              sx={{
+                minHeight: 200,
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'center',
                 border: `2px dashed ${theme.palette.divider}`,
                 cursor: 'pointer',
@@ -558,17 +610,17 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
           <Typography variant="h6" gutterBottom>
             🤖 AI による改善提案
           </Typography>
-          
+
           {Object.entries(suggestions).map(([shiftId, shiftSuggestions]) => {
             const shift = shifts.find(s => s.id === shiftId);
             if (!shift || shiftSuggestions.length === 0) return null;
-            
+
             return (
               <Paper key={shiftId} sx={{ p: 2, mb: 2 }}>
                 <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                   {shift.date} - {shift.jobSourceName}
                 </Typography>
-                
+
                 {shiftSuggestions.map((suggestion, index) => (
                   <Alert
                     key={index}
@@ -576,8 +628,8 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
                     sx={{ mb: 1 }}
                     action={
                       suggestion.actionable && (
-                        <Button 
-                          size="small" 
+                        <Button
+                          size="small"
                           onClick={() => applySuggestion(shiftId, suggestion)}
                         >
                           適用
@@ -592,14 +644,15 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
                       {suggestion.originalValue} → {suggestion.suggestedValue}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      理由: {suggestion.reason} (信頼度: {Math.round(suggestion.confidence * 100)}%)
+                      理由: {suggestion.reason} (信頼度:{' '}
+                      {Math.round(suggestion.confidence * 100)}%)
                     </Typography>
                   </Alert>
                 ))}
               </Paper>
             );
           })}
-          
+
           {Object.values(suggestions).flat().length === 0 && (
             <Alert severity="success">
               <Typography>
@@ -616,28 +669,40 @@ export const IntelligentResultsEditor: React.FC<IntelligentResultsEditorProps> =
           <Typography variant="h6" gutterBottom>
             🔍 AI解析結果の比較
           </Typography>
-          
+
           {ocrResults && (
             <Grid container spacing={2}>
               {Object.entries(ocrResults.results).map(([provider, result]) => (
                 <Grid item xs={12} md={4} key={provider}>
                   <Paper sx={{ p: 2 }}>
-                    <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="bold"
+                      gutterBottom
+                    >
                       {provider.toUpperCase()}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
                       信頼度: {Math.round(result.confidence * 100)}%
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      gutterBottom
+                    >
                       処理時間: {result.processingTime}ms
                     </Typography>
-                    
+
                     <Divider sx={{ my: 1 }} />
-                    
+
                     <Typography variant="caption" fontWeight="bold">
                       検出シフト数: {result.shifts.length}
                     </Typography>
-                    
+
                     {result.naturalLanguageMessage && (
                       <Alert severity="info" sx={{ mt: 1 }}>
                         <Typography variant="caption">

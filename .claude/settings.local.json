@@ -118,7 +118,9 @@
       "WebFetch(domain:fuyou-duybcxmmd-junp1ayers-projects.vercel.app)",
       "WebFetch(domain:fuyou-50m9jcir6-junp1ayers-projects.vercel.app)",
       "Bash(HOST=0.0.0.0 PORT=3001 node dist/app.js)",
-      "Bash(GOOGLE_APPLICATION_CREDENTIALS=./config/google-vision-key.json node -e \"\nconst vision = require(''@google-cloud/vision'');\nconst client = new vision.ImageAnnotatorClient();\nconsole.log(''Google Vision API client initialized successfully'');\n\")"
+      "Bash(GOOGLE_APPLICATION_CREDENTIALS=./config/google-vision-key.json node -e \"\nconst vision = require(''@google-cloud/vision'');\nconst client = new vision.ImageAnnotatorClient();\nconsole.log(''Google Vision API client initialized successfully'');\n\")",
+      "Bash(timeout 30s npm run dev)",
+      "Bash(timeout 20s npm run dev:direct)"
     ],
     "deny": []
   }

@@ -91,7 +91,7 @@ export class DesignIntelligenceService {
     
     // 2. コンテキスト最適化計算
     let optimizationScore = 0;
-    let reasoning = [];
+    const reasoning = [];
     
     // 時間帯最適化
     if (userContext.timeOfDay === 'night') {

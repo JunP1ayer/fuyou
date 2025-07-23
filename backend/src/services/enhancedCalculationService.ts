@@ -151,7 +151,7 @@ export class EnhancedCalculationService {
       hasSpouse: false
     };
     
-    let applicable: FuyouLimit[] = [];
+    const applicable: FuyouLimit[] = [];
     
     // 学生特定扶養控除（最優先）
     if (profile.isStudent && profile.age >= 18 && profile.age <= 25) {
