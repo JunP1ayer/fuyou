@@ -14,23 +14,23 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/shiftboard-salary.html"
+      "destination": "/calendar-main.html"
     },
     {
       "source": "/app",
-      "destination": "/shiftboard-salary.html"
+      "destination": "/shiftboard-demo.html"
     },
     {
       "source": "/ai",
-      "destination": "/shiftboard-salary.html"
+      "destination": "/shiftboard-demo.html"
     },
     {
       "source": "/latest",
-      "destination": "/shiftboard-salary.html"
+      "destination": "/shiftboard-demo.html"
     },
     {
       "source": "/shift",
-      "destination": "/shiftboard-salary.html"
+      "destination": "/shiftboard-demo.html"
     }
   ],
   "headers": [
