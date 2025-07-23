@@ -954,6 +954,38 @@
         margin-left: 4px;
         font-size: 16px;
       }
+
+      .day-button {
+        display: inline-block;
+        width: 32px;
+        height: 32px;
+        border: 2px solid #e9ecef;
+        border-radius: 50%;
+        background: white;
+        color: #666;
+        text-align: center;
+        line-height: 28px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+        user-select: none;
+      }
+
+      .day-button:hover {
+        border-color: #3498db;
+        background: #f8f9fa;
+      }
+
+      .day-button input:checked + span {
+        color: white;
+      }
+
+      .day-button:has(input:checked) {
+        background: #3498db;
+        border-color: #3498db;
+        color: white;
+      }
     </style>
   </head>
   <body>
@@ -1096,35 +1128,35 @@
         <div class="form-row">
           <label class="form-label-left">曜日別時給設定</label>
           <div class="form-value-right">
-            <div class="checkbox-group" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 8px;">
-              <div class="checkbox-item">
-                <input type="checkbox" id="dayPremium_0" onchange="updateDayPremiumFields()" />
-                <label for="dayPremium_0">日</label>
-              </div>
-              <div class="checkbox-item">
-                <input type="checkbox" id="dayPremium_1" onchange="updateDayPremiumFields()" />
-                <label for="dayPremium_1">月</label>
-              </div>
-              <div class="checkbox-item">
-                <input type="checkbox" id="dayPremium_2" onchange="updateDayPremiumFields()" />
-                <label for="dayPremium_2">火</label>
-              </div>
-              <div class="checkbox-item">
-                <input type="checkbox" id="dayPremium_3" onchange="updateDayPremiumFields()" />
-                <label for="dayPremium_3">水</label>
-              </div>
-              <div class="checkbox-item">
-                <input type="checkbox" id="dayPremium_4" onchange="updateDayPremiumFields()" />
-                <label for="dayPremium_4">木</label>
-              </div>
-              <div class="checkbox-item">
-                <input type="checkbox" id="dayPremium_5" onchange="updateDayPremiumFields()" />
-                <label for="dayPremium_5">金</label>
-              </div>
-              <div class="checkbox-item">
-                <input type="checkbox" id="dayPremium_6" onchange="updateDayPremiumFields()" />
-                <label for="dayPremium_6">土</label>
-              </div>
+            <div class="day-selector" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; justify-content: center;">
+              <label class="day-button" for="dayPremium_0">
+                <input type="checkbox" id="dayPremium_0" onchange="updateDayPremiumFields()" style="display: none;" />
+                <span>日</span>
+              </label>
+              <label class="day-button" for="dayPremium_1">
+                <input type="checkbox" id="dayPremium_1" onchange="updateDayPremiumFields()" style="display: none;" />
+                <span>月</span>
+              </label>
+              <label class="day-button" for="dayPremium_2">
+                <input type="checkbox" id="dayPremium_2" onchange="updateDayPremiumFields()" style="display: none;" />
+                <span>火</span>
+              </label>
+              <label class="day-button" for="dayPremium_3">
+                <input type="checkbox" id="dayPremium_3" onchange="updateDayPremiumFields()" style="display: none;" />
+                <span>水</span>
+              </label>
+              <label class="day-button" for="dayPremium_4">
+                <input type="checkbox" id="dayPremium_4" onchange="updateDayPremiumFields()" style="display: none;" />
+                <span>木</span>
+              </label>
+              <label class="day-button" for="dayPremium_5">
+                <input type="checkbox" id="dayPremium_5" onchange="updateDayPremiumFields()" style="display: none;" />
+                <span>金</span>
+              </label>
+              <label class="day-button" for="dayPremium_6">
+                <input type="checkbox" id="dayPremium_6" onchange="updateDayPremiumFields()" style="display: none;" />
+                <span>土</span>
+              </label>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
               <input
@@ -1637,9 +1669,22 @@
 
       // 曜日別設定フィールドの表示/非表示
       function updateDayPremiumFields() {
-        const hasSelectedDays = Array.from(
-          document.querySelectorAll('[id^="dayPremium_"]')
-        ).some(checkbox => checkbox.checked);
+        const checkboxes = document.querySelectorAll('[id^="dayPremium_"]');
+        const hasSelectedDays = Array.from(checkboxes).some(checkbox => checkbox.checked);
+
+        // 曜日ボタンのスタイルを更新
+        checkboxes.forEach(checkbox => {
+          const button = checkbox.parentElement;
+          if (checkbox.checked) {
+            button.style.background = '#3498db';
+            button.style.borderColor = '#3498db';
+            button.style.color = 'white';
+          } else {
+            button.style.background = 'white';
+            button.style.borderColor = '#e9ecef';
+            button.style.color = '#666';
+          }
+        });
 
         const rateInput = document.getElementById('dayPremiumRate');
         const typeSelect = document.getElementById('dayPremiumType');
