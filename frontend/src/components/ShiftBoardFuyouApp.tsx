@@ -29,7 +29,6 @@ export const ShiftBoardFuyouApp: React.FC = () => {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
 
-
   // OCRシフト追加の処理
   const handleOCRComplete = (newShifts: CreateShiftData[]) => {
     // CreateShiftDataをShiftに変換（簡易版）
@@ -96,16 +95,8 @@ export const ShiftBoardFuyouApp: React.FC = () => {
 
           {/* 月間タブ */}
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Chip 
-              label="月" 
-              color="primary" 
-              clickable 
-            />
-            <Chip 
-              label="年" 
-              variant="outlined" 
-              clickable 
-            />
+            <Chip label="月" color="primary" clickable />
+            <Chip label="年" variant="outlined" clickable />
           </Box>
         </Box>
 

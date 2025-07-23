@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "",
-  "outputDirectory": ".",
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
   "installCommand": "",
   "functions": {
     "api/openai-vision.js": {
@@ -13,24 +13,8 @@
   },
   "rewrites": [
     {
-      "source": "/",
-      "destination": "/calendar-main.html"
-    },
-    {
-      "source": "/app",
-      "destination": "/shiftboard-demo.html"
-    },
-    {
-      "source": "/ai",
-      "destination": "/shiftboard-demo.html"
-    },
-    {
-      "source": "/latest",
-      "destination": "/shiftboard-demo.html"
-    },
-    {
-      "source": "/shift",
-      "destination": "/shiftboard-demo.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [

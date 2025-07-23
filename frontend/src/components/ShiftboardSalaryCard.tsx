@@ -13,12 +13,7 @@ import {
   Chip,
   InputAdornment,
 } from '@mui/material';
-import {
-  Edit,
-  ChevronLeft,
-  ChevronRight,
-  Settings,
-} from '@mui/icons-material';
+import { Edit, ChevronLeft, ChevronRight, Settings } from '@mui/icons-material';
 
 interface SalaryData {
   monthlyTarget: number;
@@ -38,7 +33,10 @@ interface ShiftboardSalaryCardProps {
   shifts?: Shift[];
 }
 
-export function ShiftboardSalaryCard({ compact = false, shifts: _shifts = [] }: ShiftboardSalaryCardProps) {
+export function ShiftboardSalaryCard({
+  compact = false,
+  shifts: _shifts = [],
+}: ShiftboardSalaryCardProps) {
   const [isEditingTarget, setIsEditingTarget] = useState(false);
   const [targetAmount, setTargetAmount] = useState(50000);
   const [currentMonth] = useState(new Date().getMonth() + 1);
@@ -49,9 +47,7 @@ export function ShiftboardSalaryCard({ compact = false, shifts: _shifts = [] }: 
     monthlyTarget: targetAmount,
     currentEarnings: 0,
     workingHours: 0,
-    workplaces: [
-      { name: '我屋', hours: 0, earnings: 0 },
-    ],
+    workplaces: [{ name: '我屋', hours: 0, earnings: 0 }],
   };
 
   const handleTargetSave = () => {
@@ -59,24 +55,30 @@ export function ShiftboardSalaryCard({ compact = false, shifts: _shifts = [] }: 
   };
 
   return (
-    <Card sx={{ 
-      maxWidth: compact ? 400 : 600, 
-      width: '100%',
-      borderRadius: 2,
-      overflow: 'visible',
-    }}>
-      <Box sx={{ 
-        bgcolor: 'white',
-        p: 2,
-        borderBottom: '1px solid #e0e0e0',
-      }}>
+    <Card
+      sx={{
+        maxWidth: compact ? 400 : 600,
+        width: '100%',
+        borderRadius: 2,
+        overflow: 'visible',
+      }}
+    >
+      <Box
+        sx={{
+          bgcolor: 'white',
+          p: 2,
+          borderBottom: '1px solid #e0e0e0',
+        }}
+      >
         {/* ヘッダー */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          mb: 2,
-        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 2,
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <IconButton size="small">
               <ChevronLeft />
@@ -94,26 +96,30 @@ export function ShiftboardSalaryCard({ compact = false, shifts: _shifts = [] }: 
         </Box>
 
         {/* 月間目標 */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          mb: 2,
-        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mb: 2,
+          }}
+        >
           {isEditingTarget ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <TextField
                 value={targetAmount}
-                onChange={(e) => setTargetAmount(Number(e.target.value) || 0)}
+                onChange={e => setTargetAmount(Number(e.target.value) || 0)}
                 type="number"
                 size="small"
                 sx={{ width: 150 }}
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">¥</InputAdornment>,
+                  startAdornment: (
+                    <InputAdornment position="start">¥</InputAdornment>
+                  ),
                 }}
               />
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 size="small"
                 onClick={handleTargetSave}
               >
@@ -121,11 +127,11 @@ export function ShiftboardSalaryCard({ compact = false, shifts: _shifts = [] }: 
               </Button>
             </Box>
           ) : (
-            <Box 
+            <Box
               onClick={() => setIsEditingTarget(true)}
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
                 gap: 1,
                 cursor: 'pointer',
                 border: '2px solid #e0e0e0',
@@ -140,7 +146,10 @@ export function ShiftboardSalaryCard({ compact = false, shifts: _shifts = [] }: 
               <Typography variant="body2" color="text.secondary">
                 月間目標
               </Typography>
-              <Typography variant="h6" sx={{ color: '#4caf50', fontWeight: 'bold' }}>
+              <Typography
+                variant="h6"
+                sx={{ color: '#4caf50', fontWeight: 'bold' }}
+              >
                 ¥{salaryData.monthlyTarget.toLocaleString()}
               </Typography>
               <Edit fontSize="small" color="action" />
@@ -172,12 +181,8 @@ export function ShiftboardSalaryCard({ compact = false, shifts: _shifts = [] }: 
             textAlign: 'center',
           }}
         >
-          <Typography variant="body2">
-            シフトが終わると、その分の
-          </Typography>
-          <Typography variant="body2">
-            給料が自動計算されます
-          </Typography>
+          <Typography variant="body2">シフトが終わると、その分の</Typography>
+          <Typography variant="body2">給料が自動計算されます</Typography>
         </Paper>
 
         {/* 統計情報 */}
@@ -187,7 +192,8 @@ export function ShiftboardSalaryCard({ compact = false, shifts: _shifts = [] }: 
               勤務時間
             </Typography>
             <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-              {salaryData.workingHours}h{Math.round((salaryData.workingHours % 1) * 60)}m
+              {salaryData.workingHours}h
+              {Math.round((salaryData.workingHours % 1) * 60)}m
             </Typography>
           </Box>
           <Box sx={{ textAlign: 'center' }}>
@@ -217,12 +223,8 @@ export function ShiftboardSalaryCard({ compact = false, shifts: _shifts = [] }: 
                   {workplace.name}
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="body2">
-                    {workplace.hours}h00m
-                  </Typography>
-                  <Typography variant="body2">
-                    ¥{workplace.earnings}
-                  </Typography>
+                  <Typography variant="body2">{workplace.hours}h00m</Typography>
+                  <Typography variant="body2">¥{workplace.earnings}</Typography>
                   <Typography variant="body2" sx={{ color: '#ccc' }}>
                     未入力 ✏️
                   </Typography>
@@ -235,14 +237,19 @@ export function ShiftboardSalaryCard({ compact = false, shifts: _shifts = [] }: 
             <Typography variant="h6" color="text.secondary">
               合計
             </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}
+            >
               <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
                 {salaryData.workingHours}h00m
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
                 ¥{salaryData.currentEarnings}
               </Typography>
-              <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#ccc' }}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 'bold', color: '#ccc' }}
+              >
                 ¥-
               </Typography>
             </Box>
@@ -250,30 +257,26 @@ export function ShiftboardSalaryCard({ compact = false, shifts: _shifts = [] }: 
         </Box>
 
         {/* 給料計算の内訳を見るボタン */}
-        <Button
-          fullWidth
-          variant="outlined"
-          sx={{ mt: 3, py: 1.5 }}
-        >
+        <Button fullWidth variant="outlined" sx={{ mt: 3, py: 1.5 }}>
           給料計算の内訳を見る
         </Button>
 
         {/* 使い方ヒント */}
-        <Typography 
-          variant="caption" 
-          color="text.secondary" 
-          sx={{ 
-            display: 'block', 
-            textAlign: 'center', 
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{
+            display: 'block',
+            textAlign: 'center',
             mt: 2,
             px: 2,
           }}
         >
           実際に支払われた給料と給料計算が異なるときは
           <br />
-          <Typography 
-            component="span" 
-            variant="caption" 
+          <Typography
+            component="span"
+            variant="caption"
             sx={{ color: '#1976d2', textDecoration: 'underline' }}
           >
             使い方
