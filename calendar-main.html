@@ -884,6 +884,58 @@
         font-weight: 600;
         font-size: 16px;
       }
+
+      .salary-detail-btn {
+        background: #e3f2fd;
+        color: #1976d2;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        margin-left: 8px;
+        transition: all 0.2s;
+      }
+
+      .salary-detail-btn:hover {
+        background: #bbdefb;
+      }
+
+      .shiftboard-memo {
+        border: none;
+        outline: none;
+        text-align: right;
+        font-size: 16px;
+        background: transparent;
+        color: #333;
+        width: 100%;
+        min-height: 40px;
+        resize: none;
+        padding: 8px 0;
+      }
+
+      .shiftboard-memo::placeholder {
+        color: #aaa;
+        text-align: right;
+      }
+
+      .shiftboard-break {
+        border: none;
+        outline: none;
+        text-align: right;
+        font-size: 16px;
+        background: transparent;
+        color: #333;
+        width: 40px;
+        padding: 8px 0;
+      }
+
+      .break-unit {
+        color: #666;
+        margin-left: 4px;
+        font-size: 16px;
+      }
     </style>
   </head>
   <body>
@@ -1006,74 +1058,71 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">深夜・時間帯別割増</label>
+      <!-- 深夜・時間帯別割増 -->
+      <div class="shiftboard-form-group">
         <div class="form-row">
-          <select class="form-select" id="nightShiftType" onchange="updateNightShiftFields()">
-            <option value="none">割増なし</option>
-            <option value="legal">法定深夜割増 (22:00-5:00, 25%)</option>
-            <option value="flexible">柔軟な時間帯設定</option>
-          </select>
-          <button
-            type="button"
-            class="form-input"
-            id="configureFlexible"
-            onclick="openFlexibleRateConfig()"
-            style="display: none; background: #f5f5f5; border: 2px dashed #ccc; cursor: pointer;"
-          >
-            時間帯を設定
-          </button>
-        </div>
-        <div id="flexibleRatesDisplay" style="margin-top: 8px; display: none;">
-          <div style="font-size: 12px; color: #666;">設定された時間帯割増：</div>
-          <div id="flexibleRatesList" style="font-size: 11px; color: #888; margin-top: 4px;"></div>
+          <label class="form-label-left">深夜・時間帯別割増</label>
+          <div class="form-value-right">
+            <select class="shiftboard-select" id="nightShiftType" onchange="updateNightShiftFields()">
+              <option value="none">割増なし</option>
+              <option value="legal">法定深夜割増 (22:00-5:00, 25%)</option>
+              <option value="flexible">柔軟な時間帯設定</option>
+            </select>
+            <span class="arrow-right">〉</span>
+          </div>
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">曜日別時給設定</label>
-        <div class="checkbox-group">
-          <div class="checkbox-item">
-            <input type="checkbox" id="dayPremium_0" onchange="updateDayPremiumFields()" />
-            <label for="dayPremium_0">日</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" id="dayPremium_1" onchange="updateDayPremiumFields()" />
-            <label for="dayPremium_1">月</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" id="dayPremium_2" onchange="updateDayPremiumFields()" />
-            <label for="dayPremium_2">火</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" id="dayPremium_3" onchange="updateDayPremiumFields()" />
-            <label for="dayPremium_3">水</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" id="dayPremium_4" onchange="updateDayPremiumFields()" />
-            <label for="dayPremium_4">木</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" id="dayPremium_5" onchange="updateDayPremiumFields()" />
-            <label for="dayPremium_5">金</label>
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" id="dayPremium_6" onchange="updateDayPremiumFields()" />
-            <label for="dayPremium_6">土</label>
-          </div>
-        </div>
+      <!-- 曜日別時給設定 -->
+      <div class="shiftboard-form-group">
         <div class="form-row">
-          <input
-            type="number"
-            class="form-input"
-            id="dayPremiumRate"
-            placeholder="1100 (円)"
-            disabled
-          />
-          <select class="form-select" id="dayPremiumType" disabled onchange="updateDayPremiumFields()">
-            <option value="fixed">固定額</option>
-            <option value="rate">割増率 (%)</option>
-          </select>
+          <label class="form-label-left">曜日別時給設定</label>
+          <div class="form-value-right">
+            <div class="checkbox-group" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 8px;">
+              <div class="checkbox-item">
+                <input type="checkbox" id="dayPremium_0" onchange="updateDayPremiumFields()" />
+                <label for="dayPremium_0">日</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="dayPremium_1" onchange="updateDayPremiumFields()" />
+                <label for="dayPremium_1">月</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="dayPremium_2" onchange="updateDayPremiumFields()" />
+                <label for="dayPremium_2">火</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="dayPremium_3" onchange="updateDayPremiumFields()" />
+                <label for="dayPremium_3">水</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="dayPremium_4" onchange="updateDayPremiumFields()" />
+                <label for="dayPremium_4">木</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="dayPremium_5" onchange="updateDayPremiumFields()" />
+                <label for="dayPremium_5">金</label>
+              </div>
+              <div class="checkbox-item">
+                <input type="checkbox" id="dayPremium_6" onchange="updateDayPremiumFields()" />
+                <label for="dayPremium_6">土</label>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input
+                type="number"
+                class="shiftboard-input"
+                id="dayPremiumRate"
+                placeholder="時給 (円)"
+                disabled
+                style="flex: 1; text-align: right;"
+              />
+              <select class="shiftboard-select" id="dayPremiumType" disabled onchange="updateDayPremiumFields()" style="width: 80px;">
+                <option value="fixed">固定額</option>
+                <option value="rate">割増率 (%)</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
