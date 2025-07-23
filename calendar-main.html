@@ -650,6 +650,10 @@
         .calendar {
           padding: 8px;
         }
+
+        .calendar-grid {
+          gap: 1px;
+        }
         
         .day-header {
           padding: 4px 0;
@@ -665,16 +669,18 @@
           flex-direction: column;
           align-items: center;
           justify-content: flex-start;
-          padding: 3px 0;
+          padding: 2px;
           font-size: 10px;
           box-sizing: border-box;
           overflow: hidden;
+          min-height: 60px;
+          touch-action: manipulation;
         }
         
         .day-number {
-          font-size: 11px;
+          font-size: 12px;
           width: 100%;
-          height: auto;
+          height: 20px;
           text-align: center;
           display: flex;
           align-items: center;
@@ -682,6 +688,8 @@
           margin: 0;
           padding: 0;
           line-height: 1;
+          font-weight: 600;
+          flex-shrink: 0;
         }
         
         .calendar-day.today {
@@ -691,8 +699,15 @@
         }
         
         .shift-indicator {
-          font-size: 6px;
-          padding: 0px 1px;
+          font-size: 8px;
+          padding: 1px 3px;
+          margin-top: 1px;
+          border-radius: 6px;
+          max-width: 100%;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          flex-shrink: 0;
         }
         
       }
