@@ -957,19 +957,32 @@
 
       .day-button {
         display: inline-block;
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         border: 2px solid #e9ecef;
         border-radius: 50%;
         background: white;
         color: #666;
         text-align: center;
-        line-height: 28px;
+        line-height: 24px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 500;
         transition: all 0.2s;
         user-select: none;
+      }
+
+      @media (max-width: 768px) {
+        .day-button {
+          width: 24px;
+          height: 24px;
+          line-height: 20px;
+          font-size: 11px;
+        }
+
+        .day-selector {
+          max-width: 200px;
+        }
       }
 
       .day-button:hover {
@@ -985,6 +998,38 @@
         background: #3498db;
         border-color: #3498db;
         color: white;
+      }
+
+      .save-btn {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 14px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .save-btn:hover {
+        background: #2980b9;
+      }
+
+      .delete-btn {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 14px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .delete-btn:hover {
+        background: #c0392b;
       }
     </style>
   </head>
@@ -1158,19 +1203,8 @@
                 <span>土</span>
               </label>
             </div>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <input
-                type="number"
-                class="shiftboard-input"
-                id="dayPremiumRate"
-                placeholder="時給 (円)"
-                disabled
-                style="flex: 1; text-align: center; max-width: 120px;"
-              />
-              <select class="shiftboard-select" id="dayPremiumType" disabled onchange="updateDayPremiumFields()" style="width: 80px;">
-                <option value="fixed">固定額</option>
-                <option value="rate">割増率 (%)</option>
-              </select>
+            <div id="dayWageInputs" style="margin-top: 8px; display: none;">
+              <!-- 選択された曜日の時給入力フィールドが動的に生成される -->
             </div>
           </div>
         </div>
@@ -1246,26 +1280,6 @@
         </div>
       </div>
 
-      <!-- 給料 -->
-      <div class="shiftboard-form-group salary-preview">
-        <div class="form-row">
-          <label class="form-label-left">給料</label>
-          <div class="form-value-right">
-            <span class="salary-calculation" id="salaryPreview">完了すると計算されます</span>
-            <button class="salary-detail-btn" onclick="showSalaryDetail()">天引・手当の入力</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 給料の個別設定 -->
-      <div class="shiftboard-form-group">
-        <div class="form-row">
-          <label class="form-label-left">給料の<br>個別設定</label>
-          <div class="form-value-right">
-            <span class="not-set">未設定</span>
-          </div>
-        </div>
-      </div>
 
       <!-- メモ -->
       <div class="shiftboard-form-group">
@@ -1277,8 +1291,11 @@
         </div>
       </div>
 
-      <!-- 完了ボタン -->
-      <button class="complete-btn-green" onclick="saveShift()">完了する</button>
+      <!-- 保存・削除ボタン -->
+      <div class="button-group" style="display: flex; gap: 10px; padding: 16px 20px;">
+        <button class="delete-btn" onclick="deleteShift()" style="flex: 1;">削除</button>
+        <button class="save-btn" onclick="saveShift()" style="flex: 2;">保存</button>
+      </div>
 
       <div class="form-group">
         <label class="form-label">
@@ -1547,17 +1564,32 @@
         updateNightShiftFields();
 
         // 曜日別設定
-        if (workplace.dayPremium && workplace.dayPremium.enabled) {
+        if (workplace.dayWages && workplace.dayWages.enabled) {
+          Object.keys(workplace.dayWages.wages).forEach(day => {
+            const checkbox = document.getElementById(`dayPremium_${day}`);
+            if (checkbox) checkbox.checked = true;
+          });
+        } else if (workplace.dayPremium && workplace.dayPremium.enabled) {
+          // 古い形式との互換性
           workplace.dayPremium.days.forEach(day => {
             const checkbox = document.getElementById(`dayPremium_${day}`);
             if (checkbox) checkbox.checked = true;
           });
-          
-          document.getElementById('dayPremiumRate').value = workplace.dayPremium.rate;
-          document.getElementById('dayPremiumType').value = workplace.dayPremium.type || 'fixed';
         }
         
         updateDayPremiumFields();
+        
+        // 曜日別時給の値を設定（updateDayPremiumFields後に実行）
+        if (workplace.dayWages && workplace.dayWages.enabled) {
+          setTimeout(() => {
+            Object.entries(workplace.dayWages.wages).forEach(([day, wage]) => {
+              const dayWageInput = document.getElementById(`dayWage_${day}`);
+              if (dayWageInput) {
+                dayWageInput.value = wage;
+              }
+            });
+          }, 50);
+        }
       }
 
       // 職場リストをレンダリング
@@ -1618,25 +1650,28 @@
 
         // 曜日別設定
         const selectedDays = [];
+        const dayWages = {};
+        
         ['0', '1', '2', '3', '4', '5', '6'].forEach(day => {
           if (document.getElementById(`dayPremium_${day}`)?.checked) {
             selectedDays.push(parseInt(day));
+            
+            // 個別の曜日時給を取得
+            const dayWageInput = document.getElementById(`dayWage_${day}`);
+            if (dayWageInput && dayWageInput.value) {
+              const dayWage = parseInt(dayWageInput.value);
+              if (dayWage > 0) {
+                dayWages[day] = dayWage;
+              }
+            }
           }
         });
 
-        if (selectedDays.length > 0) {
-          const rate = parseFloat(document.getElementById('dayPremiumRate').value);
-          const type = document.getElementById('dayPremiumType').value;
-
-          if (rate && rate > 0) {
-            workplace.dayPremium = {
-              enabled: true,
-              days: selectedDays,
-              rate: rate,
-              type: type,
-              multiplier: type === 'fixed' ? rate / baseHourly : 1 + (rate / 100)
-            };
-          }
+        if (selectedDays.length > 0 && Object.keys(dayWages).length > 0) {
+          workplace.dayWages = {
+            enabled: true,
+            wages: dayWages
+          };
         }
 
         // 保存
@@ -1670,15 +1705,17 @@
       // 曜日別設定フィールドの表示/非表示
       function updateDayPremiumFields() {
         const checkboxes = document.querySelectorAll('[id^="dayPremium_"]');
-        const hasSelectedDays = Array.from(checkboxes).some(checkbox => checkbox.checked);
+        const selectedDays = [];
+        const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
 
         // 曜日ボタンのスタイルを更新
-        checkboxes.forEach(checkbox => {
+        checkboxes.forEach((checkbox, index) => {
           const button = checkbox.parentElement;
           if (checkbox.checked) {
             button.style.background = '#3498db';
             button.style.borderColor = '#3498db';
             button.style.color = 'white';
+            selectedDays.push({id: index, name: dayNames[index]});
           } else {
             button.style.background = 'white';
             button.style.borderColor = '#e9ecef';
@@ -1686,24 +1723,27 @@
           }
         });
 
-        const rateInput = document.getElementById('dayPremiumRate');
-        const typeSelect = document.getElementById('dayPremiumType');
-
-        rateInput.disabled = !hasSelectedDays;
-        typeSelect.disabled = !hasSelectedDays;
-
-        // プレースホルダーを動的に更新
-        if (hasSelectedDays) {
-          const baseHourly = parseInt(document.getElementById('baseHourlyWage').value) || 1000;
-          const type = typeSelect.value;
-
-          if (type === 'fixed') {
-            rateInput.placeholder = `${baseHourly + 100} (円)`;
-          } else if (type === 'rate') {
-            rateInput.placeholder = '10 (%)';
-          }
+        // 曜日別時給入力フィールドを動的生成
+        const dayWageInputs = document.getElementById('dayWageInputs');
+        
+        if (selectedDays.length > 0) {
+          dayWageInputs.style.display = 'block';
+          dayWageInputs.innerHTML = selectedDays.map(day => `
+            <div style="display: flex; align-items: center; margin-bottom: 8px; gap: 8px;">
+              <span style="width: 20px; font-size: 14px; color: #666;">${day.name}</span>
+              <input
+                type="number"
+                class="shiftboard-input"
+                id="dayWage_${day.id}"
+                placeholder="1100"
+                style="flex: 1; text-align: center; max-width: 80px;"
+              />
+              <span style="color: #666; font-size: 14px;">円</span>
+            </div>
+          `).join('');
         } else {
-          rateInput.placeholder = '時給 (円)';
+          dayWageInputs.style.display = 'none';
+          dayWageInputs.innerHTML = '';
         }
       }
 
@@ -2040,12 +2080,31 @@
 
         console.log('曜日:', dayOfWeek, '(0:日 1:月 ... 6:土)');
 
-        // 曜日別割増の確認
-        console.log('曜日別設定チェック:', workplace.dayPremium);
-        if (workplace.dayPremium && workplace.dayPremium.enabled && workplace.dayPremium.days) {
+        // 曜日別時給の確認
+        console.log('曜日別設定チェック:', workplace.dayWages);
+        if (workplace.dayWages && workplace.dayWages.enabled && workplace.dayWages.wages) {
+          const dayWageStr = dayOfWeek.toString();
+          console.log('曜日別時給設定:', workplace.dayWages.wages, '今日の曜日:', dayOfWeek);
+          if (workplace.dayWages.wages[dayWageStr]) {
+            hourlyRate = workplace.dayWages.wages[dayWageStr];
+            isWeekendPremium = true;
+
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            breakdown.push(
+              `${dayNames[dayOfWeek]}曜日時給: ${workplace.baseHourly}円 → ${hourlyRate}円`
+            );
+            console.log('曜日別時給適用:', {
+              base: workplace.baseHourly,
+              dayOfWeek: dayOfWeek,
+              result: hourlyRate
+            });
+          } else {
+            console.log('曜日別時給対象外');
+          }
+        } else if (workplace.dayPremium && workplace.dayPremium.enabled && workplace.dayPremium.days) {
+          // 古い形式との互換性
           console.log('設定対象曜日:', workplace.dayPremium.days, '今日の曜日:', dayOfWeek);
           if (workplace.dayPremium.days.includes(dayOfWeek)) {
-            // multiplierを再計算して確実に適用
             let multiplier;
             if (workplace.dayPremium.type === 'fixed') {
               multiplier = workplace.dayPremium.rate / workplace.baseHourly;
@@ -2060,13 +2119,6 @@
             breakdown.push(
               `${dayNames[dayOfWeek]}曜日割増: ${workplace.baseHourly}円 → ${Math.round(hourlyRate)}円 (${workplace.dayPremium.type === 'fixed' ? '固定' : '×' + multiplier.toFixed(2)})`
             );
-            console.log('曜日割増適用:', {
-              base: workplace.baseHourly,
-              type: workplace.dayPremium.type,
-              rate: workplace.dayPremium.rate,
-              multiplier: multiplier,
-              result: hourlyRate
-            });
           } else {
             console.log('曜日割増対象外');
           }
