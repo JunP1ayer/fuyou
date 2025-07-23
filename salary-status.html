@@ -512,15 +512,8 @@
             <div class="breakdown-tab outlined">給料実績</div>
           </div>
 
-          <div class="workplace-list">
-            <div class="workplace-item">
-              <div class="workplace-name">我屋</div>
-              <div class="workplace-stats">
-                <span>0h00m</span>
-                <span>¥0</span>
-                <span>未入力 ✏️</span>
-              </div>
-            </div>
+          <div class="workplace-list" id="workplaceList">
+            <!-- JavaScriptで動的に生成 -->
           </div>
 
           <!-- 合計 -->
@@ -550,11 +543,178 @@
     <script>
       // 現在の月を管理
       let currentDate = new Date();
-      
+      let workplaces = {};
+      let shifts = {};
+      let monthlyTargets = {};
+
+      // LocalStorageからデータを読み込み
+      function loadData() {
+        workplaces = JSON.parse(localStorage.getItem('workplaces') || '{}');
+        shifts = JSON.parse(localStorage.getItem('shifts') || '{}');
+        monthlyTargets = JSON.parse(localStorage.getItem('monthlyTargets') || '{}');
+      }
+
+      // 月間目標を保存
+      function saveMonthlyTarget() {
+        localStorage.setItem('monthlyTargets', JSON.stringify(monthlyTargets));
+      }
+
+      // 現在の月のキーを取得
+      function getMonthKey() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+        return `${year}-${month.toString().padStart(2, '0')}`;
+      }
+
+      // 指定月のシフトを取得
+      function getMonthlyShifts() {
+        const monthKey = getMonthKey();
+        return shifts[monthKey] || {};
+      }
+
+      // 勤務時間を計算（時間:分 → 分）
+      function timeToMinutes(timeStr) {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes;
+      }
+
+      // 分を時間:分形式に変換
+      function minutesToTime(minutes) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        return `${hours}h${mins.toString().padStart(2, '0')}m`;
+      }
+
+      // 給料計算
+      function calculateSalary(workplaceId, minutes, date) {
+        const workplace = workplaces[workplaceId];
+        if (!workplace) return 0;
+
+        const hours = minutes / 60;
+        let salary = hours * workplace.hourlyRate;
+
+        // 交通費を追加
+        if (workplace.transportationFee) {
+          salary += workplace.transportationFee;
+        }
+
+        return Math.floor(salary);
+      }
+
+      // 月間統計を計算
+      function calculateMonthlyStats() {
+        const monthlyShifts = getMonthlyShifts();
+        let totalMinutes = 0;
+        let totalEarnings = 0;
+        const workplaceStats = {};
+
+        // 各職場の統計を初期化
+        Object.keys(workplaces).forEach(id => {
+          workplaceStats[id] = {
+            minutes: 0,
+            earnings: 0,
+            shifts: 0
+          };
+        });
+
+        // シフトデータを集計
+        Object.entries(monthlyShifts).forEach(([date, dayShifts]) => {
+          Object.entries(dayShifts).forEach(([shiftId, shift]) => {
+            const startMinutes = timeToMinutes(shift.startTime);
+            const endMinutes = timeToMinutes(shift.endTime);
+            const workMinutes = endMinutes > startMinutes ? 
+              endMinutes - startMinutes : 
+              (24 * 60 - startMinutes) + endMinutes;
+
+            totalMinutes += workMinutes;
+            const salary = calculateSalary(shift.workplaceId, workMinutes, date);
+            totalEarnings += salary;
+
+            if (workplaceStats[shift.workplaceId]) {
+              workplaceStats[shift.workplaceId].minutes += workMinutes;
+              workplaceStats[shift.workplaceId].earnings += salary;
+              workplaceStats[shift.workplaceId].shifts += 1;
+            }
+          });
+        });
+
+        return {
+          totalMinutes,
+          totalEarnings,
+          workplaceStats
+        };
+      }
+
+      // 表示を更新
       function updateDisplay() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth() + 1;
         document.getElementById('currentMonth').textContent = `${year}年${month}月`;
+
+        // 月間目標を表示
+        const monthKey = getMonthKey();
+        const target = monthlyTargets[monthKey] || 50000;
+        document.getElementById('targetAmount').textContent = '¥' + target.toLocaleString();
+
+        // 統計を計算
+        const stats = calculateMonthlyStats();
+
+        // 今日までの給料を表示
+        document.getElementById('currentEarnings').textContent = '¥' + stats.totalEarnings.toLocaleString();
+
+        // 勤務時間と給料見込を表示
+        document.getElementById('workingHours').textContent = minutesToTime(stats.totalMinutes);
+        document.getElementById('expectedSalary').textContent = '¥' + stats.totalEarnings.toLocaleString();
+
+        // 職場別内訳を表示
+        updateWorkplaceList(stats.workplaceStats);
+
+        // 合計を更新
+        updateTotalStats(stats.totalMinutes, stats.totalEarnings);
+      }
+
+      // 職場別内訳を更新
+      function updateWorkplaceList(workplaceStats) {
+        const container = document.getElementById('workplaceList');
+        container.innerHTML = '';
+
+        if (Object.keys(workplaces).length === 0) {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 32px; color: #adb5bd;">
+              <p>職場が登録されていません</p>
+              <p style="font-size: 14px; margin-top: 8px;">
+                <a href="calendar-main.html" style="color: #3498db;">カレンダーページ</a>で職場を追加してください
+              </p>
+            </div>
+          `;
+          return;
+        }
+
+        Object.entries(workplaces).forEach(([id, workplace]) => {
+          const stats = workplaceStats[id] || { minutes: 0, earnings: 0, shifts: 0 };
+          
+          const workplaceItem = document.createElement('div');
+          workplaceItem.className = 'workplace-item';
+          workplaceItem.innerHTML = `
+            <div class="workplace-name">${workplace.name}</div>
+            <div class="workplace-stats">
+              <span>${minutesToTime(stats.minutes)}</span>
+              <span>¥${stats.earnings.toLocaleString()}</span>
+              <span style="color: #adb5bd;">${stats.shifts}回 📊</span>
+            </div>
+          `;
+          container.appendChild(workplaceItem);
+        });
+      }
+
+      // 合計統計を更新
+      function updateTotalStats(totalMinutes, totalEarnings) {
+        const totalStats = document.querySelector('.total-stats');
+        totalStats.innerHTML = `
+          <span>${minutesToTime(totalMinutes)}</span>
+          <span>¥${totalEarnings.toLocaleString()}</span>
+          <span style="color: #adb5bd;">¥${totalEarnings.toLocaleString()}</span>
+        `;
       }
 
       function changeMonth(direction) {
@@ -563,27 +723,57 @@
       }
 
       function editTarget() {
-        const currentAmount = document.getElementById('targetAmount').textContent.replace('¥', '').replace(',', '');
-        const newAmount = prompt('月間目標金額を入力してください（円）', currentAmount);
+        const monthKey = getMonthKey();
+        const currentAmount = monthlyTargets[monthKey] || 50000;
+        const newAmount = prompt('月間目標金額を入力してください（円）', currentAmount.toString());
         
         if (newAmount && !isNaN(newAmount) && newAmount > 0) {
-          const formattedAmount = Number(newAmount).toLocaleString();
-          document.getElementById('targetAmount').textContent = '¥' + formattedAmount;
+          monthlyTargets[monthKey] = parseInt(newAmount);
+          saveMonthlyTarget();
+          updateDisplay();
         }
       }
 
       function showBreakdown() {
-        alert('給料計算の詳細:\n\n基本給: ¥1,100/時間\n交通費: ¥420/日\n深夜割増: 25%\n\n現在の勤務時間: 0時間\n現在の給料: ¥0');
+        const stats = calculateMonthlyStats();
+        let breakdown = '給料計算の詳細:\n\n';
+        
+        Object.entries(workplaces).forEach(([id, workplace]) => {
+          const workplaceStats = stats.workplaceStats[id];
+          if (workplaceStats && workplaceStats.minutes > 0) {
+            breakdown += `■ ${workplace.name}\n`;
+            breakdown += `  時給: ¥${workplace.hourlyRate}/時間\n`;
+            breakdown += `  勤務時間: ${minutesToTime(workplaceStats.minutes)}\n`;
+            breakdown += `  交通費: ¥${workplace.transportationFee || 0}\n`;
+            breakdown += `  給料: ¥${workplaceStats.earnings.toLocaleString()}\n\n`;
+          }
+        });
+        
+        breakdown += `合計勤務時間: ${minutesToTime(stats.totalMinutes)}\n`;
+        breakdown += `合計給料: ¥${stats.totalEarnings.toLocaleString()}`;
+        
+        alert(breakdown);
       }
 
       function showHelp() {
-        alert('使い方:\n\n1. シフトを登録すると自動で給料が計算されます\n2. 月間目標をクリックして金額を設定できます\n3. 実際の給料と異なる場合は手動で修正してください');
+        alert('使い方:\n\n1. カレンダーページで職場を登録してください\n2. シフトを登録すると自動で給料が計算されます\n3. 月間目標をクリックして金額を設定できます\n4. 実際の給料と異なる場合は職場の時給設定を確認してください');
       }
 
       // ページ読み込み時の初期化
       document.addEventListener('DOMContentLoaded', function() {
+        loadData();
         updateDisplay();
         console.log('給料管理ページ 初期化完了');
+        console.log('登録済み職場数:', Object.keys(workplaces).length);
+        console.log('今月のシフト数:', Object.keys(getMonthlyShifts()).length);
+      });
+
+      // ページが表示されるたびにデータを更新
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+          loadData();
+          updateDisplay();
+        }
       });
     </script>
   </body>
