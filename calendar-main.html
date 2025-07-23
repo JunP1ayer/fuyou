@@ -774,7 +774,7 @@
       }
 
       .close-btn-green {
-        background: #28a745;
+        background: #3498db;
         border: none;
         color: white;
         width: 32px;
@@ -791,7 +791,7 @@
       }
 
       .close-btn-green:hover {
-        background: #218838;
+        background: #2980b9;
       }
 
       .shiftboard-form-group {
@@ -828,16 +828,18 @@
       .shiftboard-input, .shiftboard-select, .shiftboard-date, .shiftboard-time {
         border: none;
         outline: none;
-        text-align: right;
+        text-align: center;
         font-size: 16px;
         background: transparent;
         color: #333;
-        padding: 8px 0;
+        padding: 8px 4px;
+        width: 100%;
+        max-width: 100%;
       }
 
       .shiftboard-input::placeholder {
         color: #aaa;
-        text-align: right;
+        text-align: center;
       }
 
       .shiftboard-select {
@@ -858,7 +860,7 @@
 
       .complete-btn-green {
         width: calc(100% - 40px);
-        background: #28a745;
+        background: #3498db;
         color: white;
         border: none;
         padding: 16px;
@@ -871,7 +873,7 @@
       }
 
       .complete-btn-green:hover {
-        background: #218838;
+        background: #2980b9;
       }
 
       .complete-btn-green:disabled {
@@ -905,30 +907,30 @@
       .shiftboard-memo {
         border: none;
         outline: none;
-        text-align: right;
+        text-align: center;
         font-size: 16px;
         background: transparent;
         color: #333;
         width: 100%;
         min-height: 40px;
         resize: none;
-        padding: 8px 0;
+        padding: 8px 4px;
       }
 
       .shiftboard-memo::placeholder {
         color: #aaa;
-        text-align: right;
+        text-align: center;
       }
 
       .shiftboard-break {
         border: none;
         outline: none;
-        text-align: right;
+        text-align: center;
         font-size: 16px;
         background: transparent;
         color: #333;
-        width: 40px;
-        padding: 8px 0;
+        width: 60px;
+        padding: 8px 4px;
       }
 
       .break-unit {
@@ -1033,7 +1035,7 @@
               class="shiftboard-input"
               id="baseHourlyWage"
               placeholder="1100"
-              style="text-align: right;"
+              style="text-align: center; max-width: 80px;"
             />
             <span style="color: #666; margin-left: 4px;">円</span>
           </div>
@@ -1051,7 +1053,7 @@
               id="transportationFee"
               placeholder="420"
               value="0"
-              style="text-align: right;"
+              style="text-align: center; max-width: 80px;"
             />
             <span style="color: #666; margin-left: 4px;">円</span>
           </div>
@@ -1115,7 +1117,7 @@
                 id="dayPremiumRate"
                 placeholder="時給 (円)"
                 disabled
-                style="flex: 1; text-align: right;"
+                style="flex: 1; text-align: center; max-width: 120px;"
               />
               <select class="shiftboard-select" id="dayPremiumType" disabled onchange="updateDayPremiumFields()" style="width: 80px;">
                 <option value="fixed">固定額</option>
@@ -1909,7 +1911,7 @@
         const workplaceEntries = Object.entries(workplaces);
 
         if (workplaceEntries.length === 0) {
-          selectElement.innerHTML = '<option value="">まずバイト先を登録してください</option>';
+          selectElement.innerHTML = '<option value="">まずバイト先を登録</option>';
           return;
         }
 
