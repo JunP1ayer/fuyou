@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/dist",
+  "buildCommand": "",
+  "outputDirectory": ".",
   "installCommand": "",
   "functions": {
     "api/openai-vision.js": {
@@ -13,8 +13,24 @@
   },
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/",
+      "destination": "/shiftboard-salary.html"
+    },
+    {
+      "source": "/app",
+      "destination": "/shiftboard-salary.html"
+    },
+    {
+      "source": "/ai",
+      "destination": "/shiftboard-salary.html"
+    },
+    {
+      "source": "/latest",
+      "destination": "/shiftboard-salary.html"
+    },
+    {
+      "source": "/shift",
+      "destination": "/shiftboard-salary.html"
     }
   ],
   "headers": [
