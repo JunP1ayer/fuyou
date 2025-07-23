@@ -632,8 +632,22 @@
           width: 90%;
           min-width: 0;
           max-width: 400px;
-          max-height: 90vh;
+          max-height: 85vh;
           overflow-y: auto;
+        }
+
+        .shiftboard-style {
+          max-height: 85vh;
+        }
+
+        .form-row {
+          padding: 10px 16px;
+          min-height: 45px;
+        }
+
+        .complete-btn-green {
+          margin: 12px 16px;
+          padding: 12px;
         }
 
         .workplace-popup {
@@ -753,11 +767,13 @@
       .shiftboard-style {
         border-radius: 12px;
         overflow: hidden;
+        max-height: 85vh;
+        overflow-y: auto;
       }
 
       .shiftboard-header {
         background: #f8f9fa;
-        padding: 16px 20px;
+        padding: 12px 20px;
         display: flex;
         align-items: center;
         border-bottom: 1px solid #e9ecef;
@@ -805,8 +821,8 @@
       .form-row {
         display: flex;
         align-items: center;
-        padding: 16px 20px;
-        min-height: 60px;
+        padding: 12px 20px;
+        min-height: 50px;
       }
 
       .form-label-left {
@@ -863,12 +879,12 @@
         background: #3498db;
         color: white;
         border: none;
-        padding: 16px;
+        padding: 14px;
         border-radius: 12px;
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
-        margin: 20px 20px;
+        margin: 16px 20px;
         transition: all 0.2s;
       }
 
@@ -1911,7 +1927,7 @@
         const workplaceEntries = Object.entries(workplaces);
 
         if (workplaceEntries.length === 0) {
-          selectElement.innerHTML = '<option value="">まずバイト先を登録</option>';
+          selectElement.innerHTML = '<option value="">バイト先を登録</option>';
           return;
         }
 
