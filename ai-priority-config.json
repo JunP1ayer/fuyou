@@ -1,0 +1,61 @@
+{
+  "aiProviders": {
+    "priority": [
+      {
+        "name": "gemini",
+        "description": "Google Gemini AI",
+        "endpoint": "/api/gemini-vision",
+        "status": "active",
+        "features": ["画像解析", "シフト表OCR", "自然言語処理"],
+        "priority": 1,
+        "costPerRequest": "$0.002"
+      },
+      {
+        "name": "openai",
+        "description": "OpenAI GPT-4o",
+        "endpoint": "/api/openai-vision", 
+        "status": "active",
+        "features": ["画像解析", "高精度OCR", "複雑レイアウト対応"],
+        "priority": 2,
+        "costPerRequest": "$0.01-0.05",
+        "note": "APIキー設定済み - 利用可能"
+      },
+      {
+        "name": "google-vision",
+        "description": "Google Cloud Vision API",
+        "endpoint": "/api/ocr/upload",
+        "status": "active",
+        "features": ["OCR専門", "テキスト抽出", "多言語対応"],
+        "priority": 3,
+        "costPerRequest": "$0.0015"
+      }
+    ]
+  },
+  "configuration": {
+    "defaultProvider": "gemini",
+    "fallbackChain": ["gemini", "openai", "google-vision"],
+    "rateLimits": {
+      "gemini": "60/hour",
+      "openai": "100/hour", 
+      "google-vision": "1000/month"
+    },
+    "imageRequirements": {
+      "maxSize": "5MB",
+      "formats": ["jpg", "jpeg", "png", "webp"],
+      "minResolution": "300x300"
+    }
+  },
+  "usage": {
+    "recommendedWorkflow": [
+      "1. Gemini AIで初回解析（最高精度）",
+      "2. 失敗時はOpenAI GPT-4oにフォールバック",
+      "3. 最終的にGoogle Vision OCRにフォールバック"
+    ],
+    "features": [
+      "複数AI解析エンジン選択可能",
+      "優先順位自動選択",
+      "フォールバック機能",
+      "リアルタイム結果表示"
+    ]
+  }
+}

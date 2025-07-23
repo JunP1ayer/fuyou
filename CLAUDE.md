@@ -14,7 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### フロントエンド
 - **React 18** + **TypeScript** + **Material-UI v5**
-- **Vite** (開発・ビルド)
+- **Vite 5.4.11** (開発・ビルド、WSL2対応)
+- **PWA機能**: Service Worker対応
 - **認証**: Supabase Auth + Demo認証システム
 
 ### バックエンド  
@@ -23,6 +24,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **CSV処理**: Multer + CSV-Parser
 - **OCR処理**: Google Cloud Vision API + Multer
 - **バリデーション**: Zod
+- **ロギング**: Winston構造化ログ
+
+### 最適化サービス
+- **Python 3.11+** + **FastAPI** + **uvicorn**
+- **scipy.optimize**: 線形計画法
+- **カスタム遺伝的アルゴリズム**: 複雑制約対応
+- **Docker**: コンテナ化対応
+
+### サーバーレス/AI
+- **Vercel Functions**: エッジランタイム
+- **OpenAI Vision API** / **Google Gemini API**
+- **静的HTML版**: PWA対応のスタンドアロン版
 
 ## 🚀 主要開発コマンド
 
@@ -57,6 +70,26 @@ cd backend && npm run test:watch
 cd backend && npm run test:db
 ```
 
+### 最適化サービス
+```bash
+# Python最適化サービス起動
+cd optimization_service && python start_dev.py
+# または
+cd optimization_service && uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Dockerでの起動
+cd optimization_service && docker build -t fuyou-optimization . && docker run -p 8000:8000 fuyou-optimization
+```
+
+### サーバーレス版開発
+```bash
+# Vercel開発サーバー
+vercel dev
+
+# 本番デプロイ
+vercel --prod
+```
+
 ## 🏗️ アーキテクチャ概要
 
 ### 認証システム
@@ -76,6 +109,25 @@ cd backend && npm run test:db
 - **UI状態**: ローカルstate + useCallback パフォーマンス最適化
 
 ## 📂 重要なファイル構成
+
+### プロジェクト全体構成
+```
+fuyou/
+├── 📁 静的HTML版
+│   ├── fuyou-interactive-v6.html      # シフトボード風UX版
+│   ├── fuyou-serverless-v5.html       # AI搭載サーバーレス版
+│   └── calendar-main.html             # メインランディングページ
+├── 📁 サーバーレスAPI (api/)
+│   ├── openai-vision.js               # OpenAI Vision API統合
+│   └── gemini-vision.js               # Google Gemini API統合
+├── 📁 React フロントエンド (frontend/)
+├── 📁 Node.js バックエンド (backend/)
+├── 📁 Python最適化サービス (optimization_service/)
+└── 📁 データベース (database/)
+    ├── schema.sql                     # 基本スキーマ
+    ├── enhanced_schema.sql            # 拡張機能
+    └── optimization_schema.sql        # 最適化用テーブル
+```
 
 ### バックエンド主要ファイル
 ```
@@ -128,6 +180,25 @@ frontend/src/
 └── utils/                          # ユーティリティ関数
 ```
 
+### Python最適化サービス構成
+```
+optimization_service/
+├── main.py                            # FastAPI アプリケーション
+├── algorithms/                        # 最適化アルゴリズム
+│   ├── linear_programming.py         # 線形計画法 (Free Tier)
+│   ├── genetic_algorithm.py          # 遺伝的アルゴリズム (Standard Tier)
+│   ├── multi_objective.py            # 多目的最適化 NSGA-II (Pro Tier)
+│   └── objective_functions.py        # 目的関数定義
+├── services/                          # ビジネスロジック
+│   ├── optimizer.py                   # 最適化エンジン
+│   ├── constraint_manager.py         # 制約管理
+│   └── solution_validator.py         # 解の検証
+├── models/                            # Pydantic データモデル
+├── utils/                             # ユーティリティ
+├── requirements.txt                   # Python依存関係
+└── Dockerfile                         # コンテナ定義
+```
+
 ## 💾 データベース設計
 
 ### 主要テーブル
@@ -175,9 +246,9 @@ frontend/src/
 - **フロントエンドOCR UI** (画像アップロード、処理UI、結果編集、シフト統合)
 
 ### 📋 今後の計画  
-- **Phase 4**: 銀行API連携
-- **Phase 5**: 最適化アルゴリズム（労働時間最適化提案）
-- **Phase 6**: モバイルアプリ化
+- **Phase 4**: 最適化アルゴリズム（基本線形計画法は完成、遺伝的アルゴリズム・多目的最適化は開発中）
+- **Phase 5**: 銀行API連携・ML基盤制約学習
+- **Phase 6**: モバイルアプリ化・リアルタイム最適化
 
 ## 🛠️ WSL2開発環境対応
 
@@ -227,3 +298,21 @@ frontend/src/
 - **アクセシビリティ**: ARIA属性、キーボード操作対応
 - **ユーザーフィードバック**: ローディング、エラー状態の明確な表示
 - **色彩設計**: 緑(安全)、黄(警告)、赤(危険) の直感的な色分け
+
+## 🔧 アーキテクチャパターン
+
+### 多版本展開戦略
+- **静的HTML版** (v5/v6): 軽量・高速・API設定不要
+- **React版**: エンタープライズグレード・フル機能
+- **サーバーレス版**: AI機能・Vercel Edge Functions
+
+### 最適化サービス統合
+- **FastAPI**: 非同期処理・高性能数学計算
+- **階層アルゴリズム**: Linear Programming → Genetic → Multi-Objective
+- **ティア制限**: Free/Standard/Pro による機能制限
+
+### セキュリティレイヤード
+- **フロントエンド**: CSP・XSS対策
+- **API**: JWT・Rate Limiting・入力検証
+- **データベース**: RLS・UUID・パラメータ化クエリ
+- **ファイル処理**: MIME検証・サイズ制限・ウイルススキャン準備

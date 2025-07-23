@@ -20,14 +20,16 @@ import {
   PhotoCamera,
   Upload,
 } from '@mui/icons-material';
-import { ShiftCalendar } from './shifts/ShiftCalendar';
+import { ShiftManager } from './shifts/ShiftManager';
 import { OCRShiftManager } from './OCRShiftManager';
+import { IntelligentOCRWorkflow } from './ocr/IntelligentOCRWorkflow';
 import { ShiftboardSalaryCard } from './ShiftboardSalaryCard';
 import type { Shift, CreateShiftData } from '../types/shift';
 
 export const ShiftBoardFuyouApp: React.FC = () => {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
+  const [intelligentOCROpen, setIntelligentOCROpen] = useState(false);
 
   // OCRシフト追加の処理
   const handleOCRComplete = (newShifts: CreateShiftData[]) => {
@@ -39,14 +41,16 @@ export const ShiftBoardFuyouApp: React.FC = () => {
       startTime: shift.startTime,
       endTime: shift.endTime,
       hourlyRate: shift.hourlyRate,
-      location: shift.location || '本店',
-      workingHours: calculateWorkingHours(shift.startTime, shift.endTime),
+      jobSourceName: shift.jobSourceName,
+      breakMinutes: shift.breakMinutes || 0,
+      workingHours: calculateWorkingHours(shift.startTime, shift.endTime, shift.breakMinutes || 0),
       calculatedEarnings:
-        calculateWorkingHours(shift.startTime, shift.endTime) *
+        calculateWorkingHours(shift.startTime, shift.endTime, shift.breakMinutes || 0) *
         shift.hourlyRate,
-      notes: shift.notes,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      description: shift.description,
+      isConfirmed: shift.isConfirmed || false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }));
 
     setShifts(prev => [...prev, ...shiftsToAdd]);
@@ -56,15 +60,22 @@ export const ShiftBoardFuyouApp: React.FC = () => {
   // 労働時間計算のヘルパー関数
   const calculateWorkingHours = (
     startTime: string,
-    endTime: string
+    endTime: string,
+    breakMinutes: number = 0
   ): number => {
     const [startHour, startMin] = startTime.split(':').map(Number);
     const [endHour, endMin] = endTime.split(':').map(Number);
 
     const startMinutes = startHour * 60 + startMin;
-    const endMinutes = endHour * 60 + endMin;
+    let endMinutes = endHour * 60 + endMin;
+    
+    // 翌日跨ぎの場合
+    if (endMinutes < startMinutes) {
+      endMinutes += 24 * 60;
+    }
 
-    return (endMinutes - startMinutes) / 60;
+    const totalMinutes = endMinutes - startMinutes - breakMinutes;
+    return Math.max(0, totalMinutes / 60);
   };
 
   return (
@@ -107,71 +118,14 @@ export const ShiftBoardFuyouApp: React.FC = () => {
 
       {/* シフトボード風給料計算UI */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={8}>
-          <ShiftboardSalaryCard compact={false} shifts={shifts} />
+        <Grid item xs={12}>
+          <ShiftManager />
         </Grid>
 
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                クイックアクション
-              </Typography>
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Tooltip title="シフト表を撮影してAIが自動でシフトを登録">
-                  <Box>
-                    <Chip
-                      icon={<CameraAlt />}
-                      label="シフト表を撮影"
-                      clickable
-                      color="primary"
-                      size="medium"
-                      sx={{ width: '100%', height: 48 }}
-                      onClick={() => setOcrDialogOpen(true)}
-                    />
-                  </Box>
-                </Tooltip>
-
-                <Chip
-                  icon={<Add />}
-                  label="手動でシフト追加"
-                  clickable
-                  variant="outlined"
-                  size="medium"
-                  sx={{ width: '100%', height: 48 }}
-                />
-
-                <Chip
-                  icon={<Upload />}
-                  label="給与明細アップロード"
-                  clickable
-                  variant="outlined"
-                  size="medium"
-                  sx={{ width: '100%', height: 48 }}
-                />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
       </Grid>
 
-      {/* シフトカレンダー */}
-      <Card>
-        <CardContent>
-          <ShiftCalendar
-            compactMode={false}
-            onAddShift={(date: string) => {
-              console.log('Add shift for date:', date);
-            }}
-            onEditShift={(shift: Shift) => {
-              console.log('Edit shift:', shift);
-            }}
-          />
-        </CardContent>
-      </Card>
 
-      {/* OCRダイアログ */}
+      {/* 従来のOCRダイアログ */}
       <Dialog
         open={ocrDialogOpen}
         onClose={() => setOcrDialogOpen(false)}
@@ -181,7 +135,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <PhotoCamera />
-            シフト表AI読み取り
+            シンプルOCR読み取り
           </Box>
         </DialogTitle>
         <DialogContent>
@@ -192,22 +146,79 @@ export const ShiftBoardFuyouApp: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* フローティングカメラボタン */}
-      <Fab
-        color="primary"
-        size="large"
+      {/* 新しいインテリジェントOCRダイアログ */}
+      <Dialog
+        open={intelligentOCROpen}
+        onClose={() => setIntelligentOCROpen(false)}
+        maxWidth="xl"
+        fullWidth
+        fullScreen
+        sx={{
+          '& .MuiDialog-paper': {
+            bgcolor: 'background.default',
+          },
+        }}
+      >
+        <IntelligentOCRWorkflow
+          onShiftsSaved={(newShifts) => {
+            handleOCRComplete(newShifts);
+            setIntelligentOCROpen(false);
+          }}
+          onClose={() => setIntelligentOCROpen(false)}
+          userProfile={{
+            displayName: 'デモユーザー',
+            shiftFilterName: '田中',
+            preferences: {
+              defaultHourlyRate: 1000,
+              defaultBreakMinutes: 60,
+              autoConfirmHighConfidence: true,
+              ocrConfidenceThreshold: 0.7,
+            },
+          }}
+        />
+      </Dialog>
+
+      {/* フローティングボタン群 */}
+      <Box
         sx={{
           position: 'fixed',
           bottom: 24,
           right: 24,
           zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
         }}
-        onClick={() => setOcrDialogOpen(true)}
       >
-        <Badge badgeContent="AI" color="secondary">
-          <CameraAlt />
-        </Badge>
-      </Fab>
+        {/* メインのインテリジェントOCRボタン */}
+        <Tooltip title="🤖 AI シフト解析 (推奨)" placement="left">
+          <Fab
+            color="primary"
+            size="large"
+            onClick={() => setIntelligentOCROpen(true)}
+            sx={{
+              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+              boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+            }}
+          >
+            <Badge badgeContent="NEW" color="secondary">
+              <CameraAlt />
+            </Badge>
+          </Fab>
+        </Tooltip>
+
+        {/* シンプルOCRボタン */}
+        <Tooltip title="シンプルOCR読み取り" placement="left">
+          <Fab
+            color="default"
+            size="medium"
+            onClick={() => setOcrDialogOpen(true)}
+            sx={{ opacity: 0.7 }}
+          >
+            <Upload />
+          </Fab>
+        </Tooltip>
+      </Box>
     </Box>
   );
 };

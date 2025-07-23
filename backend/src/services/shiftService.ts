@@ -17,6 +17,9 @@ export class ShiftService {
   // Create a new shift
   async createShift(userId: string, data: CreateShiftRequest): Promise<ShiftResponse> {
     try {
+      // Check for time conflicts with existing shifts on the same date
+      await this.checkForTimeConflicts(userId, data.date, data.startTime, data.endTime);
+
       // Calculate working hours and earnings
       const workingHours = this.calculateWorkingHours(data.startTime, data.endTime, data.breakMinutes);
       const calculatedEarnings = workingHours * data.hourlyRate;
@@ -113,6 +116,18 @@ export class ShiftService {
   // Update a shift
   async updateShift(userId: string, shiftId: string, data: UpdateShiftRequest): Promise<ShiftResponse> {
     try {
+      // Check for time conflicts if date or time is being updated
+      if (data.date || data.startTime || data.endTime) {
+        // Get current shift to fill missing values
+        const currentShift = await this.getShiftById(userId, shiftId);
+        
+        const date = data.date || currentShift.date;
+        const startTime = data.startTime || currentShift.startTime;
+        const endTime = data.endTime || currentShift.endTime;
+        
+        await this.checkForTimeConflicts(userId, date, startTime, endTime, shiftId);
+      }
+
       const updateData: any = {
         updated_at: new Date().toISOString(),
       };
@@ -321,6 +336,60 @@ export class ShiftService {
     } catch (error) {
       throw error instanceof Error ? error : createError('Failed to calculate earnings projection', 500);
     }
+  }
+
+  // Check for time conflicts with existing shifts
+  private async checkForTimeConflicts(
+    userId: string, 
+    date: string, 
+    startTime: string, 
+    endTime: string, 
+    excludeShiftId?: string
+  ): Promise<void> {
+    try {
+      // Get all shifts for the same date
+      const existingShifts = await this.getShifts(userId, {
+        startDate: date,
+        endDate: date,
+      });
+
+      // Filter out the shift being updated (if any)
+      const shiftsToCheck = excludeShiftId 
+        ? existingShifts.filter(shift => shift.id !== excludeShiftId)
+        : existingShifts;
+
+      // Check for time overlaps
+      for (const existingShift of shiftsToCheck) {
+        if (this.hasTimeOverlap(startTime, endTime, existingShift.startTime, existingShift.endTime)) {
+          throw createError(
+            `Time conflict detected with existing shift: ${existingShift.jobSourceName} (${existingShift.startTime} - ${existingShift.endTime})`,
+            409
+          );
+        }
+      }
+    } catch (error) {
+      throw error instanceof Error ? error : createError('Failed to check time conflicts', 500);
+    }
+  }
+
+  // Check if two time ranges overlap
+  private hasTimeOverlap(start1: string, end1: string, start2: string, end2: string): boolean {
+    const parseTime = (timeStr: string): number => {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+
+    const start1Minutes = parseTime(start1);
+    const end1Minutes = parseTime(end1);
+    const start2Minutes = parseTime(start2);
+    const end2Minutes = parseTime(end2);
+
+    // Handle overnight shifts
+    const adjustEnd1 = end1Minutes < start1Minutes ? end1Minutes + 24 * 60 : end1Minutes;
+    const adjustEnd2 = end2Minutes < start2Minutes ? end2Minutes + 24 * 60 : end2Minutes;
+
+    // Check for overlap
+    return !(adjustEnd1 <= start2Minutes || adjustEnd2 <= start1Minutes);
   }
 
   // Helper method to calculate statistics

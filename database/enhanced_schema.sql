@@ -1,5 +1,5 @@
 -- 扶養管理アプリ 拡張データベーススキーマ
--- Phase 1-3 対応版
+-- Phase 1-4 対応版（インテリジェントOCR統合）
 
 -- 1. job_sources テーブル（バイト先管理）
 CREATE TABLE IF NOT EXISTS job_sources (
@@ -77,7 +77,26 @@ CREATE TABLE IF NOT EXISTS transaction_patterns (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 6. bank_connections テーブル（銀行連携情報）Phase 3用
+-- 6. shifts テーブル（シフト管理）Phase 1-2用
+CREATE TABLE IF NOT EXISTS shifts (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    job_source_id UUID REFERENCES job_sources(id),
+    job_source_name TEXT NOT NULL,
+    date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    hourly_rate DECIMAL(8,2) NOT NULL,
+    break_minutes INTEGER DEFAULT 0,
+    working_hours DECIMAL(4,2) NOT NULL,
+    calculated_earnings DECIMAL(10,2) NOT NULL,
+    description TEXT,
+    is_confirmed BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 7. bank_connections テーブル（銀行連携情報）Phase 3用
 CREATE TABLE IF NOT EXISTS bank_connections (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -121,6 +140,8 @@ CREATE INDEX IF NOT EXISTS idx_fuyou_calculations_user_date ON fuyou_calculation
 CREATE INDEX IF NOT EXISTS idx_smart_alerts_user_unread ON smart_alerts(user_id, is_read) WHERE is_read = false;
 CREATE INDEX IF NOT EXISTS idx_transaction_patterns_user_id ON transaction_patterns(user_id);
 CREATE INDEX IF NOT EXISTS idx_bank_connections_user_active ON bank_connections(user_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_shifts_user_date ON shifts(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_shifts_user_job_source ON shifts(user_id, job_source_id);
 
 -- 10. RLSポリシー追加
 ALTER TABLE job_sources ENABLE ROW LEVEL SECURITY;
@@ -152,6 +173,35 @@ CREATE POLICY "Users can manage own patterns" ON transaction_patterns
 CREATE POLICY "Users can manage own bank connections" ON bank_connections
     FOR ALL USING (auth.uid() = user_id);
 
+-- Shifts policies
+ALTER TABLE shifts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage own shifts" ON shifts
+    FOR ALL USING (auth.uid() = user_id);
+
+-- 10. user_profiles テーブル（ユーザープロフィール・名前設定）
+CREATE TABLE IF NOT EXISTS user_profiles (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+    display_name TEXT, -- 表示名
+    shift_filter_name TEXT, -- シフト表フィルタリング用の名前
+    timezone TEXT DEFAULT 'Asia/Tokyo',
+    preferences JSONB DEFAULT '{
+        "defaultHourlyRate": 1000,
+        "defaultBreakMinutes": 60,
+        "autoConfirmHighConfidence": false,
+        "ocrConfidenceThreshold": 0.7
+    }'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- User profiles policies
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage own profile" ON user_profiles
+    FOR ALL USING (auth.uid() = user_id);
+
 -- 11. 更新トリガー追加
 CREATE TRIGGER update_job_sources_updated_at BEFORE UPDATE ON job_sources
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -160,6 +210,12 @@ CREATE TRIGGER update_transaction_patterns_updated_at BEFORE UPDATE ON transacti
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_bank_connections_updated_at BEFORE UPDATE ON bank_connections
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_shifts_updated_at BEFORE UPDATE ON shifts
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- 12. 便利な関数

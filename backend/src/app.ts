@@ -21,13 +21,15 @@ import { demoRoutes } from './routes/demo';
 import { shiftRoutes } from './routes/shifts';
 import ocrRoutes from './routes/ocr'; // Re-enabled for OpenAI integration
 import fileOcrRoutes from './routes/fileOcr'; // AI-powered file analysis
+import intelligentOCRRoutes from './routes/intelligentOCR'; // Intelligent multi-AI OCR integration
+import userProfileRoutes from './routes/userProfile'; // User profile and name settings
 import jobSourcesRouter from './routes/jobSources'; // Job sources management
-import designTokenRoutes from './routes/designTokens'; // Transparent Figma integration
-import intelligenceRoutes from './routes/intelligence'; // Gemini-style AI intelligence
+// import designTokenRoutes from './routes/designTokens'; // Transparent Figma integration
+// import intelligenceRoutes from './routes/intelligence'; // Gemini-style AI intelligence
 // import { optimizationRoutes } from './routes/optimization'; // Temporarily disabled
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // Security middleware
 app.use(helmet());
@@ -104,8 +106,10 @@ app.use('/api/shifts', shiftRoutes);
 app.use('/api/job-sources', jobSourcesRouter); // Job sources management
 app.use('/api/ocr', ocrRoutes); // Re-enabled for OpenAI integration
 app.use('/api/file-ocr', fileOcrRoutes); // AI-powered file analysis
-app.use('/api/design', designTokenRoutes); // Transparent Figma design system integration
-app.use('/api/intelligence', intelligenceRoutes); // Gemini-style AI intelligence system
+app.use('/api/intelligent-ocr', intelligentOCRRoutes); // Intelligent multi-AI OCR integration
+app.use('/api/user-profile', userProfileRoutes); // User profile and name settings
+// app.use('/api/design', designTokenRoutes); // Transparent Figma design system integration
+// app.use('/api/intelligence', intelligenceRoutes); // Gemini-style AI intelligence system
 // app.use('/api/optimization', optimizationRoutes); // Temporarily disabled for debugging
 
 // 404 handler
@@ -121,7 +125,7 @@ app.use(errorHandler);
 
 // Start server
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     logger.info(`🚀 Server is running on port ${PORT}`);
     logger.info(`🏥 Health check: http://localhost:${PORT}/health`);
     logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);

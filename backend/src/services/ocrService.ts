@@ -101,6 +101,13 @@ class OCRService {
   }
 
   /**
+   * 画像処理のメインメソッド（IntelligentOCRService用）
+   */
+  async processImage(imageBuffer: Buffer): Promise<OCRResponse> {
+    return this.extractTextFromImage(imageBuffer);
+  }
+
+  /**
    * テキストからシフト関連情報を推測
    */
   private extractShiftSuggestions(text: string): {

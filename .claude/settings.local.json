@@ -116,7 +116,9 @@
       "Bash(HUSKY=0 git commit -m \"feat: 🚀 2025年税制改正対応プロフェッショナル扶養管理UI実装\n\n✨ 主要機能追加:\n- 学生特例制度(150万円)完全対応  \n- Google哲学準拠のUX設計\n- AI予測インサイト機能\n- 月間戦略選択(安全/最適/限界)\n- 社会保険の壁(130万円)明確警告\n- 新UI/従来UI切替機能\n\n🎯 技術実装:\n- ProfessionalFuyouStatusCard新コンポーネント\n- 完全TypeScript型安全性\n- Material Design 3準拠\n- レスポンシブ対応\n- モックAPI統合\n- ESLintルール最適化\n\n🎓 学生向け特化機能で2025年新制度を完全サポート\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\")",
       "Bash(HUSKY=0 git commit -m \"feat: 🎯 扶養ステータスページUX大幅改善\n\n✨ ユーザー最重要情報を最優先表示:\n- 今まで稼いだ金額を大きく表示\n- 扶養限度額を明確に表示  \n- あと稼げる額を目立つ位置に配置\n\n🎨 新デザイン特徴:\n- ヒーローセクション新設（グラデーション背景）\n- 3つの重要数値を並列表示\n- 視覚的な数式レイアウト（収入 of 限度額 = 残額）\n- 簡潔な進捗バー統合\n\n📱 UX改善:\n- 情報階層の最適化\n- モバイルファースト設計\n- 直感的な色分け\n- リスクレベル連動メッセージ\n\n🎯 ユーザビリティ向上で一目で状況把握可能\n\n🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\")",
       "WebFetch(domain:fuyou-duybcxmmd-junp1ayers-projects.vercel.app)",
-      "WebFetch(domain:fuyou-50m9jcir6-junp1ayers-projects.vercel.app)"
+      "WebFetch(domain:fuyou-50m9jcir6-junp1ayers-projects.vercel.app)",
+      "Bash(HOST=0.0.0.0 PORT=3001 node dist/app.js)",
+      "Bash(GOOGLE_APPLICATION_CREDENTIALS=./config/google-vision-key.json node -e \"\nconst vision = require(''@google-cloud/vision'');\nconst client = new vision.ImageAnnotatorClient();\nconsole.log(''Google Vision API client initialized successfully'');\n\")"
     ],
     "deny": []
   }

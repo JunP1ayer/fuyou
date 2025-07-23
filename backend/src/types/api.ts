@@ -345,3 +345,95 @@ export interface TaxBracket {
   rate: number;
   deduction: number;
 }
+
+// OCR Processing types
+export interface OCRProcessingSession {
+  sessionId: string;
+  userId: string;
+  userName?: string;
+  uploadMethod: 'file' | 'drag' | 'clipboard' | 'camera';
+  imageData: string;
+  processingOptions: {
+    aiProviders: ('gemini' | 'openai' | 'vision')[];
+    enableComparison: boolean;
+    confidenceThreshold: number;
+  };
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  createdAt: string;
+}
+
+export interface AIProcessingResult {
+  provider: 'gemini' | 'openai' | 'vision';
+  success: boolean;
+  confidence: number;
+  processingTime: number;
+  shifts: CreateShiftRequest[];
+  naturalLanguageMessage?: string;
+  rawResponse?: any;
+  error?: string;
+}
+
+export interface ConsolidatedOCRResult {
+  recommendedShifts: CreateShiftRequest[];
+  conflicts: Array<{
+    field: string;
+    values: Array<{
+      provider: string;
+      value: any;
+      confidence: number;
+    }>;
+  }>;
+  needsReview: boolean;
+  overallConfidence: number;
+}
+
+export interface OCRProcessingResponse {
+  sessionId: string;
+  results: Record<string, AIProcessingResult>;
+  consolidatedResult: ConsolidatedOCRResult;
+  processingTimeMs: number;
+}
+
+// OCR Schemas
+export const OCRProcessingSchema = z.object({
+  image: z.string().min(1, 'Image data is required'),
+  userName: z.string().optional(),
+  processingOptions: z.object({
+    aiProviders: z.array(z.enum(['gemini', 'openai', 'vision'])).default(['gemini', 'openai', 'vision']),
+    enableComparison: z.boolean().default(true),
+    confidenceThreshold: z.number().min(0).max(1).default(0.7),
+  }).optional(),
+});
+
+export type OCRProcessingRequest = z.infer<typeof OCRProcessingSchema>;
+
+// User Profile types
+export interface UserProfile {
+  id: string;
+  userId: string;
+  displayName?: string;
+  shiftFilterName?: string;
+  timezone: string;
+  preferences: {
+    defaultHourlyRate?: number;
+    defaultBreakMinutes?: number;
+    autoConfirmHighConfidence?: boolean;
+    ocrConfidenceThreshold?: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const UpdateUserProfileSchema = z.object({
+  displayName: z.string().min(1).optional(),
+  shiftFilterName: z.string().min(1).optional(),
+  timezone: z.string().default('Asia/Tokyo'),
+  preferences: z.object({
+    defaultHourlyRate: z.number().positive().optional(),
+    defaultBreakMinutes: z.number().int().min(0).optional(),
+    autoConfirmHighConfidence: z.boolean().optional(),
+    ocrConfidenceThreshold: z.number().min(0).max(1).optional(),
+  }).optional(),
+});
+
+export type UpdateUserProfileRequest = z.infer<typeof UpdateUserProfileSchema>;
