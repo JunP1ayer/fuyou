@@ -696,6 +696,142 @@
         }
         
       }
+
+      /* Shiftboard風スタイル */
+      .shiftboard-style {
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      .shiftboard-header {
+        background: #f8f9fa;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #e9ecef;
+        position: relative;
+      }
+
+      .popup-title-centered {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .close-btn-green {
+        background: #28a745;
+        border: none;
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.2s;
+        margin-left: auto;
+      }
+
+      .close-btn-green:hover {
+        background: #218838;
+      }
+
+      .shiftboard-form-group {
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .shiftboard-form-group:last-of-type {
+        border-bottom: none;
+      }
+
+      .form-row {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        min-height: 60px;
+      }
+
+      .form-label-left {
+        font-size: 16px;
+        color: #666;
+        font-weight: 500;
+        min-width: 80px;
+        margin-right: 16px;
+      }
+
+      .form-value-right {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .shiftboard-input, .shiftboard-select, .shiftboard-date, .shiftboard-time {
+        border: none;
+        outline: none;
+        text-align: right;
+        font-size: 16px;
+        background: transparent;
+        color: #333;
+        padding: 8px 0;
+      }
+
+      .shiftboard-input::placeholder {
+        color: #aaa;
+        text-align: right;
+      }
+
+      .shiftboard-select {
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .arrow-right {
+        color: #ccc;
+        font-size: 16px;
+      }
+
+      .shiftboard-date, .shiftboard-time {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .complete-btn-green {
+        width: calc(100% - 40px);
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 16px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin: 20px 20px;
+        transition: all 0.2s;
+      }
+
+      .complete-btn-green:hover {
+        background: #218838;
+      }
+
+      .complete-btn-green:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+
+      .predicted-salary {
+        color: #28a745;
+        font-weight: 600;
+        font-size: 16px;
+      }
     </style>
   </head>
   <body>
@@ -881,57 +1017,105 @@
       </div>
     </div>
 
-    <!-- シフト登録ポップアップ -->
-    <div class="popup shift-popup" id="shiftPopup">
-      <div class="popup-header">
-        <div class="popup-title">
-          📅 <span id="popupDate">2025年1月21日</span> のシフト登録
+    <!-- シフト登録ポップアップ（シフトボード風） -->
+    <div class="popup shift-popup shiftboard-style" id="shiftPopup">
+      <div class="popup-header shiftboard-header">
+        <button class="close-btn-green" onclick="closeShiftPopup()">✕</button>
+        <div class="popup-title-centered">
+          <span id="popupTitle">シフトの追加</span>
         </div>
-        <button class="close-btn" onclick="closeShiftPopup()">&times;</button>
       </div>
       <input type="hidden" id="shiftDate" />
 
-      <div class="form-group">
-        <label class="form-label">職場</label>
-        <select class="form-select" id="workplaceSelect" onchange="updatePredictedEarnings()">
-          <option value="">まずバイト先を登録してください</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">勤務時間</label>
-        <div class="time-inputs">
-          <div>
-            <label style="font-size: 12px; color: #666">開始時間</label>
-            <input
-              type="time"
-              class="form-input"
-              id="startTime"
-              value="10:00"
-              onchange="updatePredictedEarnings()"
-            />
-          </div>
-          <div>
-            <label style="font-size: 12px; color: #666">終了時間</label>
-            <input 
-              type="time" 
-              class="form-input" 
-              id="endTime" 
-              value="18:00" 
-              onchange="updatePredictedEarnings()"
-            />
-            <label style="font-size: 11px; color: #888">
-              <input
-                type="checkbox"
-                id="crossMidnight"
-                style="margin-right: 4px"
-                onchange="updatePredictedEarnings()"
-              />
-              翌日
-            </label>
+      <!-- 勤務先選択 -->
+      <div class="shiftboard-form-group">
+        <div class="form-row">
+          <label class="form-label-left">勤務先</label>
+          <div class="form-value-right">
+            <select class="shiftboard-select" id="workplaceSelect" onchange="updatePredictedEarnings()">
+              <option value="">職場を選択</option>
+            </select>
+            <span class="arrow-right">〉</span>
           </div>
         </div>
       </div>
+
+      <!-- タイトル -->
+      <div class="shiftboard-form-group">
+        <div class="form-row">
+          <label class="form-label-left">タイトル</label>
+          <div class="form-value-right">
+            <input type="text" class="shiftboard-input" id="shiftTitle" placeholder="（任意）タイトル未設定">
+          </div>
+        </div>
+      </div>
+
+      <!-- 開始時間 -->
+      <div class="shiftboard-form-group">
+        <div class="form-row">
+          <label class="form-label-left">開始</label>
+          <div class="form-value-right">
+            <input type="date" class="shiftboard-date" id="startDate" onchange="updatePredictedEarnings()">
+            <input type="time" class="shiftboard-time" id="startTime" value="22:00" onchange="updatePredictedEarnings()">
+          </div>
+        </div>
+      </div>
+
+      <!-- 終了時間 -->
+      <div class="shiftboard-form-group">
+        <div class="form-row">
+          <label class="form-label-left">終了</label>
+          <div class="form-value-right">
+            <input type="date" class="shiftboard-date" id="endDate" onchange="updatePredictedEarnings()">
+            <input type="time" class="shiftboard-time" id="endTime" value="23:00" onchange="updatePredictedEarnings()">
+          </div>
+        </div>
+      </div>
+
+      <!-- 休憩 -->
+      <div class="shiftboard-form-group">
+        <div class="form-row">
+          <label class="form-label-left">休憩</label>
+          <div class="form-value-right">
+            <input type="number" class="shiftboard-break" id="breakTime" value="0" min="0" max="480" step="15" onchange="updatePredictedEarnings()">
+            <span class="break-unit">分</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 給料 -->
+      <div class="shiftboard-form-group salary-preview">
+        <div class="form-row">
+          <label class="form-label-left">給料</label>
+          <div class="form-value-right">
+            <span class="salary-calculation" id="salaryPreview">完了すると計算されます</span>
+            <button class="salary-detail-btn" onclick="showSalaryDetail()">天引・手当の入力</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 給料の個別設定 -->
+      <div class="shiftboard-form-group">
+        <div class="form-row">
+          <label class="form-label-left">給料の<br>個別設定</label>
+          <div class="form-value-right">
+            <span class="not-set">未設定</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- メモ -->
+      <div class="shiftboard-form-group">
+        <div class="form-row">
+          <label class="form-label-left">メモ</label>
+          <div class="form-value-right">
+            <textarea class="shiftboard-memo" id="shiftMemo" placeholder="未入力"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 完了ボタン -->
+      <button class="complete-btn-green" onclick="saveShift()">完了する</button>
 
       <div class="form-group">
         <label class="form-label">
