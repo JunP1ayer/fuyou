@@ -248,6 +248,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
             showAddButton={false}
             onShiftsChange={setShifts}
             workplaces={workplaces}
+            initialShifts={shifts}
           />
         </Grid>
         <Grid item xs={12} md={4}>

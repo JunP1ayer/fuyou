@@ -28,15 +28,17 @@ interface ShiftManagerProps {
   showAddButton?: boolean;
   onShiftsChange?: (shifts: Shift[]) => void;
   workplaces?: Workplace[];
+  initialShifts?: Shift[];
 }
 
 export const ShiftManager: React.FC<ShiftManagerProps> = ({
   showAddButton = true,
   onShiftsChange,
   workplaces = [],
+  initialShifts = [],
 }) => {
   const { user } = useAuth();
-  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>(initialShifts);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
@@ -64,8 +66,14 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
 
       const response = await api.getShifts();
       if (response.success && response.data) {
-        setShifts(response.data);
-        onShiftsChange?.(response.data);
+        // 初期シフト（テストデータ）とAPIデータをマージ
+        const testShiftIds = ['test-shift-1', 'test-shift-2'];
+        const apiShifts = response.data;
+        const testShifts = initialShifts.filter(s => testShiftIds.includes(s.id));
+        const mergedShifts = [...apiShifts, ...testShifts];
+        
+        setShifts(mergedShifts);
+        onShiftsChange?.(mergedShifts);
       } else {
         setError(response.error?.message || 'シフトの取得に失敗しました');
       }
@@ -74,12 +82,14 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, onShiftsChange, initialShifts]);
 
-  // 初回データ読み込み
+  // 初回データ読み込み（初期データがない場合のみ）
   useEffect(() => {
-    fetchShifts();
-  }, [fetchShifts]);
+    if (initialShifts.length === 0) {
+      fetchShifts();
+    }
+  }, [fetchShifts, initialShifts.length]);
 
   // シフト追加ダイアログを開く
   const handleAddShift = (date?: string) => {
