@@ -18,18 +18,12 @@ import {
   Alert,
   Snackbar,
 } from '@mui/material';
-import {
-  Add,
-  Edit,
-  Delete,
-  Work,
-  Palette,
-} from '@mui/icons-material';
+import { Add, Edit, Delete, Work, Palette } from '@mui/icons-material';
 import { WorkplaceFormDialog } from './WorkplaceFormDialog';
-import type { 
-  Workplace, 
-  CreateWorkplaceData, 
-  UpdateWorkplaceData 
+import type {
+  Workplace,
+  CreateWorkplaceData,
+  UpdateWorkplaceData,
 } from '../../types/shift';
 
 interface WorkplaceManagerProps {
@@ -42,7 +36,7 @@ export const WorkplaceManager: React.FC<WorkplaceManagerProps> = ({
   onWorkplacesChange,
 }) => {
   const [internalWorkplaces, setInternalWorkplaces] = useState<Workplace[]>([]);
-  
+
   // Use external workplaces if provided, otherwise use internal state
   const workplaces = externalWorkplaces || internalWorkplaces;
   const setWorkplaces = onWorkplacesChange || setInternalWorkplaces;
@@ -52,11 +46,15 @@ export const WorkplaceManager: React.FC<WorkplaceManagerProps> = ({
 
   // フォームダイアログの状態
   const [formDialogOpen, setFormDialogOpen] = useState(false);
-  const [editingWorkplace, setEditingWorkplace] = useState<Workplace | undefined>();
+  const [editingWorkplace, setEditingWorkplace] = useState<
+    Workplace | undefined
+  >();
 
   // 削除確認ダイアログの状態
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [workplaceToDelete, setWorkplaceToDelete] = useState<Workplace | undefined>();
+  const [workplaceToDelete, setWorkplaceToDelete] = useState<
+    Workplace | undefined
+  >();
 
   // デモデータを初期化（外部からworkplacesが提供されていない場合のみ）
   useEffect(() => {
@@ -104,7 +102,9 @@ export const WorkplaceManager: React.FC<WorkplaceManagerProps> = ({
   };
 
   // 職場作成・更新の処理
-  const handleWorkplaceSubmit = async (data: CreateWorkplaceData | UpdateWorkplaceData) => {
+  const handleWorkplaceSubmit = async (
+    data: CreateWorkplaceData | UpdateWorkplaceData
+  ) => {
     try {
       setLoading(true);
       setError('');
@@ -116,8 +116,10 @@ export const WorkplaceManager: React.FC<WorkplaceManagerProps> = ({
           ...(data as UpdateWorkplaceData),
           updatedAt: new Date().toISOString(),
         };
-        setWorkplaces(prev => 
-          prev.map(wp => wp.id === editingWorkplace.id ? updatedWorkplace : wp)
+        setWorkplaces(prev =>
+          prev.map(wp =>
+            wp.id === editingWorkplace.id ? updatedWorkplace : wp
+          )
         );
         setSuccess('職場情報を更新しました');
       } else {
@@ -184,7 +186,7 @@ export const WorkplaceManager: React.FC<WorkplaceManagerProps> = ({
             </Alert>
           ) : (
             <List>
-              {workplaces.map((workplace) => (
+              {workplaces.map(workplace => (
                 <ListItem key={workplace.id} divider>
                   <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
                     <Box
@@ -200,7 +202,9 @@ export const WorkplaceManager: React.FC<WorkplaceManagerProps> = ({
                   </Box>
                   <ListItemText
                     primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                      >
                         <Typography variant="subtitle1" fontWeight="bold">
                           {workplace.name}
                         </Typography>
@@ -212,7 +216,7 @@ export const WorkplaceManager: React.FC<WorkplaceManagerProps> = ({
                     secondary={
                       <Box sx={{ mt: 0.5 }}>
                         <Typography variant="body2" color="text.secondary">
-                          時給: ¥{workplace.hourlyRate.toLocaleString()} | 
+                          時給: ¥{workplace.hourlyRate.toLocaleString()} |
                           給料日: 毎月{workplace.payDay || 25}日
                         </Typography>
                         {workplace.description && (
@@ -268,12 +272,16 @@ export const WorkplaceManager: React.FC<WorkplaceManagerProps> = ({
       />
 
       {/* 削除確認ダイアログ */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
         <DialogTitle>バイト先を削除しますか？</DialogTitle>
         <DialogContent>
           {workplaceToDelete && (
             <Typography>
-              「{workplaceToDelete.name}」を削除します。この操作は取り消せません。
+              「{workplaceToDelete.name}
+              」を削除します。この操作は取り消せません。
             </Typography>
           )}
         </DialogContent>
@@ -299,7 +307,11 @@ export const WorkplaceManager: React.FC<WorkplaceManagerProps> = ({
         onClose={handleCloseError}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleCloseError}
+          severity="error"
+          sx={{ width: '100%' }}
+        >
           {error}
         </Alert>
       </Snackbar>
@@ -311,7 +323,11 @@ export const WorkplaceManager: React.FC<WorkplaceManagerProps> = ({
         onClose={handleCloseSuccess}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert onClose={handleCloseSuccess} severity="success" sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleCloseSuccess}
+          severity="success"
+          sx={{ width: '100%' }}
+        >
           {success}
         </Alert>
       </Snackbar>

@@ -220,11 +220,15 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
                 <Select
                   value={formData.jobSourceId || ''}
                   label="バイト先"
-                  onChange={e => handleWorkplaceSelect(e.target.value as string)}
+                  onChange={e =>
+                    handleWorkplaceSelect(e.target.value as string)
+                  }
                 >
                   {workplaces.map(workplace => (
                     <MenuItem key={workplace.id} value={workplace.id}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                      >
                         <Box
                           sx={{
                             width: 12,
@@ -234,13 +238,18 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
                             flexShrink: 0,
                           }}
                         />
-                        {workplace.name} (¥{workplace.hourlyRate.toLocaleString()})
+                        {workplace.name} (¥
+                        {workplace.hourlyRate.toLocaleString()})
                       </Box>
                     </MenuItem>
                   ))}
                 </Select>
                 {errors.jobSourceName && (
-                  <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 2 }}>
+                  <Typography
+                    variant="caption"
+                    color="error"
+                    sx={{ mt: 0.5, ml: 2 }}
+                  >
                     {errors.jobSourceName}
                   </Typography>
                 )}

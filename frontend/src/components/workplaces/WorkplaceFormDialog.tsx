@@ -17,10 +17,10 @@ import {
   Grid,
 } from '@mui/material';
 import { ChromePicker } from 'react-color';
-import type { 
-  Workplace, 
-  CreateWorkplaceData, 
-  UpdateWorkplaceData 
+import type {
+  Workplace,
+  CreateWorkplaceData,
+  UpdateWorkplaceData,
 } from '../../types/shift';
 
 interface WorkplaceFormDialogProps {
@@ -117,12 +117,7 @@ export const WorkplaceFormDialog: React.FC<WorkplaceFormDialogProps> = ({
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={handleClose}
-      maxWidth="sm"
-      fullWidth
-    >
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
         {editingWorkplace ? 'バイト先を編集' : 'バイト先を追加'}
       </DialogTitle>
@@ -135,7 +130,7 @@ export const WorkplaceFormDialog: React.FC<WorkplaceFormDialogProps> = ({
                 fullWidth
                 label="職場名"
                 value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
+                onChange={e => handleInputChange('name', e.target.value)}
                 error={!!error && !formData.name.trim()}
                 helperText={error && !formData.name.trim() ? error : ''}
                 disabled={loading}
@@ -150,7 +145,9 @@ export const WorkplaceFormDialog: React.FC<WorkplaceFormDialogProps> = ({
                 label="時給"
                 type="number"
                 value={formData.hourlyRate}
-                onChange={(e) => handleInputChange('hourlyRate', Number(e.target.value))}
+                onChange={e =>
+                  handleInputChange('hourlyRate', Number(e.target.value))
+                }
                 InputProps={{
                   startAdornment: <Typography sx={{ mr: 1 }}>¥</Typography>,
                 }}
@@ -166,7 +163,9 @@ export const WorkplaceFormDialog: React.FC<WorkplaceFormDialogProps> = ({
                 <Select
                   value={formData.payDay || 25}
                   label="給料日"
-                  onChange={(e) => handleInputChange('payDay', Number(e.target.value))}
+                  onChange={e =>
+                    handleInputChange('payDay', Number(e.target.value))
+                  }
                 >
                   {[...Array(31)].map((_, i) => (
                     <MenuItem key={i + 1} value={i + 1}>
@@ -182,8 +181,10 @@ export const WorkplaceFormDialog: React.FC<WorkplaceFormDialogProps> = ({
               <Typography variant="subtitle2" gutterBottom>
                 カレンダー表示色
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                {DEFAULT_COLORS.map((color) => (
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
+              >
+                {DEFAULT_COLORS.map(color => (
                   <Box
                     key={color}
                     onClick={() => handleInputChange('color', color)}
@@ -193,7 +194,10 @@ export const WorkplaceFormDialog: React.FC<WorkplaceFormDialogProps> = ({
                       borderRadius: '50%',
                       backgroundColor: color,
                       cursor: 'pointer',
-                      border: formData.color === color ? '3px solid #000' : '2px solid #ddd',
+                      border:
+                        formData.color === color
+                          ? '3px solid #000'
+                          : '2px solid #ddd',
                       '&:hover': {
                         transform: 'scale(1.1)',
                       },
@@ -209,16 +213,16 @@ export const WorkplaceFormDialog: React.FC<WorkplaceFormDialogProps> = ({
                   カスタム
                 </Button>
               </Box>
-              
+
               {showColorPicker && (
                 <Box sx={{ mb: 2 }}>
                   <ChromePicker
                     color={formData.color}
-                    onChange={(color) => handleInputChange('color', color.hex)}
+                    onChange={color => handleInputChange('color', color.hex)}
                   />
                 </Box>
               )}
-              
+
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box
                   sx={{
@@ -241,7 +245,7 @@ export const WorkplaceFormDialog: React.FC<WorkplaceFormDialogProps> = ({
                 fullWidth
                 label="説明（任意）"
                 value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
+                onChange={e => handleInputChange('description', e.target.value)}
                 multiline
                 rows={2}
                 disabled={loading}
@@ -255,7 +259,9 @@ export const WorkplaceFormDialog: React.FC<WorkplaceFormDialogProps> = ({
                 control={
                   <Switch
                     checked={formData.isActive}
-                    onChange={(e) => handleInputChange('isActive', e.target.checked)}
+                    onChange={e =>
+                      handleInputChange('isActive', e.target.checked)
+                    }
                     disabled={loading}
                   />
                 }
@@ -275,11 +281,7 @@ export const WorkplaceFormDialog: React.FC<WorkplaceFormDialogProps> = ({
         <Button onClick={handleClose} disabled={loading}>
           キャンセル
         </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={loading}
-        >
+        <Button onClick={handleSubmit} variant="contained" disabled={loading}>
           {loading ? '保存中...' : editingWorkplace ? '更新' : '追加'}
         </Button>
       </DialogActions>

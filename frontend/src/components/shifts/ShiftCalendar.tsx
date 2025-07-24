@@ -97,19 +97,23 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
 
   // 職場の色を取得
   const getWorkplaceColor = (shift: Shift) => {
-    const workplace = workplaces.find(wp => wp.id === shift.jobSourceId || wp.name === shift.jobSourceName);
+    const workplace = workplaces.find(
+      wp => wp.id === shift.jobSourceId || wp.name === shift.jobSourceName
+    );
     return workplace?.color || '#2196F3'; // デフォルトは青
   };
 
   // 色を薄くする関数
   const lightenColor = (color: string, opacity: number = 0.1) => {
-    return `${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`;
+    return `${color}${Math.round(opacity * 255)
+      .toString(16)
+      .padStart(2, '0')}`;
   };
 
   // シフトカードのレンダリング
   const renderShiftCard = (shift: Shift, isCompact: boolean = false) => {
     const workplaceColor = getWorkplaceColor(shift);
-    
+
     return (
       <Paper
         key={shift.id}
@@ -179,9 +183,9 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Tooltip title="編集">
-              <IconButton 
-                size="small" 
-                onClick={(e) => {
+              <IconButton
+                size="small"
+                onClick={e => {
                   e.stopPropagation();
                   onEditShift(shift);
                 }}
@@ -192,7 +196,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
             <Tooltip title="削除">
               <IconButton
                 size="small"
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onDeleteShift(shift);
                 }}

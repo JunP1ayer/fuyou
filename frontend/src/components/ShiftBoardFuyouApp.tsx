@@ -71,6 +71,48 @@ export const ShiftBoardFuyouApp: React.FC = () => {
       },
     ];
     setWorkplaces(demoWorkplaces);
+
+    // テスト用のシフトデータを追加（同じ日に複数のシフト）
+    const today = new Date().toISOString().split('T')[0];
+    const testShifts: Shift[] = [
+      {
+        id: 'test-shift-1',
+        userId: 'demo-user',
+        jobSourceId: 'wp-1',
+        jobSourceName: 'コンビニA',
+        date: today,
+        startTime: '09:00',
+        endTime: '14:00',
+        hourlyRate: 1000,
+        breakMinutes: 0,
+        workingHours: 5,
+        calculatedEarnings: 5000,
+        description: '朝シフト',
+        isConfirmed: true,
+        payDay: 25,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: 'test-shift-2',
+        userId: 'demo-user',
+        jobSourceId: 'wp-2',
+        jobSourceName: 'ファミレスB',
+        date: today,
+        startTime: '18:00',
+        endTime: '22:00',
+        hourlyRate: 1200,
+        breakMinutes: 0,
+        workingHours: 4,
+        calculatedEarnings: 4800,
+        description: '夜シフト',
+        isConfirmed: true,
+        payDay: 15,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+    setShifts(testShifts);
   }, []);
 
   // アクション選択の処理
@@ -202,9 +244,9 @@ export const ShiftBoardFuyouApp: React.FC = () => {
       {/* シフトボード風給料計算UI */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={8}>
-          <ShiftManager 
-            showAddButton={false} 
-            onShiftsChange={setShifts} 
+          <ShiftManager
+            showAddButton={false}
+            onShiftsChange={setShifts}
             workplaces={workplaces}
           />
         </Grid>
@@ -340,7 +382,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
           </Box>
         </DialogTitle>
         <DialogContent>
-          <WorkplaceManager 
+          <WorkplaceManager
             workplaces={workplaces}
             onWorkplacesChange={setWorkplaces}
           />
