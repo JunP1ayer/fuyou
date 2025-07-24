@@ -23,6 +23,7 @@ import {
   EventNote,
 } from '@mui/icons-material';
 import { ShiftManager } from './shifts/ShiftManager';
+import { ShiftCalendar } from './shifts/ShiftCalendar';
 import { OCRShiftManager } from './OCRShiftManager';
 import { IntelligentOCRWorkflow } from './ocr/IntelligentOCRWorkflow';
 import { ShiftFormDialog } from './shifts/ShiftFormDialog';
@@ -34,6 +35,11 @@ import type { Shift, CreateShiftData, Workplace } from '../types/shift';
 export const ShiftBoardFuyouApp: React.FC = () => {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [workplaces, setWorkplaces] = useState<Workplace[]>([]);
+  
+  // デバッグ用：shiftsの変更を監視
+  React.useEffect(() => {
+    console.log('Shifts updated:', shifts);
+  }, [shifts]);
   const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
   const [intelligentOCROpen, setIntelligentOCROpen] = useState(false);
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
@@ -113,6 +119,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
       },
     ];
     setShifts(testShifts);
+    console.log('Test shifts set:', testShifts);
   }, []);
 
   // アクション選択の処理
@@ -244,11 +251,22 @@ export const ShiftBoardFuyouApp: React.FC = () => {
       {/* シフトボード風給料計算UI */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={8}>
-          <ShiftManager
-            showAddButton={false}
-            onShiftsChange={setShifts}
+          <ShiftCalendar
+            shifts={shifts}
             workplaces={workplaces}
-            initialShifts={shifts}
+            onAddShift={(date) => {
+              // 日付クリック時の処理
+              console.log('Add shift for date:', date);
+            }}
+            onEditShift={(shift) => {
+              // シフト編集時の処理
+              console.log('Edit shift:', shift);
+            }}
+            onDeleteShift={(shift) => {
+              // シフト削除時の処理
+              setShifts(prev => prev.filter(s => s.id !== shift.id));
+            }}
+            loading={loading}
           />
         </Grid>
         <Grid item xs={12} md={4}>
