@@ -18,7 +18,7 @@ import { Work, CameraAlt } from '@mui/icons-material';
 import { ShiftCalendar } from './ShiftCalendar';
 import { ShiftFormDialog } from './ShiftFormDialog';
 import { OCRShiftManager } from '../OCRShiftManager';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import * as api from '../../services/api';
 import type {
   Shift,
