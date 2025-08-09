@@ -43,7 +43,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
       width: '100%', 
       display: 'flex', 
       justifyContent: 'center', 
-      mb: 2 
+      mb: 2,
+      px: 2
     }}>
       <Paper
         elevation={1}
@@ -51,7 +52,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
           borderRadius: 2,
           overflow: 'hidden',
           width: '100%',
-          maxWidth: '800px',
+          maxWidth: '600px',
+          margin: '0 auto',
         }}
       >
       <Box sx={{ px: 2, py: 1 }}>

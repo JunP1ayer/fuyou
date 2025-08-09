@@ -153,35 +153,39 @@ function App() {
         sx={{
           minHeight: '100vh',
           pb: { xs: 8, sm: 2 }, // スマホ版では下部ナビゲーションのためのスペースを確保
+          display: 'flex',
+          justifyContent: 'center',
+          width: '100%'
         }}
       >
         {/* 全体コンテナ */}
         <Box sx={{ 
           width: '100%',
+          maxWidth: '1200px',
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          p: 2, 
+          p: { xs: 1, sm: 2 }, 
           pt: { xs: 1, sm: 2 },
+          margin: '0 auto'
         }}>
-          <Box sx={{ 
-            width: '100%', 
-            maxWidth: '1000px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center'
-          }}>
-            {/* トップナビゲーション（PC・タブレット） */}
+          {/* トップナビゲーション（PC・タブレット） */}
+          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
             <TopNavigation
               currentTab={currentTab}
               onTabChange={handleTabChange}
             />
+          </Box>
 
-            {/* メインコンテンツ */}
-            <Box sx={{ mt: { xs: 1, sm: 0 }, width: '100%' }}>
-              {renderContent()}
-            </Box>
+          {/* メインコンテンツ */}
+          <Box sx={{ 
+            mt: { xs: 1, sm: 0 }, 
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'center'
+          }}>
+            {renderContent()}
           </Box>
         </Box>
 

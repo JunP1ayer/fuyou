@@ -257,8 +257,14 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
       width: '100%', 
       display: 'flex', 
       justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'column'
     }}>
-      <Box sx={{ width: '100%', maxWidth: '800px' }}>
+      <Box sx={{ 
+        width: '100%', 
+        maxWidth: '800px',
+        margin: '0 auto'
+      }}>
         {/* メインコンテンツ */}
         {isMobile ? (
           <SimpleMobileCalendar
