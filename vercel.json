@@ -41,6 +41,10 @@
       "destination": "/frontend/dist/index.html"
     },
     {
+      "source": "/app",
+      "destination": "/frontend/dist/index.html"
+    },
+    {
       "source": "/assets/(.*)",
       "destination": "/frontend/dist/assets/$1"
     }
