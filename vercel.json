@@ -1,7 +1,7 @@
 {
   "version": 2,
   "buildCommand": "cd frontend && npm ci && npm run build",
-  "outputDirectory": ".",
+  "outputDirectory": "frontend/dist",
   "installCommand": "cd frontend && npm ci",
   "functions": {
     "api/openai-vision.js": {
@@ -17,8 +17,16 @@
       "destination": "/calendar-main.html"
     },
     {
+      "source": "/react",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/react/(.*)",
+      "destination": "/index.html"
+    },
+    {
       "source": "/app",
-      "destination": "/shiftboard-demo.html"
+      "destination": "/index.html"
     },
     {
       "source": "/ai",
@@ -33,20 +41,8 @@
       "destination": "/shiftboard-demo.html"
     },
     {
-      "source": "/react",
-      "destination": "/frontend/dist/index.html"
-    },
-    {
-      "source": "/react/(.*)",
-      "destination": "/frontend/dist/index.html"
-    },
-    {
-      "source": "/app",
-      "destination": "/frontend/dist/index.html"
-    },
-    {
       "source": "/assets/(.*)",
-      "destination": "/frontend/dist/assets/$1"
+      "destination": "/assets/$1"
     }
   ],
   "headers": [
@@ -68,7 +64,7 @@
       ]
     },
     {
-      "source": "/frontend/dist/assets/(.*)",
+      "source": "/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -77,7 +73,7 @@
       ]
     },
     {
-      "source": "/(.*)",
+      "source": "/(.*\\.html|/$)",
       "headers": [
         {
           "key": "Cache-Control",
