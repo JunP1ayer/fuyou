@@ -229,18 +229,12 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
     return (
       <Card>
         <CardContent>
-          <Box display="flex" alignItems="center" mb={3}>
-            <CameraAlt sx={{ mr: 1 }} />
-            <Typography variant="h6">シフト表内容確認</Typography>
-          </Box>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+            確認画面
+          </Typography>
 
-          <Alert severity="info" sx={{ mb: 3 }}>
-            <Typography variant="body2">
-              <strong>GPT-5 による解析が完了しました。</strong>
-              <br />
-              抽出されたシフト情報を確認してください。間違いがある場合は「編集」ボタンで修正できます。
-              確認後、「シフトに反映」をクリックするとカレンダーに登録されます。
-            </Typography>
+          <Alert severity="success" sx={{ mb: 2 }}>
+            シフト情報を抽出しました。内容を確認してください。
           </Alert>
 
           <Typography variant="subtitle2" gutterBottom>
@@ -304,10 +298,9 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
   return (
     <Card>
       <CardContent>
-        <Box display="flex" alignItems="center" mb={3}>
-          <CameraAlt sx={{ mr: 1 }} />
-          <Typography variant="h6">AI シフト表解析</Typography>
-        </Box>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          シフト提出
+        </Typography>
 
         {/* バイト先選択 */}
         <Box mb={3}>
@@ -343,17 +336,6 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
           )}
         </Box>
 
-        {/* AI解析エンジン: GPT-5固定 */}
-        <Box mb={2}>
-          <Alert severity="info" sx={{ mb: 2 }}>
-            <Typography variant="body2">
-              <SmartToy
-                sx={{ fontSize: '1rem', mr: 1, verticalAlign: 'middle' }}
-              />
-              OpenAI GPT-5による高精度シフト表解析
-            </Typography>
-          </Alert>
-        </Box>
 
         {/* 画像選択 */}
         <Box mb={3}>
@@ -409,7 +391,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
               }
               fullWidth
             >
-              {loading ? 'AI解析中...' : 'AIでシフト解析開始'}
+              {loading ? '解析中...' : 'シフトを解析'}
             </Button>
             {!selectedJobSource && jobSources.length > 0 && (
               <Typography
@@ -428,7 +410,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
           <Box mb={2}>
             <LinearProgress />
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-              GPT-5 がシフト表を解析中... お待ちください
+              シフト表を解析中... お待ちください
             </Typography>
           </Box>
         )}

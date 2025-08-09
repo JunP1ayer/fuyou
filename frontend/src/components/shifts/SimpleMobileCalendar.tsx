@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+﻿import React, { useMemo, useRef, useState } from 'react';
 import { Box, IconButton, Typography, Fab, Chip } from '@mui/material';
 import {
   ChevronLeft,
@@ -28,8 +28,7 @@ interface SimpleMobileCalendarProps {
   loading?: boolean;
 }
 
-// モバイル特化の極力シンプルな月間カレンダー（シンプルカレンダー風）
-export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
+// 繝｢繝舌う繝ｫ迚ｹ蛹悶・讌ｵ蜉帙す繝ｳ繝励Ν縺ｪ譛磯俣繧ｫ繝ｬ繝ｳ繝繝ｼ・医す繝ｳ繝励Ν繧ｫ繝ｬ繝ｳ繝繝ｼ鬚ｨ・・export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
   shifts,
   onAddShift,
   onEditShift,
@@ -66,13 +65,12 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
     );
   };
 
-  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+  const weekDays = ['譌･', '譛・, '轣ｫ', '豌ｴ', '譛ｨ', '驥・, '蝨・];
 
-  // 祝日（簡易）：必要であれば年次表を拡張
+  // 逾晄律・育ｰ｡譏難ｼ会ｼ壼ｿ・ｦ√〒縺ゅｌ縺ｰ蟷ｴ谺｡陦ｨ繧呈僑蠑ｵ
   const holidaySet = useMemo(() => new Set<string>([]), []);
 
-  // 集計
-  const monthSummary = useMemo(() => {
+  // 髮・ｨ・  const monthSummary = useMemo(() => {
     const start = startOfMonth(currentDate);
     const end = endOfMonth(currentDate);
     const inMonth = shifts.filter(s => {
@@ -105,7 +103,7 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
 
   return (
     <Box sx={{ p: 1 }}>
-      {/* ヘッダー */}
+      {/* 繝倥ャ繝繝ｼ */}
       <Box
         sx={{
           display: 'flex',
@@ -122,7 +120,7 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
           <ChevronLeft />
         </IconButton>
         <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          {format(currentDate, 'yyyy年M月', { locale: ja })}
+          {format(currentDate, 'yyyy蟷ｴM譛・, { locale: ja })}
         </Typography>
         <IconButton
           onClick={() => changeMonth(1)}
@@ -133,7 +131,7 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
         </IconButton>
       </Box>
 
-      {/* 曜日ヘッダー */}
+      {/* 譖懈律繝倥ャ繝繝ｼ */}
       <Box
         sx={{
           display: 'grid',
@@ -161,7 +159,7 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
         ))}
       </Box>
 
-      {/* 月グリッド（スワイプ対応） */}
+      {/* 譛医げ繝ｪ繝・ラ・医せ繝ｯ繧､繝怜ｯｾ蠢懶ｼ・*/}
       <Box
         sx={{
           display: 'grid',
@@ -180,7 +178,7 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
             return;
           const dx = touchEndX.current - touchStartX.current;
           if (Math.abs(dx) > 50) {
-            // 右→左: 次月, 左→右: 前月
+            // 蜿ｳ竊貞ｷｦ: 谺｡譛・ 蟾ｦ竊貞承: 蜑肴怦
             changeMonth(dx < 0 ? 1 : -1);
           }
         }}
@@ -235,7 +233,7 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
                 >
                   {day}
                 </Typography>
-                {/* シフト件数 */}
+                {/* 繧ｷ繝輔ヨ莉ｶ謨ｰ */}
                 {list.length > 0 && (
                   <Box sx={{ display: 'flex', gap: 0.25 }}>
                     {Array.from({ length: Math.min(3, list.length) }).map(
@@ -256,7 +254,7 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
                   </Box>
                 )}
               </Box>
-              {/* 右下ミニ追加 */}
+              {/* 蜿ｳ荳九Α繝玖ｿｽ蜉 */}
               <Box sx={{ mt: 'auto', textAlign: 'right' }}>
                 <IconButton
                   size="small"
@@ -274,7 +272,7 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
         })}
       </Box>
 
-      {/* 追加ボタン */}
+      {/* 霑ｽ蜉繝懊ち繝ｳ */}
       <Fab
         color="primary"
         size="medium"
@@ -285,14 +283,14 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
         <AddIcon />
       </Fab>
 
-      {/* サマリー */}
+      {/* 繧ｵ繝槭Μ繝ｼ */}
       <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between' }}>
         <Chip
-          label={`週: ${weekSummary.hours.toFixed(1)}h / ¥${weekSummary.earnings.toLocaleString()}`}
+          label={`騾ｱ: ${weekSummary.hours.toFixed(1)}h / ﾂ･${weekSummary.earnings.toLocaleString()}`}
           size="small"
         />
         <Chip
-          label={`月: ${monthSummary.hours.toFixed(1)}h / ¥${monthSummary.earnings.toLocaleString()}`}
+          label={`譛・ ${monthSummary.hours.toFixed(1)}h / ﾂ･${monthSummary.earnings.toLocaleString()}`}
           size="small"
           color="primary"
         />
@@ -300,3 +298,4 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
     </Box>
   );
 };
+
