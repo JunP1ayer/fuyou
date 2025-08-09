@@ -39,16 +39,21 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
   };
 
   return (
-    <Paper
-      elevation={1}
-      sx={{
-        mb: 2,
-        borderRadius: 2,
-        overflow: 'hidden',
-        width: '100%',
-        maxWidth: '100%',
-      }}
-    >
+    <Box sx={{ 
+      width: '100%', 
+      display: 'flex', 
+      justifyContent: 'center', 
+      mb: 2 
+    }}>
+      <Paper
+        elevation={1}
+        sx={{
+          borderRadius: 2,
+          overflow: 'hidden',
+          width: '100%',
+          maxWidth: '800px',
+        }}
+      >
       <Box sx={{ px: 2, py: 1 }}>
         <Tabs
           value={currentTab}
@@ -95,5 +100,6 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
         </Tabs>
       </Box>
     </Paper>
+    </Box>
   );
 };

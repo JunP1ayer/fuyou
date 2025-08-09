@@ -155,21 +155,24 @@ function App() {
           pb: { xs: 8, sm: 2 }, // スマホ版では下部ナビゲーションのためのスペースを確保
         }}
       >
-        {/* トップナビゲーション（PC・タブレット） */}
+        {/* 全体コンテナ */}
         <Box sx={{ 
           width: '100%',
+          minHeight: '100vh',
           display: 'flex',
-          justifyContent: 'center',
+          flexDirection: 'column',
+          alignItems: 'center',
           p: 2, 
           pt: { xs: 1, sm: 2 },
         }}>
           <Box sx={{ 
             width: '100%', 
-            maxWidth: '900px',
+            maxWidth: '1000px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center'
           }}>
+            {/* トップナビゲーション（PC・タブレット） */}
             <TopNavigation
               currentTab={currentTab}
               onTabChange={handleTabChange}
