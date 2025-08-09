@@ -8,10 +8,7 @@ import {
   IconButton,
   Paper,
 } from '@mui/material';
-import {
-  ChevronLeft,
-  ChevronRight,
-} from '@mui/icons-material';
+import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import {
   format,
   startOfMonth,
@@ -38,7 +35,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   shifts,
   onAddShift,
   onEditShift,
-  onDeleteShift,
+  onDeleteShift: _onDeleteShift,
   loading = false,
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -72,85 +69,6 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   const goToNextMonth = () => {
     setCurrentDate(addMonths(currentDate, 1));
   };
-
-  // 日付のシフト追加（未使用なのでコメントアウト）
-  // const handleAddShift = (date: Date) => {
-  //   onAddShift(format(date, 'yyyy-MM-dd'));
-  // };
-
-  // シフトカードのレンダリング（richモード専用、未使用なのでコメントアウト）
-  // const renderShiftCard = (shift: Shift, _isCompact: boolean = false) => (
-    <Paper
-      key={shift.id}
-      elevation={2}
-      sx={{
-        p: 1,
-        mb: 0.5,
-        bgcolor: shift.isConfirmed ? 'success.50' : 'warning.50',
-        borderLeft: 4,
-        borderLeftColor: shift.isConfirmed ? 'success.main' : 'warning.main',
-        '&:hover': {
-          bgcolor: shift.isConfirmed ? 'success.100' : 'warning.100',
-        },
-      }}
-    >
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography
-            variant="caption"
-            sx={{ fontWeight: 'bold', display: 'block' }}
-          >
-            {shift.jobSourceName}
-          </Typography>
-          <Box
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}
-          >
-            <AccessTime sx={{ fontSize: 12 }} />
-            <Typography variant="caption">
-              {shift.startTime} - {shift.endTime}
-            </Typography>
-            {shift.breakMinutes > 0 && (
-              <Typography variant="caption" color="text.secondary">
-                (休憩{shift.breakMinutes}分)
-              </Typography>
-            )}
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <AttachMoney sx={{ fontSize: 12 }} />
-            <Typography variant="caption" fontWeight="bold">
-              ¥{shift.calculatedEarnings.toLocaleString()}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              ({shift.workingHours.toFixed(1)}h)
-            </Typography>
-          </Box>
-        </Box>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-          <Tooltip title="編集">
-            <IconButton size="small" onClick={() => onEditShift(shift)}>
-              <Edit sx={{ fontSize: 14 }} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="削除">
-            <IconButton
-              size="small"
-              onClick={() => onDeleteShift(shift.id)}
-              color="error"
-            >
-              <Delete sx={{ fontSize: 14 }} />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      </Box>
-    </Paper>
-  );
 
   const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
 

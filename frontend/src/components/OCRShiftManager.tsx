@@ -8,7 +8,6 @@ import {
   LinearProgress,
   Alert,
   Stack,
-  Chip,
   Paper,
   FormControl,
   InputLabel,
@@ -20,7 +19,6 @@ import {
   CameraAlt,
   Upload,
   AutoAwesome,
-  Visibility,
   SmartToy,
   Work,
 } from '@mui/icons-material';
@@ -51,7 +49,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  const [selectedProvider, setSelectedProvider] = useState<string>('openai');
+  const [selectedProvider] = useState<string>('openai');
   const [jobSources, setJobSources] = useState<JobSource[]>([]);
   const [selectedJobSource, setSelectedJobSource] = useState<string>('');
   const [jobSourcesLoading, setJobSourcesLoading] = useState(false);
@@ -194,9 +192,9 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
     setConfirmedResults([]);
   };
 
-  const availableProviders = aiProviders
-    .filter(p => p.available)
-    .sort((a, b) => a.priority - b.priority);
+  // const availableProviders = aiProviders
+  //   .filter(p => p.available)
+  //   .sort((a, b) => a.priority - b.priority);
 
   // 確認画面のUI
   if (showConfirmation) {

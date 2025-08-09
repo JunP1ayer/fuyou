@@ -23,7 +23,6 @@ import {
   AutoAwesome,
   Schedule,
   CheckCircle,
-  Error as ErrorIcon,
 } from '@mui/icons-material';
 
 import { OCRShiftManager } from '../OCRShiftManager';
@@ -35,7 +34,7 @@ interface AIFeatureProps {
 
 export const AIFeature: React.FC<AIFeatureProps> = ({ onShiftsSaved }) => {
   const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
-  const [processing, setProcessing] = useState(false);
+  const [processing] = useState(false);
   const [lastProcessedShifts, setLastProcessedShifts] = useState<
     CreateShiftData[]
   >([]);
