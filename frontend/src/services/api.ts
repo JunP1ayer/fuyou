@@ -157,6 +157,25 @@ export const getEarningsProjection = async (): Promise<{
   return apiCall<EarningsProjection>('/shifts/projection');
 };
 
+export const createBulkShifts = async (shifts: CreateShiftData[]): Promise<{
+  success: boolean;
+  data?: Shift[];
+  error?: any;
+  meta?: {
+    savedCount: number;
+    skippedCount: number;
+    skippedShifts?: Array<{ shift: CreateShiftData; reason: string }>;
+  };
+}> => {
+  return apiCall<Shift[]>('/shifts/bulk', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ shifts }),
+  });
+};
+
 // API Service - Mock implementation for demo
 export const apiService = {
   // Existing methods
