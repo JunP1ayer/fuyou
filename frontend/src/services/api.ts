@@ -6,6 +6,35 @@ import type {
   EarningsProjection,
 } from '../types/shift';
 
+export interface JobSource {
+  id: string;
+  user_id: string;
+  name: string;
+  category: 'part_time_job' | 'temporary_work' | 'freelance' | 'scholarship' | 'family_support' | 'other';
+  hourly_rate?: number;
+  expected_monthly_hours?: number;
+  bank_account_info?: {
+    bankName?: string;
+    accountType?: string;
+    accountNumber?: string;
+  };
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateJobSourceData {
+  name: string;
+  category: 'part_time_job' | 'temporary_work' | 'freelance' | 'scholarship' | 'family_support' | 'other';
+  hourlyRate?: number;
+  expectedMonthlyHours?: number;
+  bankAccountInfo?: {
+    bankName?: string;
+    accountType?: string;
+    accountNumber?: string;
+  };
+}
+
 // API configuration
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
@@ -309,6 +338,35 @@ export const apiService = {
     return apiCall<Shift[]>('/shifts/bulk', {
       method: 'POST',
       body: JSON.stringify({ shifts }),
+      token,
+    });
+  },
+
+  // Job Sources methods
+  async getJobSources(includeInactive = false, token?: string) {
+    const endpoint = `/job-sources${includeInactive ? '?includeInactive=true' : ''}`;
+    return apiCall<JobSource[]>(endpoint, { token });
+  },
+
+  async createJobSource(data: CreateJobSourceData, token?: string) {
+    return apiCall<JobSource>('/job-sources', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  },
+
+  async updateJobSource(id: string, data: Partial<CreateJobSourceData>, token?: string) {
+    return apiCall<JobSource>(`/job-sources/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      token,
+    });
+  },
+
+  async deleteJobSource(id: string, token?: string) {
+    return apiCall<JobSource>(`/job-sources/${id}`, {
+      method: 'DELETE',
       token,
     });
   },

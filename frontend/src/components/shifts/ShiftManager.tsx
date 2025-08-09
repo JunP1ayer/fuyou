@@ -3,18 +3,21 @@ import {
   Box,
   Alert,
   Snackbar,
-  Fab,
   Dialog,
   DialogContent,
   DialogTitle,
   DialogContentText,
   DialogActions,
   Button,
+  SpeedDial,
+  SpeedDialAction,
+  SpeedDialIcon,
 } from '@mui/material';
-import { Add } from '@mui/icons-material';
+import { Work, CameraAlt } from '@mui/icons-material';
 
 import { ShiftCalendar } from './ShiftCalendar';
 import { ShiftFormDialog } from './ShiftFormDialog';
+import { OCRShiftManager } from '../OCRShiftManager';
 import { useAuth } from '../../contexts/AuthContext';
 import * as api from '../../services/api';
 import type {
@@ -56,6 +59,12 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
     undefined
   );
 
+  // OCR処理ダイアログの状態
+  const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
+
+  // バイト先登録ダイアログの状態
+  const [jobSourceDialogOpen, setJobSourceDialogOpen] = useState(false);
+
   // シフト一覧の取得
   const fetchShifts = useCallback(async () => {
     if (!user) return;
@@ -69,16 +78,20 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
         // 初期シフト（テストデータ）とAPIデータをマージ
         const testShiftIds = ['test-shift-1', 'test-shift-2'];
         const apiShifts = response.data;
-        const testShifts = initialShifts.filter(s => testShiftIds.includes(s.id));
+        const testShifts = initialShifts.filter(s =>
+          testShiftIds.includes(s.id)
+        );
         const mergedShifts = [...apiShifts, ...testShifts];
-        
+
         setShifts(mergedShifts);
         onShiftsChange?.(mergedShifts);
       } else {
         setError(response.error?.message || 'シフトの取得に失敗しました');
       }
-    } catch (err: any) {
-      setError(err.message || 'シフトの取得中にエラーが発生しました');
+    } catch (err: unknown) {
+      setError(
+        (err as Error).message || 'シフトの取得中にエラーが発生しました'
+      );
     } finally {
       setLoading(false);
     }
@@ -96,6 +109,38 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
     setSelectedDate(date || '');
     setEditingShift(undefined);
     setFormDialogOpen(true);
+  };
+
+  // OCRダイアログを開く
+  const handleOpenOCR = () => {
+    setOcrDialogOpen(true);
+  };
+
+  // バイト先登録ダイアログを開く
+  const handleOpenJobSource = () => {
+    setJobSourceDialogOpen(true);
+  };
+
+  // OCRでシフトが保存された時の処理
+  const handleOCRShiftsSaved = async (shifts: CreateShiftData[]) => {
+    try {
+      setLoading(true);
+      setError('');
+
+      // 複数シフトを一括登録
+      const response = await api.createBulkShifts(shifts);
+      if (response.success) {
+        setSuccess(`${shifts.length}件のシフトを登録しました`);
+        await fetchShifts();
+        setOcrDialogOpen(false);
+      } else {
+        throw new Error(response.error?.message || '一括登録に失敗しました');
+      }
+    } catch (err: unknown) {
+      setError((err as Error).message || 'シフト登録中にエラーが発生しました');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // シフト編集ダイアログを開く
@@ -139,12 +184,13 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
           throw new Error(response.error?.message || '作成に失敗しました');
         }
       }
-    } catch (err: any) {
-      if (err.response?.status === 409) {
+    } catch (err: unknown) {
+      const error = err as Error & { response?: { status: number } };
+      if (error.response?.status === 409) {
         // 時間重複エラーは外部に投げる（フォームで処理）
         throw err;
       } else {
-        setError(err.message || 'エラーが発生しました');
+        setError(error.message || 'エラーが発生しました');
       }
     } finally {
       setLoading(false);
@@ -172,8 +218,8 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
       } else {
         setError(response.error?.message || '削除に失敗しました');
       }
-    } catch (err: any) {
-      setError(err.message || '削除中にエラーが発生しました');
+    } catch (err: unknown) {
+      setError((err as Error).message || '削除中にエラーが発生しました');
     } finally {
       setLoading(false);
       setDeleteDialogOpen(false);
@@ -214,21 +260,33 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
         loading={loading}
       />
 
-      {/* シフト追加ボタン */}
+      {/* シフト操作メニュー */}
       {showAddButton && (
-        <Fab
-          color="primary"
-          aria-label="add shift"
+        <SpeedDial
+          ariaLabel="シフト操作メニュー"
           sx={{
             position: 'fixed',
             bottom: 16,
             right: 16,
           }}
-          onClick={() => handleAddShift()}
+          icon={<SpeedDialIcon />}
           disabled={loading}
         >
-          <Add />
-        </Fab>
+          <SpeedDialAction
+            key="add-job"
+            icon={<Work />}
+            tooltipTitle="バイト先登録"
+            onClick={handleOpenJobSource}
+            disabled={loading}
+          />
+          <SpeedDialAction
+            key="ocr-shift"
+            icon={<CameraAlt />}
+            tooltipTitle="シフト表提出"
+            onClick={handleOpenOCR}
+            disabled={loading}
+          />
+        </SpeedDial>
       )}
 
       {/* シフト作成・編集ダイアログ */}
@@ -273,6 +331,40 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
           >
             {loading ? '削除中...' : '削除'}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* シフト表提出ダイアログ */}
+      <Dialog
+        open={ocrDialogOpen}
+        onClose={() => setOcrDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>シフト表提出</DialogTitle>
+        <DialogContent>
+          <OCRShiftManager
+            onShiftsSaved={handleOCRShiftsSaved}
+            onComplete={() => setOcrDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* バイト先登録ダイアログ */}
+      <Dialog
+        open={jobSourceDialogOpen}
+        onClose={() => setJobSourceDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>バイト先登録</DialogTitle>
+        <DialogContent>
+          <Alert severity="info" sx={{ mt: 1 }}>
+            バイト先登録機能は準備中です。現在はシフト登録時に自動作成されます。
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setJobSourceDialogOpen(false)}>閉じる</Button>
         </DialogActions>
       </Dialog>
 

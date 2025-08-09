@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -10,6 +10,11 @@ import {
   Stack,
   Chip,
   Paper,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
 } from '@mui/material';
 import {
   CameraAlt,
@@ -17,13 +22,15 @@ import {
   AutoAwesome,
   Visibility,
   SmartToy,
+  Work,
 } from '@mui/icons-material';
 
 import type { CreateShiftData } from '../types/shift';
+import { apiService, type JobSource } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 interface OCRShiftManagerProps {
   onShiftsSaved?: (shifts: CreateShiftData[]) => void;
-  onClose?: () => void;
   onComplete?: (shifts: CreateShiftData[]) => void;
 }
 
@@ -38,14 +45,20 @@ interface AIProvider {
 
 export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
   onShiftsSaved,
-  onClose,
   onComplete,
 }) => {
+  const { token } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  const [results, setResults] = useState<CreateShiftData[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<string>('gemini');
+  const [jobSources, setJobSources] = useState<JobSource[]>([]);
+  const [selectedJobSource, setSelectedJobSource] = useState<string>('');
+  const [jobSourcesLoading, setJobSourcesLoading] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmedResults, setConfirmedResults] = useState<CreateShiftData[]>(
+    []
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // AI プロバイダ設定（優先順位: Gemini > OpenAI > Vision）
@@ -76,6 +89,32 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
     },
   ];
 
+  // バイト先一覧を取得
+  useEffect(() => {
+    const loadJobSources = async () => {
+      try {
+        setJobSourcesLoading(true);
+        const response = await apiService.getJobSources(false, token);
+        if (response.success && response.data) {
+          setJobSources(response.data);
+          if (response.data.length > 0) {
+            setSelectedJobSource(response.data[0].id);
+          }
+        }
+      } catch (err) {
+        console.error('バイト先一覧の取得に失敗:', err);
+      } finally {
+        setJobSourcesLoading(false);
+      }
+    };
+
+    loadJobSources();
+  }, [token]);
+
+  const handleJobSourceChange = (event: SelectChangeEvent) => {
+    setSelectedJobSource(event.target.value);
+  };
+
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -102,7 +141,10 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
   };
 
   const processImage = async () => {
-    if (!selectedImage) return;
+    if (!selectedImage || !selectedJobSource) {
+      setError('画像とバイト先を選択してください');
+      return;
+    }
 
     setLoading(true);
     setError('');
@@ -111,13 +153,17 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
       const provider = aiProviders.find(p => p.name === selectedProvider);
       if (!provider) throw new Error('プロバイダが見つかりません');
 
+      const selectedJob = jobSources.find(job => job.id === selectedJobSource);
+      const jobName = selectedJob?.name || '';
+
       const response = await fetch(provider.endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: selectedImage,
-          prompt:
-            'この画像からシフト情報を抽出してください。日付、開始時間、終了時間、職場名、時給を含むJSONデータで出力してください。',
+          jobSourceId: selectedJobSource,
+          jobSourceName: jobName,
+          prompt: `この画像からシフト情報を抽出してください。バイト先名は「${jobName}」です。日付、開始時間、終了時間、時給を含むJSONデータで出力してください。`,
         }),
       });
 
@@ -127,28 +173,119 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
         throw new Error(result.error?.message || 'AI処理に失敗しました');
       }
 
-      // 結果の処理
+      // 結果の処理（バイト先情報を統合）
       if (result.success && result.shifts) {
-        setResults(result.shifts);
-        if (onShiftsSaved) {
-          onShiftsSaved(result.shifts);
-        }
-        if (onComplete) {
-          onComplete(result.shifts);
-        }
+        const enrichedShifts = result.shifts.map((shift: CreateShiftData) => ({
+          ...shift,
+          jobSourceId: selectedJobSource,
+          jobSourceName: jobName,
+        }));
+
+        setConfirmedResults(enrichedShifts);
+        setShowConfirmation(true);
       } else {
         throw new Error('シフトデータを抽出できませんでした');
       }
-    } catch (err: any) {
-      setError(err.message || 'エラーが発生しました');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'エラーが発生しました');
     } finally {
       setLoading(false);
     }
   };
 
+  // 確認を承認してカレンダーに反映
+  const handleConfirmAndSave = () => {
+    if (onShiftsSaved) {
+      onShiftsSaved(confirmedResults);
+    }
+    if (onComplete) {
+      onComplete(confirmedResults);
+    }
+    setShowConfirmation(false);
+  };
+
+  // 確認をキャンセルして結果をリセット
+  const handleCancelConfirmation = () => {
+    setShowConfirmation(false);
+    setConfirmedResults([]);
+  };
+
   const availableProviders = aiProviders
     .filter(p => p.available)
     .sort((a, b) => a.priority - b.priority);
+
+  // 確認画面のUI
+  if (showConfirmation) {
+    return (
+      <Card>
+        <CardContent>
+          <Box display="flex" alignItems="center" mb={3}>
+            <CameraAlt sx={{ mr: 1 }} />
+            <Typography variant="h6">シフト表内容確認</Typography>
+          </Box>
+
+          <Alert severity="info" sx={{ mb: 3 }}>
+            抽出されたシフト情報を確認してください。間違いがある場合は修正できます。
+          </Alert>
+
+          <Typography variant="subtitle2" gutterBottom>
+            抽出されたシフト ({confirmedResults.length}件):
+          </Typography>
+
+          {confirmedResults.map((shift, index) => (
+            <Paper key={index} elevation={1} sx={{ p: 2, mb: 2 }}>
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Box>
+                  <Typography variant="body1">
+                    <strong>{shift.jobSourceName}</strong>
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {shift.date} | {shift.startTime} 〜 {shift.endTime}
+                    {shift.breakMinutes && ` (休憩${shift.breakMinutes}分)`}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    時給: ¥{shift.hourlyRate?.toLocaleString()} | 勤務時間:{' '}
+                    {shift.workingHours}時間 | 給与: ¥
+                    {shift.calculatedEarnings?.toLocaleString()}
+                  </Typography>
+                </Box>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    /* TODO: 編集機能 */
+                  }}
+                  disabled
+                >
+                  編集
+                </Button>
+              </Box>
+            </Paper>
+          ))}
+
+          <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+            <Button
+              variant="outlined"
+              onClick={handleCancelConfirmation}
+              fullWidth
+            >
+              キャンセル
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleConfirmAndSave}
+              fullWidth
+            >
+              カレンダーに反映
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -156,6 +293,40 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
         <Box display="flex" alignItems="center" mb={3}>
           <CameraAlt sx={{ mr: 1 }} />
           <Typography variant="h6">AI シフト表解析</Typography>
+        </Box>
+
+        {/* バイト先選択 */}
+        <Box mb={3}>
+          <FormControl fullWidth disabled={jobSourcesLoading || loading}>
+            <InputLabel id="job-source-select-label">
+              <Box display="flex" alignItems="center">
+                <Work sx={{ mr: 1, fontSize: 20 }} />
+                バイト先を選択
+              </Box>
+            </InputLabel>
+            <Select
+              labelId="job-source-select-label"
+              value={selectedJobSource}
+              onChange={handleJobSourceChange}
+              label="バイト先を選択"
+            >
+              {jobSources.map(job => (
+                <MenuItem key={job.id} value={job.id}>
+                  {job.name}
+                  {job.hourly_rate && (
+                    <Typography variant="caption" sx={{ ml: 1, opacity: 0.7 }}>
+                      (¥{job.hourly_rate}/時)
+                    </Typography>
+                  )}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {jobSources.length === 0 && !jobSourcesLoading && (
+            <Alert severity="info" sx={{ mt: 1 }}>
+              バイト先が登録されていません。シフト管理画面で先にバイト先を登録してください。
+            </Alert>
+          )}
         </Box>
 
         {/* AI プロバイダ選択 */}
@@ -232,11 +403,22 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
               variant="contained"
               startIcon={<AutoAwesome />}
               onClick={processImage}
-              disabled={loading}
+              disabled={
+                loading || !selectedJobSource || jobSources.length === 0
+              }
               fullWidth
             >
               {loading ? 'AI解析中...' : 'AIでシフト解析開始'}
             </Button>
+            {!selectedJobSource && jobSources.length > 0 && (
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: 'block', mt: 1, textAlign: 'center' }}
+              >
+                バイト先を選択してください
+              </Typography>
+            )}
           </Box>
         )}
 
@@ -257,27 +439,6 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
-        )}
-
-        {/* 結果表示 */}
-        {results.length > 0 && (
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>
-              抽出されたシフト ({results.length}件):
-            </Typography>
-            {results.map((shift, index) => (
-              <Paper key={index} elevation={1} sx={{ p: 2, mb: 1 }}>
-                <Typography variant="body2">
-                  <strong>{shift.jobSourceName}</strong> - {shift.date}
-                  <br />
-                  {shift.startTime} 〜 {shift.endTime}
-                  {shift.breakMinutes && ` (休憩${shift.breakMinutes}分)`}
-                  <br />
-                  時給: ¥{shift.hourlyRate?.toLocaleString()}
-                </Typography>
-              </Paper>
-            ))}
-          </Box>
         )}
       </CardContent>
     </Card>
