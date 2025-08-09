@@ -155,7 +155,9 @@ function App() {
           pb: { xs: 8, sm: 2 }, // スマホ版では下部ナビゲーションのためのスペースを確保
           display: 'flex',
           justifyContent: 'center',
+          alignItems: 'flex-start',
           width: '100%',
+          margin: '0 auto',
         }}
       >
         {/* 全体コンテナ */}
