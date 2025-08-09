@@ -107,14 +107,22 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
     if (!file) return;
 
     // ファイル形式チェック
-    if (!file.type.startsWith('image/')) {
-      setError('画像ファイルを選択してください');
+    const allowedTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain'
+    ];
+    
+    if (!allowedTypes.includes(file.type)) {
+      setError('対応していないファイル形式です。画像、PDF、Word、テキストファイルを選択してください');
       return;
     }
 
-    // ファイルサイズチェック (5MB制限)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('ファイルサイズは5MB以下にしてください');
+    // ファイルサイズチェック (10MB制限)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('ファイルサイズは10MB以下にしてください');
       return;
     }
 
@@ -129,7 +137,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
 
   const processImage = async () => {
     if (!selectedImage || !selectedJobSource) {
-      setError('画像とバイト先を選択してください');
+      setError('ファイルとバイト先を選択してください');
       return;
     }
 
@@ -337,11 +345,11 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
         </Box>
 
 
-        {/* 画像選択 */}
+        {/* ファイル選択 */}
         <Box mb={3}>
           <input
             type="file"
-            accept="image/*"
+            accept="image/*,.pdf,.doc,.docx,.txt"
             onChange={handleImageSelect}
             ref={fileInputRef}
             style={{ display: 'none' }}
@@ -353,28 +361,48 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
             fullWidth
             disabled={loading}
           >
-            シフト表画像をアップロード
+            シフト表ファイルをアップロード
           </Button>
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', textAlign: 'center' }}>
+            対応形式: 画像（JPG, PNG, GIF）、PDF、Word、テキスト
+          </Typography>
         </Box>
 
-        {/* 画像プレビュー */}
+        {/* ファイルプレビュー */}
         {selectedImage && (
           <Box mb={3}>
             <Paper elevation={2} sx={{ p: 2 }}>
               <Typography variant="subtitle2" gutterBottom>
-                選択された画像:
+                選択されたファイル:
               </Typography>
-              <img
-                src={selectedImage}
-                alt="選択された画像"
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: '200px',
-                  objectFit: 'contain',
-                  display: 'block',
-                  margin: '0 auto',
-                }}
-              />
+              {selectedImage.startsWith('data:image/') ? (
+                <img
+                  src={selectedImage}
+                  alt="選択されたファイル"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '200px',
+                    objectFit: 'contain',
+                    display: 'block',
+                    margin: '0 auto',
+                  }}
+                />
+              ) : (
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  minHeight: '100px',
+                  bgcolor: 'grey.100',
+                  borderRadius: 1
+                }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {selectedImage.includes('pdf') ? 'PDFファイル' :
+                     selectedImage.includes('word') || selectedImage.includes('document') ? 'Wordファイル' :
+                     selectedImage.includes('text') ? 'テキストファイル' : 'ドキュメントファイル'}がアップロードされました
+                  </Typography>
+                </Box>
+              )}
             </Paper>
           </Box>
         )}
@@ -391,7 +419,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
               }
               fullWidth
             >
-              {loading ? '解析中...' : 'シフトを解析'}
+              {loading ? 'ファイル解析中...' : 'ファイルを解析'}
             </Button>
             {!selectedJobSource && jobSources.length > 0 && (
               <Typography
@@ -410,7 +438,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
           <Box mb={2}>
             <LinearProgress />
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-              シフト表を解析中... お待ちください
+              ファイルを解析中... お待ちください
             </Typography>
           </Box>
         )}
