@@ -35,16 +35,14 @@ import type { Shift, Workplace } from '../../types/shift';
 
 interface ShiftCalendarProps {
   shifts: Shift[];
-  workplaces?: Workplace[];
   onAddShift: (date: string) => void;
   onEditShift: (shift: Shift) => void;
-  onDeleteShift: (shift: Shift) => void;
+  onDeleteShift: (shiftId: string) => void;
   loading?: boolean;
 }
 
 export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   shifts,
-  workplaces = [],
   onAddShift,
   onEditShift,
   onDeleteShift,
@@ -93,121 +91,65 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
     onAddShift(format(date, 'yyyy-MM-dd'));
   };
 
-  // 職場の色を取得
-  const getWorkplaceColor = (shift: Shift) => {
-    const workplace = workplaces.find(
-      wp => wp.id === shift.jobSourceId || wp.name === shift.jobSourceName
-    );
-    return workplace?.color || '#2196F3'; // デフォルトは青
-  };
-
-  // 色を薄くする関数
-  const lightenColor = (color: string, opacity: number = 0.1) => {
-    return `${color}${Math.round(opacity * 255)
-      .toString(16)
-      .padStart(2, '0')}`;
-  };
 
   // シフトカードのレンダリング
-  const renderShiftCard = (shift: Shift, _isCompact: boolean = false) => {
-    const workplaceColor = getWorkplaceColor(shift);
-
-    return (
-      <Paper
-        key={shift.id}
-        elevation={2}
-        sx={{
-          p: 1,
-          mb: 0.5,
-          bgcolor: lightenColor(workplaceColor, 0.1),
-          borderLeft: 4,
-          borderLeftColor: workplaceColor,
-          '&:hover': {
-            bgcolor: lightenColor(workplaceColor, 0.2),
-            transform: 'translateY(-1px)',
-            boxShadow: 2,
-          },
-          cursor: 'pointer',
-        }}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Box sx={{ flex: 1, minWidth: 0 }} onClick={() => onEditShift(shift)}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Box
-                sx={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  backgroundColor: workplaceColor,
-                  flexShrink: 0,
-                }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontWeight: 'bold', flex: 1, minWidth: 0 }}
-              >
-                {shift.jobSourceName}
-              </Typography>
-            </Box>
-            <Box
-              sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}
-            >
-              <AccessTime sx={{ fontSize: 12 }} />
-              <Typography variant="caption">
-                {shift.startTime} - {shift.endTime}
-              </Typography>
-              {shift.breakMinutes > 0 && (
-                <Typography variant="caption" color="text.secondary">
-                  (休憩{shift.breakMinutes}分)
-                </Typography>
-              )}
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <AttachMoney sx={{ fontSize: 12 }} />
-              <Typography variant="caption" fontWeight="bold">
-                ¥{shift.calculatedEarnings.toLocaleString()}
-              </Typography>
+  const renderShiftCard = (shift: Shift, _isCompact: boolean = false) => (
+    <Paper
+      key={shift.id}
+      elevation={2}
+      sx={{
+        p: 1,
+        mb: 0.5,
+        bgcolor: shift.isConfirmed ? 'success.50' : 'warning.50',
+        borderLeft: 4,
+        borderLeftColor: shift.isConfirmed ? 'success.main' : 'warning.main',
+        '&:hover': {
+          bgcolor: shift.isConfirmed ? 'success.100' : 'warning.100',
+        },
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
+            {shift.jobSourceName}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+            <AccessTime sx={{ fontSize: 12 }} />
+            <Typography variant="caption">
+              {shift.startTime} - {shift.endTime}
+            </Typography>
+            {shift.breakMinutes > 0 && (
               <Typography variant="caption" color="text.secondary">
-                ({shift.workingHours.toFixed(1)}h)
+                (休憩{shift.breakMinutes}分)
               </Typography>
-            </Box>
+            )}
           </Box>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            <Tooltip title="編集">
-              <IconButton
-                size="small"
-                onClick={e => {
-                  e.stopPropagation();
-                  onEditShift(shift);
-                }}
-              >
-                <Edit sx={{ fontSize: 14 }} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="削除">
-              <IconButton
-                size="small"
-                onClick={e => {
-                  e.stopPropagation();
-                  onDeleteShift(shift);
-                }}
-                color="error"
-              >
-                <Delete sx={{ fontSize: 14 }} />
-              </IconButton>
-            </Tooltip>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <AttachMoney sx={{ fontSize: 12 }} />
+            <Typography variant="caption" fontWeight="bold">
+              ¥{shift.calculatedEarnings.toLocaleString()}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              ({shift.workingHours.toFixed(1)}h)
+            </Typography>
           </Box>
         </Box>
-      </Paper>
-    );
-  };
+        
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+          <Tooltip title="編集">
+            <IconButton size="small" onClick={() => onEditShift(shift)}>
+              <Edit sx={{ fontSize: 14 }} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="削除">
+            <IconButton size="small" onClick={() => onDeleteShift(shift.id)} color="error">
+              <Delete sx={{ fontSize: 14 }} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
+    </Paper>
+  );
 
   return (
     <Card>

@@ -253,10 +253,12 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
       {/* メインコンテンツ */}
       <ShiftCalendar
         shifts={shifts}
-        workplaces={workplaces}
         onAddShift={handleAddShift}
         onEditShift={handleEditShift}
-        onDeleteShift={handleDeleteShift}
+        onDeleteShift={(shiftId: string) => {
+          const shift = shifts.find(s => s.id === shiftId);
+          if (shift) handleDeleteShift(shift);
+        }}
         loading={loading}
       />
 
