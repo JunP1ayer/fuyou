@@ -195,14 +195,14 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                     bgcolor: isSelected
                       ? 'primary.main'
                       : isCurrentDay
-                        ? 'primary.100'
+                        ? 'primary.50'
                         : 'transparent',
                     color: isSelected ? 'white' : 'inherit',
                     '&:hover': { 
                       bgcolor: isSelected 
                         ? 'primary.dark' 
                         : isCurrentDay 
-                          ? 'primary.200'
+                          ? 'primary.100'
                           : 'action.hover',
                     },
                     transition: 'all 0.2s ease',
