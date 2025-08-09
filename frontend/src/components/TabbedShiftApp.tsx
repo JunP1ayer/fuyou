@@ -8,12 +8,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import {
-  Schedule,
-  Upload,
-  AttachMoney,
-  Settings,
-} from '@mui/icons-material';
+import { Schedule, Upload, AttachMoney, Settings } from '@mui/icons-material';
 
 import { ShiftManager } from './shifts/ShiftManager';
 import { OCRShiftManager } from './OCRShiftManager';
@@ -215,12 +210,12 @@ export const TabbedShiftApp: React.FC = () => {
 
   return (
     <Box
-      sx={{ 
-        width: '100%', 
-        bgcolor: 'background.default', 
+      sx={{
+        width: '100%',
+        bgcolor: 'background.default',
         minHeight: '100vh',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
       }}
     >
       {/* デスクトップ版ヘッダー */}
@@ -305,12 +300,14 @@ export const TabbedShiftApp: React.FC = () => {
       )}
 
       {/* タブコンテンツ */}
-      <Box sx={{ 
-        flex: 1, 
-        px: { xs: 2, md: 3 }, 
-        pb: isMobile ? 10 : 3,
-        pt: 2
-      }}>
+      <Box
+        sx={{
+          flex: 1,
+          px: { xs: 2, md: 3 },
+          pb: isMobile ? 10 : 3,
+          pt: 2,
+        }}
+      >
         {tabs.map((tab, index) => (
           <TabPanel key={index} value={activeTab} index={index}>
             {tab.component}

@@ -47,16 +47,18 @@ export const SettingsPage: React.FC = () => {
     salaryAlert: true,
     pushNotification: false,
   });
-  
+
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
 
-  const handleNotificationChange = (key: keyof typeof notifications) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setNotifications(prev => ({
-      ...prev,
-      [key]: event.target.checked
-    }));
-  };
+  const handleNotificationChange =
+    (key: keyof typeof notifications) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setNotifications(prev => ({
+        ...prev,
+        [key]: event.target.checked,
+      }));
+    };
 
   const settingsData = {
     profile: {
@@ -69,8 +71,11 @@ export const SettingsPage: React.FC = () => {
       totalShifts: 24,
       totalEarnings: 156000,
       averageHourlyRate: 1100,
-      currentMonth: new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long' }),
-    }
+      currentMonth: new Date().toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: 'long',
+      }),
+    },
   };
 
   return (
@@ -83,7 +88,9 @@ export const SettingsPage: React.FC = () => {
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Avatar sx={{ width: 64, height: 64, mr: 2, bgcolor: 'primary.main' }}>
+            <Avatar
+              sx={{ width: 64, height: 64, mr: 2, bgcolor: 'primary.main' }}
+            >
               <Person sx={{ fontSize: 32 }} />
             </Avatar>
             <Box sx={{ flex: 1 }}>
@@ -101,9 +108,9 @@ export const SettingsPage: React.FC = () => {
               <ChevronRight />
             </IconButton>
           </Box>
-          
+
           <Divider sx={{ mb: 2 }} />
-          
+
           {/* 統計情報 */}
           <Grid container spacing={2}>
             <Grid item xs={4}>
@@ -162,7 +169,7 @@ export const SettingsPage: React.FC = () => {
                 />
               </ListItemSecondaryAction>
             </ListItem>
-            
+
             <ListItem>
               <ListItemIcon>
                 <AttachMoney />
@@ -178,7 +185,7 @@ export const SettingsPage: React.FC = () => {
                 />
               </ListItemSecondaryAction>
             </ListItem>
-            
+
             <ListItem>
               <ListItemIcon>
                 <Notifications />
@@ -219,7 +226,7 @@ export const SettingsPage: React.FC = () => {
                 </IconButton>
               </ListItemSecondaryAction>
             </ListItem>
-            
+
             <ListItem button>
               <ListItemIcon>
                 <Download />
@@ -260,15 +267,12 @@ export const SettingsPage: React.FC = () => {
                 </IconButton>
               </ListItemSecondaryAction>
             </ListItem>
-            
+
             <ListItem button>
               <ListItemIcon>
                 <Language />
               </ListItemIcon>
-              <ListItemText
-                primary="言語設定"
-                secondary="表示言語の変更"
-              />
+              <ListItemText primary="言語設定" secondary="表示言語の変更" />
               <ListItemSecondaryAction>
                 <Chip label="日本語" size="small" />
                 <IconButton>
@@ -276,7 +280,7 @@ export const SettingsPage: React.FC = () => {
                 </IconButton>
               </ListItemSecondaryAction>
             </ListItem>
-            
+
             <ListItem button>
               <ListItemIcon>
                 <Security />
@@ -316,7 +320,7 @@ export const SettingsPage: React.FC = () => {
                 </IconButton>
               </ListItemSecondaryAction>
             </ListItem>
-            
+
             <ListItem button>
               <ListItemIcon>
                 <Feedback />
@@ -331,7 +335,7 @@ export const SettingsPage: React.FC = () => {
                 </IconButton>
               </ListItemSecondaryAction>
             </ListItem>
-            
+
             <ListItem button onClick={() => setAboutDialogOpen(true)}>
               <ListItemIcon>
                 <Info />
@@ -346,15 +350,12 @@ export const SettingsPage: React.FC = () => {
                 </IconButton>
               </ListItemSecondaryAction>
             </ListItem>
-            
+
             <ListItem button>
               <ListItemIcon>
                 <Star />
               </ListItemIcon>
-              <ListItemText
-                primary="アプリを評価"
-                secondary="レビューを書く"
-              />
+              <ListItemText primary="アプリを評価" secondary="レビューを書く" />
               <ListItemSecondaryAction>
                 <IconButton>
                   <ChevronRight />
@@ -368,7 +369,12 @@ export const SettingsPage: React.FC = () => {
       {/* 危険な操作 */}
       <Card sx={{ mb: 3, border: '1px solid', borderColor: 'error.light' }}>
         <CardContent>
-          <Typography variant="h6" fontWeight="bold" gutterBottom color="error.main">
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            gutterBottom
+            color="error.main"
+          >
             データの削除
           </Typography>
           <Alert severity="warning" sx={{ mb: 2 }}>
@@ -394,11 +400,24 @@ export const SettingsPage: React.FC = () => {
       </Card>
 
       {/* プロフィール詳細ダイアログ */}
-      <Dialog open={profileDialogOpen} onClose={() => setProfileDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={profileDialogOpen}
+        onClose={() => setProfileDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>プロフィール詳細</DialogTitle>
         <DialogContent>
           <Box sx={{ textAlign: 'center', mb: 3 }}>
-            <Avatar sx={{ width: 80, height: 80, mx: 'auto', mb: 2, bgcolor: 'primary.main' }}>
+            <Avatar
+              sx={{
+                width: 80,
+                height: 80,
+                mx: 'auto',
+                mb: 2,
+                bgcolor: 'primary.main',
+              }}
+            >
               <Person sx={{ fontSize: 40 }} />
             </Avatar>
             <Typography variant="h6">{settingsData.profile.name}</Typography>
@@ -406,13 +425,19 @@ export const SettingsPage: React.FC = () => {
               学生ID: {settingsData.profile.studentId}
             </Typography>
           </Box>
-          
+
           <List>
             <ListItem>
-              <ListItemText primary="メールアドレス" secondary={settingsData.profile.email} />
+              <ListItemText
+                primary="メールアドレス"
+                secondary={settingsData.profile.email}
+              />
             </ListItem>
             <ListItem>
-              <ListItemText primary="所属" secondary={settingsData.profile.university} />
+              <ListItemText
+                primary="所属"
+                secondary={settingsData.profile.university}
+              />
             </ListItem>
             <ListItem>
               <ListItemText primary="登録日" secondary="2024年1月15日" />
@@ -426,7 +451,12 @@ export const SettingsPage: React.FC = () => {
       </Dialog>
 
       {/* アプリ情報ダイアログ */}
-      <Dialog open={aboutDialogOpen} onClose={() => setAboutDialogOpen(false)} maxWidth="xs" fullWidth>
+      <Dialog
+        open={aboutDialogOpen}
+        onClose={() => setAboutDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle sx={{ textAlign: 'center' }}>シフトボード</DialogTitle>
         <DialogContent sx={{ textAlign: 'center' }}>
           <Work sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
