@@ -207,36 +207,33 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           </Box>
 
           {/* 曜日ヘッダー */}
-          <Grid container spacing={0.5} sx={{ mb: 0.5 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5, mb: 0.5 }}>
             {weekDays.map((day, index) => (
-              <Grid item xs key={day}>
-                <Typography
-                  variant="subtitle2"
-                  align="center"
-                  sx={{
-                    fontWeight: 'bold',
-                    color:
-                      index === 0
-                        ? 'error.main'
-                        : index === 6
-                          ? 'primary.main'
-                          : 'text.secondary',
-                  }}
-                >
-                  {day}
-                </Typography>
-              </Grid>
+              <Typography
+                key={day}
+                variant="subtitle2"
+                align="center"
+                sx={{
+                  fontWeight: 'bold',
+                  color:
+                    index === 0
+                      ? 'error.main'
+                      : index === 6
+                        ? 'primary.main'
+                        : 'text.secondary',
+                }}
+              >
+                {day}
+              </Typography>
             ))}
-          </Grid>
+          </Box>
 
-          {/* 日付グリッド（シンプル） */}
-          <Grid container spacing={0.5}>
+          {/* 日付グリッド（7列カレンダー） */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5 }}>
             {simpleCalendarDates.map((date, idx) => {
               if (!date) {
                 return (
-                  <Grid item xs key={`empty-${idx}`}>
-                    <Box sx={{ height: 72 }} />
-                  </Grid>
+                  <Box key={`empty-${idx}`} sx={{ height: 72 }} />
                 );
               }
 
@@ -247,52 +244,51 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
               const dayShifts = shiftsByDate[dateKey] || [];
 
               return (
-                <Grid item xs key={dateKey}>
-                  <Paper
-                    variant="outlined"
-                    onClick={() => {
-                      setSelectedDate(date);
-                      onAddShift(format(date, 'yyyy-MM-dd'));
-                    }}
-                    sx={{
-                      height: 72,
-                      p: 1,
-                      cursor: 'pointer',
-                      borderRadius: 1,
-                      bgcolor: isSelected
-                        ? 'primary.50'
-                        : isCurrentDay
-                          ? 'primary.25'
-                          : 'background.paper',
-                      borderColor: isSelected ? 'primary.main' : 'divider',
-                      '&:hover': { bgcolor: 'action.hover' },
-                      transition: 'background-color 0.2s ease',
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontWeight: isSelected || isCurrentDay ? 'bold' : 'normal',
-                          color:
-                            dayOfWeek === 0
-                              ? 'error.main'
-                              : dayOfWeek === 6
-                                ? 'primary.main'
-                                : 'text.primary',
-                        }}
-                      >
-                        {format(date, 'd')}
-                      </Typography>
-                      {dayShifts.length > 0 && (
-                        <Chip size="small" label={`${dayShifts.length}`} sx={{ height: 18, fontSize: '0.7rem' }} />
-                      )}
-                    </Box>
-                  </Paper>
-                </Grid>
+                <Paper
+                  key={dateKey}
+                  variant="outlined"
+                  onClick={() => {
+                    setSelectedDate(date);
+                    onAddShift(format(date, 'yyyy-MM-dd'));
+                  }}
+                  sx={{
+                    height: 72,
+                    p: 1,
+                    cursor: 'pointer',
+                    borderRadius: 1,
+                    bgcolor: isSelected
+                      ? 'primary.50'
+                      : isCurrentDay
+                        ? 'primary.25'
+                        : 'background.paper',
+                    borderColor: isSelected ? 'primary.main' : 'divider',
+                    '&:hover': { bgcolor: 'action.hover' },
+                    transition: 'background-color 0.2s ease',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: isSelected || isCurrentDay ? 'bold' : 'normal',
+                        color:
+                          dayOfWeek === 0
+                            ? 'error.main'
+                            : dayOfWeek === 6
+                              ? 'primary.main'
+                              : 'text.primary',
+                      }}
+                    >
+                      {format(date, 'd')}
+                    </Typography>
+                    {dayShifts.length > 0 && (
+                      <Chip size="small" label={`${dayShifts.length}`} sx={{ height: 18, fontSize: '0.7rem' }} />
+                    )}
+                  </Box>
+                </Paper>
               );
             })}
-          </Grid>
+          </Box>
         </CardContent>
       </Card>
     );
