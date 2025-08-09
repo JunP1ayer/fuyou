@@ -5,15 +5,27 @@
   "installCommand": "cd frontend && npm ci",
   "functions": {
     "api/**/*.js": {
-      "runtime": "nodejs18.x",
       "maxDuration": 30
     }
   },
-  "env": {
-    "SUPABASE_URL": "https://rgcbixnrlrohwcbxylyg.supabase.co",
-    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJnY2JpeG5ybHJvaHdjYnh5bHlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3Mzk0MzEsImV4cCI6MjA3MDMxNTQzMX0.sRGL-HqWUh9eKjPHEIXWBW7MJG_sfU4wXTpft9IkQ9c",
-    "SUPABASE_SERVICE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJnY2JpeG5ybHJvaHdjYnh5bHlnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDczOTQzMSwiZXhwIjoyMDcwMzE1NDMxfQ.p7fYdvRPr9a6fSqwxO05keumCx74WAHVc4_gsw0fHdM"
-  },
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/calendar-main.html"
+    },
+    {
+      "source": "/react",
+      "destination": "/index.html"  
+    },
+    {
+      "source": "/react/(.*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/app",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
