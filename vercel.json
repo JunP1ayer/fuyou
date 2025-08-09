@@ -1,54 +1,15 @@
 {
-  "version": 2,
-  "buildCommand": "cd frontend && npm ci && npm run build",
-  "outputDirectory": "frontend/dist", 
-  "installCommand": "cd frontend && npm ci",
   "functions": {
-    "api/**/*.js": {
-      "maxDuration": 30
-    }
+    "api/**/*.js": {}
   },
   "rewrites": [
     {
-      "source": "/",
-      "destination": "/calendar-main.html"
-    },
-    {
       "source": "/react",
-      "destination": "/index.html"  
+      "destination": "/index.html"
     },
     {
       "source": "/react/(.*)",
       "destination": "/index.html"
-    },
-    {
-      "source": "/app",
-      "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods", 
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        }
-      ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/calendar-main.html"
     }
   ]
 }
