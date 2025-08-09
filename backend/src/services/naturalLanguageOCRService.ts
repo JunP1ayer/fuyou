@@ -82,9 +82,10 @@ export class NaturalLanguageOCRService {
     const prompt = this.generateNaturalLanguagePrompt(ocrText, userName);
 
     try {
-      console.log('Calling OpenAI API with gpt-4o...');
+      const model = process.env.OPENAI_GPT_MODEL || 'gpt-5';
+      console.log(`Calling OpenAI API with ${model}...`);
       const response = await this.openai!.chat.completions.create({
-        model: 'gpt-4o',
+        model,
         messages: [
           {
             role: 'system',

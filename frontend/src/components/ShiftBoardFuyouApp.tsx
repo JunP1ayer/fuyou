@@ -22,7 +22,6 @@ import {
   PhotoCamera,
   EventNote,
 } from '@mui/icons-material';
-import { ShiftManager } from './shifts/ShiftManager';
 import { ShiftCalendar } from './shifts/ShiftCalendar';
 import { OCRShiftManager } from './OCRShiftManager';
 import { IntelligentOCRWorkflow } from './ocr/IntelligentOCRWorkflow';
@@ -35,7 +34,7 @@ import type { Shift, CreateShiftData, Workplace } from '../types/shift';
 export const ShiftBoardFuyouApp: React.FC = () => {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [workplaces, setWorkplaces] = useState<Workplace[]>([]);
-  
+
   // デバッグ用：shiftsの変更を監視
   React.useEffect(() => {
     console.log('Shifts updated:', shifts);
@@ -148,7 +147,7 @@ export const ShiftBoardFuyouApp: React.FC = () => {
           response.error?.message || 'シフトの登録に失敗しました'
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Shift creation error:', error);
       throw error;
     } finally {
@@ -156,59 +155,27 @@ export const ShiftBoardFuyouApp: React.FC = () => {
     }
   };
 
-  // OCRシフト追加の処理
-  const handleOCRComplete = (newShifts: CreateShiftData[]) => {
-    // CreateShiftDataをShiftに変換（簡易版）
-    const shiftsToAdd: Shift[] = newShifts.map(shift => ({
-      id: `shift-${Date.now()}-${Math.random()}`,
-      userId: 'demo-user',
-      date: shift.date,
-      startTime: shift.startTime,
-      endTime: shift.endTime,
-      hourlyRate: shift.hourlyRate,
-      jobSourceName: shift.jobSourceName,
-      breakMinutes: shift.breakMinutes || 0,
-      workingHours: calculateWorkingHours(
-        shift.startTime,
-        shift.endTime,
-        shift.breakMinutes || 0
-      ),
-      calculatedEarnings:
-        calculateWorkingHours(
-          shift.startTime,
-          shift.endTime,
-          shift.breakMinutes || 0
-        ) * shift.hourlyRate,
-      description: shift.description,
-      isConfirmed: shift.isConfirmed || false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }));
-
-    setShifts(prev => [...prev, ...shiftsToAdd]);
-    setOcrDialogOpen(false);
-  };
-
-  // 労働時間計算のヘルパー関数
-  const calculateWorkingHours = (
-    startTime: string,
-    endTime: string,
-    breakMinutes: number = 0
-  ): number => {
-    const [startHour, startMin] = startTime.split(':').map(Number);
-    const [endHour, endMin] = endTime.split(':').map(Number);
-
-    const startMinutes = startHour * 60 + startMin;
-    let endMinutes = endHour * 60 + endMin;
-
-    // 翌日跨ぎの場合
-    if (endMinutes < startMinutes) {
-      endMinutes += 24 * 60;
+  // OCRシフト追加の処理（DBへ一括保存→カレンダーに反映）
+  const handleOCRComplete = async (newShifts: CreateShiftData[]) => {
+    try {
+      setLoading(true);
+      // バルク保存
+      const result = await api.createBulkShifts(newShifts);
+      if (!result.success || !result.data) {
+        throw new Error(
+          result.error?.message || 'シフトの一括保存に失敗しました'
+        );
+      }
+      // 返却されたシフトでカレンダー更新
+      setShifts(prev => [...prev, ...result.data!]);
+      setOcrDialogOpen(false);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
-
-    const totalMinutes = endMinutes - startMinutes - breakMinutes;
-    return Math.max(0, totalMinutes / 60);
   };
+
 
   return (
     <Box sx={{ p: 2, maxWidth: 1200, mx: 'auto' }}>
@@ -254,15 +221,15 @@ export const ShiftBoardFuyouApp: React.FC = () => {
           <ShiftCalendar
             shifts={shifts}
             workplaces={workplaces}
-            onAddShift={(date) => {
+            onAddShift={date => {
               // 日付クリック時の処理
               console.log('Add shift for date:', date);
             }}
-            onEditShift={(shift) => {
+            onEditShift={shift => {
               // シフト編集時の処理
               console.log('Edit shift:', shift);
             }}
-            onDeleteShift={(shift) => {
+            onDeleteShift={shift => {
               // シフト削除時の処理
               setShifts(prev => prev.filter(s => s.id !== shift.id));
             }}
@@ -361,7 +328,14 @@ export const ShiftBoardFuyouApp: React.FC = () => {
       >
         <IntelligentOCRWorkflow
           onShiftsSaved={newShifts => {
-            handleOCRComplete(newShifts);
+            // Check if shifts are already saved (ShiftResponse[]) or need to be saved (CreateShiftData[])
+            if (newShifts.length > 0 && 'id' in newShifts[0]) {
+              // Already saved shifts (ShiftResponse[]), just add to calendar
+              setShifts(prev => [...prev, ...(newShifts as Shift[])]);
+            } else {
+              // Need to save shifts (CreateShiftData[]), use bulk save
+              handleOCRComplete(newShifts as CreateShiftData[]);
+            }
             setIntelligentOCROpen(false);
           }}
           onClose={() => setIntelligentOCROpen(false)}

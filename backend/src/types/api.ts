@@ -32,6 +32,10 @@ export interface ApiResponse<T = any> {
     total?: number;
     page?: number;
     limit?: number;
+    autoSave?: boolean; // Whether auto-save was requested/performed
+    savedCount?: number; // Number of shifts saved successfully
+    skippedCount?: number; // Number of shifts skipped due to conflicts
+    skippedShifts?: Array<{ shift: CreateShiftRequest; reason: string }>; // Details of skipped shifts
   };
 }
 
@@ -393,6 +397,7 @@ export interface OCRProcessingResponse {
   results: Record<string, AIProcessingResult>;
   consolidatedResult: ConsolidatedOCRResult;
   processingTimeMs: number;
+  savedShifts?: ShiftResponse[]; // Auto-saved shifts if autoSave was enabled
 }
 
 // OCR Schemas

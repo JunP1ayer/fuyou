@@ -5,6 +5,7 @@ import { validateSchema } from '../middleware/validation';
 import { asyncHandler } from '../middleware/errorHandler';
 import { uploadConfig } from '../middleware/uploadMiddleware';
 import { intelligentOCRService } from '../services/intelligentOCRService';
+import { shiftService } from '../services/shiftService';
 import { OCRProcessingSchema, type OCRProcessingRequest, type ApiResponse, type OCRProcessingResponse } from '../types/api';
 
 const router = express.Router();
@@ -127,6 +128,7 @@ router.post(
     const userId = req.user!.id;
     const userName = req.body.userName;
     const processingOptions = req.body.processingOptions ? JSON.parse(req.body.processingOptions) : undefined;
+    const autoSave = req.body.autoSave === 'true' || req.body.autoSave === true;
 
     console.log(`Processing uploaded file for user: ${userId}`);
     console.log(`File size: ${req.file.size} bytes, MIME type: ${req.file.mimetype}`);
@@ -148,11 +150,36 @@ router.post(
       const processingTime = Date.now() - startTime;
       console.log(`File processing completed in ${processingTime}ms`);
 
+      let savedShifts: any[] = [];
+      let saveMetaData = {};
+
+      // Auto-save if requested
+      if (autoSave && result.consolidatedResult.recommendedShifts.length > 0) {
+        console.log(`Auto-saving ${result.consolidatedResult.recommendedShifts.length} shifts...`);
+        try {
+          const bulkResult = await shiftService.bulkCreateShifts(userId, result.consolidatedResult.recommendedShifts);
+          savedShifts = bulkResult.savedShifts;
+          saveMetaData = {
+            savedCount: bulkResult.savedCount,
+            skippedCount: bulkResult.skippedCount,
+            skippedShifts: bulkResult.skippedShifts
+          };
+          console.log(`Auto-save completed: ${bulkResult.savedCount} saved, ${bulkResult.skippedCount} skipped`);
+        } catch (saveError) {
+          console.error('Auto-save failed:', saveError);
+        }
+      }
+
       const response: ApiResponse<OCRProcessingResponse> = {
         success: true,
-        data: result,
+        data: {
+          ...result,
+          savedShifts: savedShifts
+        },
         meta: {
           total: result.consolidatedResult.recommendedShifts.length,
+          autoSave,
+          ...saveMetaData
         },
       };
 
@@ -288,14 +315,14 @@ router.get(
   '/status',
   requireAuthOrDemo,
   asyncHandler(async (req: express.Request, res: express.Response) => {
-    const providers = {
+      const providers = {
       gemini: {
         available: !!process.env.GEMINI_API_KEY,
         description: 'Google Gemini AI - 高精度画像解析',
       },
       openai: {
         available: !!(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'YOUR_OPENAI_API_KEY_HERE'),
-        description: 'OpenAI GPT-4o - 自然言語処理',
+          description: `OpenAI ${process.env.OPENAI_GPT_MODEL || 'gpt-5'} - 自然言語/画像理解`,
       },
       vision: {
         available: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -8,24 +8,21 @@ import {
   Button,
   Typography,
   Fade,
-  Slide,
   Backdrop,
   CircularProgress,
   Alert,
   Chip,
   Container,
+  FormControlLabel,
+  Switch,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
 import {
-  CloudUpload,
-  AutoAwesome,
-  Edit,
   Save,
   ArrowBack,
   ArrowForward,
   CheckCircle,
-  Error as ErrorIcon,
 } from '@mui/icons-material';
 
 import { SmartUploadZone } from './SmartUploadZone';
@@ -121,8 +118,9 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Refs
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // 自動保存設定
+  const [autoSave, setAutoSave] = useState<boolean>(true);
+
 
   const currentStageConfig = PROCESSING_STAGES.find(
     s => s.stage === currentStage
@@ -186,6 +184,7 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
       const formData = new FormData();
       formData.append('image', file);
       formData.append('userName', userProfile?.shiftFilterName || '');
+      formData.append('autoSave', autoSave.toString());
       formData.append(
         'processingOptions',
         JSON.stringify({
@@ -196,10 +195,20 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
         })
       );
 
+      const authToken = (() => {
+        const direct = localStorage.getItem('token');
+        if (direct) return direct;
+        try {
+          const auth = localStorage.getItem('auth');
+          if (auth) return JSON.parse(auth).token;
+        } catch {}
+        return null;
+      })();
+
       const response = await fetch('/api/intelligent-ocr/upload-and-process', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         },
         body: formData,
       });
@@ -222,8 +231,26 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
       );
       setEditableShifts(shifts);
 
-      // 結果表示ステージに進む
-      setCurrentStage('results');
+      // 自動保存が有効で保存済みの場合は保存完了ステージに進む
+      if (
+        autoSave &&
+        data.meta?.autoSave &&
+        data.data.savedShifts?.length > 0
+      ) {
+        // サーバ側で自動保存済みの場合、カレンダー更新のみ行う
+        // savedShiftsはShiftResponse型なのでCreateShiftData型に変換不要
+        // 直接親コンポーネントに保存済みシフトを通知してカレンダーを更新
+        onShiftsSaved(data.data.savedShifts);
+        setCurrentStage('saving');
+
+        // 完了後、少し待ってから閉じる
+        setTimeout(() => {
+          onClose?.();
+        }, 2000);
+      } else {
+        // 結果表示ステージに進む
+        setCurrentStage('results');
+      }
     } catch (err: any) {
       setError(err.message);
       setCurrentStage('upload');
@@ -277,15 +304,52 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
         isConfirmed: shift.isConfirmed,
       }));
 
-      // 親コンポーネントに結果を渡す
-      onShiftsSaved(shiftsToSave);
+      // 保存方法の選択: クライアント側での保存 vs サーバー側での再送信保存
+      if (autoSave && uploadState.selectedImage) {
+        // サーバー側でautoSave=trueで再送信して保存
+        await processWithIntelligentOCR(uploadState.selectedImage);
+      } else {
+        // クライアント側で /api/shifts/bulk を呼び出し
+        const authToken = (() => {
+          const direct = localStorage.getItem('token');
+          if (direct) return direct;
+          try {
+            const auth = localStorage.getItem('auth');
+            if (auth) return JSON.parse(auth).token;
+          } catch {}
+          return null;
+        })();
 
-      setCurrentStage('saving');
+        const response = await fetch('/api/shifts/bulk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+          },
+          body: JSON.stringify({ shifts: shiftsToSave }),
+        });
 
-      // 完了後、少し待ってから閉じる
-      setTimeout(() => {
-        onClose?.();
-      }, 2000);
+        if (!response.ok) {
+          throw new Error('シフトの保存に失敗しました');
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(
+            data.error?.message || 'シフトの保存でエラーが発生しました'
+          );
+        }
+
+        // 親コンポーネントに結果を渡す
+        onShiftsSaved(shiftsToSave);
+
+        setCurrentStage('saving');
+
+        // 完了後、少し待ってから閉じる
+        setTimeout(() => {
+          onClose?.();
+        }, 2000);
+      }
     } catch (err: any) {
       setError(err.message || 'シフト保存に失敗しました');
     } finally {
@@ -300,12 +364,35 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
     switch (currentStage) {
       case 'upload':
         return (
-          <SmartUploadZone
-            onFileUpload={handleFileUpload}
-            uploadState={uploadState}
-            setUploadState={setUploadState}
-            userProfile={userProfile}
-          />
+          <Box>
+            <Box display="flex" justifyContent="center" mb={3}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={autoSave}
+                    onChange={e => setAutoSave(e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label={
+                  <Box>
+                    <Typography variant="body1" fontWeight="medium">
+                      自動保存を有効にする
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      OCR解析後に自動でカレンダーに保存します
+                    </Typography>
+                  </Box>
+                }
+              />
+            </Box>
+            <SmartUploadZone
+              onFileUpload={handleFileUpload}
+              uploadState={uploadState}
+              setUploadState={setUploadState}
+              userProfile={userProfile}
+            />
+          </Box>
         );
 
       case 'processing':
@@ -324,13 +411,28 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
               🎯 AI解析結果 ({editableShifts.length}件のシフト)
             </Typography>
             {ocrResults && (
-              <Alert severity="info" sx={{ mb: 2 }}>
-                信頼度:{' '}
-                {Math.round(
-                  ocrResults.consolidatedResult.overallConfidence * 100
+              <Box mb={2}>
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  信頼度:{' '}
+                  {Math.round(
+                    ocrResults.consolidatedResult.overallConfidence * 100
+                  )}
+                  %{ocrResults.consolidatedResult.needsReview && ' (要確認)'}
+                </Alert>
+                {/* 自動保存結果の表示 */}
+                {ocrResults.meta?.autoSave && (
+                  <Alert
+                    severity={
+                      ocrResults.meta.savedCount > 0 ? 'success' : 'warning'
+                    }
+                    sx={{ mb: 2 }}
+                  >
+                    自動保存結果: {ocrResults.meta.savedCount || 0}件保存、
+                    {ocrResults.meta.skippedCount || 0}件スキップ
+                    {ocrResults.meta.skippedCount > 0 && ' (時間重複等のため)'}
+                  </Alert>
                 )}
-                %{ocrResults.consolidatedResult.needsReview && ' (要確認)'}
-              </Alert>
+              </Box>
             )}
             <Box display="flex" gap={1} flexWrap="wrap" mb={2}>
               {editableShifts.map((shift, index) => (

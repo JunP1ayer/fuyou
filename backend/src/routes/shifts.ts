@@ -143,20 +143,16 @@ router.post(
       });
     }
     
-    const createdShifts = [];
-    for (const shiftData of shifts) {
-      try {
-        const shift = await shiftService.createShift(userId, shiftData);
-        createdShifts.push(shift);
-      } catch (error) {
-        console.error('Failed to create shift:', error);
-        // Continue with other shifts even if one fails
-      }
-    }
+    const result = await shiftService.bulkCreateShifts(userId, shifts);
     
     res.status(201).json({
       success: true,
-      data: createdShifts,
+      data: result.savedShifts,
+      meta: {
+        savedCount: result.savedCount,
+        skippedCount: result.skippedCount,
+        skippedShifts: result.skippedShifts
+      }
     });
   })
 );

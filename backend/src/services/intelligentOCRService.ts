@@ -216,9 +216,10 @@ export class IntelligentOCRService {
     }
 
     const prompt = this.generateShiftExtractionPrompt(userName);
+    const model = process.env.OPENAI_GPT_MODEL || 'gpt-5';
 
     const response = await this.openaiClient.chat.completions.create({
-      model: 'gpt-4o',
+      model,
       messages: [
         {
           role: 'user',

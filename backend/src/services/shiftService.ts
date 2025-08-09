@@ -392,6 +392,37 @@ export class ShiftService {
     return !(adjustEnd1 <= start2Minutes || adjustEnd2 <= start1Minutes);
   }
 
+  // Bulk create shifts with conflict handling
+  async bulkCreateShifts(userId: string, shiftsData: CreateShiftRequest[]): Promise<{
+    savedShifts: ShiftResponse[];
+    skippedShifts: Array<{ shift: CreateShiftRequest; reason: string }>;
+    savedCount: number;
+    skippedCount: number;
+  }> {
+    const savedShifts: ShiftResponse[] = [];
+    const skippedShifts: Array<{ shift: CreateShiftRequest; reason: string }> = [];
+
+    for (const shiftData of shiftsData) {
+      try {
+        const shift = await this.createShift(userId, shiftData);
+        savedShifts.push(shift);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        skippedShifts.push({
+          shift: shiftData,
+          reason: errorMessage
+        });
+      }
+    }
+
+    return {
+      savedShifts,
+      skippedShifts,
+      savedCount: savedShifts.length,
+      skippedCount: skippedShifts.length
+    };
+  }
+
   // Helper method to calculate statistics
   private calculateShiftStats(shifts: any[]): ShiftStats {
     const now = new Date();
