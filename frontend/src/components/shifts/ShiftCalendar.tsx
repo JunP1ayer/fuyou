@@ -5,6 +5,7 @@ import {
   Typography,
   Box,
   Grid,
+  Button,
   Chip,
   IconButton,
   Tooltip,
@@ -25,13 +26,14 @@ import {
   startOfMonth,
   endOfMonth,
   eachDayOfInterval,
+  isSameDay,
   isToday,
   addMonths,
   subMonths,
 } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
-import type { Shift, Workplace } from '../../types/shift';
+import type { Shift } from '../../types/shift';
 
 interface ShiftCalendarProps {
   shifts: Shift[];
@@ -91,9 +93,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
     onAddShift(format(date, 'yyyy-MM-dd'));
   };
 
-
   // シフトカードのレンダリング
-  const renderShiftCard = (shift: Shift, _isCompact: boolean = false) => (
+  const renderShiftCard = (shift: Shift, isCompact: boolean = false) => (
     <Paper
       key={shift.id}
       elevation={2}
@@ -108,12 +109,23 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         },
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="caption" sx={{ fontWeight: 'bold', display: 'block' }}>
+          <Typography
+            variant="caption"
+            sx={{ fontWeight: 'bold', display: 'block' }}
+          >
             {shift.jobSourceName}
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+          <Box
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}
+          >
             <AccessTime sx={{ fontSize: 12 }} />
             <Typography variant="caption">
               {shift.startTime} - {shift.endTime}
@@ -134,7 +146,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
             </Typography>
           </Box>
         </Box>
-        
+
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           <Tooltip title="編集">
             <IconButton size="small" onClick={() => onEditShift(shift)}>
@@ -142,7 +154,11 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
             </IconButton>
           </Tooltip>
           <Tooltip title="削除">
-            <IconButton size="small" onClick={() => onDeleteShift(shift.id)} color="error">
+            <IconButton
+              size="small"
+              onClick={() => onDeleteShift(shift.id)}
+              color="error"
+            >
               <Delete sx={{ fontSize: 14 }} />
             </IconButton>
           </Tooltip>

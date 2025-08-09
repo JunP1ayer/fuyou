@@ -13,3 +13,6 @@ optimization_service/
 database/
 calendar_data/
 data/
+
+# Ensure build output is included
+!frontend/dist/

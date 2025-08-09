@@ -120,7 +120,10 @@
       "Bash(HOST=0.0.0.0 PORT=3001 node dist/app.js)",
       "Bash(GOOGLE_APPLICATION_CREDENTIALS=./config/google-vision-key.json node -e \"\nconst vision = require(''@google-cloud/vision'');\nconst client = new vision.ImageAnnotatorClient();\nconsole.log(''Google Vision API client initialized successfully'');\n\")",
       "Bash(timeout 30s npm run dev)",
-      "Bash(timeout 20s npm run dev:direct)"
+      "Bash(timeout 20s npm run dev:direct)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(apt list:*)"
     ],
     "deny": []
   }
