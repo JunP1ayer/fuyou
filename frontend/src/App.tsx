@@ -95,64 +95,8 @@ function App() {
   const [currentTab, setCurrentTab] = useState<NavigationTab>('shifts');
   const [shifts, setShifts] = useState<Shift[]>([]);
 
-  // デモ用の職場とシフト（API未接続でもカレンダーUIを確認できるように）
-  const workplaces: Workplace[] = [
-    {
-      id: 'wp-1',
-      userId: 'demo-user',
-      name: 'カフェ A',
-      hourlyRate: 1000,
-      color: '#2196f3',
-      isActive: true,
-      createdAt: now.toISOString(),
-      updatedAt: now.toISOString(),
-    },
-    {
-      id: 'wp-2',
-      userId: 'demo-user',
-      name: 'コンビニ B',
-      hourlyRate: 950,
-      color: '#4caf50',
-      isActive: true,
-      createdAt: now.toISOString(),
-      updatedAt: now.toISOString(),
-    },
-  ];
-
-  const initialShifts: Shift[] = [
-    {
-      id: 'demo-1',
-      userId: 'demo-user',
-      jobSourceId: 'wp-1',
-      jobSourceName: 'カフェ A',
-      date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-10`,
-      startTime: '09:00',
-      endTime: '17:00',
-      hourlyRate: 1000,
-      breakMinutes: 60,
-      workingHours: 7,
-      calculatedEarnings: 7000,
-      isConfirmed: true,
-      createdAt: now.toISOString(),
-      updatedAt: now.toISOString(),
-    },
-    {
-      id: 'demo-2',
-      userId: 'demo-user',
-      jobSourceId: 'wp-2',
-      jobSourceName: 'コンビニ B',
-      date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-15`,
-      startTime: '18:00',
-      endTime: '22:00',
-      hourlyRate: 950,
-      breakMinutes: 0,
-      workingHours: 4,
-      calculatedEarnings: 3800,
-      isConfirmed: false,
-      createdAt: now.toISOString(),
-      updatedAt: now.toISOString(),
-    },
-  ];
+  const workplaces: Workplace[] = [];
+  const initialShifts: Shift[] = [];
 
   // タブ変更ハンドラ
   const handleTabChange = (tab: NavigationTab) => {

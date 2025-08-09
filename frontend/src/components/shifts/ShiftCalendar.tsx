@@ -83,14 +83,12 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
 
   // 強制的にsimple版を表示
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-      <Card
-        sx={{
-          width: '100%',
-          maxWidth: { xs: '100%', sm: '600px', md: '800px', lg: '1000px' },
-          mx: 'auto',
-        }}
-      >
+    <Card
+      sx={{
+        width: '100%',
+        maxWidth: { xs: '100%', sm: '600px', md: '800px', lg: '1000px' },
+      }}
+    >
         <CardContent sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
           {/* ヘッダー（左・右ナビと中央月表示） */}
           <Box
@@ -293,7 +291,6 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
             })}
           </Box>
         </CardContent>
-      </Card>
-    </Box>
+    </Card>
   );
 };
