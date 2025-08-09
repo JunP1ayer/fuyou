@@ -88,8 +88,8 @@ const theme = createTheme({
 
 function App() {
   const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
+  const _currentYear = now.getFullYear();
+  const _currentMonth = now.getMonth();
 
   // ナビゲーション状態管理
   const [currentTab, setCurrentTab] = useState<NavigationTab>('shifts');

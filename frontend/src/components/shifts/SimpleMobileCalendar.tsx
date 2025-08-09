@@ -23,7 +23,7 @@ import type { Shift } from '../../types/shift';
 interface SimpleMobileCalendarProps {
   shifts: Shift[];
   onAddShift: (date: string) => void;
-  onEditShift: (shift: Shift) => void;
+  onEditShift: (_shift: Shift) => void;
   onDeleteShift: (shiftId: string) => void;
   loading?: boolean;
 }
