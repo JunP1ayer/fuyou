@@ -8,16 +8,14 @@ import {
   CardContent,
   Chip,
   Alert,
-  Divider,
-  Timeline,
-  TimelineItem,
-  TimelineSeparator,
-  TimelineConnector,
-  TimelineContent,
-  TimelineDot,
   LinearProgress,
   Avatar,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
+// Timeline components replaced with simpler implementation
 import {
   CheckCircle,
   Schedule,
@@ -300,93 +298,59 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
           📊 処理フロー
         </Typography>
 
-        <Timeline>
-          <TimelineItem>
-            <TimelineSeparator>
-              <TimelineDot color="success">
-                <CheckCircle />
-              </TimelineDot>
-              <TimelineConnector />
-            </TimelineSeparator>
-            <TimelineContent>
-              <Typography variant="subtitle2" fontWeight="bold">
-                画像アップロード完了
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                シフト表画像を正常に読み込み
-              </Typography>
-            </TimelineContent>
-          </TimelineItem>
+        <List>
+          <ListItem>
+            <ListItemIcon>
+              <CheckCircle color="success" />
+            </ListItemIcon>
+            <ListItemText
+              primary="画像アップロード完了"
+              secondary="シフト表画像を正常に読み込み"
+            />
+          </ListItem>
 
-          <TimelineItem>
-            <TimelineSeparator>
-              <TimelineDot color="success">
-                <AutoAwesome />
-              </TimelineDot>
-              <TimelineConnector />
-            </TimelineSeparator>
-            <TimelineContent>
-              <Typography variant="subtitle2" fontWeight="bold">
-                AI並列解析完了
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {aiPerformance.length}つのAIでシフト情報を抽出
-              </Typography>
-            </TimelineContent>
-          </TimelineItem>
+          <ListItem>
+            <ListItemIcon>
+              <AutoAwesome color="success" />
+            </ListItemIcon>
+            <ListItemText
+              primary="AI並列解析完了"
+              secondary={`${aiPerformance.length}つのAIでシフト情報を抽出`}
+            />
+          </ListItem>
 
-          <TimelineItem>
-            <TimelineSeparator>
-              <TimelineDot color="success">
-                <TrendingUp />
-              </TimelineDot>
-              <TimelineConnector />
-            </TimelineSeparator>
-            <TimelineContent>
-              <Typography variant="subtitle2" fontWeight="bold">
-                結果統合・最適化完了
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                最適な結果を選択し品質向上
-              </Typography>
-            </TimelineContent>
-          </TimelineItem>
+          <ListItem>
+            <ListItemIcon>
+              <TrendingUp color="success" />
+            </ListItemIcon>
+            <ListItemText
+              primary="結果統合・最適化完了"
+              secondary="最適な結果を選択し品質向上"
+            />
+          </ListItem>
 
           {statistics.editedCount > 0 && (
-            <TimelineItem>
-              <TimelineSeparator>
-                <TimelineDot color="primary">
-                  <TrendingUp />
-                </TimelineDot>
-                <TimelineConnector />
-              </TimelineSeparator>
-              <TimelineContent>
-                <Typography variant="subtitle2" fontWeight="bold">
-                  手動編集完了
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {statistics.editedCount}件のシフトを手動調整
-                </Typography>
-              </TimelineContent>
-            </TimelineItem>
+            <ListItem>
+              <ListItemIcon>
+                <TrendingUp color="primary" />
+              </ListItemIcon>
+              <ListItemText
+                primary="手動編集完了"
+                secondary={`${statistics.editedCount}件のシフトを手動調整`}
+              />
+            </ListItem>
           )}
 
-          <TimelineItem>
-            <TimelineSeparator>
-              <TimelineDot color="success">
-                <Save />
-              </TimelineDot>
-            </TimelineSeparator>
-            <TimelineContent>
-              <Typography variant="subtitle2" fontWeight="bold">
-                カレンダー保存完了
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                全シフトをカレンダーに自動反映
-              </Typography>
-            </TimelineContent>
-          </TimelineItem>
-        </Timeline>
+          <ListItem>
+            <ListItemIcon>
+              <Save color="success" />
+            </ListItemIcon>
+            <ListItemText
+              primary="カレンダー保存完了"
+              secondary="全シフトをカレンダーに自動反映"
+            />
+          </ListItem>
+        </List>
       </Paper>
 
       {/* 成功メッセージ */}
