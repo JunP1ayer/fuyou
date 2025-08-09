@@ -157,21 +157,28 @@ function App() {
       >
         {/* トップナビゲーション（PC・タブレット） */}
         <Box sx={{ 
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
           p: 2, 
           pt: { xs: 1, sm: 2 },
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          width: '100%'
         }}>
-          <Box sx={{ width: '100%', maxWidth: '800px' }}>
+          <Box sx={{ 
+            width: '100%', 
+            maxWidth: '900px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
+          }}>
             <TopNavigation
               currentTab={currentTab}
               onTabChange={handleTabChange}
             />
 
             {/* メインコンテンツ */}
-            <Box sx={{ mt: { xs: 1, sm: 0 } }}>{renderContent()}</Box>
+            <Box sx={{ mt: { xs: 1, sm: 0 }, width: '100%' }}>
+              {renderContent()}
+            </Box>
           </Box>
         </Box>
 

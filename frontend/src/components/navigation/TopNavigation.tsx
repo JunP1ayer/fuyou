@@ -45,6 +45,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
         mb: 2,
         borderRadius: 2,
         overflow: 'hidden',
+        width: '100%',
+        maxWidth: '100%',
       }}
     >
       <Box sx={{ px: 2, py: 1 }}>
