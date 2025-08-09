@@ -49,7 +49,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   onEditShift,
   onDeleteShift,
   loading = false,
-  variant = 'simple',
+  variant = 'rich',
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
