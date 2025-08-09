@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Box, IconButton, Typography, Fab, Chip } from '@mui/material';
 import {
   ChevronLeft,
@@ -28,7 +28,8 @@ interface SimpleMobileCalendarProps {
   loading?: boolean;
 }
 
-// 繝｢繝舌う繝ｫ迚ｹ蛹悶・讌ｵ蜉帙す繝ｳ繝励Ν縺ｪ譛磯俣繧ｫ繝ｬ繝ｳ繝繝ｼ・医す繝ｳ繝励Ν繧ｫ繝ｬ繝ｳ繝繝ｼ鬚ｨ・・export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
+// モバイル特化の軽量シンプルな月間カレンダー（シンプルカレンダー風）
+export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
   shifts,
   onAddShift,
   onEditShift,
@@ -50,60 +51,53 @@ interface SimpleMobileCalendarProps {
     return [...pad, ...list] as Array<Date | null>;
   }, [currentDate]);
 
+  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+
   const shiftsByDate = useMemo(() => {
-    const map: Record<string, Shift[]> = {};
-    for (const s of shifts) {
-      if (!map[s.date]) map[s.date] = [];
-      map[s.date].push(s);
-    }
-    return map;
+    const grouped: Record<string, Shift[]> = {};
+    shifts.forEach(shift => {
+      const key = shift.date;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(shift);
+    });
+    return grouped;
   }, [shifts]);
 
-  const changeMonth = (delta: number) => {
-    setCurrentDate(prev =>
-      delta < 0 ? subMonths(prev, 1) : addMonths(prev, 1)
-    );
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
   };
 
-  const weekDays = ['譌･', '譛・, '轣ｫ', '豌ｴ', '譛ｨ', '驥・, '蝨・];
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    touchEndX.current = e.changedTouches[0].clientX;
+    if (!touchStartX.current || !touchEndX.current) return;
 
-  // 逾晄律・育ｰ｡譏難ｼ会ｼ壼ｿ・ｦ√〒縺ゅｌ縺ｰ蟷ｴ谺｡陦ｨ繧呈僑蠑ｵ
-  const holidaySet = useMemo(() => new Set<string>([]), []);
+    const deltaX = touchEndX.current - touchStartX.current;
+    if (Math.abs(deltaX) > 100) {
+      if (deltaX > 0) {
+        setCurrentDate(subMonths(currentDate, 1));
+      } else {
+        setCurrentDate(addMonths(currentDate, 1));
+      }
+    }
+  };
 
-  // 髮・ｨ・  const monthSummary = useMemo(() => {
-    const start = startOfMonth(currentDate);
-    const end = endOfMonth(currentDate);
-    const inMonth = shifts.filter(s => {
-      const d = new Date(s.date);
-      return d >= start && d <= end;
-    });
-    const hours = inMonth.reduce((sum, s) => sum + (s.workingHours || 0), 0);
-    const earnings = inMonth.reduce(
-      (sum, s) => sum + (s.calculatedEarnings || 0),
-      0
-    );
-    return { hours, earnings };
-  }, [currentDate, shifts]);
-
-  const weekSummary = useMemo(() => {
-    const selDate = selectedKey ? new Date(selectedKey) : new Date();
-    const ws = startOfWeek(selDate, { weekStartsOn: 0 });
-    const we = endOfWeek(selDate, { weekStartsOn: 0 });
-    const inWeek = shifts.filter(s => {
-      const d = new Date(s.date);
-      return d >= ws && d <= we;
-    });
-    const hours = inWeek.reduce((sum, s) => sum + (s.workingHours || 0), 0);
-    const earnings = inWeek.reduce(
-      (sum, s) => sum + (s.calculatedEarnings || 0),
-      0
-    );
-    return { hours, earnings };
-  }, [selectedKey, shifts]);
+  const handleSelectDate = (date: Date) => {
+    const key = format(date, 'yyyy-MM-dd');
+    setSelectedKey(key);
+  };
 
   return (
-    <Box sx={{ p: 1 }}>
-      {/* 繝倥ャ繝繝ｼ */}
+    <Box
+      sx={{
+        px: 1,
+        py: 1,
+        userSelect: 'none',
+        maxWidth: '600px',
+        mx: 'auto',
+      }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <Box
         sx={{
           display: 'flex',
@@ -112,40 +106,32 @@ interface SimpleMobileCalendarProps {
           mb: 1,
         }}
       >
-        <IconButton
-          onClick={() => changeMonth(-1)}
-          disabled={loading}
-          size="small"
-        >
+        <IconButton onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
           <ChevronLeft />
         </IconButton>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          {format(currentDate, 'yyyy蟷ｴM譛・, { locale: ja })}
+        <Typography variant="h6" sx={{ fontWeight: 500 }}>
+          {format(currentDate, 'yyyy年M月', { locale: ja })}
         </Typography>
-        <IconButton
-          onClick={() => changeMonth(1)}
-          disabled={loading}
-          size="small"
-        >
+        <IconButton onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
           <ChevronRight />
         </IconButton>
       </Box>
 
-      {/* 譖懈律繝倥ャ繝繝ｼ */}
       <Box
         sx={{
           display: 'grid',
           gridTemplateColumns: 'repeat(7, 1fr)',
-          textAlign: 'center',
-          mb: 0.5,
+          gap: 0.5,
+          mb: 1,
         }}
       >
-        {weekDays.map((d, idx) => (
+        {weekDays.map((day, idx) => (
           <Typography
-            key={d}
+            key={day}
             variant="caption"
+            align="center"
             sx={{
-              fontWeight: 700,
+              fontWeight: 600,
               color:
                 idx === 0
                   ? 'error.main'
@@ -154,148 +140,179 @@ interface SimpleMobileCalendarProps {
                     : 'text.secondary',
             }}
           >
-            {d}
+            {day}
           </Typography>
         ))}
       </Box>
 
-      {/* 譛医げ繝ｪ繝・ラ・医せ繝ｯ繧､繝怜ｯｾ蠢懶ｼ・*/}
       <Box
         sx={{
           display: 'grid',
           gridTemplateColumns: 'repeat(7, 1fr)',
-          gap: 0.25,
-        }}
-        onTouchStart={e => {
-          touchStartX.current = e.changedTouches[0].clientX;
-          touchEndX.current = null;
-        }}
-        onTouchMove={e => {
-          touchEndX.current = e.changedTouches[0].clientX;
-        }}
-        onTouchEnd={() => {
-          if (touchStartX.current === null || touchEndX.current === null)
-            return;
-          const dx = touchEndX.current - touchStartX.current;
-          if (Math.abs(dx) > 50) {
-            // 蜿ｳ竊貞ｷｦ: 谺｡譛・ 蟾ｦ竊貞承: 蜑肴怦
-            changeMonth(dx < 0 ? 1 : -1);
-          }
+          gap: 0.5,
         }}
       >
-        {days.map((date, i) => {
-          if (!date) return <Box key={`empty-${i}`} sx={{ height: 56 }} />;
+        {days.map((date, index) => {
+          if (!date) {
+            return <Box key={`empty-${index}`} />;
+          }
+
           const key = format(date, 'yyyy-MM-dd');
-          const day = date.getDate();
-          const dw = date.getDay();
-          const list = shiftsByDate[key] || [];
-          const isSel = selectedKey === key;
-          const today = isToday(date);
-          const isHoliday = holidaySet.has(key);
+          const isSelected = key === selectedKey;
+          const isCurrentDay = isToday(date);
+          const dayOfWeek = date.getDay();
+          const dayShifts = shiftsByDate[key] || [];
 
           return (
             <Box
               key={key}
-              onClick={() => {
-                setSelectedKey(key);
-                onAddShift(key);
-              }}
+              onClick={() => handleSelectDate(date)}
               sx={{
-                height: 56,
-                borderRadius: 1,
-                bgcolor: isSel ? 'primary.50' : 'background.paper',
-                border: '1px solid',
-                borderColor: isSel ? 'primary.main' : 'divider',
-                px: 0.5,
-                py: 0.25,
+                position: 'relative',
+                aspectRatio: '1',
                 display: 'flex',
                 flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 1,
+                bgcolor: isSelected
+                  ? 'primary.main'
+                  : isCurrentDay
+                    ? 'primary.50'
+                    : 'transparent',
+                color: isSelected ? 'white' : 'inherit',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                '&:active': {
+                  transform: 'scale(0.95)',
+                },
               }}
             >
-              <Box
+              <Typography
+                variant="body2"
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
+                  fontSize: '0.875rem',
+                  fontWeight: isSelected || isCurrentDay ? 600 : 400,
+                  color: isSelected
+                    ? 'inherit'
+                    : dayOfWeek === 0
+                      ? 'error.main'
+                      : dayOfWeek === 6
+                        ? 'primary.main'
+                        : 'text.primary',
                 }}
               >
-                <Typography
-                  variant="body2"
+                {format(date, 'd')}
+              </Typography>
+
+              {dayShifts.length > 0 && (
+                <Box
                   sx={{
-                    fontWeight: today || isSel ? 700 : 500,
-                    color:
-                      dw === 0 || isHoliday
-                        ? 'error.main'
-                        : dw === 6
-                          ? 'primary.main'
-                          : 'text.primary',
+                    position: 'absolute',
+                    bottom: 2,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: 4,
+                    height: 4,
+                    borderRadius: '50%',
+                    bgcolor: isSelected ? 'white' : 'primary.main',
                   }}
-                >
-                  {day}
-                </Typography>
-                {/* 繧ｷ繝輔ヨ莉ｶ謨ｰ */}
-                {list.length > 0 && (
-                  <Box sx={{ display: 'flex', gap: 0.25 }}>
-                    {Array.from({ length: Math.min(3, list.length) }).map(
-                      (_, idx) => (
-                        <Box
-                          key={idx}
-                          sx={{
-                            width: 6,
-                            height: 6,
-                            bgcolor: list[idx]?.isConfirmed
-                              ? 'success.main'
-                              : 'warning.main',
-                            borderRadius: '50%',
-                          }}
-                        />
-                      )
-                    )}
-                  </Box>
-                )}
-              </Box>
-              {/* 蜿ｳ荳九Α繝玖ｿｽ蜉 */}
-              <Box sx={{ mt: 'auto', textAlign: 'right' }}>
-                <IconButton
-                  size="small"
-                  onClick={e => {
-                    e.stopPropagation();
-                    onAddShift(key);
-                  }}
-                  sx={{ p: 0.25 }}
-                >
-                  <Add fontSize="inherit" />
-                </IconButton>
-              </Box>
+                />
+              )}
             </Box>
           );
         })}
       </Box>
 
-      {/* 霑ｽ蜉繝懊ち繝ｳ */}
+      {selectedKey && (
+        <Box sx={{ mt: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 2,
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+              {format(new Date(selectedKey), 'M月d日(E)', { locale: ja })}
+            </Typography>
+            <Chip
+              label={`${shiftsByDate[selectedKey]?.length || 0}件`}
+              size="small"
+              color="primary"
+              variant="outlined"
+            />
+          </Box>
+
+          {shiftsByDate[selectedKey] ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {shiftsByDate[selectedKey].map(shift => (
+                <Box
+                  key={shift.id}
+                  onClick={() => onEditShift(shift)}
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 1.5,
+                    bgcolor: shift.isConfirmed ? 'success.50' : 'warning.50',
+                    borderLeft: 4,
+                    borderColor: shift.isConfirmed
+                      ? 'success.main'
+                      : 'warning.main',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    '&:active': {
+                      transform: 'scale(0.98)',
+                    },
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{ fontWeight: 500, mb: 0.5 }}
+                  >
+                    {shift.jobSourceName}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {shift.startTime} - {shift.endTime}
+                    {shift.breakMinutes && ` (休憩${shift.breakMinutes}分)`}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: 'block' }}
+                  >
+                    ¥{shift.calculatedEarnings?.toLocaleString() || 0}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              align="center"
+              sx={{ py: 3 }}
+            >
+              シフトなし
+            </Typography>
+          )}
+        </Box>
+      )}
+
       <Fab
         color="primary"
-        size="medium"
-        sx={{ position: 'fixed', right: 16, bottom: 16, zIndex: 1100 }}
-        onClick={() => onAddShift(format(new Date(), 'yyyy-MM-dd'))}
+        size="large"
+        onClick={() => onAddShift(selectedKey || format(new Date(), 'yyyy-MM-dd'))}
         disabled={loading}
+        sx={{
+          position: 'fixed',
+          bottom: 80,
+          right: 16,
+          boxShadow: 3,
+        }}
       >
         <AddIcon />
       </Fab>
-
-      {/* 繧ｵ繝槭Μ繝ｼ */}
-      <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between' }}>
-        <Chip
-          label={`騾ｱ: ${weekSummary.hours.toFixed(1)}h / ﾂ･${weekSummary.earnings.toLocaleString()}`}
-          size="small"
-        />
-        <Chip
-          label={`譛・ ${monthSummary.hours.toFixed(1)}h / ﾂ･${monthSummary.earnings.toLocaleString()}`}
-          size="small"
-          color="primary"
-        />
-      </Box>
     </Box>
   );
 };
-
