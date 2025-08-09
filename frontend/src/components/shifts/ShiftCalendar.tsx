@@ -49,7 +49,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   onEditShift,
   onDeleteShift,
   loading = false,
-  variant = 'rich',
+  variant = 'simple',
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
@@ -180,8 +180,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
     return [...empty, ...days] as Array<Date | null>;
   }, [currentDate]);
 
-  if (variant === 'simple') {
-    return (
+  // 強制的にsimple版を表示
+  return (
       <Card>
         <CardContent>
           {/* ヘッダー（左・右ナビと中央月表示） */}
@@ -296,196 +296,4 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         </CardContent>
       </Card>
     );
-  }
-
-  // 既存のリッチ表示
-  return (
-    <Card>
-      <CardContent>
-        {/* ヘッダー */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mb: 3,
-          }}
-        >
-          <Typography variant="h6">シフトカレンダー</Typography>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <IconButton onClick={goToPreviousMonth} disabled={loading}>
-              <ChevronLeft />
-            </IconButton>
-
-            <Typography
-              variant="h6"
-              sx={{ minWidth: 120, textAlign: 'center' }}
-            >
-              {format(currentDate, 'yyyy年M月', { locale: ja })}
-            </Typography>
-
-            <IconButton onClick={goToNextMonth} disabled={loading}>
-              <ChevronRight />
-            </IconButton>
-          </Box>
-        </Box>
-
-        {/* 曜日ヘッダー */}
-        <Grid container spacing={1} sx={{ mb: 1 }}>
-          {['日', '月', '火', '水', '木', '金', '土'].map((day, index) => (
-            <Grid item xs key={index}>
-              <Typography
-                variant="subtitle2"
-                align="center"
-                sx={{
-                  fontWeight: 'bold',
-                  color:
-                    index === 0
-                      ? 'error.main'
-                      : index === 6
-                        ? 'primary.main'
-                        : 'text.primary',
-                }}
-              >
-                {day}
-              </Typography>
-            </Grid>
-          ))}
-        </Grid>
-
-        {/* カレンダーグリッド */}
-        <Grid container spacing={1}>
-          {monthDays.map(date => {
-            const dateKey = format(date, 'yyyy-MM-dd');
-            const dayShifts = shiftsByDate[dateKey] || [];
-            const isCurrentDay = isToday(date);
-            const dayOfWeek = date.getDay();
-
-            return (
-              <Grid item xs key={dateKey}>
-                <Paper
-                  variant="outlined"
-                  sx={{
-                    height: 180,
-                    p: 1,
-                    bgcolor: isCurrentDay ? 'primary.50' : 'background.paper',
-                    border: isCurrentDay ? 2 : 1,
-                    borderColor: isCurrentDay ? 'primary.main' : 'divider',
-                    '&:hover': {
-                      bgcolor: 'action.hover',
-                    },
-                  }}
-                >
-                  {/* 日付と追加ボタン */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      mb: 1,
-                    }}
-                  >
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontWeight: isCurrentDay ? 'bold' : 'normal',
-                        color:
-                          dayOfWeek === 0
-                            ? 'error.main'
-                            : dayOfWeek === 6
-                              ? 'primary.main'
-                              : 'text.primary',
-                      }}
-                    >
-                      {format(date, 'd')}
-                    </Typography>
-
-                    <Tooltip title="シフト追加">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleAddShift(date)}
-                        disabled={loading}
-                        sx={{ p: 0.5 }}
-                      >
-                        <Add sx={{ fontSize: 16 }} />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-
-                  {/* シフト一覧 */}
-                  <Box sx={{ height: 140, overflowY: 'auto' }}>
-                    {dayShifts.length === 0 ? (
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ display: 'block', textAlign: 'center', mt: 2 }}
-                      >
-                        シフトなし
-                      </Typography>
-                    ) : (
-                      dayShifts.map(shift => renderShiftCard(shift, true))
-                    )}
-                  </Box>
-
-                  {/* シフト数の表示 */}
-                  {dayShifts.length > 0 && (
-                    <Box
-                      sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}
-                    >
-                      <Chip
-                        size="small"
-                        label={`${dayShifts.length}件`}
-                        variant="outlined"
-                        sx={{ fontSize: '0.75rem', height: 20 }}
-                      />
-                    </Box>
-                  )}
-                </Paper>
-              </Grid>
-            );
-          })}
-        </Grid>
-
-        {/* 月間統計（richのみ） */}
-        {variant === 'rich' && (
-          <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              今月の統計
-            </Typography>
-            <Stack direction="row" spacing={3}>
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  総シフト数
-                </Typography>
-                <Typography variant="h6">{shifts.length}件</Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  総労働時間
-                </Typography>
-                <Typography variant="h6">
-                  {shifts
-                    .reduce((sum, shift) => sum + shift.workingHours, 0)
-                    .toFixed(1)}
-                  時間
-                </Typography>
-              </Box>
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  総給与
-                </Typography>
-                <Typography variant="h6" color="primary.main">
-                  ¥
-                  {shifts
-                    .reduce((sum, shift) => sum + shift.calculatedEarnings, 0)
-                    .toLocaleString()}
-                </Typography>
-              </Box>
-            </Stack>
-          </Box>
-        )}
-      </CardContent>
-    </Card>
-  );
 };
