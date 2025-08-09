@@ -12,13 +12,13 @@ import {
   Schedule,
   Upload,
   AttachMoney,
-  CalendarMonth,
+  Settings,
 } from '@mui/icons-material';
 
 import { ShiftManager } from './shifts/ShiftManager';
 import { OCRShiftManager } from './OCRShiftManager';
 import { MonthlySalaryCard } from './MonthlySalaryCard';
-import { TimeTreeCalendarIntegration } from './calendar/TimeTreeCalendarIntegration';
+import { SettingsPage } from './settings/SettingsPage';
 import type { Shift, Workplace } from '../types/shift';
 
 interface TabPanelProps {
@@ -35,11 +35,7 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => {
       id={`simple-tabpanel-${index}`}
       aria-labelledby={`simple-tab-${index}`}
     >
-      {value === index && (
-        <Box sx={{ py: 3 }}>
-          {children}
-        </Box>
-      )}
+      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
     </div>
   );
 };
@@ -128,17 +124,19 @@ export const TabbedShiftApp: React.FC = () => {
     setShifts(testShifts);
   }, []);
 
-  const handleShiftsSaved = (newShifts: { 
-    jobSourceId?: string; 
-    jobSourceName: string; 
-    date: string; 
-    startTime: string; 
-    endTime: string; 
-    hourlyRate: number; 
-    breakMinutes?: number; 
-    workingHours?: number; 
-    calculatedEarnings?: number; 
-  }[]) => {
+  const handleShiftsSaved = (
+    newShifts: {
+      jobSourceId?: string;
+      jobSourceName: string;
+      date: string;
+      startTime: string;
+      endTime: string;
+      hourlyRate: number;
+      breakMinutes?: number;
+      workingHours?: number;
+      calculatedEarnings?: number;
+    }[]
+  ) => {
     // OCRで保存されたシフトをstateに追加
     const convertedShifts = newShifts.map((shift, index) => ({
       id: `ocr-${Date.now()}-${index}`,
@@ -156,7 +154,7 @@ export const TabbedShiftApp: React.FC = () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }));
-    
+
     setShifts(prev => [...prev, ...convertedShifts]);
   };
 
@@ -171,14 +169,18 @@ export const TabbedShiftApp: React.FC = () => {
           onShiftsChange={setShifts}
           showAddButton={false}
         />
-      )
+      ),
     },
     {
       label: 'シフト提出',
       icon: <Upload />,
       component: (
         <Box sx={{ maxWidth: 800, mx: 'auto' }}>
-          <Typography variant="h5" gutterBottom sx={{ mb: 3, fontWeight: 'bold' }}>
+          <Typography
+            variant="h5"
+            gutterBottom
+            sx={{ mb: 3, fontWeight: 'bold' }}
+          >
             シフト表を画像から読み取り
           </Typography>
           <OCRShiftManager
@@ -189,7 +191,7 @@ export const TabbedShiftApp: React.FC = () => {
             }}
           />
         </Box>
-      )
+      ),
     },
     {
       label: '給料計算',
@@ -202,60 +204,148 @@ export const TabbedShiftApp: React.FC = () => {
             onMonthChange={setSelectedMonth}
           />
         </Box>
-      )
+      ),
     },
     {
-      label: 'カレンダー連携',
-      icon: <CalendarMonth />,
-      component: (
-        <TimeTreeCalendarIntegration
-          shifts={shifts}
-          onShiftsSync={() => {
-            // カレンダー同期完了の処理
-            console.log('カレンダー同期完了');
-          }}
-        />
-      )
-    }
+      label: 'その他',
+      icon: <Settings />,
+      component: <SettingsPage />,
+    },
   ];
 
   return (
-    <Box sx={{ width: '100%', bgcolor: 'background.default', minHeight: '100vh' }}>
-      {/* ヘッダー */}
-      <Paper 
-        elevation={1} 
-        sx={{ 
-          position: 'sticky', 
-          top: 0, 
-          zIndex: 1100,
-          borderRadius: 0,
-          mb: 0
-        }}
-      >
-        <Box sx={{ px: 3, pt: 2, pb: 1 }}>
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: 'bold',
-              color: 'primary.main',
-              mb: 2,
-              textAlign: isMobile ? 'center' : 'left',
-            }}
-          >
-            シフトボード
-          </Typography>
-          
+    <Box
+      sx={{ 
+        width: '100%', 
+        bgcolor: 'background.default', 
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      {/* デスクトップ版ヘッダー */}
+      {!isMobile && (
+        <Paper
+          elevation={1}
+          sx={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 1100,
+            borderRadius: 0,
+            mb: 0,
+          }}
+        >
+          <Box sx={{ px: 3, pt: 2, pb: 1 }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 'bold',
+                color: 'primary.main',
+                mb: 2,
+              }}
+            >
+              シフトボード
+            </Typography>
+
+            <Tabs
+              value={activeTab}
+              onChange={handleTabChange}
+              variant="standard"
+              scrollButtons="auto"
+              sx={{
+                '& .MuiTab-root': {
+                  minHeight: 60,
+                  fontSize: '0.95rem',
+                  fontWeight: 'medium',
+                },
+              }}
+            >
+              {tabs.map((tab, index) => (
+                <Tab
+                  key={index}
+                  icon={tab.icon}
+                  iconPosition="start"
+                  label={tab.label}
+                  sx={{
+                    '&.Mui-selected': {
+                      color: 'primary.main',
+                    },
+                  }}
+                />
+              ))}
+            </Tabs>
+          </Box>
+        </Paper>
+      )}
+
+      {/* モバイル版ヘッダー */}
+      {isMobile && (
+        <Paper
+          elevation={1}
+          sx={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 1100,
+            borderRadius: 0,
+            mb: 0,
+          }}
+        >
+          <Box sx={{ px: 2, py: 2, textAlign: 'center' }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 'bold',
+                color: 'primary.main',
+              }}
+            >
+              シフトボード
+            </Typography>
+          </Box>
+        </Paper>
+      )}
+
+      {/* タブコンテンツ */}
+      <Box sx={{ 
+        flex: 1, 
+        px: { xs: 2, md: 3 }, 
+        pb: isMobile ? 10 : 3,
+        pt: 2
+      }}>
+        {tabs.map((tab, index) => (
+          <TabPanel key={index} value={activeTab} index={index}>
+            {tab.component}
+          </TabPanel>
+        ))}
+      </Box>
+
+      {/* モバイル版下部タブ */}
+      {isMobile && (
+        <Paper
+          elevation={8}
+          sx={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1100,
+            borderRadius: 0,
+            borderTop: 1,
+            borderColor: 'divider',
+          }}
+        >
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
-            variant={isMobile ? 'fullWidth' : 'standard'}
-            scrollButtons="auto"
-            allowScrollButtonsMobile
+            variant="fullWidth"
             sx={{
               '& .MuiTab-root': {
-                minHeight: 60,
-                fontSize: '0.95rem',
+                minHeight: 64,
+                fontSize: '0.75rem',
                 fontWeight: 'medium',
+                py: 1,
+              },
+              '& .MuiTab-iconWrapper': {
+                mb: 0.5,
               },
             }}
           >
@@ -263,7 +353,6 @@ export const TabbedShiftApp: React.FC = () => {
               <Tab
                 key={index}
                 icon={tab.icon}
-                iconPosition="start"
                 label={tab.label}
                 sx={{
                   '&.Mui-selected': {
@@ -273,17 +362,8 @@ export const TabbedShiftApp: React.FC = () => {
               />
             ))}
           </Tabs>
-        </Box>
-      </Paper>
-
-      {/* タブコンテンツ */}
-      <Box sx={{ px: { xs: 2, md: 3 }, pb: 3 }}>
-        {tabs.map((tab, index) => (
-          <TabPanel key={index} value={activeTab} index={index}>
-            {tab.component}
-          </TabPanel>
-        ))}
-      </Box>
+        </Paper>
+      )}
     </Box>
   );
 };

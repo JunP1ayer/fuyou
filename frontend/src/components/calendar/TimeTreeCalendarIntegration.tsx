@@ -54,10 +54,9 @@ interface Calendar {
   lastSync?: string;
 }
 
-export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationProps> = ({
-  shifts,
-  onShiftsSync,
-}) => {
+export const TimeTreeCalendarIntegration: React.FC<
+  TimeTreeCalendarIntegrationProps
+> = ({ shifts, onShiftsSync }) => {
   const [calendars, setCalendars] = useState<Calendar[]>([
     {
       id: 'family',
@@ -96,13 +95,17 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
 
   const handleConnect = async (calendarId: string) => {
     setIsConnecting(true);
-    
+
     // シミュレートされた接続処理
     setTimeout(() => {
       setCalendars(prev =>
         prev.map(cal =>
           cal.id === calendarId
-            ? { ...cal, isConnected: true, lastSync: new Date().toLocaleString('ja-JP') }
+            ? {
+                ...cal,
+                isConnected: true,
+                lastSync: new Date().toLocaleString('ja-JP'),
+              }
             : cal
         )
       );
@@ -113,7 +116,7 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
 
   const handleSync = async () => {
     setIsSyncing(true);
-    
+
     // シミュレートされた同期処理
     setTimeout(() => {
       setCalendars(prev =>
@@ -134,7 +137,9 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
   const upcomingShifts = shifts.filter(shift => {
     const shiftDate = new Date(shift.date);
     const today = new Date();
-    const threeDaysFromNow = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
+    const threeDaysFromNow = new Date(
+      today.getTime() + 3 * 24 * 60 * 60 * 1000
+    );
     return shiftDate >= today && shiftDate <= threeDaysFromNow;
   });
 
@@ -159,7 +164,7 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} md={4}>
           <Card sx={{ height: '100%', bgcolor: 'success.50' }}>
             <CardContent sx={{ textAlign: 'center' }}>
@@ -173,7 +178,7 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} md={4}>
           <Card sx={{ height: '100%', bgcolor: 'warning.50' }}>
             <CardContent sx={{ textAlign: 'center' }}>
@@ -193,7 +198,14 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
       {connectedCalendars.length > 0 && (
         <Card sx={{ mb: 4 }}>
           <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 2,
+              }}
+            >
               <Typography variant="h6" fontWeight="bold">
                 接続済みカレンダー
               </Typography>
@@ -203,7 +215,9 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
                 </IconButton>
                 <Button
                   variant="contained"
-                  startIcon={isSyncing ? <Sync className="animate-spin" /> : <Sync />}
+                  startIcon={
+                    isSyncing ? <Sync className="animate-spin" /> : <Sync />
+                  }
                   onClick={handleSync}
                   disabled={isSyncing}
                   sx={{ ml: 1 }}
@@ -216,14 +230,18 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
             {isSyncing && (
               <Box sx={{ mb: 2 }}>
                 <LinearProgress />
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 1 }}
+                >
                   シフトデータを同期しています...
                 </Typography>
               </Box>
             )}
 
             <List>
-              {connectedCalendars.map((calendar) => (
+              {connectedCalendars.map(calendar => (
                 <ListItem key={calendar.id}>
                   <ListItemAvatar>
                     <Avatar sx={{ bgcolor: calendar.color }}>
@@ -234,7 +252,14 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
                     primary={calendar.name}
                     secondary={
                       <Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            mt: 0.5,
+                          }}
+                        >
                           <Chip
                             size="small"
                             icon={<Group />}
@@ -276,7 +301,7 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
             </Typography>
 
             <List>
-              {availableCalendars.map((calendar) => (
+              {availableCalendars.map(calendar => (
                 <ListItem key={calendar.id}>
                   <ListItemAvatar>
                     <Avatar sx={{ bgcolor: calendar.color }}>
@@ -323,7 +348,7 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
             </Typography>
 
             <List>
-              {upcomingShifts.map((shift) => (
+              {upcomingShifts.map(shift => (
                 <ListItem key={shift.id}>
                   <ListItemAvatar>
                     <Avatar sx={{ bgcolor: 'primary.main' }}>
@@ -361,11 +386,17 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
       {/* 初回接続案内 */}
       {connectedCalendars.length === 0 && (
         <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'grey.50' }}>
-          <CalendarMonth sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+          <CalendarMonth
+            sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }}
+          />
           <Typography variant="h6" gutterBottom>
             カレンダー連携でシフト管理をもっと便利に
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 500, mx: 'auto' }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mb: 3, maxWidth: 500, mx: 'auto' }}
+          >
             TimeTreeアカウントと連携することで、シフト情報を家族や職場のメンバーと簡単に共有できます
           </Typography>
           <Button
@@ -380,7 +411,12 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
       )}
 
       {/* 同期設定ダイアログ */}
-      <Dialog open={settingsDialogOpen} onClose={() => setSettingsDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={settingsDialogOpen}
+        onClose={() => setSettingsDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>同期設定</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1 }}>
@@ -388,12 +424,22 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
               control={
                 <Switch
                   checked={syncSettings.autoSync}
-                  onChange={(e) => setSyncSettings(prev => ({ ...prev, autoSync: e.target.checked }))}
+                  onChange={e =>
+                    setSyncSettings(prev => ({
+                      ...prev,
+                      autoSync: e.target.checked,
+                    }))
+                  }
                 />
               }
               label="自動同期を有効にする"
             />
-            <Typography variant="caption" display="block" color="text.secondary" sx={{ ml: 4, mb: 2 }}>
+            <Typography
+              variant="caption"
+              display="block"
+              color="text.secondary"
+              sx={{ ml: 4, mb: 2 }}
+            >
               シフトの変更を自動的にカレンダーに反映します
             </Typography>
 
@@ -401,12 +447,22 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
               control={
                 <Switch
                   checked={syncSettings.notifyMembers}
-                  onChange={(e) => setSyncSettings(prev => ({ ...prev, notifyMembers: e.target.checked }))}
+                  onChange={e =>
+                    setSyncSettings(prev => ({
+                      ...prev,
+                      notifyMembers: e.target.checked,
+                    }))
+                  }
                 />
               }
               label="メンバーに通知する"
             />
-            <Typography variant="caption" display="block" color="text.secondary" sx={{ ml: 4, mb: 2 }}>
+            <Typography
+              variant="caption"
+              display="block"
+              color="text.secondary"
+              sx={{ ml: 4, mb: 2 }}
+            >
               シフトが追加・変更されたときにカレンダーメンバーに通知します
             </Typography>
 
@@ -414,26 +470,46 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
               control={
                 <Switch
                   checked={syncSettings.includeEarnings}
-                  onChange={(e) => setSyncSettings(prev => ({ ...prev, includeEarnings: e.target.checked }))}
+                  onChange={e =>
+                    setSyncSettings(prev => ({
+                      ...prev,
+                      includeEarnings: e.target.checked,
+                    }))
+                  }
                 />
               }
               label="給料情報を含める"
             />
-            <Typography variant="caption" display="block" color="text.secondary" sx={{ ml: 4 }}>
+            <Typography
+              variant="caption"
+              display="block"
+              color="text.secondary"
+              sx={{ ml: 4 }}
+            >
               シフトの給料情報もカレンダーに表示します
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSettingsDialogOpen(false)}>キャンセル</Button>
-          <Button variant="contained" onClick={() => setSettingsDialogOpen(false)}>
+          <Button onClick={() => setSettingsDialogOpen(false)}>
+            キャンセル
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => setSettingsDialogOpen(false)}
+          >
             保存
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* 接続確認ダイアログ */}
-      <Dialog open={connectDialogOpen} onClose={() => setConnectDialogOpen(false)} maxWidth="xs" fullWidth>
+      <Dialog
+        open={connectDialogOpen}
+        onClose={() => setConnectDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>TimeTree連携</DialogTitle>
         <DialogContent>
           <Alert severity="info" sx={{ mb: 2 }}>
@@ -449,7 +525,9 @@ export const TimeTreeCalendarIntegration: React.FC<TimeTreeCalendarIntegrationPr
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConnectDialogOpen(false)}>キャンセル</Button>
+          <Button onClick={() => setConnectDialogOpen(false)}>
+            キャンセル
+          </Button>
           <Button
             variant="contained"
             onClick={() => handleConnect('work')}
