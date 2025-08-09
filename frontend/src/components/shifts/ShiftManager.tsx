@@ -281,7 +281,7 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
           />
         )}
 
-      {/* シフト操作メニュー */}
+        {/* シフト操作メニュー */}
       {showAddButton && (
         <SpeedDial
           ariaLabel="シフト操作メニュー"
@@ -420,6 +420,7 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
           {success}
         </Alert>
       </Snackbar>
+      </Box>
     </Box>
   );
 };
