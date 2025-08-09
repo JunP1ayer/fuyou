@@ -26,7 +26,6 @@ import {
   startOfMonth,
   endOfMonth,
   eachDayOfInterval,
-  isSameDay,
   isToday,
   addMonths,
   subMonths,
@@ -41,6 +40,7 @@ interface ShiftCalendarProps {
   onEditShift: (shift: Shift) => void;
   onDeleteShift: (shiftId: string) => void;
   loading?: boolean;
+  variant?: 'rich' | 'simple';
 }
 
 export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
@@ -49,8 +49,10 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   onEditShift,
   onDeleteShift,
   loading = false,
+  variant = 'rich',
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   // 月の日付一覧を取得
   const monthDays = useMemo(() => {
@@ -93,7 +95,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
     onAddShift(format(date, 'yyyy-MM-dd'));
   };
 
-  // シフトカードのレンダリング
+  // シフトカードのレンダリング（richモード専用）
   const renderShiftCard = (shift: Shift, isCompact: boolean = false) => (
     <Paper
       key={shift.id}
@@ -167,6 +169,136 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
     </Paper>
   );
 
+  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+
+  // シンプル表示用に、月初の曜日に合わせて空白セルを作る
+  const simpleCalendarDates = useMemo(() => {
+    const start = startOfMonth(currentDate);
+    const end = endOfMonth(currentDate);
+    const days = eachDayOfInterval({ start, end });
+    const empty = Array(start.getDay()).fill(null);
+    return [...empty, ...days] as Array<Date | null>;
+  }, [currentDate]);
+
+  if (variant === 'simple') {
+    return (
+      <Card>
+        <CardContent>
+          {/* ヘッダー（左・右ナビと中央月表示） */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 2,
+            }}
+          >
+            <IconButton onClick={goToPreviousMonth} disabled={loading}>
+              <ChevronLeft />
+            </IconButton>
+
+            <Typography variant="h6" sx={{ textAlign: 'center' }}>
+              {format(currentDate, 'yyyy年M月', { locale: ja })}
+            </Typography>
+
+            <IconButton onClick={goToNextMonth} disabled={loading}>
+              <ChevronRight />
+            </IconButton>
+          </Box>
+
+          {/* 曜日ヘッダー */}
+          <Grid container spacing={0.5} sx={{ mb: 0.5 }}>
+            {weekDays.map((day, index) => (
+              <Grid item xs key={day}>
+                <Typography
+                  variant="subtitle2"
+                  align="center"
+                  sx={{
+                    fontWeight: 'bold',
+                    color:
+                      index === 0
+                        ? 'error.main'
+                        : index === 6
+                          ? 'primary.main'
+                          : 'text.secondary',
+                  }}
+                >
+                  {day}
+                </Typography>
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* 日付グリッド（シンプル） */}
+          <Grid container spacing={0.5}>
+            {simpleCalendarDates.map((date, idx) => {
+              if (!date) {
+                return (
+                  <Grid item xs key={`empty-${idx}`}>
+                    <Box sx={{ height: 72 }} />
+                  </Grid>
+                );
+              }
+
+              const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
+              const isCurrentDay = isToday(date);
+              const dayOfWeek = date.getDay();
+              const dateKey = format(date, 'yyyy-MM-dd');
+              const dayShifts = shiftsByDate[dateKey] || [];
+
+              return (
+                <Grid item xs key={dateKey}>
+                  <Paper
+                    variant="outlined"
+                    onClick={() => {
+                      setSelectedDate(date);
+                      onAddShift(format(date, 'yyyy-MM-dd'));
+                    }}
+                    sx={{
+                      height: 72,
+                      p: 1,
+                      cursor: 'pointer',
+                      borderRadius: 1,
+                      bgcolor: isSelected
+                        ? 'primary.50'
+                        : isCurrentDay
+                          ? 'primary.25'
+                          : 'background.paper',
+                      borderColor: isSelected ? 'primary.main' : 'divider',
+                      '&:hover': { bgcolor: 'action.hover' },
+                      transition: 'background-color 0.2s ease',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: isSelected || isCurrentDay ? 'bold' : 'normal',
+                          color:
+                            dayOfWeek === 0
+                              ? 'error.main'
+                              : dayOfWeek === 6
+                                ? 'primary.main'
+                                : 'text.primary',
+                        }}
+                      >
+                        {format(date, 'd')}
+                      </Typography>
+                      {dayShifts.length > 0 && (
+                        <Chip size="small" label={`${dayShifts.length}`} sx={{ height: 18, fontSize: '0.7rem' }} />
+                      )}
+                    </Box>
+                  </Paper>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 既存のリッチ表示
   return (
     <Card>
       <CardContent>
@@ -315,42 +447,44 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           })}
         </Grid>
 
-        {/* 月間統計 */}
-        <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-          <Typography variant="subtitle1" gutterBottom>
-            今月の統計
-          </Typography>
-          <Stack direction="row" spacing={3}>
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                総シフト数
-              </Typography>
-              <Typography variant="h6">{shifts.length}件</Typography>
-            </Box>
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                総労働時間
-              </Typography>
-              <Typography variant="h6">
-                {shifts
-                  .reduce((sum, shift) => sum + shift.workingHours, 0)
-                  .toFixed(1)}
-                時間
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                総給与
-              </Typography>
-              <Typography variant="h6" color="primary.main">
-                ¥
-                {shifts
-                  .reduce((sum, shift) => sum + shift.calculatedEarnings, 0)
-                  .toLocaleString()}
-              </Typography>
-            </Box>
-          </Stack>
-        </Box>
+        {/* 月間統計（richのみ） */}
+        {variant === 'rich' && (
+          <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              今月の統計
+            </Typography>
+            <Stack direction="row" spacing={3}>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  総シフト数
+                </Typography>
+                <Typography variant="h6">{shifts.length}件</Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  総労働時間
+                </Typography>
+                <Typography variant="h6">
+                  {shifts
+                    .reduce((sum, shift) => sum + shift.workingHours, 0)
+                    .toFixed(1)}
+                  時間
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  総給与
+                </Typography>
+                <Typography variant="h6" color="primary.main">
+                  ¥
+                  {shifts
+                    .reduce((sum, shift) => sum + shift.calculatedEarnings, 0)
+                    .toLocaleString()}
+                </Typography>
+              </Box>
+            </Stack>
+          </Box>
+        )}
       </CardContent>
     </Card>
   );

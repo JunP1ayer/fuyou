@@ -260,6 +260,7 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
           if (shift) handleDeleteShift(shift);
         }}
         loading={loading}
+        variant="simple"
       />
 
       {/* シフト操作メニュー */}
