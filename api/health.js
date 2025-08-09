@@ -1,4 +1,4 @@
-import { sendSuccess, handleCors } from './_utils/response.js';
+import { sendSuccess, handleCors } from './lib/_utils/response.js';
 
 export default async function handler(req, res) {
   // Handle CORS

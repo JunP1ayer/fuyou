@@ -1,6 +1,6 @@
-import { sendSuccess, sendError, sendAuthError, sendNotFound, handleCors } from '../_utils/response.js';
-import { requireAuthOrDemo } from '../_utils/auth.js';
-import { supabaseAdmin } from '../_utils/supabase.js';
+import { sendSuccess, sendError, sendAuthError, sendNotFound, handleCors } from '../../lib/_utils/response.js';
+import { requireAuthOrDemo } from '../../lib/_utils/auth.js';
+import { supabaseAdmin } from '../../lib/_utils/supabase.js';
 
 export default async function handler(req, res) {
   // Handle CORS

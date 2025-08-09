@@ -1,6 +1,6 @@
-import { sendSuccess, sendCreated, sendError, sendAuthError, sendNotFound, sendValidationError, handleCors } from '../_utils/response.js';
-import { requireAuthOrDemo } from '../_utils/auth.js';
-import { supabaseAdmin } from '../_utils/supabase.js';
+import { sendSuccess, sendCreated, sendError, sendAuthError, sendNotFound, sendValidationError, handleCors } from '../../lib/_utils/response.js';
+import { requireAuthOrDemo } from '../../lib/_utils/auth.js';
+import { supabaseAdmin } from '../../lib/_utils/supabase.js';
 import { z } from 'zod';
 
 // Job Source validation schemas

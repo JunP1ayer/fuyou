@@ -1,5 +1,5 @@
-import { sendSuccess, sendError, sendAuthError, handleCors } from '../_utils/response.js';
-import { requireAuthOrDemo } from '../_utils/auth.js';
+import { sendSuccess, sendError, sendAuthError, handleCors } from '../../lib/_utils/response.js';
+import { requireAuthOrDemo } from '../../lib/_utils/auth.js';
 
 export default async function handler(req, res) {
   // Handle CORS

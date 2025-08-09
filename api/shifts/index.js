@@ -1,6 +1,6 @@
-import { sendSuccess, sendCreated, sendError, sendAuthError, sendNotFound, sendValidationError, handleCors } from '../_utils/response.js';
-import { requireAuthOrDemo } from '../_utils/auth.js';
-import { shiftService } from '../_services/shiftService.js';
+import { sendSuccess, sendCreated, sendError, sendAuthError, sendNotFound, sendValidationError, handleCors } from '../../lib/_utils/response.js';
+import { requireAuthOrDemo } from '../../lib/_utils/auth.js';
+import { shiftService } from '../../lib/_services/shiftService.js';
 import { z } from 'zod';
 
 // Shift validation schemas
