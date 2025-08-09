@@ -178,7 +178,7 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
                 bgcolor: isSelected
                   ? 'primary.main'
                   : isCurrentDay
-                    ? '#e3f2fd'
+                    ? '#f0f8ff'
                     : 'transparent',
                 color: isSelected ? 'white' : 'inherit',
                 cursor: 'pointer',
@@ -190,7 +190,7 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
                   bgcolor: isSelected 
                     ? 'primary.dark' 
                     : isCurrentDay 
-                      ? '#bbdefb'
+                      ? '#e6f3ff'
                       : 'action.hover',
                 },
               }}
