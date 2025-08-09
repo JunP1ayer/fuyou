@@ -174,12 +174,14 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: 1,
+                borderRadius: 0.5,
+                border: '1px solid',
+                borderColor: 'divider',
                 bgcolor: isSelected
                   ? 'primary.main'
                   : isCurrentDay
                     ? 'primary.50'
-                    : 'transparent',
+                    : 'background.paper',
                 color: isSelected ? 'white' : 'inherit',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',

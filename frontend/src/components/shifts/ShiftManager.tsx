@@ -253,32 +253,33 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
   };
 
   return (
-    <Box>
-      {/* メインコンテンツ */}
-      {isMobile ? (
-        <SimpleMobileCalendar
-          shifts={shifts}
-          onAddShift={date => handleAddShift(date)}
-          onEditShift={handleEditShift}
-          onDeleteShift={(shiftId: string) => {
-            const shift = shifts.find(s => s.id === shiftId);
-            if (shift) handleDeleteShift(shift);
-          }}
-          loading={loading}
-        />
-      ) : (
-        <ShiftCalendar
-          shifts={shifts}
-          onAddShift={handleAddShift}
-          onEditShift={handleEditShift}
-          onDeleteShift={(shiftId: string) => {
-            const shift = shifts.find(s => s.id === shiftId);
-            if (shift) handleDeleteShift(shift);
-          }}
-          loading={loading}
-          variant="simple"
-        />
-      )}
+    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ width: '100%', maxWidth: '800px' }}>
+        {/* メインコンテンツ */}
+        {isMobile ? (
+          <SimpleMobileCalendar
+            shifts={shifts}
+            onAddShift={date => handleAddShift(date)}
+            onEditShift={handleEditShift}
+            onDeleteShift={(shiftId: string) => {
+              const shift = shifts.find(s => s.id === shiftId);
+              if (shift) handleDeleteShift(shift);
+            }}
+            loading={loading}
+          />
+        ) : (
+          <ShiftCalendar
+            shifts={shifts}
+            onAddShift={handleAddShift}
+            onEditShift={handleEditShift}
+            onDeleteShift={(shiftId: string) => {
+              const shift = shifts.find(s => s.id === shiftId);
+              if (shift) handleDeleteShift(shift);
+            }}
+            loading={loading}
+            variant="simple"
+          />
+        )}
 
       {/* シフト操作メニュー */}
       {showAddButton && (

@@ -192,15 +192,19 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                     minHeight: { xs: 60, sm: 80 },
                     p: { xs: 0.5, sm: 1 },
                     cursor: 'pointer',
-                    borderRadius: 1,
+                    borderRadius: 0.5,
+                    border: '1px solid',
+                    borderColor: 'divider',
                     bgcolor: isSelected
                       ? 'primary.50'
                       : isCurrentDay
                         ? 'primary.25'
                         : 'background.paper',
-                    borderColor: isSelected ? 'primary.main' : 'divider',
-                    '&:hover': { bgcolor: 'action.hover' },
-                    transition: 'background-color 0.2s ease',
+                    '&:hover': { 
+                      bgcolor: 'action.hover',
+                      borderColor: 'primary.light'
+                    },
+                    transition: 'all 0.2s ease',
                     display: 'flex',
                     flexDirection: 'column',
                     overflow: 'hidden',
