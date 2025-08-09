@@ -35,7 +35,7 @@ export const CustomBottomNavigation: React.FC<CustomBottomNavigationProps> = ({
     icon: React.ReactElement;
   }[] = [
     { value: 'shifts', label: 'シフト', icon: <ScheduleIcon /> },
-    { value: 'ai', label: 'AI', icon: <SmartToyIcon /> },
+    { value: 'ai', label: 'シフト提出', icon: <SmartToyIcon /> },
     { value: 'salary', label: '給料計算', icon: <CalculateIcon /> },
     { value: 'others', label: 'その他', icon: <MoreHorizIcon /> },
   ];

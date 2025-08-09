@@ -88,10 +88,10 @@ export const AIFeature: React.FC<AIFeatureProps> = ({ onShiftsSaved }) => {
       {/* ヘッダー */}
       <Box sx={{ mb: 3, textAlign: 'center' }}>
         <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
-          AI シフト管理
+          シフト提出
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          AI の力でシフト管理を自動化・最適化します
+          シフト表の写真を撮って簡単にシフトを登録
         </Typography>
       </Box>
 
@@ -185,7 +185,7 @@ export const AIFeature: React.FC<AIFeatureProps> = ({ onShiftsSaved }) => {
       <Card>
         <CardContent>
           <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-            AI 機能一覧
+            シフト提出機能
           </Typography>
 
           <List>
@@ -222,7 +222,7 @@ export const AIFeature: React.FC<AIFeatureProps> = ({ onShiftsSaved }) => {
       <Alert severity="info" sx={{ mt: 3 }}>
         <Typography variant="body2">
           <strong>ご利用について：</strong>
-          AI機能は画像の品質や内容により認識精度が変わる場合があります。
+          シフト提出機能は画像の品質や内容により認識精度が変わる場合があります。
           処理後は必ず内容をご確認ください。
         </Typography>
       </Alert>
@@ -240,7 +240,7 @@ export const AIFeature: React.FC<AIFeatureProps> = ({ onShiftsSaved }) => {
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <AutoAwesome color="primary" sx={{ mr: 1 }} />
-            AI シフト表解析
+            シフト表解析
           </Box>
         </DialogTitle>
         <DialogContent>
