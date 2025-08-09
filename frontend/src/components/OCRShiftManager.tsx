@@ -15,13 +15,7 @@ import {
   MenuItem,
   SelectChangeEvent,
 } from '@mui/material';
-import {
-  CameraAlt,
-  Upload,
-  AutoAwesome,
-  SmartToy,
-  Work,
-} from '@mui/icons-material';
+import { Upload, AutoAwesome, SmartToy, Work } from '@mui/icons-material';
 
 import type { CreateShiftData } from '../types/shift';
 import { apiService, type JobSource } from '../services/api';
@@ -108,15 +102,21 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
 
     // ファイル形式チェック
     const allowedTypes = [
-      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
       'application/pdf',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'text/plain'
+      'text/plain',
     ];
-    
+
     if (!allowedTypes.includes(file.type)) {
-      setError('対応していないファイル形式です。画像、PDF、Word、テキストファイルを選択してください');
+      setError(
+        '対応していないファイル形式です。画像、PDF、Word、テキストファイルを選択してください'
+      );
       return;
     }
 
@@ -237,7 +237,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
     return (
       <Card>
         <CardContent>
-            <Typography variant="h6" sx={{ mb: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
             確認画面
           </Typography>
 
@@ -344,7 +344,6 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
           )}
         </Box>
 
-
         {/* ファイル選択 */}
         <Box mb={3}>
           <input
@@ -363,7 +362,11 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
           >
             シフト表ファイルをアップロード
           </Button>
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block', textAlign: 'center' }}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mt: 1, display: 'block', textAlign: 'center' }}
+          >
             対応形式: 画像（JPG, PNG, GIF）、PDF、Word、テキスト
           </Typography>
         </Box>
@@ -388,18 +391,26 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
                   }}
                 />
               ) : (
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  minHeight: '100px',
-                  bgcolor: 'grey.100',
-                  borderRadius: 1
-                }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: '100px',
+                    bgcolor: 'grey.100',
+                    borderRadius: 1,
+                  }}
+                >
                   <Typography variant="body2" color="text.secondary">
-                    {selectedImage.includes('pdf') ? 'PDFファイル' :
-                     selectedImage.includes('word') || selectedImage.includes('document') ? 'Wordファイル' :
-                     selectedImage.includes('text') ? 'テキストファイル' : 'ドキュメントファイル'}がアップロードされました
+                    {selectedImage.includes('pdf')
+                      ? 'PDFファイル'
+                      : selectedImage.includes('word') ||
+                          selectedImage.includes('document')
+                        ? 'Wordファイル'
+                        : selectedImage.includes('text')
+                          ? 'テキストファイル'
+                          : 'ドキュメントファイル'}
+                    がアップロードされました
                   </Typography>
                 </Box>
               )}

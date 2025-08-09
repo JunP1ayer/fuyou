@@ -39,13 +39,15 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
   };
 
   return (
-    <Box sx={{ 
-      width: '100%', 
-      display: 'flex', 
-      justifyContent: 'center', 
-      mb: 2,
-      px: 2
-    }}>
+    <Box
+      sx={{
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        mb: 2,
+        px: 2,
+      }}
+    >
       <Paper
         elevation={1}
         sx={{
@@ -56,52 +58,52 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
           margin: '0 auto',
         }}
       >
-      <Box sx={{ px: 2, py: 1 }}>
-        <Tabs
-          value={currentTab}
-          onChange={handleChange}
-          variant="fullWidth"
-          textColor="primary"
-          indicatorColor="primary"
-          sx={{
-            '& .MuiTab-root': {
-              minHeight: 48,
-              fontSize: '0.9rem',
-              fontWeight: 500,
-              textTransform: 'none',
-              '&:hover': {
-                backgroundColor: 'action.hover',
-                borderRadius: 1,
-              },
-              '&.Mui-selected': {
-                fontWeight: 600,
-                color: 'primary.main',
-              },
-            },
-            '& .MuiTabs-indicator': {
-              height: 3,
-              borderRadius: 1.5,
-            },
-          }}
-        >
-          {tabs.map(tab => (
-            <Tab
-              key={tab.value}
-              label={tab.label}
-              value={tab.value}
-              icon={tab.icon}
-              iconPosition="start"
-              sx={{
-                '& .MuiSvgIcon-root': {
-                  fontSize: '1.2rem',
-                  mr: 0.5,
+        <Box sx={{ px: 2, py: 1 }}>
+          <Tabs
+            value={currentTab}
+            onChange={handleChange}
+            variant="fullWidth"
+            textColor="primary"
+            indicatorColor="primary"
+            sx={{
+              '& .MuiTab-root': {
+                minHeight: 48,
+                fontSize: '0.9rem',
+                fontWeight: 500,
+                textTransform: 'none',
+                '&:hover': {
+                  backgroundColor: 'action.hover',
+                  borderRadius: 1,
                 },
-              }}
-            />
-          ))}
-        </Tabs>
-      </Box>
-    </Paper>
+                '&.Mui-selected': {
+                  fontWeight: 600,
+                  color: 'primary.main',
+                },
+              },
+              '& .MuiTabs-indicator': {
+                height: 3,
+                borderRadius: 1.5,
+              },
+            }}
+          >
+            {tabs.map(tab => (
+              <Tab
+                key={tab.value}
+                label={tab.label}
+                value={tab.value}
+                icon={tab.icon}
+                iconPosition="start"
+                sx={{
+                  '& .MuiSvgIcon-root': {
+                    fontSize: '1.2rem',
+                    mr: 0.5,
+                  },
+                }}
+              />
+            ))}
+          </Tabs>
+        </Box>
+      </Paper>
     </Box>
   );
 };

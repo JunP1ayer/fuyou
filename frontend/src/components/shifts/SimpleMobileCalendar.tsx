@@ -1,11 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Box, IconButton, Typography, Fab, Chip } from '@mui/material';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Add as AddIcon,
-  Add,
-} from '@mui/icons-material';
+import { Box, IconButton, Typography, Chip } from '@mui/material';
+import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import {
   format,
   startOfMonth,
@@ -14,27 +9,25 @@ import {
   addMonths,
   subMonths,
   isToday,
-  startOfWeek,
-  endOfWeek,
 } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import type { Shift } from '../../types/shift';
 
 interface SimpleMobileCalendarProps {
   shifts: Shift[];
-  onAddShift: (date: string) => void;
+  _onAddShift: (date: string) => void;
   onEditShift: (_shift: Shift) => void;
   onDeleteShift: (shiftId: string) => void;
-  loading?: boolean;
+  _loading?: boolean;
 }
 
 // モバイル特化の軽量シンプルな月間カレンダー（シンプルカレンダー風）
 export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
   shifts,
-  onAddShift,
+  _onAddShift,
   onEditShift,
   onDeleteShift: _onDeleteShift,
-  loading = false,
+  _loading = false,
 }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedKey, setSelectedKey] = useState<string>(
@@ -187,9 +180,9 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
                   transform: 'scale(0.95)',
                 },
                 '&:hover': {
-                  bgcolor: isSelected 
-                    ? 'primary.dark' 
-                    : isCurrentDay 
+                  bgcolor: isSelected
+                    ? 'primary.dark'
+                    : isCurrentDay
                       ? 'rgba(173, 216, 230, 0.25)'
                       : 'action.hover',
                 },
@@ -269,15 +262,14 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
                       transform: 'scale(0.98)',
                     },
                     '&:hover': {
-                      bgcolor: shift.isConfirmed ? 'success.100' : 'warning.100',
+                      bgcolor: shift.isConfirmed
+                        ? 'success.100'
+                        : 'warning.100',
                     },
                     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   }}
                 >
-                  <Typography
-                    variant="body2"
-                    sx={{ fontWeight: 500, mb: 0.5 }}
-                  >
+                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5 }}>
                     {shift.jobSourceName}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -306,21 +298,6 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
           )}
         </Box>
       )}
-
-      <Fab
-        color="primary"
-        size="large"
-        onClick={() => onAddShift(selectedKey || format(new Date(), 'yyyy-MM-dd'))}
-        disabled={loading}
-        sx={{
-          position: 'fixed',
-          bottom: 80,
-          right: 16,
-          boxShadow: 3,
-        }}
-      >
-        <AddIcon />
-      </Fab>
     </Box>
   );
 };

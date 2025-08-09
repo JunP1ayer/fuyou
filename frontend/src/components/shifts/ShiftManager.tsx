@@ -253,18 +253,22 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
   };
 
   return (
-    <Box sx={{ 
-      width: '100%', 
-      display: 'flex', 
-      justifyContent: 'center',
-      alignItems: 'center',
-      flexDirection: 'column'
-    }}>
-      <Box sx={{ 
-        width: '100%', 
-        maxWidth: '800px',
-        margin: '0 auto'
-      }}>
+    <Box
+      sx={{
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'column',
+      }}
+    >
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: '800px',
+          margin: '0 auto',
+        }}
+      >
         {/* メインコンテンツ */}
         {isMobile ? (
           <SimpleMobileCalendar
@@ -292,144 +296,146 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
         )}
 
         {/* シフト操作メニュー */}
-      {showAddButton && (
-        <SpeedDial
-          ariaLabel="シフト操作メニュー"
-          sx={{
-            position: 'fixed',
-            bottom: 16,
-            right: 16,
-          }}
-          icon={<SpeedDialIcon />}
-          disabled={loading}
-        >
-          <SpeedDialAction
-            key="add-job"
-            icon={<Work />}
-            tooltipTitle="バイト先登録"
-            onClick={handleOpenJobSource}
-            disabled={loading}
-          />
-          <SpeedDialAction
-            key="ocr-shift"
-            icon={<CameraAlt />}
-            tooltipTitle="シフト表提出"
-            onClick={handleOpenOCR}
-            disabled={loading}
-          />
-        </SpeedDial>
-      )}
-
-      {/* シフト作成・編集ダイアログ */}
-      <ShiftFormDialog
-        open={formDialogOpen}
-        onClose={handleCloseFormDialog}
-        onSubmit={handleShiftSubmit}
-        editingShift={editingShift}
-        loading={loading}
-        workplaces={workplaces}
-      />
-
-      {/* 削除確認ダイアログ */}
-      <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
-        <DialogTitle>シフトを削除しますか？</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {shiftToDelete && (
-              <>
-                以下のシフトを削除します。この操作は取り消せません。
-                <br />
-                <br />
-                <strong>{shiftToDelete.jobSourceName}</strong>
-                <br />
-                {shiftToDelete.date} {shiftToDelete.startTime} -{' '}
-                {shiftToDelete.endTime}
-                <br />
-                給与: ¥{shiftToDelete.calculatedEarnings.toLocaleString()}
-              </>
-            )}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} disabled={loading}>
-            キャンセル
-          </Button>
-          <Button
-            onClick={handleConfirmDelete}
-            color="error"
-            variant="contained"
+        {showAddButton && (
+          <SpeedDial
+            ariaLabel="シフト操作メニュー"
+            sx={{
+              position: 'fixed',
+              bottom: 16,
+              right: 16,
+            }}
+            icon={<SpeedDialIcon />}
             disabled={loading}
           >
-            {loading ? '削除中...' : '削除'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <SpeedDialAction
+              key="add-job"
+              icon={<Work />}
+              tooltipTitle="バイト先登録"
+              onClick={handleOpenJobSource}
+              disabled={loading}
+            />
+            <SpeedDialAction
+              key="ocr-shift"
+              icon={<CameraAlt />}
+              tooltipTitle="シフト表提出"
+              onClick={handleOpenOCR}
+              disabled={loading}
+            />
+          </SpeedDial>
+        )}
 
-      {/* シフト表提出ダイアログ */}
-      <Dialog
-        open={ocrDialogOpen}
-        onClose={() => setOcrDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>シフト表提出</DialogTitle>
-        <DialogContent>
-          <OCRShiftManager
-            onShiftsSaved={handleOCRShiftsSaved}
-            onComplete={() => setOcrDialogOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+        {/* シフト作成・編集ダイアログ */}
+        <ShiftFormDialog
+          open={formDialogOpen}
+          onClose={handleCloseFormDialog}
+          onSubmit={handleShiftSubmit}
+          editingShift={editingShift}
+          loading={loading}
+          workplaces={workplaces}
+        />
 
-      {/* バイト先登録ダイアログ */}
-      <Dialog
-        open={jobSourceDialogOpen}
-        onClose={() => setJobSourceDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>バイト先登録</DialogTitle>
-        <DialogContent>
-          <Alert severity="info" sx={{ mt: 1 }}>
-            バイト先登録機能は準備中です。現在はシフト登録時に自動作成されます。
-          </Alert>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setJobSourceDialogOpen(false)}>閉じる</Button>
-        </DialogActions>
-      </Dialog>
+        {/* 削除確認ダイアログ */}
+        <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
+          <DialogTitle>シフトを削除しますか？</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              {shiftToDelete && (
+                <>
+                  以下のシフトを削除します。この操作は取り消せません。
+                  <br />
+                  <br />
+                  <strong>{shiftToDelete.jobSourceName}</strong>
+                  <br />
+                  {shiftToDelete.date} {shiftToDelete.startTime} -{' '}
+                  {shiftToDelete.endTime}
+                  <br />
+                  給与: ¥{shiftToDelete.calculatedEarnings.toLocaleString()}
+                </>
+              )}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDeleteDialog} disabled={loading}>
+              キャンセル
+            </Button>
+            <Button
+              onClick={handleConfirmDelete}
+              color="error"
+              variant="contained"
+              disabled={loading}
+            >
+              {loading ? '削除中...' : '削除'}
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-      {/* エラーメッセージ */}
-      <Snackbar
-        open={!!error}
-        autoHideDuration={6000}
-        onClose={handleCloseError}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
+        {/* シフト表提出ダイアログ */}
+        <Dialog
+          open={ocrDialogOpen}
+          onClose={() => setOcrDialogOpen(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>シフト表提出</DialogTitle>
+          <DialogContent>
+            <OCRShiftManager
+              onShiftsSaved={handleOCRShiftsSaved}
+              onComplete={() => setOcrDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* バイト先登録ダイアログ */}
+        <Dialog
+          open={jobSourceDialogOpen}
+          onClose={() => setJobSourceDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>バイト先登録</DialogTitle>
+          <DialogContent>
+            <Alert severity="info" sx={{ mt: 1 }}>
+              バイト先登録機能は準備中です。現在はシフト登録時に自動作成されます。
+            </Alert>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setJobSourceDialogOpen(false)}>
+              閉じる
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* エラーメッセージ */}
+        <Snackbar
+          open={!!error}
+          autoHideDuration={6000}
           onClose={handleCloseError}
-          severity="error"
-          sx={{ width: '100%' }}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          {error}
-        </Alert>
-      </Snackbar>
+          <Alert
+            onClose={handleCloseError}
+            severity="error"
+            sx={{ width: '100%' }}
+          >
+            {error}
+          </Alert>
+        </Snackbar>
 
-      {/* 成功メッセージ */}
-      <Snackbar
-        open={!!success}
-        autoHideDuration={4000}
-        onClose={handleCloseSuccess}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
+        {/* 成功メッセージ */}
+        <Snackbar
+          open={!!success}
+          autoHideDuration={4000}
           onClose={handleCloseSuccess}
-          severity="success"
-          sx={{ width: '100%' }}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          {success}
-        </Alert>
-      </Snackbar>
+          <Alert
+            onClose={handleCloseSuccess}
+            severity="success"
+            sx={{ width: '100%' }}
+          >
+            {success}
+          </Alert>
+        </Snackbar>
       </Box>
     </Box>
   );

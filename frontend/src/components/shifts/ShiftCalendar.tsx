@@ -6,7 +6,6 @@ import {
   Box,
   Chip,
   IconButton,
-  Paper,
 } from '@mui/material';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import {
@@ -198,10 +197,10 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                         ? 'rgba(173, 216, 230, 0.15)'
                         : 'transparent',
                     color: isSelected ? 'white' : 'inherit',
-                    '&:hover': { 
-                      bgcolor: isSelected 
-                        ? 'primary.dark' 
-                        : isCurrentDay 
+                    '&:hover': {
+                      bgcolor: isSelected
+                        ? 'primary.dark'
+                        : isCurrentDay
                           ? 'rgba(173, 216, 230, 0.25)'
                           : 'action.hover',
                     },
@@ -273,12 +272,12 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                               xs: '0.55rem',
                               sm: '0.65rem',
                             },
-                            color: isSelected 
-                              ? 'rgba(255,255,255,0.9)' 
-                              : shift.isConfirmed 
+                            color: isSelected
+                              ? 'rgba(255,255,255,0.9)'
+                              : shift.isConfirmed
                                 ? 'success.main'
                                 : 'warning.main',
-                            backgroundColor: isSelected 
+                            backgroundColor: isSelected
                               ? 'rgba(255,255,255,0.15)'
                               : shift.isConfirmed
                                 ? 'success.50'
