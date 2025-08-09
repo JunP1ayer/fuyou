@@ -26,6 +26,7 @@ import {
 import type { CreateShiftData } from '../types/shift';
 import { apiService, type JobSource } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
+import { ShiftEditDialog } from './shifts/ShiftEditDialog';
 
 interface OCRShiftManagerProps {
   onShiftsSaved?: (shifts: CreateShiftData[]) => void;
@@ -57,6 +58,10 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
   const [confirmedResults, setConfirmedResults] = useState<CreateShiftData[]>(
     []
   );
+  const [editingShiftIndex, setEditingShiftIndex] = useState<number | null>(
+    null
+  );
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // AI プロバイダ設定（優先順位: Gemini > OpenAI > Vision）
@@ -192,6 +197,29 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
     setConfirmedResults([]);
   };
 
+  // シフト編集
+  const handleEditShift = (index: number) => {
+    setEditingShiftIndex(index);
+    setEditDialogOpen(true);
+  };
+
+  // 編集保存
+  const handleSaveEdit = (updatedShift: CreateShiftData) => {
+    if (editingShiftIndex !== null) {
+      const updatedResults = [...confirmedResults];
+      updatedResults[editingShiftIndex] = updatedShift;
+      setConfirmedResults(updatedResults);
+      setEditDialogOpen(false);
+      setEditingShiftIndex(null);
+    }
+  };
+
+  // 編集キャンセル
+  const handleCancelEdit = () => {
+    setEditDialogOpen(false);
+    setEditingShiftIndex(null);
+  };
+
   // const availableProviders = aiProviders
   //   .filter(p => p.available)
   //   .sort((a, b) => a.priority - b.priority);
@@ -207,7 +235,12 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
           </Box>
 
           <Alert severity="info" sx={{ mb: 3 }}>
-            抽出されたシフト情報を確認してください。間違いがある場合は修正できます。
+            <Typography variant="body2">
+              <strong>GPT-5 による解析が完了しました。</strong>
+              <br />
+              抽出されたシフト情報を確認してください。間違いがある場合は「編集」ボタンで修正できます。
+              確認後、「シフトに反映」をクリックするとカレンダーに登録されます。
+            </Typography>
           </Alert>
 
           <Typography variant="subtitle2" gutterBottom>
@@ -237,10 +270,9 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
                 </Box>
                 <Button
                   size="small"
-                  onClick={() => {
-                    /* TODO: 編集機能 */
-                  }}
-                  disabled
+                  variant="outlined"
+                  onClick={() => handleEditShift(index)}
+                  disabled={loading}
                 >
                   編集
                 </Button>
@@ -396,7 +428,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
           <Box mb={2}>
             <LinearProgress />
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-              OpenAI GPT-5で解析中...
+              GPT-5 がシフト表を解析中... お待ちください
             </Typography>
           </Box>
         )}
@@ -408,6 +440,17 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
           </Alert>
         )}
       </CardContent>
+
+      {/* シフト編集ダイアログ */}
+      {editingShiftIndex !== null && (
+        <ShiftEditDialog
+          open={editDialogOpen}
+          onClose={handleCancelEdit}
+          onSave={handleSaveEdit}
+          shiftData={confirmedResults[editingShiftIndex]}
+          loading={loading}
+        />
+      )}
     </Card>
   );
 };

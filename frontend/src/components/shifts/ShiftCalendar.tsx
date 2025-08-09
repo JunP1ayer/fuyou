@@ -89,208 +89,207 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
         maxWidth: { xs: '100%', sm: '600px', md: '800px', lg: '1000px' },
       }}
     >
-        <CardContent sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
-          {/* ヘッダー（左・右ナビと中央月表示） */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              mb: 2,
-            }}
-          >
-            <IconButton onClick={goToPreviousMonth} disabled={loading}>
-              <ChevronLeft />
-            </IconButton>
+      <CardContent sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+        {/* ヘッダー（左・右ナビと中央月表示） */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 2,
+          }}
+        >
+          <IconButton onClick={goToPreviousMonth} disabled={loading}>
+            <ChevronLeft />
+          </IconButton>
 
-            <Typography variant="h6" sx={{ textAlign: 'center' }}>
-              {format(currentDate, 'yyyy年M月', { locale: ja })}
+          <Typography variant="h6" sx={{ textAlign: 'center' }}>
+            {format(currentDate, 'yyyy年M月', { locale: ja })}
+          </Typography>
+
+          <IconButton onClick={goToNextMonth} disabled={loading}>
+            <ChevronRight />
+          </IconButton>
+        </Box>
+
+        {/* 曜日ヘッダー */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, 1fr)',
+            gap: 0.5,
+            mb: 0.5,
+          }}
+        >
+          {weekDays.map((day, index) => (
+            <Typography
+              key={day}
+              variant="subtitle2"
+              align="center"
+              sx={{
+                fontWeight: 'bold',
+                color:
+                  index === 0
+                    ? 'error.main'
+                    : index === 6
+                      ? 'primary.main'
+                      : 'text.secondary',
+              }}
+            >
+              {day}
             </Typography>
+          ))}
+        </Box>
 
-            <IconButton onClick={goToNextMonth} disabled={loading}>
-              <ChevronRight />
-            </IconButton>
-          </Box>
+        {/* 日付グリッド（7列カレンダー） */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, 1fr)',
+            gap: { xs: 0.5, sm: 1 },
+            width: '100%',
+          }}
+        >
+          {simpleCalendarDates.map((date, idx) => {
+            if (!date) {
+              return (
+                <Box
+                  key={`empty-${idx}`}
+                  sx={{ height: { xs: 80, sm: 100, md: 120 } }}
+                />
+              );
+            }
 
-          {/* 曜日ヘッダー */}
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(7, 1fr)',
-              gap: 0.5,
-              mb: 0.5,
-            }}
-          >
-            {weekDays.map((day, index) => (
-              <Typography
-                key={day}
-                variant="subtitle2"
-                align="center"
+            const isSelected =
+              selectedDate &&
+              format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
+            const isCurrentDay = isToday(date);
+            const dayOfWeek = date.getDay();
+            const dateKey = format(date, 'yyyy-MM-dd');
+            const dayShifts = shiftsByDate[dateKey] || [];
+
+            return (
+              <Paper
+                key={dateKey}
+                variant="outlined"
+                onClick={() => {
+                  setSelectedDate(date);
+                  onAddShift(format(date, 'yyyy-MM-dd'));
+                }}
                 sx={{
-                  fontWeight: 'bold',
-                  color:
-                    index === 0
-                      ? 'error.main'
-                      : index === 6
-                        ? 'primary.main'
-                        : 'text.secondary',
+                  height: { xs: 80, sm: 100, md: 120 },
+                  p: { xs: 0.5, sm: 1 },
+                  cursor: 'pointer',
+                  borderRadius: 1,
+                  bgcolor: isSelected
+                    ? 'primary.50'
+                    : isCurrentDay
+                      ? 'primary.25'
+                      : 'background.paper',
+                  borderColor: isSelected ? 'primary.main' : 'divider',
+                  '&:hover': { bgcolor: 'action.hover' },
+                  transition: 'background-color 0.2s ease',
                 }}
               >
-                {day}
-              </Typography>
-            ))}
-          </Box>
-
-          {/* 日付グリッド（7列カレンダー） */}
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(7, 1fr)',
-              gap: { xs: 0.5, sm: 1 },
-              width: '100%',
-            }}
-          >
-            {simpleCalendarDates.map((date, idx) => {
-              if (!date) {
-                return (
-                  <Box
-                    key={`empty-${idx}`}
-                    sx={{ height: { xs: 80, sm: 100, md: 120 } }}
-                  />
-                );
-              }
-
-              const isSelected =
-                selectedDate &&
-                format(selectedDate, 'yyyy-MM-dd') ===
-                  format(date, 'yyyy-MM-dd');
-              const isCurrentDay = isToday(date);
-              const dayOfWeek = date.getDay();
-              const dateKey = format(date, 'yyyy-MM-dd');
-              const dayShifts = shiftsByDate[dateKey] || [];
-
-              return (
-                <Paper
-                  key={dateKey}
-                  variant="outlined"
-                  onClick={() => {
-                    setSelectedDate(date);
-                    onAddShift(format(date, 'yyyy-MM-dd'));
-                  }}
+                <Box
                   sx={{
-                    height: { xs: 80, sm: 100, md: 120 },
-                    p: { xs: 0.5, sm: 1 },
-                    cursor: 'pointer',
-                    borderRadius: 1,
-                    bgcolor: isSelected
-                      ? 'primary.50'
-                      : isCurrentDay
-                        ? 'primary.25'
-                        : 'background.paper',
-                    borderColor: isSelected ? 'primary.main' : 'divider',
-                    '&:hover': { bgcolor: 'action.hover' },
-                    transition: 'background-color 0.2s ease',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'start',
                   }}
                 >
-                  <Box
+                  <Typography
+                    variant={{ xs: 'body2', sm: 'h6', md: 'h5' }}
                     sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'start',
+                      fontWeight:
+                        isSelected || isCurrentDay ? 'bold' : 'normal',
+                      color:
+                        dayOfWeek === 0
+                          ? 'error.main'
+                          : dayOfWeek === 6
+                            ? 'primary.main'
+                            : 'text.primary',
                     }}
                   >
-                    <Typography
-                      variant={{ xs: 'body2', sm: 'h6', md: 'h5' }}
+                    {format(date, 'd')}
+                  </Typography>
+                  {dayShifts.length > 0 && (
+                    <Chip
+                      size="small"
+                      label={`${dayShifts.length}`}
                       sx={{
-                        fontWeight:
-                          isSelected || isCurrentDay ? 'bold' : 'normal',
-                        color:
-                          dayOfWeek === 0
-                            ? 'error.main'
-                            : dayOfWeek === 6
-                              ? 'primary.main'
-                              : 'text.primary',
+                        height: { xs: 18, sm: 20, md: 24 },
+                        fontSize: {
+                          xs: '0.7rem',
+                          sm: '0.75rem',
+                          md: '0.8rem',
+                        },
                       }}
-                    >
-                      {format(date, 'd')}
-                    </Typography>
-                    {dayShifts.length > 0 && (
-                      <Chip
-                        size="small"
-                        label={`${dayShifts.length}`}
+                    />
+                  )}
+                </Box>
+
+                {/* シフト詳細表示 */}
+                {dayShifts.length > 0 && (
+                  <Box sx={{ mt: 0.5 }}>
+                    {dayShifts.slice(0, 2).map(shift => (
+                      <Box
+                        key={shift.id}
                         sx={{
-                          height: { xs: 18, sm: 20, md: 24 },
                           fontSize: {
-                            xs: '0.7rem',
-                            sm: '0.75rem',
-                            md: '0.8rem',
+                            xs: '0.6rem',
+                            sm: '0.7rem',
+                            md: '0.75rem',
+                          },
+                          color: 'text.secondary',
+                          backgroundColor: shift.isConfirmed
+                            ? 'success.50'
+                            : 'warning.50',
+                          borderRadius: 0.5,
+                          px: 0.5,
+                          py: 0.25,
+                          mb: 0.25,
+                          cursor: 'pointer',
+                          '&:hover': {
+                            backgroundColor: shift.isConfirmed
+                              ? 'success.100'
+                              : 'warning.100',
                           },
                         }}
-                      />
-                    )}
-                  </Box>
-
-                  {/* シフト詳細表示 */}
-                  {dayShifts.length > 0 && (
-                    <Box sx={{ mt: 0.5 }}>
-                      {dayShifts.slice(0, 2).map(shift => (
-                        <Box
-                          key={shift.id}
-                          sx={{
-                            fontSize: {
-                              xs: '0.6rem',
-                              sm: '0.7rem',
-                              md: '0.75rem',
-                            },
-                            color: 'text.secondary',
-                            backgroundColor: shift.isConfirmed
-                              ? 'success.50'
-                              : 'warning.50',
-                            borderRadius: 0.5,
-                            px: 0.5,
-                            py: 0.25,
-                            mb: 0.25,
-                            cursor: 'pointer',
-                            '&:hover': {
-                              backgroundColor: shift.isConfirmed
-                                ? 'success.100'
-                                : 'warning.100',
-                            },
-                          }}
-                          onClick={e => {
-                            e.stopPropagation();
-                            onEditShift(shift);
-                          }}
-                        >
-                          <Typography
-                            variant="caption"
-                            sx={{ fontSize: 'inherit' }}
-                          >
-                            {shift.jobSourceName}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            sx={{ fontSize: 'inherit', ml: 0.5 }}
-                          >
-                            {shift.startTime}-{shift.endTime}
-                          </Typography>
-                        </Box>
-                      ))}
-                      {dayShifts.length > 2 && (
+                        onClick={e => {
+                          e.stopPropagation();
+                          onEditShift(shift);
+                        }}
+                      >
                         <Typography
                           variant="caption"
-                          sx={{ fontSize: '0.6rem', color: 'text.secondary' }}
+                          sx={{ fontSize: 'inherit' }}
                         >
-                          +{dayShifts.length - 2}件
+                          {shift.jobSourceName}
                         </Typography>
-                      )}
-                    </Box>
-                  )}
-                </Paper>
-              );
-            })}
-          </Box>
-        </CardContent>
+                        <Typography
+                          variant="caption"
+                          sx={{ fontSize: 'inherit', ml: 0.5 }}
+                        >
+                          {shift.startTime}-{shift.endTime}
+                        </Typography>
+                      </Box>
+                    ))}
+                    {dayShifts.length > 2 && (
+                      <Typography
+                        variant="caption"
+                        sx={{ fontSize: '0.6rem', color: 'text.secondary' }}
+                      >
+                        +{dayShifts.length - 2}件
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              </Paper>
+            );
+          })}
+        </Box>
+      </CardContent>
     </Card>
   );
 };

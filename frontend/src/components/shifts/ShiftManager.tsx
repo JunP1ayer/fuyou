@@ -16,6 +16,8 @@ import {
 import { Work, CameraAlt } from '@mui/icons-material';
 
 import { ShiftCalendar } from './ShiftCalendar';
+import { useMediaQuery, useTheme } from '@mui/material';
+import { SimpleMobileCalendar } from './SimpleMobileCalendar';
 import { ShiftFormDialog } from './ShiftFormDialog';
 import { OCRShiftManager } from '../OCRShiftManager';
 import { useAuth } from '../../hooks/useAuth';
@@ -41,6 +43,8 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
   initialShifts = [],
 }) => {
   const { user } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [shifts, setShifts] = useState<Shift[]>(initialShifts);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -251,17 +255,30 @@ export const ShiftManager: React.FC<ShiftManagerProps> = ({
   return (
     <Box>
       {/* メインコンテンツ */}
-      <ShiftCalendar
-        shifts={shifts}
-        onAddShift={handleAddShift}
-        onEditShift={handleEditShift}
-        onDeleteShift={(shiftId: string) => {
-          const shift = shifts.find(s => s.id === shiftId);
-          if (shift) handleDeleteShift(shift);
-        }}
-        loading={loading}
-        variant="simple"
-      />
+      {isMobile ? (
+        <SimpleMobileCalendar
+          shifts={shifts}
+          onAddShift={date => handleAddShift(date)}
+          onEditShift={handleEditShift}
+          onDeleteShift={(shiftId: string) => {
+            const shift = shifts.find(s => s.id === shiftId);
+            if (shift) handleDeleteShift(shift);
+          }}
+          loading={loading}
+        />
+      ) : (
+        <ShiftCalendar
+          shifts={shifts}
+          onAddShift={handleAddShift}
+          onEditShift={handleEditShift}
+          onDeleteShift={(shiftId: string) => {
+            const shift = shifts.find(s => s.id === shiftId);
+            if (shift) handleDeleteShift(shift);
+          }}
+          loading={loading}
+          variant="simple"
+        />
+      )}
 
       {/* シフト操作メニュー */}
       {showAddButton && (

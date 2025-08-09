@@ -22,102 +22,31 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ja } from 'date-fns/locale';
 import { format, parseISO } from 'date-fns';
 
-import type {
-  CreateShiftData,
-  UpdateShiftData,
-  Shift,
-  Workplace,
-} from '../../types/shift';
+import type { CreateShiftData } from '../../types/shift';
 
-interface ShiftFormDialogProps {
+interface ShiftEditDialogProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateShiftData | UpdateShiftData) => Promise<void>;
-  editingShift?: Shift;
+  onSave: (updatedShift: CreateShiftData) => void;
+  shiftData: CreateShiftData;
   loading?: boolean;
-  workplaces?: Workplace[];
 }
 
-export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
+export const ShiftEditDialog: React.FC<ShiftEditDialogProps> = ({
   open,
   onClose,
-  onSubmit,
-  editingShift,
+  onSave,
+  shiftData,
   loading = false,
-  workplaces = [],
 }) => {
-  const [formData, setFormData] = useState<CreateShiftData>({
-    jobSourceId: '',
-    jobSourceName: '',
-    date: format(new Date(), 'yyyy-MM-dd'),
-    startTime: '09:00',
-    endTime: '17:00',
-    hourlyRate: 1000,
-    breakMinutes: 60,
-    description: '',
-    isConfirmed: false,
-    payDay: 25, // デフォルト25日
-  });
-
+  const [formData, setFormData] = useState<CreateShiftData>(shiftData);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [conflictError, setConflictError] = useState<string>('');
 
-  // 職場選択時の処理
-  const handleWorkplaceSelect = (workplaceId: string) => {
-    const selectedWorkplace = workplaces.find(wp => wp.id === workplaceId);
-    if (selectedWorkplace) {
-      setFormData(prev => ({
-        ...prev,
-        jobSourceId: selectedWorkplace.id,
-        jobSourceName: selectedWorkplace.name,
-        hourlyRate: selectedWorkplace.hourlyRate,
-        payDay: selectedWorkplace.payDay || 25,
-      }));
-    }
-  };
-
-  // editingShiftが変更されたときにフォームデータを更新
+  // propsが変更されたときにフォームデータを更新
   useEffect(() => {
-    if (editingShift) {
-      setFormData({
-        jobSourceId: editingShift.jobSourceId,
-        jobSourceName: editingShift.jobSourceName,
-        date: editingShift.date,
-        startTime: editingShift.startTime,
-        endTime: editingShift.endTime,
-        hourlyRate: editingShift.hourlyRate,
-        breakMinutes: editingShift.breakMinutes,
-        description: editingShift.description,
-        isConfirmed: editingShift.isConfirmed,
-        payDay: editingShift.payDay || 25,
-      });
-    } else {
-      setFormData({
-        jobSourceId: '',
-        jobSourceName: '',
-        date: format(new Date(), 'yyyy-MM-dd'),
-        startTime: '09:00',
-        endTime: '17:00',
-        hourlyRate: 1000,
-        breakMinutes: 60,
-        description: '',
-        isConfirmed: false,
-        payDay: 25,
-      });
-    }
+    setFormData(shiftData);
     setErrors({});
-    setConflictError('');
-  }, [editingShift, open]);
-
-  // 15分刻みに丸める
-  const roundToQuarter = (date: Date): Date => {
-    const d = new Date(date);
-    const q = Math.round(d.getMinutes() / 15) * 15;
-    d.setMinutes(q);
-    d.setSeconds(0);
-    d.setMilliseconds(0);
-    return d;
-  };
+  }, [shiftData, open]);
 
   // 労働時間計算
   const calculateWorkingHours = (): number => {
@@ -184,36 +113,17 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!validateForm()) return;
 
-    try {
-      setConflictError('');
-      // 開始>終了なら翌日跨ぎとして処理（UIは現状自動）
-      const start = timeToMinutes(formData.startTime);
-      const end = timeToMinutes(formData.endTime);
-      if (end <= start) {
-        // 翌日跨ぎをユーザーに分かるよう備考へ反映
-        setFormData(prev => ({
-          ...prev,
-          description: prev.description ? prev.description : '翌日跨ぎ',
-        }));
-      }
-      await onSubmit(formData);
-      onClose();
-    } catch (error: unknown) {
-      // 時間重複エラーの処理
-      const err = error as {
-        response?: { status: number; data: { error?: { message?: string } } };
-      };
-      if (err?.response?.status === 409) {
-        setConflictError(
-          err.response.data.error?.message || '時間が重複しています'
-        );
-      } else {
-        setConflictError('エラーが発生しました。もう一度お試しください。');
-      }
-    }
+    // 計算値を更新
+    const updatedShift: CreateShiftData = {
+      ...formData,
+      workingHours: calculateWorkingHours(),
+      calculatedEarnings: calculateEarnings(),
+    };
+
+    onSave(updatedShift);
   };
 
   const handleClose = () => {
@@ -228,68 +138,21 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ja}>
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingShift ? 'シフト編集' : '新しいシフトを追加'}
-        </DialogTitle>
+        <DialogTitle>シフト情報編集</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
-            {/* エラー表示 */}
-            {conflictError && <Alert severity="error">{conflictError}</Alert>}
-
-            {/* バイト先選択 */}
-            {workplaces.length > 0 ? (
-              <FormControl fullWidth required error={!!errors.jobSourceName}>
-                <InputLabel>バイト先</InputLabel>
-                <Select
-                  value={formData.jobSourceId || ''}
-                  label="バイト先"
-                  onChange={e =>
-                    handleWorkplaceSelect(e.target.value as string)
-                  }
-                >
-                  {workplaces.map(workplace => (
-                    <MenuItem key={workplace.id} value={workplace.id}>
-                      <Box
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                      >
-                        <Box
-                          sx={{
-                            width: 12,
-                            height: 12,
-                            borderRadius: '50%',
-                            backgroundColor: workplace.color,
-                            flexShrink: 0,
-                          }}
-                        />
-                        {workplace.name} (¥
-                        {workplace.hourlyRate.toLocaleString()})
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.jobSourceName && (
-                  <Typography
-                    variant="caption"
-                    color="error"
-                    sx={{ mt: 0.5, ml: 2 }}
-                  >
-                    {errors.jobSourceName}
-                  </Typography>
-                )}
-              </FormControl>
-            ) : (
-              <TextField
-                label="バイト先名"
-                value={formData.jobSourceName}
-                onChange={e =>
-                  setFormData({ ...formData, jobSourceName: e.target.value })
-                }
-                error={!!errors.jobSourceName}
-                helperText={errors.jobSourceName}
-                required
-                fullWidth
-              />
-            )}
+            {/* バイト先名 */}
+            <TextField
+              label="バイト先名"
+              value={formData.jobSourceName}
+              onChange={e =>
+                setFormData({ ...formData, jobSourceName: e.target.value })
+              }
+              error={!!errors.jobSourceName}
+              helperText={errors.jobSourceName}
+              required
+              fullWidth
+            />
 
             {/* 日付 */}
             <DatePicker
@@ -320,10 +183,9 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
                 value={new Date(`1970-01-01T${formData.startTime}:00`)}
                 onChange={time => {
                   if (time) {
-                    const t = roundToQuarter(time);
                     setFormData({
                       ...formData,
-                      startTime: format(t, 'HH:mm'),
+                      startTime: format(time, 'HH:mm'),
                     });
                   }
                 }}
@@ -341,10 +203,9 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
                 value={new Date(`1970-01-01T${formData.endTime}:00`)}
                 onChange={time => {
                   if (time) {
-                    const t = roundToQuarter(time);
                     setFormData({
                       ...formData,
-                      endTime: format(t, 'HH:mm'),
+                      endTime: format(time, 'HH:mm'),
                     });
                   }
                 }}
@@ -456,7 +317,7 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
             キャンセル
           </Button>
           <Button onClick={handleSubmit} variant="contained" disabled={loading}>
-            {loading ? '処理中...' : editingShift ? '更新' : '追加'}
+            {loading ? '保存中...' : '保存'}
           </Button>
         </DialogActions>
       </Dialog>
