@@ -24,7 +24,11 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "zod": "^3.22.4",
+    "uuid": "^9.0.1"
+  },
   "devDependencies": {
     "vercel": "^33.0.0"
   }

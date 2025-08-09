@@ -47,9 +47,8 @@ export interface CreateJobSourceData {
   };
 }
 
-// API configuration
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+// API configuration - Use relative URLs for Vercel deployment
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 // Get token from localStorage if available
 const getAuthToken = (): string | null => {
