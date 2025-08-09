@@ -28,39 +28,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for existing auth data on mount
-    const checkAuth = () => {
-      try {
-        const authData = localStorage.getItem('auth');
-        if (authData) {
-          const { user: savedUser, token: savedToken } = JSON.parse(authData);
-          setUser(savedUser);
-          setToken(savedToken);
-        }
-      } catch (error) {
-        console.error('Error loading auth data:', error);
-        localStorage.removeItem('auth');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  const login = async (_email: string, _password: string): Promise<void> => {
-    setLoading(true);
-    try {
-      // For now, this would call a real login API
-      // const response = await loginWithCredentials(email, password);
-      throw new Error('Regular login not implemented - use demo login');
-    } catch (error) {
-      setLoading(false);
-      throw error;
-    }
-  };
-
   const loginWithDemo = async (): Promise<void> => {
     setLoading(true);
     try {
@@ -88,6 +55,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       throw error;
     } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Check for existing auth data on mount
+    const checkAuth = async () => {
+      try {
+        const authData = localStorage.getItem('auth');
+        if (authData) {
+          const { user: savedUser, token: savedToken } = JSON.parse(authData);
+          setUser(savedUser);
+          setToken(savedToken);
+          setLoading(false);
+          return;
+        }
+        
+        // If no auth data, auto-login with demo
+        console.log('No auth found, performing auto demo login...');
+        await loginWithDemo();
+      } catch (error) {
+        console.error('Error during auth check/demo login:', error);
+        localStorage.removeItem('auth');
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const login = async (_email: string, _password: string): Promise<void> => {
+    setLoading(true);
+    try {
+      // For now, this would call a real login API
+      // const response = await loginWithCredentials(email, password);
+      throw new Error('Regular login not implemented - use demo login');
+    } catch (error) {
+      setLoading(false);
+      throw error;
     }
   };
 
