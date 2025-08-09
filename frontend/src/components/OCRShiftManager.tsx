@@ -51,7 +51,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  const [selectedProvider, setSelectedProvider] = useState<string>('gemini');
+  const [selectedProvider, setSelectedProvider] = useState<string>('openai');
   const [jobSources, setJobSources] = useState<JobSource[]>([]);
   const [selectedJobSource, setSelectedJobSource] = useState<string>('');
   const [jobSourcesLoading, setJobSourcesLoading] = useState(false);
@@ -64,27 +64,11 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
   // AI プロバイダ設定（優先順位: Gemini > OpenAI > Vision）
   const aiProviders: AIProvider[] = [
     {
-      name: 'gemini',
-      icon: <AutoAwesome />,
-      endpoint: '/api/gemini-vision',
-      description: 'Google Gemini - 高精度画像解析',
-      priority: 1,
-      available: true,
-    },
-    {
       name: 'openai',
       icon: <SmartToy />,
       endpoint: '/api/openai-vision',
-      description: 'OpenAI GPT-4o - 自然言語処理',
-      priority: 2,
-      available: true, // APIキー更新済み
-    },
-    {
-      name: 'vision',
-      icon: <Visibility />,
-      endpoint: '/api/ocr/upload',
-      description: 'Google Cloud Vision - OCR専門',
-      priority: 3,
+      description: 'OpenAI GPT-5 - 最新AI画像解析',
+      priority: 1,
       available: true,
     },
   ];
@@ -329,29 +313,14 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
           )}
         </Box>
 
-        {/* AI プロバイダ選択 */}
-        <Box mb={3}>
-          <Typography variant="subtitle2" gutterBottom>
-            解析エンジン選択
-          </Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            {availableProviders.map(provider => (
-              <Chip
-                key={provider.name}
-                icon={provider.icon}
-                label={provider.description}
-                variant={
-                  selectedProvider === provider.name ? 'filled' : 'outlined'
-                }
-                color={
-                  selectedProvider === provider.name ? 'primary' : 'default'
-                }
-                clickable
-                onClick={() => setSelectedProvider(provider.name)}
-                size="small"
-              />
-            ))}
-          </Stack>
+        {/* AI解析エンジン: GPT-5固定 */}
+        <Box mb={2}>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              <SmartToy sx={{ fontSize: '1rem', mr: 1, verticalAlign: 'middle' }} />
+              OpenAI GPT-5による高精度シフト表解析
+            </Typography>
+          </Alert>
         </Box>
 
         {/* 画像選択 */}
@@ -427,9 +396,7 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
           <Box mb={2}>
             <LinearProgress />
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-              {selectedProvider === 'gemini' && 'Gemini AIで解析中...'}
-              {selectedProvider === 'openai' && 'OpenAI GPT-4oで解析中...'}
-              {selectedProvider === 'vision' && 'Google Vision OCRで解析中...'}
+              OpenAI GPT-5で解析中...
             </Typography>
           </Box>
         )}
