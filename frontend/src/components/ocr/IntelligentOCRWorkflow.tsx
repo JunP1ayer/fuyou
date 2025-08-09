@@ -75,9 +75,17 @@ const PROCESSING_STAGES: ProcessingStage[] = [
     stage: 'editing',
     title: '詳細編集',
     description: 'シフト情報の確認と修正',
-    progress: 75,
+    progress: 60,
     canGoBack: true,
     canSkip: true,
+  },
+  {
+    stage: 'confirmation',
+    title: '保存確認',
+    description: 'カレンダー保存前の最終確認',
+    progress: 80,
+    canGoBack: true,
+    canSkip: false,
   },
   {
     stage: 'saving',
@@ -120,7 +128,6 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
 
   // 自動保存設定
   const [autoSave, setAutoSave] = useState<boolean>(true);
-
 
   const currentStageConfig = PROCESSING_STAGES.find(
     s => s.stage === currentStage
@@ -231,22 +238,16 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
       );
       setEditableShifts(shifts);
 
-      // 自動保存が有効で保存済みの場合は保存完了ステージに進む
-      if (
-        autoSave &&
-        data.meta?.autoSave &&
-        data.data.savedShifts?.length > 0
-      ) {
-        // サーバ側で自動保存済みの場合、カレンダー更新のみ行う
-        // savedShiftsはShiftResponse型なのでCreateShiftData型に変換不要
-        // 直接親コンポーネントに保存済みシフトを通知してカレンダーを更新
-        onShiftsSaved(data.data.savedShifts);
-        setCurrentStage('saving');
-
-        // 完了後、少し待ってから閉じる
-        setTimeout(() => {
-          onClose?.();
-        }, 2000);
+      // 自動保存が実行された場合でも確認段階を経由する
+      if (autoSave && data.meta?.autoSave && data.data.savedShifts?.length > 0) {
+        // 自動保存済みの情報を保存しておく
+        setOcrResults({
+          ...data.data,
+          savedShifts: data.data.savedShifts,
+          autoSaved: true
+        });
+        // 確認ステージに進む
+        setCurrentStage('confirmation');
       } else {
         // 結果表示ステージに進む
         setCurrentStage('results');
@@ -287,74 +288,47 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
   }, [currentStageIndex]);
 
   /**
-   * 最終保存処理
+   * 確認段階からの最終カレンダー反映
    */
-  const handleFinalSave = async () => {
+  const handleConfirmedSave = async () => {
     setIsLoading(true);
     try {
-      // CreateShiftData形式に変換
-      const shiftsToSave: CreateShiftData[] = editableShifts.map(shift => ({
-        date: shift.date,
-        startTime: shift.startTime,
-        endTime: shift.endTime,
-        jobSourceName: shift.jobSourceName,
-        hourlyRate: shift.hourlyRate,
-        breakMinutes: shift.breakMinutes || 60,
-        description: shift.description || 'OCR自動登録',
-        isConfirmed: shift.isConfirmed,
-      }));
-
-      // 保存方法の選択: クライアント側での保存 vs サーバー側での再送信保存
-      if (autoSave && uploadState.selectedImage) {
-        // サーバー側でautoSave=trueで再送信して保存
-        await processWithIntelligentOCR(uploadState.selectedImage);
+      if (ocrResults?.autoSaved && ocrResults.savedShifts) {
+        // 既に自動保存済みの場合は、カレンダー反映のみ
+        onShiftsSaved(ocrResults.savedShifts);
       } else {
-        // クライアント側で /api/shifts/bulk を呼び出し
-        const authToken = (() => {
-          const direct = localStorage.getItem('token');
-          if (direct) return direct;
-          try {
-            const auth = localStorage.getItem('auth');
-            if (auth) return JSON.parse(auth).token;
-          } catch {}
-          return null;
-        })();
-
-        const response = await fetch('/api/shifts/bulk', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-          },
-          body: JSON.stringify({ shifts: shiftsToSave }),
-        });
-
-        if (!response.ok) {
-          throw new Error('シフトの保存に失敗しました');
-        }
-
-        const data = await response.json();
-        if (!data.success) {
-          throw new Error(
-            data.error?.message || 'シフトの保存でエラーが発生しました'
-          );
-        }
-
-        // 親コンポーネントに結果を渡す
+        // 通常保存の場合
+        const shiftsToSave = editableShifts.map(shift => ({
+          date: shift.date,
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          jobSourceName: shift.jobSourceName,
+          hourlyRate: shift.hourlyRate,
+          breakMinutes: shift.breakMinutes || 60,
+          description: shift.description || 'OCR自動登録',
+          isConfirmed: shift.isConfirmed,
+        }));
         onShiftsSaved(shiftsToSave);
-
-        setCurrentStage('saving');
-
-        // 完了後、少し待ってから閉じる
-        setTimeout(() => {
-          onClose?.();
-        }, 2000);
       }
+
+      setCurrentStage('saving');
+
+      // 完了後、少し待ってから閉じる
+      setTimeout(() => {
+        onClose?.();
+      }, 2000);
     } catch (err: any) {
       setError(err.message || 'シフト保存に失敗しました');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  /**
+   * 編集段階から確認段階へ進む
+   */
+  const handleProceedToConfirmation = () => {
+    setCurrentStage('confirmation');
   };
 
   /**
@@ -455,6 +429,50 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
             ocrResults={ocrResults}
             userProfile={userProfile}
           />
+        );
+
+      case 'confirmation':
+        return (
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              📋 保存確認
+            </Typography>
+            
+            {ocrResults?.autoSaved ? (
+              <Alert severity="success" sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  ✅ 自動保存完了
+                </Typography>
+                <Typography variant="body2">
+                  {ocrResults.meta?.savedCount || 0}件のシフトが自動保存されました。
+                  {ocrResults.meta?.skippedCount > 0 && 
+                    ` ${ocrResults.meta.skippedCount}件は時間重複等でスキップされました。`
+                  }
+                </Typography>
+              </Alert>
+            ) : (
+              <Alert severity="info" sx={{ mb: 3 }}>
+                <Typography variant="body2">
+                  以下のシフトをカレンダーに保存しますか？
+                </Typography>
+              </Alert>
+            )}
+
+            <Box display="flex" gap={1} flexWrap="wrap" mb={3}>
+              {editableShifts.map((shift, index) => (
+                <Chip
+                  key={shift.id}
+                  label={`${shift.date} ${shift.startTime}-${shift.endTime} ${shift.jobSourceName}`}
+                  color="primary"
+                  variant="outlined"
+                />
+              ))}
+            </Box>
+
+            <Typography variant="body2" color="text.secondary">
+              「カレンダーに保存」ボタンを押すと、これらのシフトがカレンダーに反映されます。
+            </Typography>
+          </Box>
         );
 
       case 'saving':
@@ -585,16 +603,36 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
 
           {currentStage === 'editing' ? (
             <Button
-              endIcon={<Save />}
-              onClick={handleFinalSave}
+              endIcon={<ArrowForward />}
+              onClick={handleProceedToConfirmation}
               disabled={isLoading}
               variant="contained"
               color="primary"
               size="large"
             >
+              確認へ進む
+            </Button>
+          ) : currentStage === 'confirmation' ? (
+            <Button
+              endIcon={<Save />}
+              onClick={handleConfirmedSave}
+              disabled={isLoading}
+              variant="contained"
+              color="success"
+              size="large"
+            >
               カレンダーに保存
             </Button>
-          ) : currentStage !== 'saving' ? (
+          ) : currentStage === 'saving' ? (
+            <Button
+              startIcon={<CheckCircle />}
+              variant="contained"
+              color="success"
+              disabled
+            >
+              完了
+            </Button>
+          ) : (
             <Button
               endIcon={<ArrowForward />}
               onClick={goToNextStage}
@@ -604,15 +642,6 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
               variant="contained"
             >
               次へ
-            </Button>
-          ) : (
-            <Button
-              startIcon={<CheckCircle />}
-              variant="contained"
-              color="success"
-              disabled
-            >
-              完了
             </Button>
           )}
         </Box>
