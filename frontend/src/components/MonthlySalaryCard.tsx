@@ -13,16 +13,8 @@ import {
   FormControl,
   InputLabel,
 } from '@mui/material';
-import {
-  CalendarMonth,
-  AttachMoney,
-  Schedule,
-} from '@mui/icons-material';
-import {
-  format,
-  isSameMonth,
-  parseISO,
-} from 'date-fns';
+import { CalendarMonth, AttachMoney, Schedule } from '@mui/icons-material';
+import { format, isSameMonth, parseISO } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import type { Shift } from '../types/shift';
 

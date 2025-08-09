@@ -27,7 +27,7 @@ import {
 
 import type { CreateShiftData } from '../types/shift';
 import { apiService, type JobSource } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 interface OCRShiftManagerProps {
   onShiftsSaved?: (shifts: CreateShiftData[]) => void;

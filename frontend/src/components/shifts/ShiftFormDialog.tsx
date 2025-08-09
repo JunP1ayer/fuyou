@@ -183,7 +183,9 @@ export const ShiftFormDialog: React.FC<ShiftFormDialogProps> = ({
       onClose();
     } catch (error: unknown) {
       // 時間重複エラーの処理
-      const err = error as { response?: { status: number; data: { error?: { message?: string } } } };
+      const err = error as {
+        response?: { status: number; data: { error?: { message?: string } } };
+      };
       if (err?.response?.status === 409) {
         setConflictError(
           err.response.data.error?.message || '時間が重複しています'

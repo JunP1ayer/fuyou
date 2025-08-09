@@ -87,7 +87,10 @@ export const WorkplaceFormDialog: React.FC<WorkplaceFormDialogProps> = ({
     setError('');
   }, [editingWorkplace, open]);
 
-  const handleInputChange = (field: keyof CreateWorkplaceData, value: string | number) => {
+  const handleInputChange = (
+    field: keyof CreateWorkplaceData,
+    value: string | number
+  ) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError('');
   };

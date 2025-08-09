@@ -69,7 +69,11 @@ const getAuthToken = (): string | null => {
 async function apiCall<T>(
   endpoint: string,
   options: RequestInit & { token?: string } = {}
-): Promise<{ success: boolean; data?: T; error?: { message: string; code?: string; [key: string]: unknown } }> {
+): Promise<{
+  success: boolean;
+  data?: T;
+  error?: { message: string; code?: string; [key: string]: unknown };
+}> {
   const { token, ...fetchOptions } = options;
   const authToken = token || getAuthToken();
 
@@ -118,10 +122,16 @@ async function apiCall<T>(
 // Demo authentication
 export const loginDemo = async (): Promise<{
   success: boolean;
-  data?: { token: string; user: { id: string; email: string; fullName: string; isStudent: boolean } };
+  data?: {
+    token: string;
+    user: { id: string; email: string; fullName: string; isStudent: boolean };
+  };
   error?: { message: string; [key: string]: unknown };
 }> => {
-  return apiCall<{ token: string; user: { id: string; email: string; fullName: string; isStudent: boolean } }>('/demo/login', {
+  return apiCall<{
+    token: string;
+    user: { id: string; email: string; fullName: string; isStudent: boolean };
+  }>('/demo/login', {
     method: 'POST',
   });
 };
@@ -129,7 +139,11 @@ export const loginDemo = async (): Promise<{
 // Shift API functions
 export const createShift = async (
   shiftData: CreateShiftData
-): Promise<{ success: boolean; data?: Shift; error?: { message: string; [key: string]: unknown } }> => {
+): Promise<{
+  success: boolean;
+  data?: Shift;
+  error?: { message: string; [key: string]: unknown };
+}> => {
   return apiCall<Shift>('/shifts', {
     method: 'POST',
     body: JSON.stringify(shiftData),
@@ -141,7 +155,11 @@ export const getShifts = async (filters?: {
   endDate?: string;
   jobSourceId?: string;
   isConfirmed?: boolean;
-}): Promise<{ success: boolean; data?: Shift[]; error?: { message: string; [key: string]: unknown } }> => {
+}): Promise<{
+  success: boolean;
+  data?: Shift[];
+  error?: { message: string; [key: string]: unknown };
+}> => {
   const params = new URLSearchParams();
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
@@ -159,7 +177,11 @@ export const getShifts = async (filters?: {
 export const updateShift = async (
   shiftId: string,
   shiftData: UpdateShiftData
-): Promise<{ success: boolean; data?: Shift; error?: { message: string; [key: string]: unknown } }> => {
+): Promise<{
+  success: boolean;
+  data?: Shift;
+  error?: { message: string; [key: string]: unknown };
+}> => {
   return apiCall<Shift>(`/shifts/${shiftId}`, {
     method: 'PUT',
     body: JSON.stringify(shiftData),
@@ -168,7 +190,10 @@ export const updateShift = async (
 
 export const deleteShift = async (
   shiftId: string
-): Promise<{ success: boolean; error?: { message: string; [key: string]: unknown } }> => {
+): Promise<{
+  success: boolean;
+  error?: { message: string; [key: string]: unknown };
+}> => {
   return apiCall(`/shifts/${shiftId}`, {
     method: 'DELETE',
   });
@@ -177,7 +202,11 @@ export const deleteShift = async (
 export const getShiftStats = async (
   year?: number,
   month?: number
-): Promise<{ success: boolean; data?: ShiftStats; error?: { message: string; [key: string]: unknown } }> => {
+): Promise<{
+  success: boolean;
+  data?: ShiftStats;
+  error?: { message: string; [key: string]: unknown };
+}> => {
   const params = new URLSearchParams();
   if (year) params.append('year', year.toString());
   if (month) params.append('month', month.toString());

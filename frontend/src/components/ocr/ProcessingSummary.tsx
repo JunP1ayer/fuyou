@@ -371,7 +371,7 @@ export const ProcessingSummary: React.FC<ProcessingSummaryProps> = ({
         </Typography>
 
         <Grid container spacing={2}>
-          {shifts.map((shift) => (
+          {shifts.map(shift => (
             <Grid item xs={12} md={6} key={shift.id}>
               <Card variant="outlined" sx={{ p: 2 }}>
                 <Box

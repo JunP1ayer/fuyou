@@ -186,88 +186,108 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
   /**
    * インテリジェントOCR処理
    */
-  const processWithIntelligentOCR = useCallback(async (file: File) => {
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('userName', userProfile?.shiftFilterName || '');
-      formData.append('autoSave', autoSave.toString());
-      formData.append(
-        'processingOptions',
-        JSON.stringify({
-          aiProviders: ['gemini', 'openai', 'vision'],
-          enableComparison: true,
-          confidenceThreshold:
-            userProfile?.preferences.ocrConfidenceThreshold || 0.7,
-        })
-      );
+  const processWithIntelligentOCR = useCallback(
+    async (file: File) => {
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('userName', userProfile?.shiftFilterName || '');
+        formData.append('autoSave', autoSave.toString());
+        formData.append(
+          'processingOptions',
+          JSON.stringify({
+            aiProviders: ['gemini', 'openai', 'vision'],
+            enableComparison: true,
+            confidenceThreshold:
+              userProfile?.preferences.ocrConfidenceThreshold || 0.7,
+          })
+        );
 
-      const authToken = (() => {
-        const direct = localStorage.getItem('token');
-        if (direct) return direct;
-        try {
-          const auth = localStorage.getItem('auth');
-          if (auth) return JSON.parse(auth).token;
-        } catch {
-          // Ignore parsing errors
+        const authToken = (() => {
+          const direct = localStorage.getItem('token');
+          if (direct) return direct;
+          try {
+            const auth = localStorage.getItem('auth');
+            if (auth) return JSON.parse(auth).token;
+          } catch {
+            // Ignore parsing errors
+          }
+          return null;
+        })();
+
+        const response = await fetch(
+          '/api/intelligent-ocr/upload-and-process',
+          {
+            method: 'POST',
+            headers: {
+              ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+            },
+            body: formData,
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('OCR処理に失敗しました');
         }
-        return null;
-      })();
 
-      const response = await fetch('/api/intelligent-ocr/upload-and-process', {
-        method: 'POST',
-        headers: {
-          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-        },
-        body: formData,
-      });
+        const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error('OCR処理に失敗しました');
+        if (!data.success) {
+          throw new Error(
+            data.error?.message || 'OCR処理でエラーが発生しました'
+          );
+        }
+
+        setOcrResults(data.data);
+
+        // 編集可能なシフトデータに変換
+        const shifts = convertToEditableShifts(
+          data.data.consolidatedResult.recommendedShifts
+        );
+        setEditableShifts(shifts);
+
+        // 自動保存が実行された場合でも確認段階を経由する
+        if (
+          autoSave &&
+          data.meta?.autoSave &&
+          data.data.savedShifts?.length > 0
+        ) {
+          // 自動保存済みの情報を保存しておく
+          setOcrResults({
+            ...data.data,
+            savedShifts: data.data.savedShifts,
+            autoSaved: true,
+          });
+          // 確認ステージに進む
+          setCurrentStage('confirmation');
+        } else {
+          // 結果表示ステージに進む
+          setCurrentStage('results');
+        }
+      } catch (err: unknown) {
+        setError(err.message);
+        setCurrentStage('upload');
       }
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error?.message || 'OCR処理でエラーが発生しました');
-      }
-
-      setOcrResults(data.data);
-
-      // 編集可能なシフトデータに変換
-      const shifts = convertToEditableShifts(
-        data.data.consolidatedResult.recommendedShifts
-      );
-      setEditableShifts(shifts);
-
-      // 自動保存が実行された場合でも確認段階を経由する
-      if (
-        autoSave &&
-        data.meta?.autoSave &&
-        data.data.savedShifts?.length > 0
-      ) {
-        // 自動保存済みの情報を保存しておく
-        setOcrResults({
-          ...data.data,
-          savedShifts: data.data.savedShifts,
-          autoSaved: true,
-        });
-        // 確認ステージに進む
-        setCurrentStage('confirmation');
-      } else {
-        // 結果表示ステージに進む
-        setCurrentStage('results');
-      }
-    } catch (err: unknown) {
-      setError(err.message);
-      setCurrentStage('upload');
-    }
-  }, [userProfile, autoSave]);
+    },
+    [userProfile, autoSave]
+  );
 
   /**
    * OCR結果を編集可能な形式に変換
    */
-  const convertToEditableShifts = (shifts: { date: string; startTime: string; endTime: string; jobSourceName: string; hourlyRate: number; breakMinutes?: number; description?: string; isConfirmed: boolean; confidence?: number }[]): EditableShift[] => {
+  const convertToEditableShifts = (
+    shifts: {
+      date: string;
+      startTime: string;
+      endTime: string;
+      jobSourceName: string;
+      hourlyRate: number;
+      breakMinutes?: number;
+      description?: string;
+      isConfirmed: boolean;
+      confidence?: number;
+    }[]
+  ): EditableShift[] => {
     return shifts.map((shift, index) => ({
       id: `shift-${index}`,
       ...shift,
@@ -415,7 +435,7 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
               </Box>
             )}
             <Box display="flex" gap={1} flexWrap="wrap" mb={2}>
-              {editableShifts.map((shift) => (
+              {editableShifts.map(shift => (
                 <Chip
                   key={shift.id}
                   label={`${shift.date} ${shift.startTime}-${shift.endTime}`}
@@ -465,7 +485,7 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
             )}
 
             <Box display="flex" gap={1} flexWrap="wrap" mb={3}>
-              {editableShifts.map((shift) => (
+              {editableShifts.map(shift => (
                 <Chip
                   key={shift.id}
                   label={`${shift.date} ${shift.startTime}-${shift.endTime} ${shift.jobSourceName}`}
