@@ -180,9 +180,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
               const dayShifts = shiftsByDate[dateKey] || [];
 
               return (
-                <Paper
+                <Box
                   key={dateKey}
-                  variant="outlined"
                   onClick={() => {
                     setSelectedDate(date);
                     onAddShift(format(date, 'yyyy-MM-dd'));
@@ -192,17 +191,19 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                     minHeight: { xs: 60, sm: 80 },
                     p: { xs: 0.5, sm: 1 },
                     cursor: 'pointer',
-                    borderRadius: 0.5,
-                    border: '1px solid',
-                    borderColor: 'divider',
+                    borderRadius: { xs: 1, sm: 1.5 },
                     bgcolor: isSelected
-                      ? 'primary.50'
+                      ? 'primary.main'
                       : isCurrentDay
-                        ? 'primary.25'
-                        : 'background.paper',
+                        ? 'primary.100'
+                        : 'transparent',
+                    color: isSelected ? 'white' : 'inherit',
                     '&:hover': { 
-                      bgcolor: 'action.hover',
-                      borderColor: 'primary.light'
+                      bgcolor: isSelected 
+                        ? 'primary.dark' 
+                        : isCurrentDay 
+                          ? 'primary.200'
+                          : 'action.hover',
                     },
                     transition: 'all 0.2s ease',
                     display: 'flex',
@@ -272,18 +273,26 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                               xs: '0.55rem',
                               sm: '0.65rem',
                             },
-                            color: 'text.secondary',
-                            backgroundColor: shift.isConfirmed
-                              ? 'success.50'
-                              : 'warning.50',
-                            borderRadius: 0.5,
+                            color: isSelected 
+                              ? 'rgba(255,255,255,0.9)' 
+                              : shift.isConfirmed 
+                                ? 'success.main'
+                                : 'warning.main',
+                            backgroundColor: isSelected 
+                              ? 'rgba(255,255,255,0.15)'
+                              : shift.isConfirmed
+                                ? 'success.50'
+                                : 'warning.50',
+                            borderRadius: 0.75,
                             px: 0.5,
                             py: 0.15,
                             cursor: 'pointer',
                             '&:hover': {
-                              backgroundColor: shift.isConfirmed
-                                ? 'success.100'
-                                : 'warning.100',
+                              backgroundColor: isSelected
+                                ? 'rgba(255,255,255,0.2)'
+                                : shift.isConfirmed
+                                  ? 'success.100'
+                                  : 'warning.100',
                             },
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
@@ -333,7 +342,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                       )}
                     </Box>
                   )}
-                </Paper>
+                </Box>
               );
             })}
           </Box>

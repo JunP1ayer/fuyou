@@ -174,19 +174,24 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: 0.5,
-                border: '1px solid',
-                borderColor: 'divider',
+                borderRadius: 1.5,
                 bgcolor: isSelected
                   ? 'primary.main'
                   : isCurrentDay
-                    ? 'primary.50'
-                    : 'background.paper',
+                    ? 'primary.100'
+                    : 'transparent',
                 color: isSelected ? 'white' : 'inherit',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 '&:active': {
                   transform: 'scale(0.95)',
+                },
+                '&:hover': {
+                  bgcolor: isSelected 
+                    ? 'primary.dark' 
+                    : isCurrentDay 
+                      ? 'primary.200'
+                      : 'action.hover',
                 },
               }}
             >
@@ -255,17 +260,18 @@ export const SimpleMobileCalendar: React.FC<SimpleMobileCalendarProps> = ({
                   onClick={() => onEditShift(shift)}
                   sx={{
                     p: 1.5,
-                    borderRadius: 1.5,
+                    borderRadius: 2,
                     bgcolor: shift.isConfirmed ? 'success.50' : 'warning.50',
-                    borderLeft: 4,
-                    borderColor: shift.isConfirmed
-                      ? 'success.main'
-                      : 'warning.main',
+                    border: 'none',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     '&:active': {
                       transform: 'scale(0.98)',
                     },
+                    '&:hover': {
+                      bgcolor: shift.isConfirmed ? 'success.100' : 'warning.100',
+                    },
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   }}
                 >
                   <Typography
