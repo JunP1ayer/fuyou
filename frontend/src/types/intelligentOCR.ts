@@ -32,7 +32,7 @@ export interface AIProcessingResult {
   processingTime: number;
   shifts: OCRExtractedShift[];
   naturalLanguageMessage?: string;
-  rawResponse?: any;
+  rawResponse?: Record<string, unknown>;
   error?: string;
 }
 
@@ -52,7 +52,7 @@ export interface ConflictData {
   field: string;
   values: Array<{
     provider: string;
-    value: any;
+    value: string | number | boolean;
     confidence: number;
   }>;
 }
@@ -133,8 +133,8 @@ export interface SmartSuggestion {
     | 'rate_adjustment'
     | 'break_optimization';
   message: string;
-  originalValue: any;
-  suggestedValue: any;
+  originalValue: string | number | boolean;
+  suggestedValue: string | number | boolean;
   confidence: number;
   reason: string;
   actionable: boolean;

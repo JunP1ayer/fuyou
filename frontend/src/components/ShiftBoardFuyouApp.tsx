@@ -1,10 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Grid,
-  Chip,
-} from '@mui/material';
+import { Box, Typography, Grid, Chip } from '@mui/material';
 import { AccountBalance } from '@mui/icons-material';
 import { ShiftManager } from './shifts/ShiftManager';
 import { MonthlySalaryCard } from './MonthlySalaryCard';

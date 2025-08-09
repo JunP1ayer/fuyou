@@ -15,13 +15,11 @@ import {
 } from '@mui/material';
 import {
   CloudUpload,
-  CameraAlt,
   ContentPaste,
   DragIndicator,
   PhotoCamera,
   Image,
   CheckCircle,
-  Warning,
   Close,
 } from '@mui/icons-material';
 
@@ -53,7 +51,7 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
 }) => {
   const theme = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [dragCounter, setDragCounter] = useState(0);
+  const [_dragCounter, _setDragCounter] = useState(0);
   const [validationError, setValidationError] = useState<string>('');
 
   /**
@@ -172,7 +170,7 @@ export const SmartUploadZone: React.FC<SmartUploadZoneProps> = ({
       }
 
       setValidationError('クリップボードに画像が見つかりません');
-    } catch (error) {
+    } catch {
       setValidationError('クリップボードアクセスに失敗しました');
     }
   }, [processFile]);

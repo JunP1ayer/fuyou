@@ -136,8 +136,8 @@ export const WorkplaceManager: React.FC<WorkplaceManagerProps> = ({
         setSuccess('新しい職場を追加しました');
       }
       setFormDialogOpen(false);
-    } catch (err: any) {
-      setError(err.message || 'エラーが発生しました');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'エラーが発生しました');
     } finally {
       setLoading(false);
     }
@@ -159,8 +159,8 @@ export const WorkplaceManager: React.FC<WorkplaceManagerProps> = ({
 
       setWorkplaces(prev => prev.filter(wp => wp.id !== workplaceToDelete.id));
       setSuccess('職場を削除しました');
-    } catch (err: any) {
-      setError(err.message || '削除中にエラーが発生しました');
+    } catch (err: unknown) {
+      setError((err as Error).message || '削除中にエラーが発生しました');
     } finally {
       setLoading(false);
       setDeleteDialogOpen(false);

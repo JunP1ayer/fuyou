@@ -29,7 +29,6 @@ import {
 import type {
   ProcessingSession,
   OCRProcessingResponse,
-  AIProcessingResult,
   AIProvider,
 } from '../../types/intelligentOCR';
 
@@ -70,13 +69,13 @@ const AI_PROVIDERS: AIProvider[] = [
 ];
 
 export const AIProcessingView: React.FC<AIProcessingViewProps> = ({
-  session,
+  session: _session,
   ocrResults,
   onProcessingComplete,
 }) => {
   const [providers, setProviders] = useState<AIProvider[]>(AI_PROVIDERS);
   const [overallProgress, setOverallProgress] = useState(0);
-  const [processingStartTime, setProcessingStartTime] = useState<number>(
+  const [_processingStartTime, _setProcessingStartTime] = useState<number>(
     Date.now()
   );
   const [currentPhase, setCurrentPhase] = useState<

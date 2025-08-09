@@ -5,7 +5,6 @@ import {
   Typography,
   Box,
   Grid,
-  Button,
   Chip,
   IconButton,
   Tooltip,
@@ -26,7 +25,6 @@ import {
   startOfMonth,
   endOfMonth,
   eachDayOfInterval,
-  isSameDay,
   isToday,
   addMonths,
   subMonths,
@@ -111,7 +109,7 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   };
 
   // シフトカードのレンダリング
-  const renderShiftCard = (shift: Shift, isCompact: boolean = false) => {
+  const renderShiftCard = (shift: Shift, _isCompact: boolean = false) => {
     const workplaceColor = getWorkplaceColor(shift);
 
     return (

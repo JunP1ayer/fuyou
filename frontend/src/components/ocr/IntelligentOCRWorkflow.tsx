@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -108,7 +108,7 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
   // ワークフロー状態
   const [currentStage, setCurrentStage] =
     useState<ProcessingStage['stage']>('upload');
-  const [session, setSession] = useState<ProcessingSession | null>(null);
+  const [session, _setSession] = useState<ProcessingSession | null>(null);
   const [ocrResults, setOcrResults] = useState<OCRProcessingResponse | null>(
     null
   );
@@ -161,14 +161,14 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
 
         // AI処理開始
         await processWithIntelligentOCR(file);
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(err.message || 'ファイルアップロードに失敗しました');
         setUploadState(prev => ({ ...prev, isProcessing: false }));
       } finally {
         setIsLoading(false);
       }
     },
-    []
+    [processWithIntelligentOCR]
   );
 
   /**
@@ -186,7 +186,7 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
   /**
    * インテリジェントOCR処理
    */
-  const processWithIntelligentOCR = async (file: File) => {
+  const processWithIntelligentOCR = useCallback(async (file: File) => {
     try {
       const formData = new FormData();
       formData.append('image', file);
@@ -208,7 +208,9 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
         try {
           const auth = localStorage.getItem('auth');
           if (auth) return JSON.parse(auth).token;
-        } catch {}
+        } catch {
+          // Ignore parsing errors
+        }
         return null;
       })();
 
@@ -239,12 +241,16 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
       setEditableShifts(shifts);
 
       // 自動保存が実行された場合でも確認段階を経由する
-      if (autoSave && data.meta?.autoSave && data.data.savedShifts?.length > 0) {
+      if (
+        autoSave &&
+        data.meta?.autoSave &&
+        data.data.savedShifts?.length > 0
+      ) {
         // 自動保存済みの情報を保存しておく
         setOcrResults({
           ...data.data,
           savedShifts: data.data.savedShifts,
-          autoSaved: true
+          autoSaved: true,
         });
         // 確認ステージに進む
         setCurrentStage('confirmation');
@@ -252,16 +258,16 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
         // 結果表示ステージに進む
         setCurrentStage('results');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message);
       setCurrentStage('upload');
     }
-  };
+  }, [userProfile, autoSave]);
 
   /**
    * OCR結果を編集可能な形式に変換
    */
-  const convertToEditableShifts = (shifts: any[]): EditableShift[] => {
+  const convertToEditableShifts = (shifts: { date: string; startTime: string; endTime: string; jobSourceName: string; hourlyRate: number; breakMinutes?: number; description?: string; isConfirmed: boolean; confidence?: number }[]): EditableShift[] => {
     return shifts.map((shift, index) => ({
       id: `shift-${index}`,
       ...shift,
@@ -317,7 +323,7 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
       setTimeout(() => {
         onClose?.();
       }, 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || 'シフト保存に失敗しました');
     } finally {
       setIsLoading(false);
@@ -409,7 +415,7 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
               </Box>
             )}
             <Box display="flex" gap={1} flexWrap="wrap" mb={2}>
-              {editableShifts.map((shift, index) => (
+              {editableShifts.map((shift) => (
                 <Chip
                   key={shift.id}
                   label={`${shift.date} ${shift.startTime}-${shift.endTime}`}
@@ -437,17 +443,17 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
             <Typography variant="h6" gutterBottom>
               📋 保存確認
             </Typography>
-            
+
             {ocrResults?.autoSaved ? (
               <Alert severity="success" sx={{ mb: 3 }}>
                 <Typography variant="h6" gutterBottom>
                   ✅ 自動保存完了
                 </Typography>
                 <Typography variant="body2">
-                  {ocrResults.meta?.savedCount || 0}件のシフトが自動保存されました。
-                  {ocrResults.meta?.skippedCount > 0 && 
-                    ` ${ocrResults.meta.skippedCount}件は時間重複等でスキップされました。`
-                  }
+                  {ocrResults.meta?.savedCount || 0}
+                  件のシフトが自動保存されました。
+                  {ocrResults.meta?.skippedCount > 0 &&
+                    ` ${ocrResults.meta.skippedCount}件は時間重複等でスキップされました。`}
                 </Typography>
               </Alert>
             ) : (
@@ -459,7 +465,7 @@ export const IntelligentOCRWorkflow: React.FC<IntelligentOCRWorkflowProps> = ({
             )}
 
             <Box display="flex" gap={1} flexWrap="wrap" mb={3}>
-              {editableShifts.map((shift, index) => (
+              {editableShifts.map((shift) => (
                 <Chip
                   key={shift.id}
                   label={`${shift.date} ${shift.startTime}-${shift.endTime} ${shift.jobSourceName}`}

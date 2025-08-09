@@ -87,7 +87,7 @@ export const WorkplaceFormDialog: React.FC<WorkplaceFormDialogProps> = ({
     setError('');
   }, [editingWorkplace, open]);
 
-  const handleInputChange = (field: keyof CreateWorkplaceData, value: any) => {
+  const handleInputChange = (field: keyof CreateWorkplaceData, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError('');
   };
@@ -105,8 +105,8 @@ export const WorkplaceFormDialog: React.FC<WorkplaceFormDialogProps> = ({
 
     try {
       await onSubmit(formData);
-    } catch (err: any) {
-      setError(err.message || 'エラーが発生しました');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'エラーが発生しました');
     }
   };
 

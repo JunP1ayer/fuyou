@@ -14,15 +14,12 @@ import {
   InputLabel,
 } from '@mui/material';
 import {
-  TrendingUp,
   CalendarMonth,
   AttachMoney,
   Schedule,
 } from '@mui/icons-material';
 import {
   format,
-  startOfMonth,
-  endOfMonth,
   isSameMonth,
   parseISO,
 } from 'date-fns';

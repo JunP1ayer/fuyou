@@ -13,10 +13,6 @@ import {
   Alert,
   Divider,
   Collapse,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Tabs,
   Tab,
   Badge,
@@ -31,13 +27,8 @@ import {
   Compare,
   AutoFixHigh,
   Warning,
-  CheckCircle,
   ExpandMore,
   ExpandLess,
-  SwapHoriz,
-  Psychology,
-  Timeline,
-  ContentCopy,
 } from '@mui/icons-material';
 
 import type {
@@ -45,7 +36,6 @@ import type {
   OCRProcessingResponse,
   UserProfile,
   SmartSuggestion,
-  ConflictData,
 } from '../../types/intelligentOCR';
 
 interface IntelligentResultsEditorProps {
@@ -74,8 +64,8 @@ export const IntelligentResultsEditor: React.FC<
 > = ({ shifts, onShiftsChange, ocrResults, userProfile }) => {
   const theme = useTheme();
   const [selectedTab, setSelectedTab] = useState(0);
-  const [editingShift, setEditingShift] = useState<string | null>(null);
-  const [showComparison, setShowComparison] = useState(false);
+  const [_editingShift, _setEditingShift] = useState<string | null>(null);
+  const [_showComparison, _setShowComparison] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [suggestions, setSuggestions] = useState<
     Record<string, SmartSuggestion[]>
@@ -176,12 +166,13 @@ export const IntelligentResultsEditor: React.FC<
       const updates: Partial<EditableShift> = {};
 
       switch (suggestion.type) {
-        case 'time_correction':
-          const [newStart, newEnd] = (
+        case 'time_correction': {
+          const [_newStart, newEnd] = (
             suggestion.suggestedValue as string
           ).split(' - ');
           updates.endTime = newEnd;
           break;
+        }
         case 'rate_adjustment':
           updates.hourlyRate = suggestion.suggestedValue as number;
           break;
