@@ -152,12 +152,13 @@ function App() {
       <Box
         sx={{
           minHeight: '100vh',
-          pb: { xs: 8, sm: 2 }, // スマホ版では下部ナビゲーションのためのスペースを確保
+          pb: { xs: 8, sm: 2 },
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'flex-start',
           width: '100%',
           margin: '0 auto',
+          backgroundColor: '#f5f7fa', // Force visual update
         }}
       >
         {/* 全体コンテナ */}

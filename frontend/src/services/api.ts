@@ -47,8 +47,8 @@ export interface CreateJobSourceData {
   };
 }
 
-// API configuration - Use relative URLs for Vercel deployment
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+// API configuration - Use absolute URLs to avoid CORS issues
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://fuyou-sigma.vercel.app/api';
 
 // Get token from localStorage if available
 const getAuthToken = (): string | null => {
