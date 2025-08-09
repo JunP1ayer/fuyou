@@ -4,22 +4,13 @@ import {
   CardContent,
   Typography,
   Box,
-  Grid,
-  Button,
   Chip,
   IconButton,
-  Tooltip,
   Paper,
-  Stack,
 } from '@mui/material';
 import {
   ChevronLeft,
   ChevronRight,
-  Add,
-  Edit,
-  Delete,
-  AccessTime,
-  AttachMoney,
 } from '@mui/icons-material';
 import {
   format,
@@ -49,17 +40,9 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
   onEditShift,
   onDeleteShift,
   loading = false,
-  variant = 'simple',
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-
-  // 月の日付一覧を取得
-  const monthDays = useMemo(() => {
-    const start = startOfMonth(currentDate);
-    const end = endOfMonth(currentDate);
-    return eachDayOfInterval({ start, end });
-  }, [currentDate]);
 
   // 日付別のシフトをグループ化
   const shiftsByDate = useMemo(() => {
@@ -90,13 +73,13 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
     setCurrentDate(addMonths(currentDate, 1));
   };
 
-  // 日付のシフト追加
-  const handleAddShift = (date: Date) => {
-    onAddShift(format(date, 'yyyy-MM-dd'));
-  };
+  // 日付のシフト追加（未使用なのでコメントアウト）
+  // const handleAddShift = (date: Date) => {
+  //   onAddShift(format(date, 'yyyy-MM-dd'));
+  // };
 
-  // シフトカードのレンダリング（richモード専用）
-  const renderShiftCard = (shift: Shift, isCompact: boolean = false) => (
+  // シフトカードのレンダリング（richモード専用、未使用なのでコメントアウト）
+  // const renderShiftCard = (shift: Shift, _isCompact: boolean = false) => (
     <Paper
       key={shift.id}
       elevation={2}
@@ -182,8 +165,15 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
 
   // 強制的にsimple版を表示
   return (
-      <Card>
-        <CardContent>
+    <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+      <Card
+        sx={{
+          width: '100%',
+          maxWidth: { xs: '100%', sm: '600px', md: '800px', lg: '1000px' },
+          mx: 'auto',
+        }}
+      >
+        <CardContent sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
           {/* ヘッダー（左・右ナビと中央月表示） */}
           <Box
             sx={{
@@ -207,7 +197,14 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           </Box>
 
           {/* 曜日ヘッダー */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5, mb: 0.5 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              gap: 0.5,
+              mb: 0.5,
+            }}
+          >
             {weekDays.map((day, index) => (
               <Typography
                 key={day}
@@ -229,15 +226,28 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
           </Box>
 
           {/* 日付グリッド（7列カレンダー） */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              gap: { xs: 0.5, sm: 1 },
+              width: '100%',
+            }}
+          >
             {simpleCalendarDates.map((date, idx) => {
               if (!date) {
                 return (
-                  <Box key={`empty-${idx}`} sx={{ height: 72 }} />
+                  <Box
+                    key={`empty-${idx}`}
+                    sx={{ height: { xs: 80, sm: 100, md: 120 } }}
+                  />
                 );
               }
 
-              const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
+              const isSelected =
+                selectedDate &&
+                format(selectedDate, 'yyyy-MM-dd') ===
+                  format(date, 'yyyy-MM-dd');
               const isCurrentDay = isToday(date);
               const dayOfWeek = date.getDay();
               const dateKey = format(date, 'yyyy-MM-dd');
@@ -252,8 +262,8 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                     onAddShift(format(date, 'yyyy-MM-dd'));
                   }}
                   sx={{
-                    height: 72,
-                    p: 1,
+                    height: { xs: 80, sm: 100, md: 120 },
+                    p: { xs: 0.5, sm: 1 },
                     cursor: 'pointer',
                     borderRadius: 1,
                     bgcolor: isSelected
@@ -266,11 +276,18 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                     transition: 'background-color 0.2s ease',
                   }}
                 >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'start',
+                    }}
+                  >
                     <Typography
-                      variant="body2"
+                      variant={{ xs: 'body2', sm: 'h6', md: 'h5' }}
                       sx={{
-                        fontWeight: isSelected || isCurrentDay ? 'bold' : 'normal',
+                        fontWeight:
+                          isSelected || isCurrentDay ? 'bold' : 'normal',
                         color:
                           dayOfWeek === 0
                             ? 'error.main'
@@ -282,14 +299,83 @@ export const ShiftCalendar: React.FC<ShiftCalendarProps> = ({
                       {format(date, 'd')}
                     </Typography>
                     {dayShifts.length > 0 && (
-                      <Chip size="small" label={`${dayShifts.length}`} sx={{ height: 18, fontSize: '0.7rem' }} />
+                      <Chip
+                        size="small"
+                        label={`${dayShifts.length}`}
+                        sx={{
+                          height: { xs: 18, sm: 20, md: 24 },
+                          fontSize: {
+                            xs: '0.7rem',
+                            sm: '0.75rem',
+                            md: '0.8rem',
+                          },
+                        }}
+                      />
                     )}
                   </Box>
+
+                  {/* シフト詳細表示 */}
+                  {dayShifts.length > 0 && (
+                    <Box sx={{ mt: 0.5 }}>
+                      {dayShifts.slice(0, 2).map(shift => (
+                        <Box
+                          key={shift.id}
+                          sx={{
+                            fontSize: {
+                              xs: '0.6rem',
+                              sm: '0.7rem',
+                              md: '0.75rem',
+                            },
+                            color: 'text.secondary',
+                            backgroundColor: shift.isConfirmed
+                              ? 'success.50'
+                              : 'warning.50',
+                            borderRadius: 0.5,
+                            px: 0.5,
+                            py: 0.25,
+                            mb: 0.25,
+                            cursor: 'pointer',
+                            '&:hover': {
+                              backgroundColor: shift.isConfirmed
+                                ? 'success.100'
+                                : 'warning.100',
+                            },
+                          }}
+                          onClick={e => {
+                            e.stopPropagation();
+                            onEditShift(shift);
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{ fontSize: 'inherit' }}
+                          >
+                            {shift.jobSourceName}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{ fontSize: 'inherit', ml: 0.5 }}
+                          >
+                            {shift.startTime}-{shift.endTime}
+                          </Typography>
+                        </Box>
+                      ))}
+                      {dayShifts.length > 2 && (
+                        <Typography
+                          variant="caption"
+                          sx={{ fontSize: '0.6rem', color: 'text.secondary' }}
+                        >
+                          +{dayShifts.length - 2}件
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
                 </Paper>
               );
             })}
           </Box>
         </CardContent>
       </Card>
-    );
+    </Box>
+  );
 };

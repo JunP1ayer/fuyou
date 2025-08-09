@@ -317,7 +317,9 @@ export const OCRShiftManager: React.FC<OCRShiftManagerProps> = ({
         <Box mb={2}>
           <Alert severity="info" sx={{ mb: 2 }}>
             <Typography variant="body2">
-              <SmartToy sx={{ fontSize: '1rem', mr: 1, verticalAlign: 'middle' }} />
+              <SmartToy
+                sx={{ fontSize: '1rem', mr: 1, verticalAlign: 'middle' }}
+              />
               OpenAI GPT-5による高精度シフト表解析
             </Typography>
           </Alert>

@@ -37,7 +37,7 @@ app.use(helmet());
 // CORS configuration with proper origin handling
 const corsOptions = {
   origin: (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) => {
-    const allowedOrigins = [
+    const defaultAllowed = [
       'http://localhost:3000',
       'http://172.26.93.180:3000',
       'http://localhost:5173',
@@ -51,10 +51,18 @@ const corsOptions = {
       'http://127.0.0.1:3002',
       'http://127.0.0.1:3003'
     ];
-    
+
+    // Additional origins from env (comma-separated)
+    const envOrigins = (process.env.CORS_ORIGIN || process.env.CORS_ORIGINS || '')
+      .split(',')
+      .map(o => o.trim())
+      .filter(Boolean);
+
+    const allowedOrigins = [...defaultAllowed, ...envOrigins];
+
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {

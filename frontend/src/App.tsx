@@ -1,6 +1,16 @@
+import React, { useState, useCallback } from 'react';
 import { ThemeProvider, createTheme, CssBaseline, Box } from '@mui/material';
 import { ShiftManager } from './components/shifts/ShiftManager';
-import type { Shift, Workplace } from './types/shift';
+import { TopNavigation } from './components/navigation/TopNavigation';
+import {
+  CustomBottomNavigation,
+  type NavigationTab,
+} from './components/navigation/BottomNavigation';
+import { AIFeature } from './components/features/AIFeature';
+import { FuyouStatusCard } from './components/FuyouStatusCard';
+import { MonthlySalaryCard } from './components/MonthlySalaryCard';
+import { OthersFeature } from './components/features/OthersFeature';
+import type { Shift, Workplace, CreateShiftData } from './types/shift';
 
 // Enhanced Material-UI theme configuration for better UX
 const theme = createTheme({
@@ -81,10 +91,32 @@ function App() {
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
 
+  // ナビゲーション状態管理
+  const [currentTab, setCurrentTab] = useState<NavigationTab>('shifts');
+  const [shifts, setShifts] = useState<Shift[]>([]);
+
   // デモ用の職場とシフト（API未接続でもカレンダーUIを確認できるように）
   const workplaces: Workplace[] = [
-    { id: 'wp-1', userId: 'demo-user', name: 'カフェ A', hourlyRate: 1000, color: '#2196f3', isActive: true, createdAt: now.toISOString(), updatedAt: now.toISOString() },
-    { id: 'wp-2', userId: 'demo-user', name: 'コンビニ B', hourlyRate: 950, color: '#4caf50', isActive: true, createdAt: now.toISOString(), updatedAt: now.toISOString() },
+    {
+      id: 'wp-1',
+      userId: 'demo-user',
+      name: 'カフェ A',
+      hourlyRate: 1000,
+      color: '#2196f3',
+      isActive: true,
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
+    },
+    {
+      id: 'wp-2',
+      userId: 'demo-user',
+      name: 'コンビニ B',
+      hourlyRate: 950,
+      color: '#4caf50',
+      isActive: true,
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
+    },
   ];
 
   const initialShifts: Shift[] = [
@@ -104,16 +136,96 @@ function App() {
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),
     },
+    {
+      id: 'demo-2',
+      userId: 'demo-user',
+      jobSourceId: 'wp-2',
+      jobSourceName: 'コンビニ B',
+      date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-15`,
+      startTime: '18:00',
+      endTime: '22:00',
+      hourlyRate: 950,
+      breakMinutes: 0,
+      workingHours: 4,
+      calculatedEarnings: 3800,
+      isConfirmed: false,
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
+    },
   ];
+
+  // タブ変更ハンドラ
+  const handleTabChange = (tab: NavigationTab) => {
+    setCurrentTab(tab);
+  };
+
+  // シフトデータ更新ハンドラ
+  const handleShiftsChange = useCallback((newShifts: Shift[]) => {
+    setShifts(newShifts);
+  }, []);
+
+  // AI機能からのシフト保存ハンドラ
+  const handleAIShiftsSaved = useCallback((newShifts: CreateShiftData[]) => {
+    // 実際の実装では、ここでAPIを呼び出してシフトを保存
+    console.log('AI機能でシフトが保存されました:', newShifts);
+  }, []);
+
+  // コンテンツレンダリング
+  const renderContent = () => {
+    switch (currentTab) {
+      case 'shifts':
+        return (
+          <ShiftManager
+            workplaces={workplaces}
+            initialShifts={initialShifts}
+            showAddButton={true}
+            onShiftsChange={handleShiftsChange}
+          />
+        );
+      case 'ai':
+        return <AIFeature onShiftsSaved={handleAIShiftsSaved} />;
+      case 'salary':
+        return (
+          <Box>
+            <FuyouStatusCard />
+            <Box sx={{ mt: 2 }}>
+              <MonthlySalaryCard
+                shifts={shifts.length > 0 ? shifts : initialShifts}
+              />
+            </Box>
+          </Box>
+        );
+      case 'others':
+        return <OthersFeature />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ p: 2 }}>
-        <ShiftManager
-          workplaces={workplaces}
-          initialShifts={initialShifts}
-          showAddButton={true}
+      <Box
+        sx={{
+          minHeight: '100vh',
+          pb: { xs: 8, sm: 2 }, // スマホ版では下部ナビゲーションのためのスペースを確保
+        }}
+      >
+        {/* トップナビゲーション（PC・タブレット） */}
+        <Box sx={{ p: 2, pt: { xs: 1, sm: 2 } }}>
+          <TopNavigation
+            currentTab={currentTab}
+            onTabChange={handleTabChange}
+          />
+
+          {/* メインコンテンツ */}
+          <Box sx={{ mt: { xs: 1, sm: 0 } }}>{renderContent()}</Box>
+        </Box>
+
+        {/* ボトムナビゲーション（スマホ） */}
+        <CustomBottomNavigation
+          currentTab={currentTab}
+          onTabChange={handleTabChange}
         />
       </Box>
     </ThemeProvider>
