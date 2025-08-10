@@ -1,146 +1,181 @@
-import React, { useState, useCallback } from 'react';
-import { ThemeProvider, createTheme, CssBaseline, Box } from '@mui/material';
-import { ShiftManager } from './components/shifts/ShiftManager';
-import { TopNavigation } from './components/navigation/TopNavigation';
-import {
-  CustomBottomNavigation,
-  type NavigationTab,
-} from './components/navigation/BottomNavigation';
-import { AIFeature } from './components/features/AIFeature';
-import { FuyouStatusCard } from './components/FuyouStatusCard';
-import { MonthlySalaryCard } from './components/MonthlySalaryCard';
-import { OthersFeature } from './components/features/OthersFeature';
-import type { Shift, Workplace, CreateShiftData } from './types/shift';
+// 扶養カレンダー - 最強扶養管理アプリ
 
-// Enhanced Material-UI theme configuration for better UX
+import React, { useState } from 'react';
+import {
+  ThemeProvider,
+  CssBaseline,
+  Box,
+  Typography,
+  createTheme,
+  Card,
+  CardContent,
+  Grid,
+  Button,
+  Container,
+  Chip,
+  useMediaQuery,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Switch,
+  FormControl,
+  Select,
+  MenuItem,
+  Divider,
+} from '@mui/material';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import {
+  Settings,
+  Notifications,
+  Security,
+  Palette,
+  DataUsage,
+  GetApp,
+  CloudSync,
+  Info,
+  ContactSupport,
+  CalendarToday,
+} from '@mui/icons-material';
+
+// コンポーネントとストアをインポート
+import { useTestStore } from './store/testStore';
+import { useSimpleShiftStore } from './store/simpleShiftStore';
+import { SimpleCalendarView } from './components/SimpleCalendarView';
+import { SafeCalendarView } from './components/SafeCalendarView';
+import { ShiftboardTabs, type TabValue } from './components/ShiftboardTabs';
+import { WizardStart } from './components/wizard/WizardStart';
+import { WizardSteps } from './components/wizard/WizardSteps';
+import { WizardResult } from './components/wizard/WizardResult';
+import { GPTShiftSubmitter } from './components/GPTShiftSubmitter';
+import { WorkplaceManager } from './components/WorkplaceManager';
+import { ShiftboardSalaryManager } from './components/ShiftboardSalaryManager';
+import { MobileSalaryView } from './components/salary/MobileSalaryView';
+
 const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#2196f3',
-      light: '#64b5f6',
-      dark: '#1976d2',
-    },
-    secondary: {
-      main: '#4caf50',
-      light: '#81c784',
-      dark: '#388e3c',
+      main: '#5ac8fa', // iOSの水色系に近い
+      light: '#aee6ff',
+      dark: '#0fb5f0',
     },
     background: {
-      default: '#f5f7fa',
+      default: '#f7fbfe', // ごく薄い水色ベース
       paper: '#ffffff',
     },
-    success: {
-      main: '#4caf50',
-      '50': '#e8f5e8',
-    },
-    warning: {
-      main: '#ff9800',
-      '50': '#fff3e0',
-    },
-    error: {
-      main: '#f44336',
-    },
-  },
-  typography: {
-    fontFamily: '"Noto Sans JP", "Roboto", "Helvetica", "Arial", sans-serif',
-    h4: {
-      fontWeight: 700,
-    },
-    h5: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 600,
-    },
-  },
-  shape: {
-    borderRadius: 12,
   },
   components: {
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-          borderRadius: 16,
-        },
-      },
-    },
     MuiButton: {
       styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: 'none',
-          fontWeight: 500,
-        },
+        root: { borderRadius: 12 },
       },
     },
-    MuiTab: {
+    MuiCard: {
       styleOverrides: {
-        root: {
-          textTransform: 'none',
-          fontWeight: 500,
-        },
+        root: { borderRadius: 16, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' },
       },
     },
   },
 });
 
-function App() {
-  const now = new Date();
-  const _currentYear = now.getFullYear();
-  const _currentMonth = now.getMonth();
+const App: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [currentTab, setCurrentTab] = useState<TabValue>('shift');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const { shiftsCount, totalEarnings, incrementShifts, addEarnings } =
+    useTestStore();
+  const { shifts, getTotalEarnings } = useSimpleShiftStore();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  // ナビゲーション状態管理
-  const [currentTab, setCurrentTab] = useState<NavigationTab>('shifts');
-  const [shifts, setShifts] = useState<Shift[]>([]);
+  // 設定項目のstate
+  const [weekStartsOnMonday, setWeekStartsOnMonday] = useState(() => {
+    const saved = localStorage.getItem('weekStartsOnMonday');
+    return saved ? JSON.parse(saved) : false; // デフォルトは日曜日始まり
+  });
+  const [notifications, setNotifications] = useState(() => {
+    const saved = localStorage.getItem('notifications');
+    return saved ? JSON.parse(saved) : true;
+  });
+  const [appTheme, setAppTheme] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved || 'light';
+  });
+  const [dataSync, setDataSync] = useState(() => {
+    const saved = localStorage.getItem('dataSync');
+    return saved ? JSON.parse(saved) : true;
+  });
 
-  const workplaces: Workplace[] = [];
-  const initialShifts: Shift[] = [];
+  // 設定の永続化
+  React.useEffect(() => {
+    localStorage.setItem(
+      'weekStartsOnMonday',
+      JSON.stringify(weekStartsOnMonday)
+    );
+  }, [weekStartsOnMonday]);
 
-  // タブ変更ハンドラ
-  const handleTabChange = (tab: NavigationTab) => {
+  React.useEffect(() => {
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+  }, [notifications]);
+
+  React.useEffect(() => {
+    localStorage.setItem('theme', appTheme);
+  }, [appTheme]);
+
+  React.useEffect(() => {
+    localStorage.setItem('dataSync', JSON.stringify(dataSync));
+  }, [dataSync]);
+
+  // タブ切り替え時にルートパスに戻る
+  const handleTabChange = (tab: TabValue) => {
     setCurrentTab(tab);
+    if (location.pathname !== '/') {
+      navigate('/');
+    }
   };
 
-  // シフトデータ更新ハンドラ
-  const handleShiftsChange = useCallback((newShifts: Shift[]) => {
-    setShifts(newShifts);
-  }, []);
-
-  // AI機能からのシフト保存ハンドラ
-  const handleAIShiftsSaved = useCallback((newShifts: CreateShiftData[]) => {
-    // 実際の実装では、ここでAPIを呼び出してシフトを保存
-    console.log('AI機能でシフトが保存されました:', newShifts);
-  }, []);
-
-  // コンテンツレンダリング
   const renderContent = () => {
     switch (currentTab) {
-      case 'shifts':
+      case 'shift':
+        try {
+          return <SafeCalendarView />;
+        } catch (error) {
+          console.error('Calendar error:', error);
+          return (
+            <Card>
+              <CardContent>
+                <Typography variant="h6" color="error">
+                  エラーが発生しました
+                </Typography>
+                <Typography variant="body2">{String(error)}</Typography>
+              </CardContent>
+            </Card>
+          );
+        }
+      case 'salary':
+        return <MobileSalaryView />;
+      case 'submit':
         return (
-          <ShiftManager
-            workplaces={workplaces}
-            initialShifts={initialShifts}
-            showAddButton={true}
-            onShiftsChange={handleShiftsChange}
+          <GPTShiftSubmitter
+            onNavigateToWorkplaces={() => setCurrentTab('other')}
           />
         );
-      case 'ai':
-        return <AIFeature onShiftsSaved={handleAIShiftsSaved} />;
-      case 'salary':
-        return (
-          <Box>
-            <FuyouStatusCard />
-            <Box sx={{ mt: 2 }}>
-              <MonthlySalaryCard
-                shifts={shifts.length > 0 ? shifts : initialShifts}
-              />
-            </Box>
-          </Box>
-        );
-      case 'others':
-        return <OthersFeature />;
+      case 'other':
+        return <WorkplaceManager />;
+      case 'settings':
+        // 設定タブを押した時に設定ダイアログを開く
+        if (!settingsOpen) {
+          setSettingsOpen(true);
+          // 設定を開いたら前のタブに戻る
+          setCurrentTab('shift');
+        }
+        return null;
       default:
         return null;
     }
@@ -149,63 +184,241 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box
+
+      {/* シフトボード風タブナビゲーション */}
+      <ShiftboardTabs currentTab={currentTab} onTabChange={handleTabChange} />
+
+      <Container
+        maxWidth="lg"
         sx={{
-          minHeight: '100vh',
-          pb: { xs: 8, sm: 2 },
+          py: isMobile ? 1 : 0,
+          pt: isMobile ? 2 : 6,
+          pb: isMobile ? 10 : 0,
+          height: '100vh',
           display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          width: '100%',
-          margin: '0 auto',
-          backgroundColor: '#f5f7fa', // Force visual update
+          flexDirection: 'column',
+          overflow: 'hidden',
         }}
       >
-        {/* 全体コンテナ */}
-        <Box
-          sx={{
-            width: '100%',
-            maxWidth: '1200px',
-            minHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            p: { xs: 1, sm: 2 },
-            pt: { xs: 1, sm: 2 },
-            margin: '0 auto',
-          }}
-        >
-          {/* トップナビゲーション（PC・タブレット） */}
-          <Box
-            sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}
-          >
-            <TopNavigation
-              currentTab={currentTab}
-              onTabChange={handleTabChange}
-            />
-          </Box>
-
-          {/* メインコンテンツ */}
+        {/* ヘッダー（設定アイコン付き） */}
+        {isMobile && (
           <Box
             sx={{
-              mt: { xs: 1, sm: 0 },
-              width: '100%',
               display: 'flex',
-              justifyContent: 'center',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 2,
             }}
           >
-            {renderContent()}
+            <Box sx={{ flex: 1 }} />
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: 700, color: 'primary.main' }}
+            >
+              扶養カレンダー
+            </Typography>
+            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+              <IconButton
+                onClick={() => setSettingsOpen(true)}
+                size="small"
+                sx={{ color: 'primary.main' }}
+              >
+                <Settings />
+              </IconButton>
+            </Box>
           </Box>
-        </Box>
+        )}
 
-        {/* ボトムナビゲーション（スマホ） */}
-        <CustomBottomNavigation
-          currentTab={currentTab}
-          onTabChange={handleTabChange}
-        />
-      </Box>
+        {/* デスクトップ版の設定アイコン */}
+        {!isMobile && (
+          <IconButton
+            onClick={() => setSettingsOpen(true)}
+            sx={{
+              position: 'fixed',
+              top: 16,
+              right: 16,
+              zIndex: 1200,
+              color: 'primary.main',
+              backgroundColor: 'white',
+              boxShadow: 2,
+              '&:hover': {
+                backgroundColor: 'action.hover',
+              },
+            }}
+          >
+            <Settings />
+          </IconButton>
+        )}
+
+        {/* メインコンテンツ（スクロール） */}
+        <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          <Routes>
+            <Route path="/" element={renderContent()} />
+            <Route path="/wizard" element={<WizardStart />} />
+            <Route path="/wizard/steps" element={<WizardSteps />} />
+            <Route path="/wizard/result" element={<WizardResult />} />
+            <Route path="/submit" element={<GPTShiftSubmitter />} />
+          </Routes>
+        </Box>
+      </Container>
+
+      {/* 設定ダイアログ */}
+      <Dialog
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+        sx={{ zIndex: 1300 }}
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Settings sx={{ mr: 1, color: 'primary.main' }} />
+            設定
+          </Box>
+        </DialogTitle>
+
+        <DialogContent>
+          <List>
+            {/* カレンダー設定 */}
+            <ListItem>
+              <ListItemIcon>
+                <CalendarToday />
+              </ListItemIcon>
+              <ListItemText primary="カレンダー設定" secondary="週の開始曜日" />
+              <Switch
+                checked={weekStartsOnMonday}
+                onChange={e => setWeekStartsOnMonday(e.target.checked)}
+                color="primary"
+              />
+            </ListItem>
+
+            <Box sx={{ pl: 7, pb: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                {weekStartsOnMonday ? '月曜日から始まる' : '日曜日から始まる'}
+              </Typography>
+            </Box>
+
+            <Divider />
+
+            {/* 通知設定 */}
+            <ListItem>
+              <ListItemIcon>
+                <Notifications />
+              </ListItemIcon>
+              <ListItemText
+                primary="通知"
+                secondary="給料日やシフト登録のリマインダー"
+              />
+              <Switch
+                checked={notifications}
+                onChange={e => setNotifications(e.target.checked)}
+                color="primary"
+              />
+            </ListItem>
+
+            <Divider />
+
+            {/* テーマ設定 */}
+            <ListItem>
+              <ListItemIcon>
+                <Palette />
+              </ListItemIcon>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1">テーマ</Typography>
+                <FormControl size="small" sx={{ mt: 1, minWidth: 120 }}>
+                  <Select
+                    value={appTheme}
+                    onChange={e => setAppTheme(e.target.value)}
+                  >
+                    <MenuItem value="light">ライト</MenuItem>
+                    <MenuItem value="dark">ダーク</MenuItem>
+                    <MenuItem value="auto">自動</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+            </ListItem>
+
+            <Divider />
+
+            {/* データ同期 */}
+            <ListItem>
+              <ListItemIcon>
+                <CloudSync />
+              </ListItemIcon>
+              <ListItemText
+                primary="データ同期"
+                secondary="クラウドにデータを自動保存"
+              />
+              <Switch
+                checked={dataSync}
+                onChange={e => setDataSync(e.target.checked)}
+                color="primary"
+              />
+            </ListItem>
+
+            <Divider />
+
+            {/* セキュリティ */}
+            <ListItem button>
+              <ListItemIcon>
+                <Security />
+              </ListItemIcon>
+              <ListItemText
+                primary="セキュリティ"
+                secondary="パスワード・認証設定"
+              />
+            </ListItem>
+
+            <Divider />
+
+            {/* データ使用量 */}
+            <ListItem button>
+              <ListItemIcon>
+                <DataUsage />
+              </ListItemIcon>
+              <ListItemText
+                primary="データ使用量"
+                secondary="ストレージとネットワーク使用量"
+              />
+            </ListItem>
+
+            <Divider />
+
+            {/* データエクスポート */}
+            <ListItem button>
+              <ListItemIcon>
+                <GetApp />
+              </ListItemIcon>
+              <ListItemText
+                primary="データエクスポート"
+                secondary="CSV・PDF形式でダウンロード"
+              />
+            </ListItem>
+
+            <Divider />
+
+            {/* ヘルプ・サポート */}
+            <ListItem button>
+              <ListItemIcon>
+                <ContactSupport />
+              </ListItemIcon>
+              <ListItemText
+                primary="ヘルプ・サポート"
+                secondary="使い方やお問い合わせ"
+              />
+            </ListItem>
+
+            <Divider />
+          </List>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setSettingsOpen(false)}>閉じる</Button>
+        </DialogActions>
+      </Dialog>
     </ThemeProvider>
   );
-}
+};
 
 export default App;

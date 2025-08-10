@@ -28,7 +28,14 @@ const intelligentOCRRateLimit = rateLimit({
 const userOCRLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1時間
   max: 10, // 10回まで
-  keyGenerator: (req: express.Request) => req.user?.id || req.ip || 'anonymous',
+  keyGenerator: (req: express.Request) => {
+    // User ID takes priority
+    if (req.user?.id) {
+      return req.user.id;
+    }
+    // Fallback to 'anonymous' for demo users
+    return 'anonymous';
+  },
   message: {
     success: false,
     error: {
