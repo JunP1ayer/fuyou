@@ -1,6 +1,6 @@
-// 🏢 バイト管理ハブ - メイン選択画面
+// 🏢 バイト管理ハブ - 統合管理画面
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -9,6 +9,8 @@ import {
   Grid,
   Button,
   Divider,
+  Tab,
+  Tabs,
 } from '@mui/material';
 import {
   Business,
@@ -17,113 +19,80 @@ import {
   Edit,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { WorkplaceManager } from './WorkplaceManager';
+import { GPTShiftSubmitter } from './GPTShiftSubmitter';
 
-interface JobManagementHubProps {
-  onNavigateToWorkplaceManager: () => void;
-  onNavigateToAISubmission: () => void;
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
 }
 
-export const JobManagementHub: React.FC<JobManagementHubProps> = ({
-  onNavigateToWorkplaceManager,
-  onNavigateToAISubmission,
-}) => {
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', p: 2, height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-      {/* コンパクトヘッダー */}
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`job-tabpanel-${index}`}
+      aria-labelledby={`job-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box>{children}</Box>}
+    </div>
+  );
+}
+
+interface JobManagementHubProps {
+  onNavigateToWorkplaceManager?: () => void;
+  onNavigateToAISubmission?: () => void;
+}
+
+export const JobManagementHub: React.FC<JobManagementHubProps> = () => {
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
+
+  return (
+    <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', p: 2 }}>
+      {/* ヘッダー */}
       <Box sx={{ textAlign: 'center', mb: 3 }}>
         <Business sx={{ color: 'primary.main', fontSize: 36, mb: 1 }} />
         <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
           バイト管理
         </Typography>
+        <Typography variant="body2" color="text.secondary">
+          バイト先の管理とシフト表の提出を一画面で
+        </Typography>
       </Box>
 
-      {/* メイン機能選択 */}
-      <Grid container spacing={2} alignItems="stretch">
-        <Grid item xs={12} sm={6} sx={{ display: 'flex' }}>
-          <Card
-            sx={{
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                boxShadow: '0 4px 12px rgba(179, 229, 252, 0.3)',
-              },
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              flex: 1,
-            }}
-            onClick={onNavigateToWorkplaceManager}
-          >
-            <CardContent sx={{ p: 2, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', flexGrow: 1 }}>
-              <Box
-                sx={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mx: 'auto',
-                  mb: 1.5,
-                }}
-              >
-                <Edit sx={{ fontSize: 24, color: 'white' }} />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                バイト先管理
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                登録・編集・設定
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+      {/* タブナビゲーション */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs value={tabValue} onChange={handleTabChange} centered>
+          <Tab
+            icon={<Edit />}
+            label="バイト先管理"
+            sx={{ minHeight: 60, fontWeight: 600 }}
+          />
+          <Tab
+            icon={<CalendarToday />}
+            label="シフト表提出"
+            sx={{ minHeight: 60, fontWeight: 600 }}
+          />
+        </Tabs>
+      </Box>
 
-        <Grid item xs={12} sm={6} sx={{ display: 'flex' }}>
-          <Card
-            sx={{
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                boxShadow: '0 4px 12px rgba(67, 233, 123, 0.3)',
-              },
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              flex: 1,
-            }}
-            onClick={onNavigateToAISubmission}
-          >
-            <CardContent sx={{ p: 2, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', flexGrow: 1 }}>
-              <Box
-                sx={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mx: 'auto',
-                  mb: 1.5,
-                }}
-              >
-                <CalendarToday sx={{ fontSize: 24, color: 'white' }} />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                シフト表提出
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                シフト表を画像でアップロード
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                AIがカレンダーに自動反映
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      {/* タブコンテンツ */}
+      <TabPanel value={tabValue} index={0}>
+        <WorkplaceManager />
+      </TabPanel>
+
+      <TabPanel value={tabValue} index={1}>
+        <GPTShiftSubmitter />
+      </TabPanel>
     </Box>
   );
 };

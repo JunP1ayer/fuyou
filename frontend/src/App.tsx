@@ -117,32 +117,8 @@ const App: React.FC = () => {
       case 'salary':
         return <MobileSalaryView />;
       case 'submit':
-        // 統合バイト管理（AI提出 + ワークプレース管理）
-        switch (jobHubView) {
-          case 'hub':
-            return (
-              <JobManagementHub
-                onNavigateToWorkplaceManager={() => setJobHubView('workplace')}
-                onNavigateToAISubmission={() => setJobHubView('ai')}
-              />
-            );
-          case 'workplace':
-            return <WorkplaceManager />;
-          case 'ai':
-            return (
-              <GPTShiftSubmitter
-                onNavigateToWorkplaces={() => setJobHubView('workplace')}
-              />
-            );
-          case 'friends':
-            return (
-              <FriendSharingHub
-                onBack={() => setJobHubView('hub')}
-              />
-            );
-          default:
-            return null;
-        }
+        // 統合バイト管理（タブ切り替えで両機能を提供）
+        return <JobManagementHub />;
       case 'other':
         // 予定共有機能
         return (
