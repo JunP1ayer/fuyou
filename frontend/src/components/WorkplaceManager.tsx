@@ -121,6 +121,7 @@ interface WorkplaceFormData {
     sunday?: number;
   };
   weekdayRatesEnabled?: boolean; // 曜日別時給の有効フラグ
+  timeBasedRatesEnabled?: boolean; // 時間帯別時給の有効フラグ
   allowances?: {
     name: string;
     amount: number;
@@ -194,6 +195,7 @@ export const WorkplaceManager: React.FC = () => {
     paymentDate: '' as any,
     transportationFee: '' as any,
     timeBasedRates: [],
+    timeBasedRatesEnabled: false,
     weekdayRates: {},
     weekdayRatesEnabled: false,
     allowances: [],
@@ -215,7 +217,13 @@ export const WorkplaceManager: React.FC = () => {
     if (!preview.startTime || !preview.endTime || rate <= 0) return { earnings: 0, totalMinutes: 0, breakMinutes: 0, actualMinutes: 0 };
 
     const start = new Date(`2000-01-01T${preview.startTime}`);
-    const end = new Date(`2000-01-01T${preview.endTime}`);
+    let end = new Date(`2000-01-01T${preview.endTime}`);
+    
+    // 日をまたぐ場合（終了時刻が開始時刻より早い場合）
+    if (end <= start) {
+      end = new Date(`2000-01-02T${preview.endTime}`);
+    }
+    
     const totalMinutes = Math.max(0, (end.getTime() - start.getTime()) / 60000);
 
     // 休憩（自動）
@@ -293,6 +301,7 @@ export const WorkplaceManager: React.FC = () => {
       paymentDate: '' as any,
       transportationFee: '' as any,
       timeBasedRates: [],
+      timeBasedRatesEnabled: false,
       weekdayRates: {},
       weekdayRatesEnabled: false,
       allowances: [],
@@ -350,6 +359,7 @@ export const WorkplaceManager: React.FC = () => {
         // 既存フィールド（後方互換性）
         paymentDate: workplace.paymentDate || 25,
         timeBasedRates: workplace.timeBasedRates || [],
+        timeBasedRatesEnabled: (workplace as any).timeBasedRatesEnabled ?? (workplace.timeBasedRates ? workplace.timeBasedRates.length > 0 : false),
         transportationFee: workplace.transportationFee || 0,
         weekdayRates: workplace.weekdayRates || {},
         weekdayRatesEnabled: (workplace as any).weekdayRatesEnabled ?? (workplace.weekdayRates ? Object.keys(workplace.weekdayRates).length > 0 : false),
@@ -417,11 +427,10 @@ export const WorkplaceManager: React.FC = () => {
     }
 
     if (
-      formData.transportationSettings.type !== 'none' &&
-      (!formData.transportationSettings.amount ||
-        formData.transportationSettings.amount < 0)
+      formData.transportationFee && 
+      Number(formData.transportationFee) < 0
     ) {
-      newErrors.transportationAmount = '交通費を入力してください（0以上）';
+      newErrors.transportationFee = '交通費は0以上で入力してください';
     }
 
     setErrors(newErrors);
@@ -788,70 +797,28 @@ export const WorkplaceManager: React.FC = () => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Grid container spacing={1}>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>交通費</InputLabel>
-                    <Select
-                      value={formData.transportationSettings.type}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        transportationSettings: {
-                          ...prev.transportationSettings,
-                          type: e.target.value as any
-                        }
-                      }))}
-                      label="交通費"
-                    >
-                      <MenuItem value="none">なし</MenuItem>
-                      <MenuItem value="fixed">固定</MenuItem>
-                      <MenuItem value="actual">実費（上限）</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                {formData.transportationSettings.type !== 'none' && (
-                  <>
-                    <Grid item xs={6} sm={3}>
-                      <TextField
-                        fullWidth
-                        type="number"
-                        label={formData.transportationSettings.type === 'fixed' ? '固定額' : '上限額'}
-                        value={formData.transportationSettings.amount}
-                        onChange={e => setFormData(prev => ({
-                          ...prev,
-                          transportationSettings: {
-                            ...prev.transportationSettings,
-                            amount: e.target.value ? parseInt(e.target.value) : '' as any
-                          }
-                        }))}
-                        size="small"
-                        placeholder="500"
-                        InputProps={{ startAdornment: <span style={{ marginRight: 6 }}>¥</span> }}
-                        inputProps={{ min: 0, step: 1 }}
-                      />
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                      <FormControl fullWidth size="small">
-                        <InputLabel>単位</InputLabel>
-                        <Select
-                          value={formData.transportationSettings.unit}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            transportationSettings: {
-                              ...prev.transportationSettings,
-                              unit: e.target.value as any
-                            }
-                          }))}
-                          label="単位"
-                        >
-                          <MenuItem value="daily">日額</MenuItem>
-                          <MenuItem value="monthly">月額</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                  </>
-                )}
-              </Grid>
+              <TextField
+                fullWidth
+                type="number"
+                label="交通費"
+                value={formData.transportationFee}
+                onChange={e =>
+                  setFormData(prev => ({
+                    ...prev,
+                    transportationFee: e.target.value ? parseInt(e.target.value) : '' as any,
+                  }))
+                }
+                error={Boolean(errors.transportationFee)}
+                helperText={errors.transportationFee || '1日あたりの交通費（0の場合は支給なし）'}
+                placeholder="500"
+                InputProps={{
+                  startAdornment: (
+                    <span style={{ marginRight: 6 }}>¥</span>
+                  ),
+                }}
+                inputProps={{ min: 0, step: 50 }}
+                size="small"
+              />
             </Grid>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth size="small">
@@ -1003,11 +970,18 @@ export const WorkplaceManager: React.FC = () => {
                     
                     {/* 時間帯別時給設定 */}
                     <Grid item xs={12}>
-                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 2 }}>
-                        時間帯別時給設定
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        {formData.timeBasedRates?.map((rate, index) => (
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          時間帯別時給設定
+                        </Typography>
+                        <FormControlLabel
+                          control={<Switch checked={!!formData.timeBasedRatesEnabled} onChange={(e) => setFormData(prev => ({ ...prev, timeBasedRatesEnabled: e.target.checked, timeBasedRates: e.target.checked ? prev.timeBasedRates : [] }))} />}
+                          label={formData.timeBasedRatesEnabled ? 'ON' : 'OFF'}
+                        />
+                      </Box>
+                      {formData.timeBasedRatesEnabled && (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {formData.timeBasedRates?.map((rate, index) => (
                           <Box
                             key={index}
                             sx={{ 
@@ -1105,7 +1079,8 @@ export const WorkplaceManager: React.FC = () => {
                         >
                           時間帯を追加
                         </Button>
-                      </Box>
+                        </Box>
+                      )}
                     </Grid>
 
                     {/* 曜日別時給設定（ON/OFF） */}
@@ -1315,8 +1290,11 @@ export const WorkplaceManager: React.FC = () => {
                     {/* 収入シミュレーション（詳細設定の即時計算確認用） */}
                     <Grid item xs={12}>
                       <Divider sx={{ my: 2 }} />
-                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
                         サンプルシフト収入シミュレーション（時給制）
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                        ※ 日をまたぐ勤務も対応（例: 22:00〜06:00）
                       </Typography>
                       <Grid container spacing={2} alignItems="center">
                         <Grid item xs={12} sm={6}>
@@ -1398,15 +1376,9 @@ export const WorkplaceManager: React.FC = () => {
                     {formData.paymentTiming === 'nextMonth' ? '翌月' : '当月'}
                     {formData.paymentDay}日支給 | 
                     交通費: {
-                      formData.transportationSettings.type === 'none'
-                        ? 'なし'
-                        : formData.transportationSettings.type === 'fixed'
-                        ? (typeof formData.transportationSettings.amount === 'number'
-                            ? `固定${formData.transportationSettings.unit === 'daily' ? '日額' : '月額'} ${formatCurrency(formData.transportationSettings.amount)}`
-                            : `固定${formData.transportationSettings.unit === 'daily' ? '日額' : '月額'} 未設定`)
-                        : (typeof formData.transportationSettings.amount === 'number'
-                            ? `実費（上限${formData.transportationSettings.unit === 'daily' ? '日額' : '月額'} ${formatCurrency(formData.transportationSettings.amount)}）`
-                            : '実費（上限 未設定）')
+                      formData.transportationFee && formData.transportationFee > 0
+                        ? `日額 ${formatCurrency(formData.transportationFee)}`
+                        : 'なし'
                     } | 
                     丸め: {formData.roundingRule.minutes}分{
                       formData.roundingRule.method === 'up' ? '切り上げ' :

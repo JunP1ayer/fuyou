@@ -106,7 +106,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     }}>
       {/* 曜日ヘッダー（固定高さ） - 縦スクロール時も表示 */}
       {true && (
-        <Box sx={{ height: '30px', flexShrink: 0 }}>
+        <Box sx={{ height: { xs: '38px', md: '30px' }, flexShrink: 0 }}>
           <Grid container spacing={0} sx={{ height: '100%' }}>
             {[0,1,2,3,4,5,6].map((dow, index) => {
               const day = t(`calendar.weekdays.${dow}`, WEEKDAYS_JA[dow]);
@@ -119,7 +119,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 500,
-                    fontSize: '11px',
+                    fontSize: { xs: '14px', md: '11px' },
                     color:
                       index === 0
                         ? 'error.main'
@@ -171,8 +171,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
               {weeks.map((week, weekIndex) => (
                 <Box key={weekIndex} sx={{ 
                   flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
-                  height: isMobile && viewMode === 'vertical' ? '70px' : `calc(100% / ${weeks.length})`,
-                  minHeight: isMobile && viewMode === 'vertical' ? '70px' : 'auto',
+                  height: isMobile && viewMode === 'vertical' ? '112px' : `calc(100% / ${weeks.length})`,
+                  minHeight: isMobile && viewMode === 'vertical' ? '112px' : 'auto',
                 }}>
                   <Grid container spacing={0} sx={{ height: '100%' }}>
                   {week.map((day, dayIndex) => {
@@ -190,7 +190,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                           sx={{
                             height: '100%',
                             width: '100%',
-                            p: isMobile && viewMode === 'vertical' ? 0.5 : 0.5,
+                            p: isMobile && viewMode === 'vertical' ? 0.75 : 0.5,
                             cursor: 'pointer',
                             border: '1px solid',
                             borderColor: 'divider',
@@ -214,7 +214,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                             variant="body2"
                             sx={{
                               fontWeight: isTodayDate ? 700 : 500,
-                              fontSize: isMobile && viewMode === 'vertical' ? '14px' : '13px',
+                              fontSize: isMobile && viewMode === 'vertical' ? '18px' : '13px',
                               color: !isCurrentMonth 
                                 ? 'text.disabled'
                                 : dayOfWeek === 0 
@@ -222,7 +222,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                                   : dayOfWeek === 6 
                                     ? 'primary.main'
                                     : 'text.primary',
-                              mb: 0.25,
+                              mb: 0.5,
                               textAlign: isMobile && viewMode === 'vertical' ? 'center' : 'left',
                               lineHeight: 1,
                             }}
@@ -243,8 +243,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                                 }}>
                                   {dayEvents.slice(0, 4).map((event, idx) => (
                                     <Box key={idx} sx={{
-                                      width: 8,
-                                      height: 8,
+                                      width: 10,
+                                      height: 10,
                                       borderRadius: '50%',
                                       backgroundColor: event.color,
                                       border: '1px solid white',
@@ -252,7 +252,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                                   ))}
                                   {dayEvents.length > 4 && (
                                     <Typography sx={{
-                                      fontSize: '10px',
+                                      fontSize: '11px',
                                       color: 'text.secondary',
                                       fontWeight: 600,
                                     }}>
