@@ -22,8 +22,7 @@ export const supabase = existing ?? createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    // multi-tab/session-sync is not required here; disabling reduces race conditions in HMR
-    multiTab: false,
+    flowType: 'pkce',
     // Explicit storageKey for clarity and to avoid clashes
     storageKey: 'fuyou-auth',
     storage: localStorage,
