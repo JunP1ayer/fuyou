@@ -1295,8 +1295,8 @@ export const WorkplaceManager: React.FC = () => {
                         休憩時間設定
                       </Typography>
                       
-                      {/* 自由休憩と○時間以上で適用を横並びに */}
-                      <Grid container spacing={2} sx={{ mb: 3 }}>
+                      {/* 自由休憩時間を上段に */}
+                      <Grid container spacing={2} sx={{ mb: 2 }}>
                         <Grid item xs={12} md={4}>
                           <TextField
                             type="number"
@@ -1316,37 +1316,40 @@ export const WorkplaceManager: React.FC = () => {
                             }}
                           />
                         </Grid>
+                      </Grid>
+                      
+                      {/* ○時間以上で適用を下段に */}
+                      <Grid container spacing={2} sx={{ mb: 3 }}>
+                        <Grid item xs={12} md={4}>
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                checked={formData.freeBreakMinHoursEnabled}
+                                onChange={e => setFormData(prev => ({ ...prev, freeBreakMinHoursEnabled: e.target.checked }))}
+                                size="small"
+                              />
+                            }
+                            label="○時間以上で適用"
+                            sx={{ maxWidth: 300 }}
+                          />
+                        </Grid>
                         
                         <Grid item xs={12} md={4}>
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            <FormControlLabel
-                              control={
-                                <Switch
-                                  checked={formData.freeBreakMinHoursEnabled}
-                                  onChange={e => setFormData(prev => ({ ...prev, freeBreakMinHoursEnabled: e.target.checked }))}
-                                  size="small"
-                                />
-                              }
-                              label="○時間以上で適用"
-                              sx={{ maxWidth: 300 }}
+                          {formData.freeBreakMinHoursEnabled && (
+                            <TextField
+                              type="number"
+                              label="最小適用時間"
+                              value={formData.freeBreakMinHours}
+                              onChange={e => setFormData(prev => ({ ...prev, freeBreakMinHours: e.target.value ? Math.max(0.5, parseFloat(e.target.value)) : 4 }))}
+                              size="small"
+                              inputProps={{ min: 0.5, step: 0.5, max: 12 }}
+                              sx={{ maxWidth: 200 }}
+                              InputProps={{
+                                endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>時間</span>,
+                              }}
+                              helperText="この時間以上の勤務でのみ自由休憩を適用"
                             />
-                            
-                            {formData.freeBreakMinHoursEnabled && (
-                              <TextField
-                                type="number"
-                                label="最小適用時間"
-                                value={formData.freeBreakMinHours}
-                                onChange={e => setFormData(prev => ({ ...prev, freeBreakMinHours: e.target.value ? Math.max(0.5, parseFloat(e.target.value)) : 4 }))}
-                                size="small"
-                                inputProps={{ min: 0.5, step: 0.5, max: 12 }}
-                                sx={{ maxWidth: 200 }}
-                                InputProps={{
-                                  endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>時間</span>,
-                                }}
-                                helperText="この時間以上の勤務でのみ自由休憩を適用"
-                              />
-                            )}
-                          </Box>
+                          )}
                         </Grid>
                       </Grid>
 
@@ -1430,7 +1433,7 @@ export const WorkplaceManager: React.FC = () => {
                               InputProps={{
                                 endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
                               }}
-                              helperText="労働基準法推奨: 45分"
+                              helperText="45分"
                             />
                           </Box>
                         </Grid>
@@ -1471,7 +1474,7 @@ export const WorkplaceManager: React.FC = () => {
                               InputProps={{
                                 endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
                               }}
-                              helperText="労働基準法推奨: 60分"
+                              helperText="60分"
                             />
                           </Box>
                         </Grid>
