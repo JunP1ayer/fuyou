@@ -1522,11 +1522,51 @@ export const WorkplaceManager: React.FC = () => {
                         {/* 収入の内訳 */}
                         {previewResult.baseEarnings > 0 && (
                           <Box sx={{ mt: 1, pl: 1, borderLeft: '2px solid #e0e0e0' }}>
-                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                              基本収入: ¥{previewResult.baseEarnings?.toLocaleString()}
-                              {previewResult.nightHours > 0 && ` (深夜${previewResult.nightHours.toFixed(1)}h含む)`}
-                              {previewResult.overtimeHours > 0 && ` (残業${previewResult.overtimeHours.toFixed(1)}h含む)`}
+                            {/* 計算過程の詳細表示 */}
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                              計算過程:
                             </Typography>
+                            {(() => {
+                              const rate = formData.defaultHourlyRate || 0;
+                              const actualHours = previewResult.actualMinutes / 60;
+                              const nightHours = previewResult.nightHours || 0;
+                              const overtimeHours = previewResult.overtimeHours || 0;
+                              
+                              // 時間の分類
+                              const regularHours = Math.max(0, actualHours - overtimeHours);
+                              const regularDayHours = Math.max(0, regularHours - Math.min(nightHours, regularHours));
+                              const regularNightHours = Math.min(nightHours, regularHours);
+                              const overtimeDayHours = Math.max(0, overtimeHours - Math.max(0, nightHours - regularHours));
+                              const overtimeNightHours = Math.max(0, nightHours - regularHours);
+                              
+                              return (
+                                <Box sx={{ fontSize: '11px', color: 'text.secondary', lineHeight: 1.3 }}>
+                                  {regularDayHours > 0 && (
+                                    <Typography variant="caption" sx={{ display: 'block', fontSize: '11px' }}>
+                                      通常: {regularDayHours.toFixed(1)}h × ¥{rate} = ¥{Math.floor(regularDayHours * rate).toLocaleString()}
+                                    </Typography>
+                                  )}
+                                  {regularNightHours > 0 && (
+                                    <Typography variant="caption" sx={{ display: 'block', fontSize: '11px' }}>
+                                      深夜: {regularNightHours.toFixed(1)}h × ¥{rate} × 1.25 = ¥{Math.floor(regularNightHours * rate * 1.25).toLocaleString()}
+                                    </Typography>
+                                  )}
+                                  {overtimeDayHours > 0 && (
+                                    <Typography variant="caption" sx={{ display: 'block', fontSize: '11px' }}>
+                                      残業: {overtimeDayHours.toFixed(1)}h × ¥{rate} × 1.25 = ¥{Math.floor(overtimeDayHours * rate * 1.25).toLocaleString()}
+                                    </Typography>
+                                  )}
+                                  {overtimeNightHours > 0 && (
+                                    <Typography variant="caption" sx={{ display: 'block', fontSize: '11px' }}>
+                                      深夜残業: {overtimeNightHours.toFixed(1)}h × ¥{rate} × 1.50 = ¥{Math.floor(overtimeNightHours * rate * 1.5).toLocaleString()}
+                                    </Typography>
+                                  )}
+                                  <Typography variant="caption" sx={{ display: 'block', fontSize: '11px', fontWeight: 600, mt: 0.5 }}>
+                                    小計: ¥{previewResult.baseEarnings?.toLocaleString()}
+                                  </Typography>
+                                </Box>
+                              );
+                            })()}
                             
                             {previewResult.transportationFee > 0 && (
                               <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
