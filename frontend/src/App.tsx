@@ -54,6 +54,7 @@ import { WizardSteps } from './components/wizard/WizardSteps';
 import { WizardResult } from './components/wizard/WizardResult';
 import { GPTShiftSubmitter } from './components/GPTShiftSubmitter';
 import { WorkplaceManager } from './components/WorkplaceManager';
+import LegalPage from './pages/Legal';
 import { ShiftboardSalaryManager } from './components/ShiftboardSalaryManager';
 import { MobileSalaryView } from './components/salary/MobileSalaryView';
 
@@ -258,6 +259,7 @@ const App: React.FC = () => {
             <Route path="/wizard/steps" element={<WizardSteps />} />
             <Route path="/wizard/result" element={<WizardResult />} />
             <Route path="/submit" element={<GPTShiftSubmitter />} />
+            <Route path="/legal" element={<LegalPage />} />
           </Routes>
         </Box>
       </Container>
@@ -439,6 +441,17 @@ const App: React.FC = () => {
             </ListItem>
 
             <Divider />
+
+            {/* 法務・ポリシー */}
+            <ListItem button onClick={() => { setSettingsOpen(false); navigate('/legal'); }}>
+              <ListItemIcon>
+                <Info />
+              </ListItemIcon>
+              <ListItemText
+                primary="法務・ポリシー"
+                secondary="免責・プライバシー・利用規約"
+              />
+            </ListItem>
           </List>
         </DialogContent>
 

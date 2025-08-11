@@ -51,10 +51,28 @@ import {
 import { InfiniteCalendar } from '../calendar/InfiniteCalendar';
 import { useNavigate } from 'react-router-dom';
 import { useSimpleShiftStore } from '../../store/simpleShiftStore';
+import useI18nStore from '../../store/i18nStore';
 
 export const MobileSalaryView: React.FC = () => {
   const navigate = useNavigate();
   const { shifts, workplaces } = useSimpleShiftStore();
+  const { language, country } = useI18nStore();
+  const currency = ((): string => {
+    switch (country) {
+      case 'UK':
+        return 'GBP';
+      case 'DE':
+        return 'EUR';
+      default:
+        return 'JPY';
+    }
+  })();
+  const formatMoney = (amount: number) =>
+    new Intl.NumberFormat(language, {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 0,
+    }).format(Math.floor(amount));
   const [tabValue, setTabValue] = useState<'month' | 'year'>('month');
   const [monthOffset, setMonthOffset] = useState(0);
   
@@ -92,7 +110,7 @@ export const MobileSalaryView: React.FC = () => {
       weeklyHours20: null, // boolean | null （106判定用）
       contractLength: null, // 'over2m' | 'under2m' | null
       officeSize51: 'unknown', // 'yes' | 'no' | 'unknown'
-      studentException: 'none', // 'leave' | 'night' | 'graduate_soon' | 'none'
+      studentException: null, // 'leave' | 'night' | 'graduate_soon' | 'none' | null
       employmentType: null, // 'parttime', 'arbeit', 'contract'
       
       // 目標設定
@@ -126,7 +144,7 @@ export const MobileSalaryView: React.FC = () => {
     setDependencySetupOpen(false);
   };
   
-  // 扶養限度額の自動計算
+  // 扶養限度額の自動計算（2025年税制改正対応）
   const calculateDependencyLimit = () => {
     const s = dependencyStatus || {};
 
@@ -135,36 +153,60 @@ export const MobileSalaryView: React.FC = () => {
       return { limit: s.selectedLimit * 10000, type: `${s.selectedLimit}万円（手動）` };
     }
 
-    // 2025年12月以降は123万円が基本
     const now = new Date();
-    const is2025Plus = now.getFullYear() > 2025 || (now.getFullYear() === 2025 && now.getMonth() >= 11);
+    const reform2025Date = new Date(2025, 11, 1); // 2025年12月1日（所得税改正）
+    const healthInsurance2025Date = new Date(2025, 9, 1); // 2025年10月1日（健保改正）
+    const is2025Plus = now >= reform2025Date;
+    const isHealthInsurance2025Plus = now >= healthInsurance2025Date;
     
-    let limit = is2025Plus ? 1_230_000 : 1_030_000;
-    let type = is2025Plus ? '123万円（2025年税制）' : '103万円（現行）';
+    // 年齢判定（19-22歳かどうか）
+    const is19to22 = s.age === 'under20' || s.age === '20to22';
+    
+    // 基本的な所得税の壁
+    let limit = is2025Plus ? 1_600_000 : 1_030_000; // 160万円 vs 103万円
+    let type = is2025Plus ? '160万円（2025年所得税改正）' : '103万円（現行所得税）';
 
-    // 106万円（社保）の可能性
+    // 学生でない場合、または学生例外がある場合は低い基準
+    if (s.isStudent === false || (s.studentException && s.studentException !== 'none')) {
+      limit = is2025Plus ? 1_230_000 : 1_030_000; // 123万円 vs 103万円
+      type = is2025Plus ? '123万円（特定親族特別控除）' : '103万円（現行）';
+    }
+
+    // 106万円（社保加入）の壁
     const weekly20 = s.weeklyHours20 === true || s.workHoursPerWeek === '20to30' || s.workHoursPerWeek === 'over30';
     const longContract = s.contractLength === 'over2m';
     const officeBig = s.officeSize51 === 'yes';
     if (weekly20 && longContract && officeBig) {
       limit = 1_060_000;
-      type = '106万円（社会保険）';
+      type = '106万円（社会保険加入）';
     }
 
-    // 130万円（健保の被扶養）目安／配偶者がいる場合の配偶者控除運用に合わせ推奨
-    if (s.hasSpouse) {
-      limit = 1_300_000;
-      type = '130万円（配偶者/健保）';
+    // 健康保険の被扶養者の壁
+    if (s.priority !== 'maxIncome') {
+      if (is19to22 && isHealthInsurance2025Plus) {
+        // 19-22歳は2025年10月から150万円
+        limit = Math.min(limit, 1_500_000);
+        type = '150万円（19-22歳健保被扶養）';
+      } else {
+        // 通常は130万円
+        limit = Math.min(limit, 1_300_000);
+        type = '130万円（健保被扶養）';
+      }
     }
 
-    // 150万円（学生特例）
-    if (s.isStudent === true && (s.studentException === 'none' || !s.studentException) && s.priority === 'maxIncome') {
-      limit = 1_500_000;
-      type = '150万円（学生特例）';
+    // 最大収入志向の学生は160万円を目指す
+    if (s.isStudent === true && s.priority === 'maxIncome' && (s.studentException === 'none' || !s.studentException)) {
+      if (is2025Plus) {
+        limit = 1_600_000;
+        type = '160万円（学生最大）';
+      } else {
+        limit = 1_500_000;
+        type = '150万円（学生特例）';
+      }
     }
 
-    // バランス志向/扶養優先
-    if (s.priority === 'keepDependency' && s.parentsDependency && s.parentsDependency !== 'none') {
+    // 扶養優先の場合は保守的に
+    if (s.priority === 'keepDependency') {
       limit = is2025Plus ? 1_230_000 : 1_030_000;
       type = is2025Plus ? '123万円（扶養優先）' : '103万円（扶養優先）';
     }
@@ -300,13 +342,21 @@ export const MobileSalaryView: React.FC = () => {
   // ステップ管理のヘルパー関数
   const getTotalSteps = () => {
     if (dependencyStatus.isStudent) {
-      return 4; // 学生 -> 学生詳細 -> 働き方 -> 結果
+      return 5; // 学生 -> 年齢 -> 学生詳細 -> 働き方 -> 結果
     }
-    return 3; // 学生でない -> 働き方 -> 結果
+    return 4; // 学生でない -> 年齢 -> 働き方 -> 結果
+  };
+
+  const getAgeStep = () => {
+    return dependencyStatus.isStudent ? 1 : 1;
+  };
+
+  const getStudentDetailStep = () => {
+    return 2;
   };
 
   const getWorkStyleStep = () => {
-    return dependencyStatus.isStudent ? 2 : 1;
+    return dependencyStatus.isStudent ? 3 : 2;
   };
 
   const canProceedToNext = () => {
@@ -314,6 +364,8 @@ export const MobileSalaryView: React.FC = () => {
       case 0:
         return dependencyStatus.isStudent !== null;
       case 1:
+        return dependencyStatus.age !== null;
+      case 2:
         return !dependencyStatus.isStudent || dependencyStatus.studentException !== null;
       default:
         return true;
@@ -495,14 +547,14 @@ export const MobileSalaryView: React.FC = () => {
               今年の収入 / 扶養限度額
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800 }}>
-              ¥{yearEarningsJPY.toLocaleString()}
+              {formatMoney(yearEarningsJPY)}
             </Typography>
             <Typography 
               variant="caption" 
               color="text.secondary"
               sx={{ mt: 0.5 }}
             >
-              / ¥{(dependencyLimit.limit / 10000).toFixed(0)}万円
+              / {formatMoney(dependencyLimit.limit)}
             </Typography>
             <Typography 
               variant="caption" 
@@ -536,7 +588,7 @@ export const MobileSalaryView: React.FC = () => {
             </strong>
           </Typography>
           <Typography variant="body2">
-            給料見込 <strong>¥{monthEstJPY.toLocaleString()}</strong>
+            給料見込 <strong>{formatMoney(monthEstJPY)}</strong>
           </Typography>
         </Box>
       ) : (
@@ -581,9 +633,9 @@ export const MobileSalaryView: React.FC = () => {
                       {Math.floor(r.hoursMin / 60)}h
                       {Math.floor(r.hoursMin % 60)}
                     </TableCell>
-                    <TableCell align="right">
-                      ¥{r.est.toLocaleString()}
-                    </TableCell>
+                     <TableCell align="right">
+                       {formatMoney(r.est)}
+                     </TableCell>
                     <TableCell align="right">
                       {r.actual == null ? (
                         <Chip label="未入力" size="small" />
@@ -599,7 +651,7 @@ export const MobileSalaryView: React.FC = () => {
                     {hours}h{mins}
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 700 }}>
-                    ¥{monthEstJPY.toLocaleString()}
+                    {formatMoney(monthEstJPY)}
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 700 }}>
                     —
@@ -630,9 +682,9 @@ export const MobileSalaryView: React.FC = () => {
                       {Math.floor((months[m]?.minutes || 0) / 60)}h
                       {Math.floor((months[m]?.minutes || 0) % 60)}
                     </TableCell>
-                    <TableCell align="right">
-                      ¥{(months[m]?.earnings || 0).toLocaleString()}
-                    </TableCell>
+                     <TableCell align="right">
+                       {formatMoney(months[m]?.earnings || 0)}
+                     </TableCell>
                   </TableRow>
                 ))}
                 <TableRow>
@@ -642,7 +694,7 @@ export const MobileSalaryView: React.FC = () => {
                     {Math.floor(yearHoursMin % 60)}
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 700 }}>
-                    ¥{yearEarningsJPY.toLocaleString()}
+                    {formatMoney(yearEarningsJPY)}
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -718,7 +770,7 @@ export const MobileSalaryView: React.FC = () => {
                   variant={dependencyStatus.isStudent ? "contained" : "outlined"}
                   onClick={() => {
                     setDependencyStatus({...dependencyStatus, isStudent: true});
-                    setTimeout(() => setCurrentStep(1), 300);
+                    setTimeout(() => setCurrentStep(getAgeStep()), 300);
                   }}
                   sx={{ flex: 1, py: 2 }}
                 >
@@ -728,7 +780,7 @@ export const MobileSalaryView: React.FC = () => {
                   variant={dependencyStatus.isStudent === false ? "contained" : "outlined"}
                   onClick={() => {
                     setDependencyStatus({...dependencyStatus, isStudent: false});
-                    setTimeout(() => setCurrentStep(getWorkStyleStep()), 300);
+                    setTimeout(() => setCurrentStep(getAgeStep()), 300);
                   }}
                   sx={{ flex: 1, py: 2 }}
                 >
@@ -738,8 +790,40 @@ export const MobileSalaryView: React.FC = () => {
             </Box>
           )}
 
-          {/* ステップ 1: 学生の場合の追加質問 */}
-          {currentStep === 1 && dependencyStatus.isStudent && (
+          {/* ステップ 1: 年齢質問 */}
+          {currentStep === 1 && (
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
+                あなたの年齢を教えてください
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block', textAlign: 'center' }}>
+                扶養や健康保険の基準が年齢によって異なります
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
+                {[
+                  { key: 'under20', label: '19歳以下' },
+                  { key: '20to22', label: '20〜22歳' },
+                  { key: 'over23', label: '23歳以上' }
+                ].map(option => (
+                  <Chip
+                    key={option.key}
+                    label={option.label}
+                    color={dependencyStatus.age === option.key ? 'primary' : 'default'}
+                    variant={dependencyStatus.age === option.key ? 'filled' : 'outlined'}
+                    onClick={() => {
+                      setDependencyStatus({ ...dependencyStatus, age: option.key });
+                      const nextStep = dependencyStatus.isStudent ? getStudentDetailStep() : getWorkStyleStep();
+                      setTimeout(() => setCurrentStep(nextStep), 300);
+                    }}
+                    sx={{ cursor: 'pointer', m: 0.5 }}
+                  />
+                ))}
+              </Box>
+            </Box>
+          )}
+
+          {/* ステップ 2: 学生の場合の追加質問 */}
+          {currentStep === 2 && dependencyStatus.isStudent && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
                 あてはまるものがあれば教えてください
@@ -770,7 +854,7 @@ export const MobileSalaryView: React.FC = () => {
             </Box>
           )}
 
-          {/* ステップ 2: 働き方について */}
+          {/* ステップ 3/2: 働き方について */}
           {currentStep === getWorkStyleStep() && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
@@ -860,12 +944,11 @@ export const MobileSalaryView: React.FC = () => {
                       label="年間上限を選択"
                     >
                       <MenuItem value={103}>103万円</MenuItem>
-                      <MenuItem value={123}>123万円</MenuItem>
                       <MenuItem value={106}>106万円</MenuItem>
+                      <MenuItem value={123}>123万円</MenuItem>
                       <MenuItem value={130}>130万円</MenuItem>
-                      {dependencyStatus.isStudent && (
-                        <MenuItem value={150}>150万円</MenuItem>
-                      )}
+                      <MenuItem value={150}>150万円</MenuItem>
+                      <MenuItem value={160}>160万円</MenuItem>
                     </Select>
                   </FormControl>
                 </Box>

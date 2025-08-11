@@ -63,7 +63,7 @@ function TabPanel(props: TabPanelProps) {
 export const ShiftboardSalaryManager: React.FC = () => {
   const { shifts, workplaces, getTotalEarnings } = useSimpleShiftStore();
   const [tabValue, setTabValue] = useState(0);
-  const [wall, setWall] = useState<WallKey>('tax123');
+  const [wall, setWall] = useState<WallKey>('tax');
   const navigate = useNavigate();
 
   // 年間扶養限度額（選択式）
@@ -147,7 +147,7 @@ export const ShiftboardSalaryManager: React.FC = () => {
                 value={wall}
                 onChange={(_, v) => v && setWall(v)}
               >
-                <ToggleButton value="tax123">{WALL_LABEL.tax123}</ToggleButton>
+                <ToggleButton value="tax">{WALL_LABEL.tax}</ToggleButton>
                 <ToggleButton value="hifu130">
                   {WALL_LABEL.hifu130}
                 </ToggleButton>

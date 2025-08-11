@@ -41,6 +41,8 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 import { useShiftStore } from '@store/shiftStore';
+import useI18nStore, { SupportedLanguage, SupportedCountry } from '@/store/i18nStore';
+import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import type { ThemeMode } from '@/types/index';
 
 interface SettingsViewProps {
@@ -54,6 +56,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 }) => {
   const theme = useTheme();
   const { shifts, workplaces } = useShiftStore();
+  const { language, country, setLanguage, setCountry } = useI18nStore();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
@@ -141,6 +144,43 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     onChange={onThemeToggle}
                     color="primary"
                   />
+                </ListItemSecondaryAction>
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <Palette />
+                </ListItemIcon>
+                <ListItemText
+                  primary="言語と言語圏"
+                  secondary="アプリの表示言語と国別ルールを設定します"
+                />
+                <ListItemSecondaryAction>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <FormControl size="small" sx={{ minWidth: 120 }}>
+                      <InputLabel>言語</InputLabel>
+                      <Select
+                        label="言語"
+                        value={language}
+                        onChange={(e) => setLanguage(e.target.value as SupportedLanguage)}
+                      >
+                        <MenuItem value={'ja'}>日本語</MenuItem>
+                        <MenuItem value={'en'}>English</MenuItem>
+                        <MenuItem value={'de'}>Deutsch</MenuItem>
+                      </Select>
+                    </FormControl>
+                    <FormControl size="small" sx={{ minWidth: 120 }}>
+                      <InputLabel>国</InputLabel>
+                      <Select
+                        label="国"
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value as SupportedCountry)}
+                      >
+                        <MenuItem value={'JP'}>日本</MenuItem>
+                        <MenuItem value={'UK'}>United Kingdom</MenuItem>
+                        <MenuItem value={'DE'}>Deutschland</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
                 </ListItemSecondaryAction>
               </ListItem>
             </List>

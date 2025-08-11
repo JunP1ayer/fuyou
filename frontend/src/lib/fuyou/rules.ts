@@ -1,4 +1,4 @@
-import { RULE_SET } from './config';
+import { getJpRuleByDate } from './config';
 
 export interface WizardAnswers {
   categories?: string[];
@@ -24,17 +24,19 @@ export interface WizardResult {
 export function evaluateRules(ans: WizardAnswers): WizardResult {
   const cards: RuleResultCard[] = [];
 
-  // 123万円（税）
-  if ((ans.incomeJPY ?? 0) <= RULE_SET.tax123) {
+  const R = getJpRuleByDate(new Date());
+
+  // 税の目安（年）
+  if ((ans.incomeJPY ?? 0) <= R.taxAnnual) {
     cards.push({
-      title: '123万円の壁（税）',
+      title: '税の目安',
       status: 'ok',
       message:
         '扶養/配偶者控除の対象になり得ます。最終判断は世帯の所得状況によって変わります。',
     });
   } else {
     cards.push({
-      title: '123万円の壁（税）',
+      title: '税の目安',
       status: 'warn',
       message:
         '配偶者特別控除帯、または扶養外の可能性があります（納税者の所得等で異なります）。',
@@ -61,7 +63,7 @@ export function evaluateRules(ans: WizardAnswers): WizardResult {
     meet106 = false;
     reasons.push('従業員51人未満（任意特定適用でなければ）');
   }
-  if ((ans.incomeJPY ?? 0) < RULE_SET.shahoMonthly * 12) {
+  if ((ans.incomeJPY ?? 0) < R.socialMonthly * 12) {
     meet106 = false;
     reasons.push('月額8.8万円未満');
   }
@@ -76,7 +78,7 @@ export function evaluateRules(ans: WizardAnswers): WizardResult {
   });
 
   // 130万円（健保の被扶養）
-  if ((ans.incomeJPY ?? 0) >= RULE_SET.hifu130) {
+  if ((ans.incomeJPY ?? 0) >= R.healthDependentAnnual) {
     cards.push({
       title: '130万円の壁（健保の被扶養）',
       status: 'ng',

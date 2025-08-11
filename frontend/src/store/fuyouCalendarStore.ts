@@ -11,13 +11,15 @@ import {
   getProgressColor,
 } from '../utils/calculations';
 import { getAnnualLimitByWall } from '../lib/fuyou/config';
+import useI18nStore from './i18nStore';
+import { getCountryLimits } from '../lib/rules/provider';
 import type { WallKey } from '../lib/fuyou/config';
 
 interface FuyouCalendarState {
   // 設定
   selectedYear: number; // 年
   selectedMonth: number; // 1-12
-  targetWall: WallKey; // 123/106/130 のいずれか
+  targetWall: WallKey; // 税/106/130 のいずれか
   isStudent: boolean; // 学生特例の有無（概算）
   customAnnualLimit?: number; // 任意の年間上限（設定時はこれを優先）
 
@@ -53,7 +55,7 @@ export const useFuyouCalendarStore = create<FuyouCalendarState>()(
       // 既定値は現在年月
       selectedYear: new Date().getFullYear(),
       selectedMonth: new Date().getMonth() + 1,
-      targetWall: 'tax123',
+      targetWall: 'tax',
       isStudent: true,
       customAnnualLimit: undefined,
 
@@ -83,10 +85,14 @@ export const useFuyouCalendarStore = create<FuyouCalendarState>()(
         const { isStudent, targetWall, customAnnualLimit } = get();
         const ytd = get().getYearToDateEarnings(shifts);
 
-        const limitUsed =
-          typeof customAnnualLimit === 'number'
-            ? customAnnualLimit
-            : getAnnualLimitByWall(targetWall);
+        // 国別の基本限度額（将来サーバ配信に置換）
+        const country = useI18nStore.getState().country;
+        const countryLimits = getCountryLimits(country);
+        const baseTaxAnnual = countryLimits.taxAnnual ?? getAnnualLimitByWall('tax');
+
+        const limitUsed = typeof customAnnualLimit === 'number'
+          ? customAnnualLimit
+          : (targetWall === 'tax' ? baseTaxAnnual : getAnnualLimitByWall(targetWall));
 
         const status = calculateFuyouStatus(ytd, isStudent, limitUsed);
         const progressColor = getProgressColor(status.progressPercentage);
