@@ -115,10 +115,10 @@ export class IntelligentOCRService {
       try {
         let shifts: CreateShiftRequest[] = [];
         let naturalLanguageMessage: string | undefined;
-        let rawResponse: any;
+        let rawResponse: unknown;
 
         switch (provider) {
-          case 'gemini':
+          case 'gemini': {
             if (this.geminiClient) {
               const geminiResult = await this.processWithGemini(imageData, userName);
               shifts = geminiResult.shifts;
@@ -128,8 +128,9 @@ export class IntelligentOCRService {
               throw new Error('Gemini client not initialized');
             }
             break;
+          }
 
-          case 'openai':
+          case 'openai': {
             if (this.openaiClient) {
               const openaiResult = await this.processWithOpenAI(imageData, userName);
               shifts = openaiResult.shifts;
@@ -139,13 +140,15 @@ export class IntelligentOCRService {
               throw new Error('OpenAI client not initialized');
             }
             break;
+          }
 
-          case 'vision':
+          case 'vision': {
             const visionResult = await this.processWithGoogleVision(imageData, userName);
             shifts = visionResult.shifts;
             naturalLanguageMessage = visionResult.naturalLanguageMessage;
             rawResponse = visionResult.rawResponse;
             break;
+          }
         }
 
         results[provider] = {
@@ -324,23 +327,39 @@ ${userFilter}
         throw new Error(`No JSON found in ${provider} response`);
       }
 
-      const parsed = JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonMatch[0]) as Record<string, unknown>;
       
       // CreateShiftRequest形式に変換
-      const shifts: CreateShiftRequest[] = (parsed.shifts || []).map((shift: any) => ({
-        date: shift.date,
-        startTime: shift.startTime,
-        endTime: shift.endTime,
-        jobSourceName: shift.jobSourceName || shift.workplace || 'アルバイト先',
-        hourlyRate: shift.hourlyRate || 1000,
-        breakMinutes: shift.breakMinutes || 60,
-        description: shift.description || `OCR自動登録 (${provider})`,
-        isConfirmed: false,
-      }));
+      const shifts: CreateShiftRequest[] = Array.isArray((parsed as Record<string, unknown>).shifts)
+        ? ((parsed as Record<string, unknown>).shifts as Array<Record<string, unknown>>).map((shift) => {
+            const s = shift as Record<string, unknown>;
+            const date = typeof s.date === 'string' ? s.date : '';
+            const startTime = typeof s.startTime === 'string' ? s.startTime : '';
+            const endTime = typeof s.endTime === 'string' ? s.endTime : '';
+            const jobSourceName = typeof s.jobSourceName === 'string'
+              ? s.jobSourceName
+              : typeof s.workplace === 'string'
+                ? s.workplace
+                : 'アルバイト先';
+            const hourlyRate = typeof s.hourlyRate === 'number' ? s.hourlyRate : 1000;
+            const breakMinutes = typeof s.breakMinutes === 'number' ? s.breakMinutes : 60;
+            const description = typeof s.description === 'string' ? s.description : `OCR自動登録 (${provider})`;
+            return {
+              date,
+              startTime,
+              endTime,
+              jobSourceName,
+              hourlyRate,
+              breakMinutes,
+              description,
+              isConfirmed: false,
+            };
+          })
+        : [];
 
       return {
         shifts,
-        naturalLanguageMessage: parsed.naturalLanguageMessage,
+        naturalLanguageMessage: (parsed as Record<string, unknown>).naturalLanguageMessage as string | undefined,
         rawResponse: parsed,
       };
     } catch (error: unknown) {

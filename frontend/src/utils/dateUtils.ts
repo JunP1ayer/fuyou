@@ -15,7 +15,8 @@ import {
   parseISO,
   formatISO,
 } from 'date-fns';
-import { ja } from 'date-fns/locale';
+import { ja, enGB, de } from 'date-fns/locale';
+import useI18nStore from '../store/i18nStore';
 
 /**
  * 日付を YYYY-MM-DD 形式の文字列に変換
@@ -34,8 +35,11 @@ export const parseDateString = (dateString: string): Date => {
 /**
  * 日付を日本語形式でフォーマット
  */
-export const formatJapaneseDate = (date: Date, pattern = 'M月d日'): string => {
-  return format(date, pattern, { locale: ja });
+export const formatLocalizedDate = (date: Date, patternJa = 'M月d日', patternDefault = 'MMM d'): string => {
+  const { language } = useI18nStore.getState();
+  const locale = language === 'ja' ? ja : language === 'de' ? de : enGB;
+  const pattern = language === 'ja' ? patternJa : patternDefault;
+  return format(date, pattern, { locale });
 };
 
 /**
@@ -73,18 +77,26 @@ export const minutesToTimeString = (minutes: number): string => {
 export const calculateWorkMinutes = (
   startTime: string,
   endTime: string,
-  breakMinutes = 0
+  breakMinutes = 0,
+  options?: { startDate?: string; endDate?: string; timeZone?: string }
 ): number => {
-  const start = timeStringToMinutes(startTime);
-  let end = timeStringToMinutes(endTime);
-
-  // 日をまたぐ場合の処理
-  if (end < start) {
-    end += 24 * 60;
+  // 高精度: 実日付＋TZ指定があればDateで差分を取る
+  if (options?.startDate && options?.endDate) {
+    const tz = options.timeZone;
+    const startIso = `${options.startDate}T${startTime}:00${tz ? '' : ''}`;
+    const endIso = `${options.endDate}T${endTime}:00${tz ? '' : ''}`;
+    const start = new Date(startIso);
+    const end = new Date(endIso);
+    let diff = Math.max(0, (end.getTime() - start.getTime()) / 60000);
+    diff -= breakMinutes;
+    return Math.max(0, Math.floor(diff));
   }
 
-  const totalMinutes = end - start - breakMinutes;
-  return Math.max(0, totalMinutes);
+  // 従来ロジック（同一日、跨日を分ロジックで補正）
+  const start = timeStringToMinutes(startTime);
+  let end = timeStringToMinutes(endTime);
+  if (end < start) end += 24 * 60;
+  return Math.max(0, end - start - breakMinutes);
 };
 
 /**
@@ -140,7 +152,11 @@ export const navigateMonth = (
  * 週の日本語名を取得
  */
 export const getWeekDayNames = (): string[] => {
-  return ['日', '月', '火', '水', '木', '金', '土'];
+  const { language } = useI18nStore.getState();
+  const base = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  if (language === 'ja') return ['日', '月', '火', '水', '木', '金', '土'];
+  if (language === 'de') return ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  return base;
 };
 
 /**

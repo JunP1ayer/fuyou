@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "isolatedModules": true,
+    "types": ["vitest/globals", "jest-dom"],
+    "noEmit": true
+  },
+  "include": [
+    "src/test/**/*.ts",
+    "src/test/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
+
+

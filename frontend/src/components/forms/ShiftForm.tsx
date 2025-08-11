@@ -37,6 +37,7 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ja } from 'date-fns/locale';
+import useI18nStore from '@/store/i18nStore';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
@@ -59,6 +60,7 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
   onSubmit,
 }) => {
   const theme = useTheme();
+  const { country } = useI18nStore();
   const { addShift, updateShift, workplaces } = useShiftStore();
 
   const isEditing = Boolean(shift);
@@ -468,7 +470,7 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
                 }
                 InputProps={{
                   startAdornment: (
-                    <InputAdornment position="start">¥</InputAdornment>
+                    <InputAdornment position="start">{country === 'UK' ? '£' : country === 'DE' || country === 'FI' || country === 'AT' ? '€' : country === 'DK' || country === 'NO' ? 'kr' : country === 'PL' ? 'zł' : country === 'HU' ? 'Ft' : '¥'}</InputAdornment>
                   ),
                   inputProps: { min: 0, max: 10000 },
                 }}

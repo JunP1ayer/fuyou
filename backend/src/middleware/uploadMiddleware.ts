@@ -1,5 +1,6 @@
 import multer from 'multer';
-import { Request } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import type { Express } from 'express';
 
 // セキュアなファイルアップロード設定
 const storage = multer.memoryStorage(); // メモリ保存（ファイルを残さない）
@@ -27,7 +28,7 @@ export const uploadConfig = multer({
 });
 
 // ファイル検証ミドルウェア
-export const validateImageFile = (req: Request, res: any, next: any) => {
+export const validateImageFile = (req: Request, res: Response, next: NextFunction) => {
   if (!req.file) {
     return res.status(400).json({
       success: false,

@@ -36,12 +36,15 @@ import {
   Refresh,
   GetApp,
   School,
+  ViewModule,
+  ViewAgenda,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 import { useShiftStore } from '@store/shiftStore';
 import useI18nStore, { SupportedLanguage, SupportedCountry } from '@/store/i18nStore';
+import { useI18n } from '@/hooks/useI18n';
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import type { ThemeMode } from '@/types/index';
 
@@ -57,14 +60,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const theme = useTheme();
   const { shifts, workplaces } = useShiftStore();
   const { language, country, setLanguage, setCountry } = useI18nStore();
+  const { t } = useI18n();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  
+  // カレンダー表示モード設定
+  const [calendarViewMode, setCalendarViewMode] = useState<'vertical' | 'horizontal'>(() => {
+    const saved = localStorage.getItem('calendarViewMode') as 'vertical' | 'horizontal';
+    return saved || 'vertical';
+  });
+
+  // カレンダー表示モード変更
+  const handleCalendarViewModeChange = () => {
+    const newMode = calendarViewMode === 'vertical' ? 'horizontal' : 'vertical';
+    setCalendarViewMode(newMode);
+    localStorage.setItem('calendarViewMode', newMode);
+    toast.success(
+      t(
+        newMode === 'vertical'
+          ? 'settings.calendarMode.changedToVertical'
+          : 'settings.calendarMode.changedToHorizontal',
+        newMode === 'vertical' ? '縦スクロールに変更しました' : '横表示に変更しました'
+      )
+    );
+  };
 
   // データ削除
   const handleDataDelete = () => {
     localStorage.clear();
     sessionStorage.clear();
-    toast.success('全データを削除しました');
+    toast.success(t('settings.data.deletedAll', '全データを削除しました'));
     setDeleteDialogOpen(false);
     setTimeout(() => {
       window.location.reload();
@@ -92,7 +117,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    toast.success('データをエクスポートしました');
+    toast.success(t('settings.data.exported', 'データをエクスポートしました'));
     setExportDialogOpen(false);
   };
 
@@ -109,10 +134,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       {/* ヘッダー */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          ⚙️ 設定
+          {t('settings.title', '⚙️ 設定')}
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          アプリの設定とデータ管理
+          {t('settings.subtitle', 'アプリの設定とデータ管理')}
         </Typography>
       </Box>
 
@@ -125,7 +150,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              🎨 表示設定
+              {t('settings.display.title', '🎨 表示設定')}
             </Typography>
 
             <List disablePadding>
@@ -134,8 +159,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   {themeMode === 'dark' ? <DarkMode /> : <LightMode />}
                 </ListItemIcon>
                 <ListItemText
-                  primary="ダークモード"
-                  secondary="暗いテーマで表示します"
+                  primary={t('settings.display.darkMode', 'ダークモード')}
+                  secondary={t('settings.display.darkMode.desc', '暗いテーマで表示します')}
                 />
                 <ListItemSecondaryAction>
                   <Switch
@@ -148,36 +173,67 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </ListItem>
               <ListItem>
                 <ListItemIcon>
+                  {calendarViewMode === 'vertical' ? <ViewAgenda /> : <ViewModule />}
+                </ListItemIcon>
+                <ListItemText
+                  primary={t('settings.display.calendarMode', 'カレンダー表示モード')}
+                  secondary={
+                    calendarViewMode === 'vertical'
+                      ? t('settings.display.calendarMode.verticalDesc', 'モバイル向け縦スクロール表示')
+                      : t('settings.display.calendarMode.horizontalDesc', 'PC向け横表示モード')
+                  }
+                />
+                <ListItemSecondaryAction>
+                  <Switch
+                    edge="end"
+                    checked={calendarViewMode === 'horizontal'}
+                    onChange={handleCalendarViewModeChange}
+                    color="primary"
+                  />
+                </ListItemSecondaryAction>
+              </ListItem>
+              
+              <ListItem>
+                <ListItemIcon>
                   <Palette />
                 </ListItemIcon>
                 <ListItemText
-                  primary="言語と言語圏"
-                  secondary="アプリの表示言語と国別ルールを設定します"
+                  primary={t('settings.locale.title', '言語と言語圏')}
+                  secondary={t('settings.locale.subtitle', 'アプリの表示言語と国別ルールを設定します')}
                 />
                 <ListItemSecondaryAction>
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <FormControl size="small" sx={{ minWidth: 120 }}>
-                      <InputLabel>言語</InputLabel>
+                      <InputLabel>{t('settings.language', '言語')}</InputLabel>
                       <Select
-                        label="言語"
+                        label={t('settings.language', '言語')}
                         value={language}
                         onChange={(e) => setLanguage(e.target.value as SupportedLanguage)}
                       >
-                        <MenuItem value={'ja'}>日本語</MenuItem>
-                        <MenuItem value={'en'}>English</MenuItem>
-                        <MenuItem value={'de'}>Deutsch</MenuItem>
+                        <MenuItem value={'ja'}>{t('lang.ja', '日本語')}</MenuItem>
+                        <MenuItem value={'en'}>{t('lang.en', 'English')}</MenuItem>
+                        <MenuItem value={'de'}>{t('lang.de', 'Deutsch')}</MenuItem>
+                        <MenuItem value={'da'}>{t('lang.da', 'Dansk')}</MenuItem>
+                        <MenuItem value={'fi'}>{t('lang.fi', 'Suomi')}</MenuItem>
+                        <MenuItem value={'no'}>{t('lang.no', 'Norsk')}</MenuItem>
                       </Select>
                     </FormControl>
                     <FormControl size="small" sx={{ minWidth: 120 }}>
-                      <InputLabel>国</InputLabel>
+                      <InputLabel>{t('settings.country', '国')}</InputLabel>
                       <Select
-                        label="国"
+                        label={t('settings.country', '国')}
                         value={country}
                         onChange={(e) => setCountry(e.target.value as SupportedCountry)}
                       >
-                        <MenuItem value={'JP'}>日本</MenuItem>
-                        <MenuItem value={'UK'}>United Kingdom</MenuItem>
-                        <MenuItem value={'DE'}>Deutschland</MenuItem>
+                        <MenuItem value={'JP'}>{t('country.JP', '日本')}</MenuItem>
+                        <MenuItem value={'UK'}>{t('country.UK', 'United Kingdom')}</MenuItem>
+                        <MenuItem value={'DE'}>{t('country.DE', 'Deutschland')}</MenuItem>
+                        <MenuItem value={'DK'}>{t('country.DK', 'Danmark')}</MenuItem>
+                        <MenuItem value={'FI'}>{t('country.FI', 'Suomi')}</MenuItem>
+                        <MenuItem value={'NO'}>{t('country.NO', 'Norge')}</MenuItem>
+                        <MenuItem value={'AT'}>{t('country.AT', 'Österreich')}</MenuItem>
+                        <MenuItem value={'PL'}>{t('country.PL', 'Polska')}</MenuItem>
+                        <MenuItem value={'HU'}>{t('country.HU', 'Magyarország')}</MenuItem>
                       </Select>
                     </FormControl>
                   </Box>
@@ -197,7 +253,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              💾 データ管理
+              {t('settings.data.title', '💾 データ管理')}
             </Typography>
 
             <List disablePadding>
@@ -206,8 +262,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <GetApp />
                 </ListItemIcon>
                 <ListItemText
-                  primary="データのエクスポート"
-                  secondary="シフトデータをJSON形式でダウンロード"
+                  primary={t('settings.data.export', 'データのエクスポート')}
+                  secondary={t('settings.data.export.desc', 'シフトデータをJSON形式でダウンロード')}
                 />
                 <ListItemSecondaryAction>
                   <Button
@@ -216,7 +272,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     onClick={() => setExportDialogOpen(true)}
                     sx={{ borderRadius: 2 }}
                   >
-                    エクスポート
+                    {t('common.export', 'エクスポート')}
                   </Button>
                 </ListItemSecondaryAction>
               </ListItem>
@@ -228,8 +284,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <Delete color="error" />
                 </ListItemIcon>
                 <ListItemText
-                  primary="全データを削除"
-                  secondary="保存されているすべてのデータを削除します"
+                  primary={t('settings.data.deleteAll', '全データを削除')}
+                  secondary={t('settings.data.deleteAll.desc', '保存されているすべてのデータを削除します')}
                 />
                 <ListItemSecondaryAction>
                   <Button
@@ -239,7 +295,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     onClick={() => setDeleteDialogOpen(true)}
                     sx={{ borderRadius: 2 }}
                   >
-                    削除
+                    {t('common.delete', '削除')}
                   </Button>
                 </ListItemSecondaryAction>
               </ListItem>
@@ -257,7 +313,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <Card>
           <CardContent>
             <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              ℹ️ アプリ情報
+              {t('settings.appInfo.title', 'ℹ️ アプリ情報')}
             </Typography>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -269,7 +325,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 }}
               >
                 <Typography variant="body2" color="text.secondary">
-                  バージョン
+                  {t('settings.appInfo.version', 'バージョン')}
                 </Typography>
                 <Chip label={`v${appInfo.version}`} size="small" />
               </Box>
@@ -282,7 +338,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 }}
               >
                 <Typography variant="body2" color="text.secondary">
-                  登録シフト数
+                  {t('settings.appInfo.totalShifts', '登録シフト数')}
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
                   {appInfo.totalShifts}件
@@ -297,7 +353,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 }}
               >
                 <Typography variant="body2" color="text.secondary">
-                  登録勤務先数
+                  {t('settings.appInfo.totalWorkplaces', '登録勤務先数')}
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
                   {appInfo.totalWorkplaces}件
@@ -312,7 +368,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 }}
               >
                 <Typography variant="body2" color="text.secondary">
-                  データサイズ
+                  {t('settings.appInfo.dataSize', 'データサイズ')}
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
                   {appInfo.dataSize}
@@ -328,10 +384,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               sx={{ mt: 2, borderRadius: 2 }}
             >
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                🎓 学生向け扶養管理アプリ
+                {t('settings.appInfo.badgeTitle', '🎓 学生向け扶養管理アプリ')}
               </Typography>
               <Typography variant="body2" sx={{ mt: 0.5 }}>
-                2025年税制改正対応・最新の学生特例制度（150万円）に対応しています
+                {t('settings.appInfo.badgeDesc', '2025年税制改正対応・最新の学生特例制度（150万円）に対応しています')}
               </Typography>
             </Alert>
           </CardContent>
@@ -346,28 +402,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         fullWidth
       >
         <DialogTitle sx={{ color: 'error.main', fontWeight: 600 }}>
-          🗑️ データ削除の確認
+          {t('settings.data.deleteConfirm.title', '🗑️ データ削除の確認')}
         </DialogTitle>
         <DialogContent>
           <Alert severity="error" sx={{ mb: 2 }}>
-            この操作は取り消せません！
+            {t('settings.data.deleteConfirm.irreversible', 'この操作は取り消せません！')}
           </Alert>
           <Typography variant="body1" gutterBottom>
-            以下のデータが完全に削除されます：
+            {t('settings.data.deleteConfirm.willDelete', '以下のデータが完全に削除されます：')}
           </Typography>
           <Box component="ul" sx={{ pl: 3, mt: 1 }}>
             <Typography component="li" variant="body2">
-              全シフトデータ（{appInfo.totalShifts}件）
+              {t('settings.data.deleteConfirm.list.shifts', '全シフトデータ')}（{appInfo.totalShifts}{t('common.items', '件')}）
             </Typography>
             <Typography component="li" variant="body2">
-              勤務先情報（{appInfo.totalWorkplaces}件）
+              {t('settings.data.deleteConfirm.list.workplaces', '勤務先情報')}（{appInfo.totalWorkplaces}{t('common.items', '件')}）
             </Typography>
             <Typography component="li" variant="body2">
-              アプリの設定
+              {t('settings.data.deleteConfirm.list.appSettings', 'アプリの設定')}
             </Typography>
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            データを復元したい場合は、事前にエクスポートしておくことをお勧めします。
+            {t('settings.data.deleteConfirm.notice', 'データを復元したい場合は、事前にエクスポートしておくことをお勧めします。')}
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -375,7 +431,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             onClick={() => setDeleteDialogOpen(false)}
             sx={{ borderRadius: 2 }}
           >
-            キャンセル
+            {t('common.cancel', 'キャンセル')}
           </Button>
           <Button
             onClick={handleDataDelete}
@@ -383,7 +439,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             variant="contained"
             sx={{ borderRadius: 2 }}
           >
-            削除する
+            {t('settings.data.deleteConfirm.confirm', '削除する')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -396,25 +452,25 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         fullWidth
       >
         <DialogTitle sx={{ fontWeight: 600 }}>
-          📤 データのエクスポート
+          {t('settings.data.export.title', '📤 データのエクスポート')}
         </DialogTitle>
         <DialogContent>
           <Typography variant="body1" gutterBottom>
-            以下のデータをJSONファイルとしてダウンロードします：
+            {t('settings.data.export.message', '以下のデータをJSONファイルとしてダウンロードします：')}
           </Typography>
           <Box component="ul" sx={{ pl: 3, mt: 1, mb: 2 }}>
             <Typography component="li" variant="body2">
-              シフトデータ（{appInfo.totalShifts}件）
+              {t('settings.data.export.list.shifts', 'シフトデータ')}（{appInfo.totalShifts}{t('common.items', '件')}）
             </Typography>
             <Typography component="li" variant="body2">
-              勤務先情報（{appInfo.totalWorkplaces}件）
+              {t('settings.data.export.list.workplaces', '勤務先情報')}（{appInfo.totalWorkplaces}{t('common.items', '件')}）
             </Typography>
             <Typography component="li" variant="body2">
-              エクスポート日時・バージョン情報
+              {t('settings.data.export.list.meta', 'エクスポート日時・バージョン情報')}
             </Typography>
           </Box>
           <Alert severity="info" sx={{ borderRadius: 2 }}>
-            このファイルは他のデバイスでのデータ移行やバックアップに使用できます。
+            {t('settings.data.export.tip', 'このファイルは他のデバイスでのデータ移行やバックアップに使用できます。')}
           </Alert>
         </DialogContent>
         <DialogActions>
@@ -422,14 +478,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             onClick={() => setExportDialogOpen(false)}
             sx={{ borderRadius: 2 }}
           >
-            キャンセル
+            {t('common.cancel', 'キャンセル')}
           </Button>
           <Button
             onClick={handleDataExport}
             variant="contained"
             sx={{ borderRadius: 2 }}
           >
-            ダウンロード
+            {t('common.download', 'ダウンロード')}
           </Button>
         </DialogActions>
       </Dialog>

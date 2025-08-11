@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>接続テスト</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+        }
+        .success {
+            color: #28a745;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success">✅</div>
+        <h1>サーバー接続成功！</h1>
+        <p>扶養カレンダーの開発サーバーが正常に動作しています。</p>
+        
+        <div class="info">
+            <p><strong>アクセス情報:</strong></p>
+            <p>Port: <span id="port"></span></p>
+            <p>Time: <span id="time"></span></p>
+        </div>
+        
+        <button class="btn" onclick="testReactApp()">メインアプリをテスト</button>
+        <button class="btn" onclick="checkConsole()">コンソールを確認</button>
+    </div>
+
+    <script>
+        // ポート番号の表示
+        document.getElementById('port').textContent = window.location.port || '80';
+        document.getElementById('time').textContent = new Date().toLocaleString();
+
+        function testReactApp() {
+            console.log('Reactアプリをテスト中...');
+            window.location.href = '/';
+        }
+
+        function checkConsole() {
+            console.log('=== 扶養カレンダー デバッグ情報 ===');
+            console.log('URL:', window.location.href);
+            console.log('UserAgent:', navigator.userAgent);
+            console.log('ViewPort:', window.innerWidth + 'x' + window.innerHeight);
+            alert('ブラウザの開発者ツール(F12)でコンソールを確認してください');
+        }
+    </script>
+</body>
+</html>

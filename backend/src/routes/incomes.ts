@@ -14,11 +14,11 @@ router.get(
   validateQuery(GetIncomesSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user!.id;
-    const { page, limit, startDate, endDate, source } = req.query as any;
+    const { page, limit, startDate, endDate, source } = req.query as Record<string, string>;
 
     let query = supabase
       .from('incomes')
-      .select('*')
+      .select('id,user_id,amount,source,description,income_date,created_at,metadata', { count: 'exact' })
       .eq('user_id', userId)
       .order('income_date', { ascending: false });
 
@@ -36,8 +36,10 @@ router.get(
     }
 
     // Pagination
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
+    const pageNum = parseInt(page as unknown as string) || 1;
+    const limitNum = parseInt(limit as unknown as string) || 10;
+    const from = (pageNum - 1) * limitNum;
+    const to = from + limitNum - 1;
     query = query.range(from, to);
 
     const { data: incomes, error, count } = await query;
@@ -54,8 +56,8 @@ router.get(
       data: incomes,
       meta: {
         total: count,
-        page,
-        limit,
+        page: pageNum,
+        limit: limitNum,
       },
     });
   })
@@ -64,8 +66,8 @@ router.get(
 // POST /api/incomes
 router.post(
   '/',
-  requireAuth,
   validateSchema(CreateIncomeSchema),
+  requireAuth,
   asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user!.id;
     const { amount, source, description, incomeDate } = req.body;
@@ -108,7 +110,7 @@ router.get(
 
     const { data: income, error } = await supabase
       .from('incomes')
-      .select('*')
+      .select('id,user_id,amount,source,description,income_date,created_at,metadata')
       .eq('id', incomeId)
       .eq('user_id', userId)
       .single();
@@ -157,7 +159,7 @@ router.put(
       .update(updateData)
       .eq('id', incomeId)
       .eq('user_id', userId)
-      .select()
+      .select('id,user_id,amount,source,description,income_date,created_at,metadata')
       .single();
 
     if (error) {

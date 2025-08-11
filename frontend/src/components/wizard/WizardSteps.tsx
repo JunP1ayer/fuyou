@@ -16,6 +16,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { evaluateRules, type WizardAnswers } from '../../lib/fuyou/rules';
 import { useSimpleShiftStore } from '../../store/simpleShiftStore';
+import { formatCurrency } from '../../utils/calculations';
 
 export const WizardSteps: React.FC = () => {
   const navigate = useNavigate();
@@ -146,12 +147,11 @@ export const WizardSteps: React.FC = () => {
             color="text.secondary"
             sx={{ display: 'block', mb: 1 }}
           >
-            今年の登録済み見込み: ¥{ytd.toLocaleString()} / 残り
+            今年の登録済み見込み: {formatCurrency(ytd)} / 残り
             {remainingMonths}か月を入力ペースで見積り
           </Typography>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
-            今年の見込み収入（自動計算）: ¥
-            {Number.isFinite(projected) ? projected.toLocaleString() : '—'}
+            今年の見込み収入（自動計算）: {Number.isFinite(projected) ? formatCurrency(projected) : '—'}
           </Typography>
 
           <Button

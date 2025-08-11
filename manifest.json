@@ -1,7 +1,7 @@
 {
-  "name": "扶養プロ - 学生バイト扶養管理アプリ",
-  "short_name": "扶養プロ",
-  "description": "学生アルバイト向けの扶養控除管理システム。AI画像解析でシフト表を自動読み込み、複数バイト先の収入を最適化管理。",
+  "name": "扶養プロ 3.0 - グローバル学生バイト管理",
+  "short_name": "扶養プロ 3.0",
+  "description": "グローバル対応学生バイト管理アプリ。AI画像解析、友達シフト共有、9カ国対応税制で最適収入管理。オフライン完全対応。",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -44,13 +44,25 @@
   ],
   "shortcuts": [
     {
-      "name": "シフト追加",
-      "short_name": "シフト追加",
-      "description": "新しいシフトを追加",
-      "url": "/?action=add-shift",
+      "name": "バイト管理",
+      "short_name": "バイト管理",
+      "description": "バイト先管理とAI提出",
+      "url": "/?tab=submit",
       "icons": [
         {
-          "src": "shortcut-add.png",
+          "src": "shortcut-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "友達共有",
+      "short_name": "友達共有",
+      "description": "友達とシフト共有",
+      "url": "/?tab=submit&view=friends",
+      "icons": [
+        {
+          "src": "shortcut-96.png",
           "sizes": "96x96"
         }
       ]
@@ -59,22 +71,22 @@
       "name": "AI分析",
       "short_name": "AI分析",
       "description": "シフト表をAI分析",
-      "url": "/?tab=ai-analysis",
+      "url": "/?tab=submit&view=ai",
       "icons": [
         {
-          "src": "shortcut-ai.png",
+          "src": "shortcut-96.png",
           "sizes": "96x96"
         }
       ]
     },
     {
-      "name": "分析レポート",
-      "short_name": "分析",
-      "description": "収入分析を表示",
-      "url": "/?tab=analytics",
+      "name": "収入レポート",
+      "short_name": "レポート",
+      "description": "収入分析と統計",
+      "url": "/?tab=salary",
       "icons": [
         {
-          "src": "shortcut-analytics.png",
+          "src": "shortcut-96.png",
           "sizes": "96x96"
         }
       ]

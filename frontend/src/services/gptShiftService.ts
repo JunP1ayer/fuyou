@@ -192,7 +192,7 @@ export const generateShiftAnalysisPrompt = (
 
 勤務先情報:
 - 名前: ${workplace.name}
-- 時給: ${workplace.defaultHourlyRate}円
+      - 時給: ${workplace.defaultHourlyRate}
 
 シフトテキスト:
 ${shiftText}

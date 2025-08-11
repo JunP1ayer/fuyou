@@ -3,6 +3,7 @@
 export interface Shift {
   id: string;
   date: string; // YYYY-MM-DD format
+  endDate?: string; // Optional: YYYY-MM-DD if cross-day
   startTime: string; // HH:MM format
   endTime: string; // HH:MM format
   workplaceId: string;
@@ -22,6 +23,7 @@ export interface Workplace {
   name: string;
   color: string; // hex color for UI
   defaultHourlyRate: number;
+  timeZone?: string; // IANA timezone, e.g., 'Asia/Tokyo', 'Europe/Berlin'
   address?: string;
   phone?: string;
   notes?: string;

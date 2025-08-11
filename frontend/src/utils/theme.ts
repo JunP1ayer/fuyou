@@ -55,11 +55,16 @@ const colors = {
   },
   background: {
     light: '#fafafa',
-    dark: '#121212',
+    dark: '#0a0a0a', // より深い黒
   },
   surface: {
     light: '#ffffff',
-    dark: '#1e1e1e',
+    dark: '#1a1a1a', // OLED対応の深い黒
+  },
+  darkSurface: {
+    primary: '#1a1a1a',
+    secondary: '#2d2d2d',
+    tertiary: '#404040',
   },
   gradient: {
     primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -110,7 +115,15 @@ const getThemeOptions = (mode: ThemeMode): ThemeOptions => ({
       },
       text: {
         primary: '#ffffff',
-        secondary: 'rgba(255, 255, 255, 0.7)',
+        secondary: 'rgba(255, 255, 255, 0.8)',
+        disabled: 'rgba(255, 255, 255, 0.5)',
+      },
+      divider: 'rgba(255, 255, 255, 0.12)',
+      action: {
+        hover: 'rgba(255, 255, 255, 0.08)',
+        selected: 'rgba(255, 255, 255, 0.12)',
+        disabled: 'rgba(255, 255, 255, 0.26)',
+        disabledBackground: 'rgba(255, 255, 255, 0.12)',
       },
     }),
   },

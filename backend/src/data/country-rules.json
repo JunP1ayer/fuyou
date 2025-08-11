@@ -1,0 +1,16 @@
+{
+  "updatedAt": "2025-01-01T00:00:00.000Z",
+  "rules": [
+    {"country": "JP", "currency": "JPY", "taxAnnual": 1230000, "healthDependentAnnual": 1300000, "socialMonthly": 1060000, "labels": {"tax": "税の目安", "hifu130": "130万（健保）", "shaho106": "106万（社保）"}, "sources": ["https://www.nta.go.jp/"]},
+    {"country": "UK", "currency": "GBP", "taxAnnual": 12570, "socialMonthly": 1048, "labels": {"tax": "Personal Allowance", "shaho106": "NI threshold (monthly)"}, "sources": ["https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2025-to-2026"]},
+    {"country": "DE", "currency": "EUR", "taxAnnual": 556*12, "socialMonthly": 556, "labels": {"tax": "Minijob (annualised)", "shaho106": "Minijob monthly"}, "sources": ["https://www.minijob-zentrale.de/"]},
+    {"country": "AT", "currency": "EUR", "taxAnnual": 518*12, "socialMonthly": 518, "labels": {"tax": "Geringfügigkeit (annualised)", "shaho106": "Geringfügigkeit (monthly)"}, "sources": ["https://www.ams.at/"]},
+    {"country": "DK", "currency": "DKK", "taxAnnual": 13900*12, "socialMonthly": 13900, "labels": {"tax": "SU fribeløb (årlig)", "shaho106": "SU fribeløb (månedlig)"}, "sources": ["https://www.su.dk/"]},
+    {"country": "FI", "currency": "EUR", "taxAnnual": 15000, "socialMonthly": 1250, "labels": {"tax": "Kela tuloraja (vuosi)", "shaho106": "Kela tuloraja (kk 目安)"}, "sources": ["https://www.kela.fi/"]},
+    {"country": "NO", "currency": "NOK", "taxAnnual": 215000, "socialMonthly": 17917, "labels": {"tax": "Fribeløp (årlig)", "shaho106": "Fribeløp (månedlig 目安)"}, "sources": ["https://lanekassen.no/"]},
+    {"country": "PL", "currency": "PLN", "taxAnnual": 85528, "socialMonthly": 7127, "labels": {"tax": "PIT exemption <26y (rocznie)"}, "sources": ["https://www.podatki.gov.pl/"]},
+    {"country": "HU", "currency": "HUF", "taxAnnual": 600000*12, "socialMonthly": 600000, "labels": {"tax": "Under 25 PIT relief (annualised)"}, "sources": ["https://nav.gov.hu/"]}
+  ]
+}
+
+

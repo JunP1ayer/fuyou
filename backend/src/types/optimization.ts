@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// このファイルは将来の最適化機能のための定数・型定義を含みます。
+// 現状では参照されないため、未使用警告を抑制します。
 // Phase 4: Optimization Algorithm Types
 // TypeScript types for the optimization system
 
@@ -63,7 +66,7 @@ export const OptimizationConstraintSchema = z.object({
   constraintUnit: z.nativeEnum(ConstraintUnit),
   priority: z.number().int().min(1).max(3).default(1),
   isActive: z.boolean().default(true),
-  metadata: z.record(z.any()).optional()
+  metadata: z.record(z.unknown()).optional()
 });
 
 export const CreateOptimizationConstraintSchema = OptimizationConstraintSchema;
@@ -81,7 +84,7 @@ export const OptimizationRunSchema = z.object({
     'Invalid end date format'
   ),
   algorithmUsed: z.nativeEnum(AlgorithmType).optional(),
-  inputData: z.record(z.any()).optional(),
+  inputData: z.record(z.unknown()).optional(),
   preferences: z.object({
     maxIterations: z.number().int().positive().optional(),
     timeout: z.number().int().positive().optional(),
@@ -148,7 +151,7 @@ export interface OptimizationConstraintResponse {
   constraintUnit: ConstraintUnit;
   priority: number;
   isActive: boolean;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
@@ -159,8 +162,8 @@ export interface OptimizationRunResponse {
   objectiveType: ObjectiveType;
   timePeriodStart: string;
   timePeriodEnd: string;
-  inputData: Record<string, any>;
-  resultData?: Record<string, any>;
+  inputData: Record<string, unknown>;
+  resultData?: Record<string, unknown>;
   executionTimeMs?: number;
   status: OptimizationStatus;
   errorMessage?: string;
@@ -180,7 +183,7 @@ export interface OptimizationSuggestionResponse {
   confidenceScore: number;
   isApplied: boolean;
   appliedAt?: string;
-  userFeedback?: Record<string, any>;
+  userFeedback?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
@@ -279,7 +282,7 @@ export interface OptimizationResult {
     algorithmUsed: AlgorithmType;
     executionTimeMs: number;
     confidenceScore: number;
-    metadata: Record<string, any>;
+    metadata: Record<string, unknown>;
   };
   error?: string;
   timestamp?: string;

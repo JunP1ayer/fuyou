@@ -1,17 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
+import { z, ZodTypeAny } from 'zod';
 import { authService } from '../services/authService';
 
 // Validation middleware factory
-export const validateSchema = (schema: any, property: 'body' | 'query' | 'params' = 'body') => {
+export const validateSchema = (schema: ZodTypeAny, property: 'body' | 'query' | 'params' = 'body') => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       // Use Zod parse method instead of validate
       schema.parse(req[property]);
       next();
-    } catch (error: any) {
-      const errorMessage = error.errors 
-        ? error.errors.map((err: any) => err.message).join(', ')
-        : error.message || 'Validation failed';
+    } catch (error: unknown) {
+      const zerr = error as z.ZodError | Error;
+      const errorMessage = (zerr as z.ZodError).errors
+        ? (zerr as z.ZodError).errors.map((err) => err.message).join(', ')
+        : (zerr as Error).message || 'Validation failed';
       
       return res.status(400).json({
         success: false,
@@ -148,9 +150,9 @@ export const requireAuthOrDemo = async (req: Request, res: Response, next: NextF
     const user = await authService.getCurrentUser(req);
     req.user = user;
     next();
-  } catch (error) {
-    const statusCode = (error as any).statusCode || 401;
-    const message = (error as any).message || 'Authentication failed';
+  } catch (error: unknown) {
+    const statusCode = (error as { statusCode?: number })?.statusCode ?? 401;
+    const message = (error as Error)?.message || 'Authentication failed';
     
     return res.status(statusCode).json({
       success: false,
@@ -160,7 +162,7 @@ export const requireAuthOrDemo = async (req: Request, res: Response, next: NextF
 };
 
 // Query validation middleware
-export const validateQuery = (schema: any) => {
+export const validateQuery = (schema: ZodTypeAny) => {
   return validateSchema(schema, 'query');
 };
 

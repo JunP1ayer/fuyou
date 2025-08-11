@@ -12,6 +12,7 @@ export interface AuthUser {
 
 // Express型拡張
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       user?: AuthUser;
@@ -20,13 +21,13 @@ declare global {
 }
 
 // Common response types
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: {
     message: string;
     code?: string;
-    details?: any;
+    details?: unknown;
   };
   meta?: {
     total?: number;
@@ -218,7 +219,7 @@ export interface JobSourceResponse {
   category: IncomeCategory;
   hourlyRate?: number;
   expectedMonthlyHours?: number;
-  bankAccountInfo?: Record<string, any>;
+  bankAccountInfo?: Record<string, unknown>;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -374,7 +375,7 @@ export interface AIProcessingResult {
   processingTime: number;
   shifts: CreateShiftRequest[];
   naturalLanguageMessage?: string;
-  rawResponse?: any;
+  rawResponse?: unknown;
   error?: string;
 }
 
@@ -384,7 +385,7 @@ export interface ConsolidatedOCRResult {
     field: string;
     values: Array<{
       provider: string;
-      value: any;
+        value: unknown;
       confidence: number;
     }>;
   }>;

@@ -43,6 +43,8 @@ import {
   type WallKey,
 } from '../lib/fuyou/config';
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
+import useI18nStore from '../store/i18nStore';
+import { formatCurrency } from '../utils/calculations';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -62,6 +64,7 @@ function TabPanel(props: TabPanelProps) {
 
 export const ShiftboardSalaryManager: React.FC = () => {
   const { shifts, workplaces, getTotalEarnings } = useSimpleShiftStore();
+  const { language, country } = useI18nStore();
   const [tabValue, setTabValue] = useState(0);
   const [wall, setWall] = useState<WallKey>('tax');
   const navigate = useNavigate();
@@ -134,7 +137,7 @@ export const ShiftboardSalaryManager: React.FC = () => {
         <CardContent>
           <Box sx={{ textAlign: 'center', mb: 4 }}>
             <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-              ¥{totalEarnings.toLocaleString()}
+              {formatCurrency(totalEarnings)}
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
               今年の収入
@@ -179,7 +182,7 @@ export const ShiftboardSalaryManager: React.FC = () => {
             </Box>
 
             <Typography variant="body2" color="text.secondary">
-              壁まで残り ¥{Math.max(0, remainingAmount).toLocaleString()}
+              壁まで残り {formatCurrency(Math.max(0, remainingAmount))}
             </Typography>
             <Box sx={{ mt: 2 }}>
               <Button variant="outlined" onClick={() => navigate('/wizard')}>
@@ -203,7 +206,7 @@ export const ShiftboardSalaryManager: React.FC = () => {
             <Grid item xs={6} sm={3}>
               <Box sx={{ textAlign: 'center', p: 2 }}>
                 <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
-                  ¥{thisMonthEarnings.toLocaleString()}
+                  {formatCurrency(thisMonthEarnings)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   今月
@@ -214,10 +217,7 @@ export const ShiftboardSalaryManager: React.FC = () => {
             <Grid item xs={6} sm={3}>
               <Box sx={{ textAlign: 'center', p: 2 }}>
                 <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
-                  ¥
-                  {shifts.length > 0
-                    ? Math.round(totalEarnings / shifts.length).toLocaleString()
-                    : '0'}
+                  {formatCurrency(shifts.length > 0 ? Math.round(totalEarnings / shifts.length) : 0)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   平均/日
@@ -292,7 +292,7 @@ export const ShiftboardSalaryManager: React.FC = () => {
                       </Box>
                     </Box>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                      ¥{workplace.earnings.toLocaleString()}
+                      {formatCurrency(workplace.earnings)}
                     </Typography>
                   </Box>
                 ))}
@@ -339,7 +339,7 @@ export const ShiftboardSalaryManager: React.FC = () => {
                           )}
                         </Box>
                         <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                          ¥{earnings.toLocaleString()}
+                          {formatCurrency(earnings)}
                         </Typography>
                       </Box>
                     );
@@ -384,7 +384,7 @@ export const ShiftboardSalaryManager: React.FC = () => {
                       >
                         <Box>
                           <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {new Date(shift.date).toLocaleDateString('ja-JP', {
+                            {new Date(shift.date).toLocaleDateString(language, {
                               month: 'short',
                               day: 'numeric',
                             })}
@@ -408,7 +408,7 @@ export const ShiftboardSalaryManager: React.FC = () => {
                           </Box>
                         </Box>
                         <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                          ¥{shift.totalEarnings.toLocaleString()}
+                          {formatCurrency(shift.totalEarnings)}
                         </Typography>
                       </Box>
                     );

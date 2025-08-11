@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type SupportedLanguage = 'ja' | 'en' | 'de';
-export type SupportedCountry = 'JP' | 'UK' | 'DE';
+export type SupportedLanguage = 'ja' | 'en' | 'de' | 'da' | 'fi' | 'no';
+export type SupportedCountry = 'JP' | 'UK' | 'DE' | 'DK' | 'FI' | 'NO' | 'AT' | 'PL' | 'HU';
 
 interface I18nState {
   language: SupportedLanguage;
@@ -23,6 +23,9 @@ const detectCountry = (): SupportedCountry => {
   // 簡易推定（将来はIP/手動選択で上書き）
   const lang = detectLanguage();
   if (lang === 'de') return 'DE';
+  if (lang === 'da') return 'DK';
+  if (lang === 'fi') return 'FI';
+  if (lang === 'no') return 'NO';
   if (lang === 'en') return 'UK';
   return 'JP';
 };

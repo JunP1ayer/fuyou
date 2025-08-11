@@ -17,6 +17,7 @@ import {
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
+import { useFriendStore } from '../store/friendStore';
 import { SimpleShiftForm } from './SimpleShiftForm';
 import { SimpleShiftEditDialog } from './SimpleShiftEditDialog';
 import type { Shift } from '../types/simple';
@@ -55,6 +56,37 @@ export const SafeCalendarView: React.FC = () => {
     };
   }, [weekStartsOnMonday]);
   const { shifts, getShiftsByDate, getTotalEarnings } = useSimpleShiftStore();
+  const { getVisibleFriends, getVisibleSchedules } = useFriendStore();
+
+  // 友達のシフト取得
+  const getFriendShiftsByDate = (date: Date) => {
+    const dateString = date.toISOString().split('T')[0];
+    const visibleFriends = getVisibleFriends();
+    const visibleSchedules = getVisibleSchedules();
+    
+    const friendShifts = [];
+    for (const schedule of visibleSchedules) {
+      const friend = visibleFriends.find(f => f.id === schedule.friendId);
+      if (friend && schedule.days && typeof schedule.days === 'object') {
+        const dayData = (schedule.days as any)[dateString];
+        if (dayData && dayData.shifts) {
+          for (const shift of dayData.shifts) {
+            friendShifts.push({
+              id: `friend-${friend.id}-${Math.random()}`,
+              friendId: friend.id,
+              friendName: friend.displayName,
+              friendColor: friend.color,
+              startTime: shift.start || shift.startTime || '09:00',
+              endTime: shift.end || shift.endTime || '17:00',
+              workplace: shift.workplace || shift.workplaceName || '不明',
+              ...shift
+            });
+          }
+        }
+      }
+    }
+    return friendShifts;
+  };
 
   // 簡単な月移動
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -320,6 +352,7 @@ export const SafeCalendarView: React.FC = () => {
                   {weekCalendarDays.map((calendarDay, dayIndex) => {
                     const { day, month, date } = calendarDay;
                     const dayShifts = getShiftsByDate(date);
+                    const friendShifts = getFriendShiftsByDate(date);
                     const isToday =
                       date.toDateString() === new Date().toDateString();
                     const isCurrentMonth = month === 'current';
@@ -383,7 +416,7 @@ export const SafeCalendarView: React.FC = () => {
                             {day}
                           </Typography>
 
-                          {/* シフト情報表示 - シンプル */}
+                          {/* シフト情報表示 - 自分のシフト */}
                           {dayShifts.length > 0 && (
                             <Box
                               sx={{
@@ -397,6 +430,55 @@ export const SafeCalendarView: React.FC = () => {
                                 border: '1px solid white',
                               }}
                             />
+                          )}
+
+                          {/* 友達のシフト表示 */}
+                          {friendShifts.length > 0 && (
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                top: 4,
+                                left: 4,
+                                display: 'flex',
+                                gap: 0.5,
+                                flexWrap: 'wrap',
+                                maxWidth: '80%',
+                              }}
+                            >
+                              {friendShifts.slice(0, 3).map((friendShift, index) => (
+                                <Box
+                                  key={index}
+                                  sx={{
+                                    width: 6,
+                                    height: 6,
+                                    borderRadius: '50%',
+                                    backgroundColor: friendShift.friendColor,
+                                    border: '1px solid white',
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                                  }}
+                                  title={`${friendShift.friendName}: ${friendShift.startTime}-${friendShift.endTime} @${friendShift.workplace}`}
+                                />
+                              ))}
+                              {friendShifts.length > 3 && (
+                                <Box
+                                  sx={{
+                                    width: 6,
+                                    height: 6,
+                                    borderRadius: '50%',
+                                    backgroundColor: '#666',
+                                    border: '1px solid white',
+                                    fontSize: '6px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white',
+                                  }}
+                                  title={`+${friendShifts.length - 3}人の友達`}
+                                >
+                                  +
+                                </Box>
+                              )}
+                            </Box>
                           )}
                         </Box>
                       </Grid>

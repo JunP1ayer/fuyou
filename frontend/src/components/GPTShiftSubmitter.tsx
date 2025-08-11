@@ -24,6 +24,8 @@ import {
   type ShiftAnalysisResult,
 } from '../services/gptShiftService';
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
+import useI18nStore from '../store/i18nStore';
+import { formatCurrency } from '../utils/calculations';
 
 interface GPTShiftSubmitterProps {
   onNavigateToWorkplaces?: () => void;
@@ -33,12 +35,12 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
   onNavigateToWorkplaces,
 }) => {
   const { workplaces } = useSimpleShiftStore();
+  const { language, country } = useI18nStore();
   const [selectedWorkplaceId, setSelectedWorkplaceId] = useState<string>('');
   const [selectedWorkplace, setSelectedWorkplace] =
     useState<WorkplaceOption | null>(null);
   const [workerName, setWorkerName] = useState('');
   const [shiftText, setShiftText] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] =
     useState<ShiftAnalysisResult | null>(null);
   const [step, setStep] = useState<'upload' | 'analyzing' | 'review' | 'input' | 'select'>('upload');
@@ -67,8 +69,7 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
       return;
     }
 
-    setIsAnalyzing(true);
-      setStep('analyzing');
+    setStep('analyzing');
 
     try {
       let result: ShiftAnalysisResult | null = null;
@@ -159,7 +160,6 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
       console.error('GPT解析エラー:', error);
       // エラーハンドリング
     } finally {
-      setIsAnalyzing(false);
     }
   };
 
@@ -168,12 +168,12 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
     setAnalysisResult(null);
   };
 
-  const handleBackToSelect = () => {
-    setStep('select');
-    setSelectedWorkplace(null);
-    setShiftText('');
-    setAnalysisResult(null);
-  };
+  // const handleBackToSelect = () => {
+  //   setStep('select');
+  //   setSelectedWorkplace(null);
+  //   setShiftText('');
+  //   setAnalysisResult(null);
+  // };
 
   const handleConfirmShifts = (confirmedShifts: any[]) => {
     console.log('確定されたシフト:', confirmedShifts);
@@ -185,7 +185,7 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
   };
 
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', p: 2 }}>
+    <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 1.5, sm: 2 } }}>
       {/* 上の説明カードは不要のため削除 */}
 
       {/* Step 1: バイト先選択 */}
@@ -198,10 +198,11 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 textAlign: 'center',
+                gap: 1,
               }}
             >
               <Upload sx={{ color: 'primary.main', fontSize: 40, mb: 1 }} />
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1.5, fontSize: { xs: 18, sm: 20 } }}>
                 シフト表を提出
               </Typography>
             </Box>
@@ -235,7 +236,7 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
                   バイト先が登録されていません。先にバイト先を登録してください。
                 </Alert>
               ) : (
-                <FormControl fullWidth sx={{ mb: 3 }}>
+                <FormControl fullWidth sx={{ mb: 2 }}>
                   <InputLabel>どのバイト先のシフト表ですか？</InputLabel>
                   <Select
                     value={selectedWorkplaceId}
@@ -250,7 +251,7 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
                   >
                     {workplaces.map(workplace => (
                       <MenuItem key={workplace.id} value={workplace.id}>
-                        {workplace.name} (時給: ¥{workplace.defaultHourlyRate})
+                        {workplace.name} (時給: {formatCurrency(workplace.defaultHourlyRate, { language, currency: country === 'UK' ? 'GBP' : country === 'DE' ? 'EUR' : 'JPY' })})
                       </MenuItem>
                     ))}
                   </Select>
@@ -269,7 +270,7 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
                 placeholder="例: 田中 太郎"
                 value={workerName}
                 onChange={e => setWorkerName(e.target.value)}
-                sx={{ mb: 3 }}
+                sx={{ mb: 2 }}
               />
 
               <Box
@@ -287,7 +288,7 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
                   variant="contained"
                   startIcon={<Upload />}
                   disabled={workplaces.length === 0}
-                  sx={{ px: 4, py: 1.5 }}
+                  sx={{ px: { xs: 2.5, sm: 4 }, py: 1.25 }}
                 >
                   画像/ファイルを選択
                   <input
@@ -312,8 +313,8 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
                   !selectedWorkplaceId
                 }
                 sx={{
-                  px: 4,
-                  py: 1.5,
+                  px: { xs: 2.5, sm: 4 },
+                  py: 1.25,
                   background:
                     'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
                   '&:hover': {
@@ -324,7 +325,7 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
                     background: 'rgba(0, 0, 0, 0.12)',
                   },
                   fontWeight: 600,
-                  fontSize: '1rem',
+                  fontSize: { xs: '0.95rem', sm: '1rem' },
                 }}
               >
                 解析を開始

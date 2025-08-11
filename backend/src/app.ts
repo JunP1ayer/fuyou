@@ -23,6 +23,7 @@ import ocrRoutes from './routes/ocr'; // Re-enabled for OpenAI integration
 import fileOcrRoutes from './routes/fileOcr'; // AI-powered file analysis
 import intelligentOCRRoutes from './routes/intelligentOCR'; // Intelligent multi-AI OCR integration
 import userProfileRoutes from './routes/userProfile'; // User profile and name settings
+import rulesRoutes, { startRulesAutoRefresh, warmUpRulesCache } from './routes/rules';
 import jobSourcesRouter from './routes/jobSources'; // Job sources management
 // import designTokenRoutes from './routes/designTokens'; // Transparent Figma integration
 // import intelligenceRoutes from './routes/intelligence'; // Gemini-style AI intelligence
@@ -36,7 +37,7 @@ app.use(helmet());
 
 // CORS configuration with proper origin handling
 const corsOptions = {
-  origin: (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) => {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     const defaultAllowed = [
       'http://localhost:3000',
       'http://172.26.93.180:3000',
@@ -125,6 +126,7 @@ app.use('/api/ocr', ocrRoutes); // Re-enabled for OpenAI integration
 app.use('/api/file-ocr', fileOcrRoutes); // AI-powered file analysis
 app.use('/api/intelligent-ocr', intelligentOCRRoutes); // Intelligent multi-AI OCR integration
 app.use('/api/user-profile', userProfileRoutes); // User profile and name settings
+app.use('/api/rules', rulesRoutes);
 // app.use('/api/design', designTokenRoutes); // Transparent Figma design system integration
 // app.use('/api/intelligence', intelligenceRoutes); // Gemini-style AI intelligence system
 // app.use('/api/optimization', optimizationRoutes); // Temporarily disabled for debugging
@@ -153,6 +155,9 @@ if (process.env.NODE_ENV !== 'test') {
     // Debug: Show current working directory
     logger.info(`📁 Current working directory: ${process.cwd()}`);
     logger.info(`📁 Environment file path: ${envPath}`);
+    // Warm rules cache and optionally start auto refresh
+    warmUpRulesCache().catch(() => undefined);
+    startRulesAutoRefresh();
   });
 }
 

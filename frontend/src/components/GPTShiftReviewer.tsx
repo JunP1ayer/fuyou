@@ -41,6 +41,8 @@ import type {
   AnalyzedShift,
 } from '../services/gptShiftService';
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
+import useI18nStore from '../store/i18nStore';
+import { formatCurrency } from '../utils/calculations';
 
 interface GPTShiftReviewerProps {
   analysisResult: ShiftAnalysisResult;
@@ -58,6 +60,7 @@ export const GPTShiftReviewer: React.FC<GPTShiftReviewerProps> = ({
   onBack,
 }) => {
   const { addShift } = useSimpleShiftStore();
+  const { language, country } = useI18nStore();
   const [shifts, setShifts] = useState<AnalyzedShift[]>(analysisResult.shifts);
   const [editingShift, setEditingShift] = useState<AnalyzedShift | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -170,7 +173,7 @@ export const GPTShiftReviewer: React.FC<GPTShiftReviewerProps> = ({
                   variant="h4"
                   sx={{ fontWeight: 700, color: 'success.contrastText' }}
                 >
-                  ¥{totalEarnings.toLocaleString()}
+                  {formatCurrency(totalEarnings, { language, currency: country === 'UK' ? 'GBP' : country === 'DE' ? 'EUR' : 'JPY' })}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -270,7 +273,7 @@ export const GPTShiftReviewer: React.FC<GPTShiftReviewerProps> = ({
                   <TableRow key={shift.id} hover>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {new Date(shift.date).toLocaleDateString('ja-JP', {
+                        {new Date(shift.date).toLocaleDateString(language, {
                           month: 'short',
                           day: 'numeric',
                           weekday: 'short',
@@ -296,14 +299,14 @@ export const GPTShiftReviewer: React.FC<GPTShiftReviewerProps> = ({
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
-                      ¥{shift.hourlyRate.toLocaleString()}
+                      {formatCurrency(shift.hourlyRate, { language, currency: country === 'UK' ? 'GBP' : country === 'DE' ? 'EUR' : 'JPY' })}
                     </TableCell>
                     <TableCell align="right">
                       <Typography
                         variant="body2"
                         sx={{ fontWeight: 600, color: 'success.main' }}
                       >
-                        ¥{shift.totalEarnings.toLocaleString()}
+                        {formatCurrency(shift.totalEarnings, { language, currency: country === 'UK' ? 'GBP' : country === 'DE' ? 'EUR' : 'JPY' })}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -434,7 +437,14 @@ export const GPTShiftReviewer: React.FC<GPTShiftReviewerProps> = ({
                   )
                 }
                 InputProps={{
-                  startAdornment: <span style={{ marginRight: 8 }}>¥</span>,
+                  startAdornment: (
+                    <span style={{ marginRight: 8 }}>
+                      {(() => {
+                        const cur = country === 'UK' ? '£' : country === 'DE' || country === 'FI' || country === 'AT' ? '€' : country === 'DK' || country === 'NO' ? 'kr' : country === 'PL' ? 'zł' : country === 'HU' ? 'Ft' : '¥';
+                        return cur;
+                      })()}
+                    </span>
+                  ),
                 }}
               />
 

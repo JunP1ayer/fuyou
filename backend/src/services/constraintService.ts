@@ -6,6 +6,7 @@ import { createError } from '../middleware/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
 import {
   ConstraintType,
+  ConstraintUnit,
   TIER_LIMITS,
   OptimizationConstraintResponse,
   AvailabilitySlotResponse,
@@ -16,7 +17,9 @@ import {
   CreateAvailabilitySlotRequest,
   UpdateAvailabilitySlotRequest,
   CreateUserOptimizationPreferencesRequest,
-  UpdateUserOptimizationPreferencesRequest
+  UpdateUserOptimizationPreferencesRequest,
+  ObjectiveType,
+  TierLevel
 } from '../types/optimization';
 
 export class ConstraintService {
@@ -56,8 +59,8 @@ export class ConstraintService {
         updated_at: new Date().toISOString()
       };
 
-      const { data: insertedConstraint, error } = await (supabase as any)
-        .from('optimization_constraints', 500)
+      const { data: insertedConstraint, error } = await supabase
+        .from('optimization_constraints')
         .insert([constraint])
         .select()
         .single();
@@ -77,8 +80,8 @@ export class ConstraintService {
    */
   async getConstraints(userId: string, activeOnly: boolean = true): Promise<OptimizationConstraintResponse[]> {
     try {
-      let query = (supabase as any)
-        .from('optimization_constraints', 500)
+      let query = supabase
+        .from('optimization_constraints')
         .select('*')
         .eq('user_id', userId);
 
@@ -92,7 +95,7 @@ export class ConstraintService {
         throw createError(`Failed to fetch constraints: ${error.message}`, 400);
       }
 
-      return (constraints || []).map((constraint: any) => 
+      return (constraints || []).map((constraint) => 
         this.transformConstraintResponse(constraint)
       );
     } catch (error) {
@@ -108,8 +111,8 @@ export class ConstraintService {
     constraintType: ConstraintType
   ): Promise<OptimizationConstraintResponse | null> {
     try {
-      const { data: constraint, error } = await (supabase as any)
-        .from('optimization_constraints', 500)
+      const { data: constraint, error } = await supabase
+        .from('optimization_constraints')
         .select('*')
         .eq('user_id', userId)
         .eq('constraint_type', constraintType)
@@ -138,7 +141,7 @@ export class ConstraintService {
     data: UpdateOptimizationConstraintRequest
   ): Promise<OptimizationConstraintResponse> {
     try {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         updated_at: new Date().toISOString()
       };
 
@@ -149,8 +152,8 @@ export class ConstraintService {
       if (data.isActive !== undefined) updateData.is_active = data.isActive;
       if (data.metadata !== undefined) updateData.metadata = data.metadata;
 
-      const { data: updatedConstraint, error } = await (supabase as any)
-        .from('optimization_constraints', 500)
+      const { data: updatedConstraint, error } = await supabase
+        .from('optimization_constraints')
         .update(updateData)
         .eq('id', constraintId)
         .eq('user_id', userId)
@@ -172,8 +175,8 @@ export class ConstraintService {
    */
   async deleteConstraint(userId: string, constraintId: string): Promise<void> {
     try {
-      const { error } = await (supabase as any)
-        .from('optimization_constraints', 500)
+      const { error } = await supabase
+        .from('optimization_constraints')
         .delete()
         .eq('id', constraintId)
         .eq('user_id', userId);
@@ -212,8 +215,8 @@ export class ConstraintService {
         updated_at: new Date().toISOString()
       };
 
-      const { data: insertedSlot, error } = await (supabase as any)
-        .from('availability_slots', 500)
+      const { data: insertedSlot, error } = await supabase
+        .from('availability_slots')
         .insert([slot])
         .select()
         .single();
@@ -233,8 +236,8 @@ export class ConstraintService {
    */
   async getAvailabilitySlots(userId: string): Promise<AvailabilitySlotResponse[]> {
     try {
-      const { data: slots, error } = await (supabase as any)
-        .from('availability_slots', 500)
+      const { data: slots, error } = await supabase
+        .from('availability_slots')
         .select('*')
         .eq('user_id', userId)
         .order('day_of_week', { ascending: true })
@@ -244,7 +247,7 @@ export class ConstraintService {
         throw createError(`Failed to fetch availability slots: ${error.message}`, 400);
       }
 
-      return (slots || []).map((slot: any) => 
+      return (slots || []).map((slot) => 
         this.transformAvailabilitySlotResponse(slot)
       );
     } catch (error) {
@@ -261,7 +264,7 @@ export class ConstraintService {
     data: UpdateAvailabilitySlotRequest
   ): Promise<AvailabilitySlotResponse> {
     try {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         updated_at: new Date().toISOString()
       };
 
@@ -280,8 +283,8 @@ export class ConstraintService {
         this.validateTimeRange(startTime, endTime);
       }
 
-      const { data: updatedSlot, error } = await (supabase as any)
-        .from('availability_slots', 500)
+      const { data: updatedSlot, error } = await supabase
+        .from('availability_slots')
         .update(updateData)
         .eq('id', slotId)
         .eq('user_id', userId)
@@ -303,8 +306,8 @@ export class ConstraintService {
    */
   async deleteAvailabilitySlot(userId: string, slotId: string): Promise<void> {
     try {
-      const { error } = await (supabase as any)
-        .from('availability_slots', 500)
+      const { error } = await supabase
+        .from('availability_slots')
         .delete()
         .eq('id', slotId)
         .eq('user_id', userId);
@@ -324,8 +327,8 @@ export class ConstraintService {
    */
   async getUserPreferences(userId: string): Promise<UserOptimizationPreferencesResponse> {
     try {
-      const { data: preferences, error } = await (supabase as any)
-        .from('user_optimization_preferences', 500)
+      const { data: preferences, error } = await supabase
+        .from('user_optimization_preferences')
         .select('*')
         .eq('user_id', userId)
         .single();
@@ -334,11 +337,11 @@ export class ConstraintService {
         if (error.code === 'PGRST116') {
           // No preferences found, create default
           return await this.createUserPreferences(userId, {
-          defaultObjective: 'maximize_income' as any,
-          optimizationFrequency: 'weekly' as any,
-          autoApplySuggestions: false,
-          tierLevel: 'free' as any
-        });
+            defaultObjective: ObjectiveType.MAXIMIZE_INCOME,
+            optimizationFrequency: 'weekly',
+            autoApplySuggestions: false,
+            tierLevel: TierLevel.FREE
+          });
         }
         throw createError(`Failed to fetch user preferences: ${error.message}`, 400);
       }
@@ -375,8 +378,8 @@ export class ConstraintService {
         updated_at: new Date().toISOString()
       };
 
-      const { data: insertedPreferences, error } = await (supabase as any)
-        .from('user_optimization_preferences', 500)
+      const { data: insertedPreferences, error } = await supabase
+        .from('user_optimization_preferences')
         .insert([preferences])
         .select()
         .single();
@@ -399,7 +402,7 @@ export class ConstraintService {
     data: UpdateUserOptimizationPreferencesRequest
   ): Promise<UserOptimizationPreferencesResponse> {
     try {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         updated_at: new Date().toISOString()
       };
 
@@ -409,8 +412,8 @@ export class ConstraintService {
       if (data.notificationPreferences !== undefined) updateData.notification_preferences = data.notificationPreferences;
       if (data.tierLevel !== undefined) updateData.tier_level = data.tierLevel;
 
-      const { data: updatedPreferences, error } = await (supabase as any)
-        .from('user_optimization_preferences', 500)
+      const { data: updatedPreferences, error } = await supabase
+        .from('user_optimization_preferences')
         .update(updateData)
         .eq('user_id', userId)
         .select()
@@ -482,8 +485,8 @@ export class ConstraintService {
   }
 
   private async getConstraintCount(userId: string): Promise<number> {
-    const { count, error } = await (supabase as any)
-      .from('optimization_constraints', 500)
+    const { count, error } = await supabase
+      .from('optimization_constraints')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('is_active', true);
@@ -496,8 +499,8 @@ export class ConstraintService {
   }
 
   private async getAvailabilitySlot(userId: string, slotId: string): Promise<AvailabilitySlotResponse> {
-    const { data: slot, error } = await (supabase as any)
-      .from('availability_slots', 500)
+    const { data: slot, error } = await supabase
+      .from('availability_slots')
       .select('*')
       .eq('id', slotId)
       .eq('user_id', userId)
@@ -564,8 +567,8 @@ export class ConstraintService {
     const startDate = `${currentYear}-01-01`;
     const endDate = `${currentYear}-12-31`;
     
-    const { data: incomes, error } = await (supabase as any)
-      .from('incomes', 500)
+    const { data: incomes, error } = await supabase
+      .from('incomes')
       .select('amount')
       .eq('user_id', userId)
       .gte('income_date', startDate)
@@ -575,17 +578,20 @@ export class ConstraintService {
       return 0;
     }
     
-    return (incomes || []).reduce((total: number, income: any) => total + income.amount, 0);
+    return (incomes || []).reduce((total: number, income: { amount: number }) => total + income.amount, 0);
   }
 
   // Transform database responses to API responses
-  private transformConstraintResponse(constraint: any): OptimizationConstraintResponse {
+  private transformConstraintResponse(constraint: {
+    id: string; user_id: string; constraint_type: ConstraintType; constraint_value: number; constraint_unit: ConstraintUnit | string;
+    priority: number; is_active: boolean; metadata: Record<string, unknown>; created_at: string; updated_at: string;
+  }): OptimizationConstraintResponse {
     return {
       id: constraint.id,
       userId: constraint.user_id,
       constraintType: constraint.constraint_type,
       constraintValue: constraint.constraint_value,
-      constraintUnit: constraint.constraint_unit,
+      constraintUnit: constraint.constraint_unit as ConstraintUnit,
       priority: constraint.priority,
       isActive: constraint.is_active,
       metadata: constraint.metadata,
@@ -594,7 +600,10 @@ export class ConstraintService {
     };
   }
 
-  private transformAvailabilitySlotResponse(slot: any): AvailabilitySlotResponse {
+  private transformAvailabilitySlotResponse(slot: {
+    id: string; user_id: string; day_of_week: number; start_time: string; end_time: string; is_available: boolean;
+    job_source_id?: string | null; priority: number; created_at: string; updated_at: string;
+  }): AvailabilitySlotResponse {
     return {
       id: slot.id,
       userId: slot.user_id,
@@ -602,24 +611,37 @@ export class ConstraintService {
       startTime: slot.start_time,
       endTime: slot.end_time,
       isAvailable: slot.is_available,
-      jobSourceId: slot.job_source_id,
+      jobSourceId: slot.job_source_id ?? undefined,
       priority: slot.priority,
       createdAt: slot.created_at,
       updatedAt: slot.updated_at
     };
   }
 
-  private transformUserPreferencesResponse(preferences: any): UserOptimizationPreferencesResponse {
+  private transformUserPreferencesResponse(preferences: {
+    id: string; user_id: string; default_objective: ObjectiveType | string; optimization_frequency: string; auto_apply_suggestions: boolean;
+    notification_preferences?: {
+      email?: boolean; inApp?: boolean; push?: boolean; optimizationComplete?: boolean; constraintViolation?: boolean; limitApproaching?: boolean;
+    } | null; tier_level: TierLevel | string; monthly_optimization_runs?: number;
+    last_optimization_reset?: string; created_at: string; updated_at: string;
+  }): UserOptimizationPreferencesResponse {
     return {
       id: preferences.id,
       userId: preferences.user_id,
-      defaultObjective: preferences.default_objective,
+      defaultObjective: preferences.default_objective as ObjectiveType,
       optimizationFrequency: preferences.optimization_frequency,
       autoApplySuggestions: preferences.auto_apply_suggestions,
-      notificationPreferences: preferences.notification_preferences,
-      tierLevel: preferences.tier_level,
-      monthlyOptimizationRuns: preferences.monthly_optimization_runs,
-      lastOptimizationReset: preferences.last_optimization_reset,
+      notificationPreferences: {
+        email: preferences.notification_preferences?.email ?? true,
+        inApp: preferences.notification_preferences?.inApp ?? true,
+        push: preferences.notification_preferences?.push ?? false,
+        optimizationComplete: preferences.notification_preferences?.optimizationComplete ?? true,
+        constraintViolation: preferences.notification_preferences?.constraintViolation ?? true,
+        limitApproaching: preferences.notification_preferences?.limitApproaching ?? true,
+      },
+      tierLevel: preferences.tier_level as TierLevel,
+      monthlyOptimizationRuns: preferences.monthly_optimization_runs ?? 0,
+      lastOptimizationReset: preferences.last_optimization_reset ?? new Date(0).toISOString(),
       createdAt: preferences.created_at,
       updatedAt: preferences.updated_at
     };

@@ -45,6 +45,8 @@ export const createError = (message: string, statusCode: number = 500): AppError
   return error;
 };
 
-export const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
+export const asyncHandler = (
+  fn: (req: Request, res: Response, next: NextFunction) => unknown | Promise<unknown>
+) => (req: Request, res: Response, next: NextFunction) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };

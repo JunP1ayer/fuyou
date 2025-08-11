@@ -39,7 +39,7 @@ export class CSVIncomeService {
         total_rows: transactions.length,
         status: 'processing'
       })
-      .select()
+      .select('id')
       .single();
 
     if (uploadError || !csvUpload) {
@@ -88,7 +88,7 @@ export class CSVIncomeService {
             transactions.indexOf(transaction) + 1,
             'processing_error',
             error instanceof Error ? error.message : 'Unknown error',
-            transaction
+            transaction as unknown as Record<string, unknown>
           );
         }
       }
@@ -182,7 +182,7 @@ export class CSVIncomeService {
 
     try {
       // バイト先の自動検出・作成
-      const jobSourceId = await this.findOrCreateJobSource(
+      await this.findOrCreateJobSource(
         userId,
         transaction.description,
         'part_time_job'
@@ -199,7 +199,7 @@ export class CSVIncomeService {
           source: 'part_time_job',
           transaction_id: transactionHash // transaction_idフィールドを重複チェック用に使用
         })
-        .select()
+        .select('id')
         .single();
 
       if (error) {
@@ -355,7 +355,7 @@ export class CSVIncomeService {
     rowNumber: number,
     errorType: string,
     errorMessage: string,
-    rawData: any
+    rawData: Record<string, unknown>
   ): Promise<void> {
     try {
       await supabase
@@ -390,16 +390,7 @@ export class CSVIncomeService {
   }>> {
     const { data: uploads } = await supabase
       .from('csv_uploads')
-      .select(`
-        id,
-        filename,
-        bank_type,
-        created_at,
-        status,
-        total_rows,
-        income_rows,
-        processing_time_ms
-      `)
+      .select('id,filename,bank_type,created_at,status,total_rows,income_rows,processing_time_ms')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -433,7 +424,7 @@ export class CSVIncomeService {
         p_user_id: userId
       });
 
-    if (!stats || stats.length === 0) {
+    if (!Array.isArray(stats) || stats.length === 0) {
       return {
         totalUploads: 0,
         successfulUploads: 0,
@@ -443,7 +434,13 @@ export class CSVIncomeService {
       };
     }
 
-    const result = stats[0];
+    type StatsRow = {
+      total_uploads: number;
+      successful_uploads: number;
+      total_income_records: number;
+      average_processing_time_ms: number;
+    };
+    const result = (stats as StatsRow[])[0];
     
     // 最新のアップロード日時を取得
     const { data: lastUpload } = await supabase

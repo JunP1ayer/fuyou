@@ -52,6 +52,8 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
+import { formatCurrency } from '../utils/calculations';
+import useI18nStore from '../store/i18nStore';
 
 interface WorkplaceFormData {
   name: string;
@@ -94,6 +96,7 @@ interface WorkplaceFormData {
   
   // 跨日シフト対応
   allowCrossDayShifts: boolean;
+  timeZone?: string;
   
   // 既存フィールド（後方互換性のため残す）
   paymentDate?: number; // 非推奨
@@ -142,6 +145,7 @@ const defaultColors = [
 export const WorkplaceManager: React.FC = () => {
   const { workplaces, addWorkplace, updateWorkplace, deleteWorkplace, shifts } =
     useSimpleShiftStore();
+  const { country } = useI18nStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingWorkplace, setEditingWorkplace] = useState<string | null>(null);
   const [formData, setFormData] = useState<WorkplaceFormData>({
@@ -174,6 +178,7 @@ export const WorkplaceManager: React.FC = () => {
       unit: 'daily',
     },
     allowCrossDayShifts: true, // 跨日シフト許可
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     
     // 既存フィールド（後方互換性）
     paymentDate: 25,
@@ -270,6 +275,7 @@ export const WorkplaceManager: React.FC = () => {
           unit: 'daily',
         },
         allowCrossDayShifts: (workplace as any).allowCrossDayShifts ?? true,
+        timeZone: (workplace as any).timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
         
         // 既存フィールド（後方互換性）
         paymentDate: workplace.paymentDate || 25,
@@ -543,8 +549,7 @@ export const WorkplaceManager: React.FC = () => {
                                     variant="body2"
                                     color="text.secondary"
                                   >
-                                    時給 ¥
-                                    {workplace.defaultHourlyRate.toLocaleString()}
+                                    時給 {formatCurrency(workplace.defaultHourlyRate)}
                                   </Typography>
                                 </Box>
 
@@ -569,8 +574,7 @@ export const WorkplaceManager: React.FC = () => {
                                         fontWeight: 600,
                                       }}
                                     >
-                                      総収入 ¥
-                                      {stats.totalEarnings.toLocaleString()}
+                                      総収入 {formatCurrency(stats.totalEarnings)}
                                     </Typography>
                                   </Box>
                                 )}
@@ -638,6 +642,23 @@ export const WorkplaceManager: React.FC = () => {
 
         <DialogContent sx={{ maxHeight: '70vh', overflow: 'auto' }}>
           <Grid container spacing={2}>
+            {/* タイムゾーン選択 */}
+            <Grid item xs={12}>
+              <FormControl fullWidth size="small">
+                <InputLabel>タイムゾーン</InputLabel>
+                <Select
+                  label="タイムゾーン"
+                  value={formData.timeZone || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, timeZone: e.target.value as string }))}
+                >
+                  {[
+                    'Asia/Tokyo','Europe/Berlin','Europe/Vienna','Europe/Copenhagen','Europe/Oslo','Europe/Helsinki','Europe/London','Europe/Warsaw','Europe/Budapest'
+                  ].map(tz => (
+                    <MenuItem key={tz} value={tz}>{tz}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
             {/* 基本情報 */}
             <Grid item xs={12}>
               <TextField
@@ -669,7 +690,11 @@ export const WorkplaceManager: React.FC = () => {
                 error={Boolean(errors.defaultHourlyRate)}
                 helperText={errors.defaultHourlyRate}
                 InputProps={{
-                  startAdornment: <span style={{ marginRight: 8 }}>¥</span>,
+                  startAdornment: (
+                    <span style={{ marginRight: 8 }}>
+                      {country === 'UK' ? '£' : country === 'DE' || country === 'FI' || country === 'AT' ? '€' : country === 'DK' || country === 'NO' ? 'kr' : country === 'PL' ? 'zł' : country === 'HU' ? 'Ft' : '¥'}
+                    </span>
+                  ),
                 }}
                 size="small"
               />
@@ -1262,8 +1287,8 @@ export const WorkplaceManager: React.FC = () => {
                     交通費: {
                       formData.transportationSettings.type === 'none' ? 'なし' :
                       formData.transportationSettings.type === 'fixed' 
-                        ? `固定${formData.transportationSettings.unit === 'daily' ? '日額' : '月額'} ¥${formData.transportationSettings.amount.toLocaleString()}`
-                        : `実費（上限${formData.transportationSettings.unit === 'daily' ? '日額' : '月額'} ¥${formData.transportationSettings.amount.toLocaleString()}）`
+                        ? `固定${formData.transportationSettings.unit === 'daily' ? '日額' : '月額'} ${formatCurrency(formData.transportationSettings.amount)}`
+                        : `実費（上限${formData.transportationSettings.unit === 'daily' ? '日額' : '月額'} ${formatCurrency(formData.transportationSettings.amount)}）`
                     } | 
                     丸め: {formData.roundingRule.minutes}分{
                       formData.roundingRule.method === 'up' ? '切り上げ' :

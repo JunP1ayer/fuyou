@@ -20,6 +20,8 @@ import { Business, Add, Edit } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
 import type { WorkplaceOption } from '../services/gptShiftService';
+import { formatCurrency } from '../utils/calculations';
+import useI18nStore from '../store/i18nStore';
 
 interface WorkplaceSelectorProps {
   onSelectWorkplace: (workplace: WorkplaceOption) => void;
@@ -33,6 +35,7 @@ export const WorkplaceSelector: React.FC<WorkplaceSelectorProps> = ({
   onRequestAddWorkplace,
 }) => {
   const { workplaces } = useSimpleShiftStore();
+  const { language } = useI18nStore();
   const [addDialogOpen, setAddDialogOpen] = useState(false); // 互換用（未使用）
 
   const workplaceOptions: WorkplaceOption[] = workplaces.map(wp => ({
@@ -109,7 +112,7 @@ export const WorkplaceSelector: React.FC<WorkplaceSelectorProps> = ({
                     </Box>
 
                     <Typography variant="body2" color="text.secondary">
-                      時給: ¥{workplace.defaultHourlyRate.toLocaleString()}
+                      時給: {formatCurrency(workplace.defaultHourlyRate)}
                     </Typography>
 
                     {selectedWorkplace?.id === workplace.id && (
@@ -174,7 +177,7 @@ export const WorkplaceSelector: React.FC<WorkplaceSelectorProps> = ({
                   variant="body2"
                   sx={{ color: 'success.contrastText' }}
                 >
-                  時給: ¥{selectedWorkplace.defaultHourlyRate.toLocaleString()}{' '}
+                  時給: {formatCurrency(selectedWorkplace.defaultHourlyRate)}{' '}
                   でシフト解析を行います
                 </Typography>
               </Box>

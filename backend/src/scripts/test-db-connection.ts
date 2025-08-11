@@ -6,7 +6,7 @@ async function testDatabaseConnection() {
     logger.info('Testing Supabase connection...');
     
     // Test basic connection
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('users')
       .select('count')
       .limit(1);
@@ -19,7 +19,7 @@ async function testDatabaseConnection() {
     logger.info('✅ Database connection successful!');
     
     // Test authentication
-    const { data: authData, error: authError } = await supabase.auth.getSession();
+    const { error: authError } = await supabase.auth.getSession();
     
     if (authError) {
       logger.warn('Auth test failed, but this is expected without a session:', authError.message);

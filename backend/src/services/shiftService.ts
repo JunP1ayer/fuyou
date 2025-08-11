@@ -1,17 +1,10 @@
-import { supabase } from '../utils/supabase';
-import { createClient } from '@supabase/supabase-js';
+import { supabase, supabaseAdmin } from '../utils/supabase';
 import { CreateShiftRequest, UpdateShiftRequest, GetShiftsRequest, ShiftResponse, ShiftStats } from '../types/api';
 import { createError } from '../middleware/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
 
-// Create service client that bypasses RLS for demo mode
-const serviceSupabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!,
-  {
-    auth: { persistSession: false }
-  }
-);
+// Use admin client from shared utils (handles test env fallback)
+const serviceSupabase = supabaseAdmin;
 
 export class ShiftService {
   // Create a new shift
@@ -64,7 +57,7 @@ export class ShiftService {
     try {
       let query = serviceSupabase
         .from('shifts')
-        .select('*')
+        .select('id,user_id,job_source_id,job_source_name,date,start_time,end_time,hourly_rate,break_minutes,working_hours,calculated_earnings,description,is_confirmed,created_at,updated_at')
         .eq('user_id', userId);
 
       // Apply filters
@@ -87,7 +80,7 @@ export class ShiftService {
         throw createError(`Failed to fetch shifts: ${error.message}`, 400);
       }
 
-      return (shifts || []).map((shift: any) => this.transformShiftResponse(shift));
+      return (shifts || []).map((shift) => this.transformShiftResponse(shift));
     } catch (error) {
       throw error instanceof Error ? error : createError('Failed to fetch shifts', 500);
     }
@@ -96,9 +89,9 @@ export class ShiftService {
   // Get a single shift by ID
   async getShiftById(userId: string, shiftId: string): Promise<ShiftResponse> {
     try {
-      const { data: shift, error } = await (supabase as any)
-        .from('shifts', 500)
-        .select('*')
+      const { data: shift, error } = await supabase
+        .from('shifts')
+        .select('id,user_id,job_source_id,job_source_name,date,start_time,end_time,hourly_rate,break_minutes,working_hours,calculated_earnings,description,is_confirmed,created_at,updated_at')
         .eq('id', shiftId)
         .eq('user_id', userId)
         .single();
@@ -128,7 +121,7 @@ export class ShiftService {
         await this.checkForTimeConflicts(userId, date, startTime, endTime, shiftId);
       }
 
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         updated_at: new Date().toISOString(),
       };
 
@@ -160,12 +153,12 @@ export class ShiftService {
         updateData.calculated_earnings = calculatedEarnings.toString();
       }
 
-      const { data: updatedShift, error } = await (supabase as any)
-        .from('shifts', 500)
+      const { data: updatedShift, error } = await supabase
+        .from('shifts')
         .update(updateData)
         .eq('id', shiftId)
         .eq('user_id', userId)
-        .select()
+        .select('id,user_id,job_source_id,job_source_name,date,start_time,end_time,hourly_rate,break_minutes,working_hours,calculated_earnings,description,is_confirmed,created_at,updated_at')
         .single();
 
       if (error) {
@@ -181,8 +174,8 @@ export class ShiftService {
   // Delete a shift
   async deleteShift(userId: string, shiftId: string): Promise<void> {
     try {
-      const { error } = await (supabase as any)
-        .from('shifts', 500)
+      const { error } = await supabase
+        .from('shifts')
         .delete()
         .eq('id', shiftId)
         .eq('user_id', userId);
@@ -200,7 +193,7 @@ export class ShiftService {
     try {
       let query = serviceSupabase
         .from('shifts')
-        .select('*')
+        .select('date,working_hours,calculated_earnings,job_source_id,job_source_name')
         .eq('user_id', userId);
 
       // Filter by year/month if provided
@@ -244,20 +237,24 @@ export class ShiftService {
   }
 
   // Helper method to transform database response
-  private transformShiftResponse(shift: any): ShiftResponse {
+  private transformShiftResponse(shift: {
+    id: string; user_id: string; job_source_id: string | null; job_source_name: string; date: string;
+    start_time: string; end_time: string; hourly_rate: number; break_minutes: number; working_hours: string;
+    calculated_earnings: string; description: string | null; is_confirmed: boolean; created_at: string; updated_at: string;
+  }): ShiftResponse {
     return {
       id: shift.id,
       userId: shift.user_id,
-      jobSourceId: shift.job_source_id,
+      jobSourceId: shift.job_source_id ?? undefined,
       jobSourceName: shift.job_source_name,
       date: shift.date,
       startTime: shift.start_time,
       endTime: shift.end_time,
       hourlyRate: shift.hourly_rate,
       breakMinutes: shift.break_minutes,
-      workingHours: shift.working_hours,
-      calculatedEarnings: shift.calculated_earnings,
-      description: shift.description,
+      workingHours: parseFloat(shift.working_hours),
+      calculatedEarnings: parseFloat(shift.calculated_earnings),
+      description: shift.description ?? undefined,
       isConfirmed: shift.is_confirmed,
       createdAt: shift.created_at,
       updatedAt: shift.updated_at,
@@ -265,7 +262,18 @@ export class ShiftService {
   }
 
   // Get earnings projection based on shifts
-  async getEarningsProjection(userId: string): Promise<any> {
+  async getEarningsProjection(userId: string): Promise<{
+    currentMonth: number;
+    projectedTotal: number;
+    dailyAverage: number;
+    remainingWorkingDays: number;
+    suggestedDailyTarget: number;
+    fuyouLimitRemaining: number;
+    riskLevel: 'safe' | 'warning' | 'danger';
+    projectedMonthEnd: number;
+    usageRate: number;
+    yearToDate: number;
+  }> {
     try {
       const now = new Date();
       const currentYear = now.getFullYear();
@@ -424,7 +432,13 @@ export class ShiftService {
   }
 
   // Helper method to calculate statistics
-  private calculateShiftStats(shifts: any[]): ShiftStats {
+  private calculateShiftStats(shifts: Array<{
+    date: string;
+    job_source_id: string | null;
+    job_source_name: string;
+    working_hours: string;
+    calculated_earnings: string;
+  }>): ShiftStats {
     const now = new Date();
     const thisMonth = now.getMonth() + 1;
     const thisYear = now.getFullYear();
@@ -435,7 +449,7 @@ export class ShiftService {
     });
 
     // Group by job source
-    const byJobSource = shifts.reduce((acc, shift) => {
+    const byJobSource = shifts.reduce<Record<string, { jobSourceId: string | null; jobSourceName: string; shifts: number; hours: number; earnings: number }>>((acc, shift) => {
       const key = shift.job_source_name;
       if (!acc[key]) {
         acc[key] = {
@@ -461,7 +475,13 @@ export class ShiftService {
         hours: thisMonthShifts.reduce((sum, shift) => sum + parseFloat(shift.working_hours), 0),
         earnings: thisMonthShifts.reduce((sum, shift) => sum + parseFloat(shift.calculated_earnings), 0),
       },
-      byJobSource: Object.values(byJobSource),
+      byJobSource: Object.values(byJobSource).map(item => ({
+        jobSourceId: item.jobSourceId ?? undefined,
+        jobSourceName: item.jobSourceName,
+        shifts: item.shifts,
+        hours: item.hours,
+        earnings: item.earnings,
+      })),
     };
   }
 }

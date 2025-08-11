@@ -30,6 +30,8 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
+import useI18nStore from '../store/i18nStore';
+import { formatCurrency } from '../utils/calculations';
 import type { Shift } from '../types/simple';
 
 interface SimpleShiftFormProps {
@@ -44,6 +46,7 @@ export const SimpleShiftForm: React.FC<SimpleShiftFormProps> = ({
   selectedDate,
 }) => {
   const { workplaces, addShift } = useSimpleShiftStore();
+  const { country } = useI18nStore();
 
   const [formData, setFormData] = useState({
     date: selectedDate || new Date().toISOString().split('T')[0],
@@ -420,7 +423,11 @@ export const SimpleShiftForm: React.FC<SimpleShiftFormProps> = ({
                   error={Boolean(errors.hourlyRate)}
                   helperText={errors.hourlyRate}
                   InputProps={{
-                    startAdornment: <span style={{ marginRight: 8 }}>¥</span>,
+                    startAdornment: (
+                      <span style={{ marginRight: 8 }}>
+                        {country === 'UK' ? '£' : country === 'DE' || country === 'FI' || country === 'AT' ? '€' : country === 'DK' || country === 'NO' ? 'kr' : country === 'PL' ? 'zł' : country === 'HU' ? 'Ft' : '¥'}
+                      </span>
+                    ),
                   }}
                 />
               </Grid>
@@ -448,7 +455,7 @@ export const SimpleShiftForm: React.FC<SimpleShiftFormProps> = ({
                     variant="h6"
                     sx={{ fontWeight: 700, fontSize: '1.1rem' }}
                   >
-                    ¥{predictedEarnings.toLocaleString()}
+                    {formatCurrency(predictedEarnings)}
                   </Typography>
                 </Box>
               </Grid>
@@ -518,7 +525,7 @@ export const SimpleShiftForm: React.FC<SimpleShiftFormProps> = ({
                   </ListItemAvatar>
                   <ListItemText
                     primary={workplace.name}
-                    secondary={`¥${workplace.defaultHourlyRate}/時`}
+                    secondary={`${formatCurrency(workplace.defaultHourlyRate)}/時`}
                   />
                 </ListItemButton>
               </ListItem>

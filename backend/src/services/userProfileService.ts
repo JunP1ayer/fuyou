@@ -16,7 +16,7 @@ export class UserProfileService {
 
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('*')
+      .select('id,user_id,display_name,shift_filter_name,timezone,preferences,created_at,updated_at')
       .eq('user_id', userId)
       .single();
 
@@ -50,7 +50,7 @@ export class UserProfileService {
       .from('user_profiles')
       .update(updatePayload)
       .eq('user_id', userId)
-      .select()
+      .select('id,user_id,display_name,shift_filter_name,timezone,preferences,created_at,updated_at')
       .single();
 
     if (error) {
@@ -89,7 +89,7 @@ export class UserProfileService {
     const { data, error } = await supabase
       .from('user_profiles')
       .insert(insertPayload)
-      .select()
+      .select('id,user_id,display_name,shift_filter_name,timezone,preferences,created_at,updated_at')
       .single();
 
     if (error) {
@@ -166,12 +166,21 @@ export class UserProfileService {
   /**
    * データベース行をProfileオブジェクトにマッピング
    */
-  private mapDatabaseToProfile(data: any): UserProfile {
+  private mapDatabaseToProfile(data: {
+    id: string;
+    user_id: string;
+    display_name: string | null;
+    shift_filter_name: string | null;
+    timezone: string;
+    preferences?: Record<string, unknown>;
+    created_at: string;
+    updated_at: string;
+  }): UserProfile {
     return {
       id: data.id,
       userId: data.user_id,
-      displayName: data.display_name,
-      shiftFilterName: data.shift_filter_name,
+      displayName: data.display_name ?? undefined,
+      shiftFilterName: data.shift_filter_name ?? undefined,
       timezone: data.timezone,
       preferences: data.preferences || {
         defaultHourlyRate: 1000,

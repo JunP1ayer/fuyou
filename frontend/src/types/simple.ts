@@ -3,6 +3,7 @@
 export interface Shift {
   id: string;
   date: string; // YYYY-MM-DD
+  endDate?: string; // optional for cross-day
   startTime: string; // HH:MM
   endTime: string; // HH:MM
   workplaceName: string;
@@ -16,6 +17,7 @@ export interface Workplace {
   name: string;
   color: string;
   defaultHourlyRate: number;
+  timeZone?: string;
   // 追加の任意フィールド（詳細編集用）
   description?: string;
   paymentDate?: number;

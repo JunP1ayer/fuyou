@@ -31,6 +31,8 @@ import {
 import { motion } from 'framer-motion';
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
 import type { Shift } from '../types/simple';
+import { formatCurrency } from '../utils/calculations';
+import useI18nStore from '../store/i18nStore';
 
 interface SimpleShiftEditDialogProps {
   open: boolean;
@@ -48,6 +50,7 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
   onDeleted,
 }) => {
   const { workplaces, updateShift, deleteShift } = useSimpleShiftStore();
+  const { country } = useI18nStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Shift | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -334,7 +337,7 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
                         variant="h5"
                         sx={{ fontWeight: 700, color: 'info.contrastText' }}
                       >
-                        ¥{editData.hourlyRate.toLocaleString()}
+                        {formatCurrency(editData.hourlyRate)}
                       </Typography>
                     </Box>
                   </Grid>
@@ -382,7 +385,7 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
                         variant="h5"
                         sx={{ fontWeight: 700, color: 'success.contrastText' }}
                       >
-                        ¥{editData.totalEarnings.toLocaleString()}
+                        {formatCurrency(editData.totalEarnings)}
                       </Typography>
                     </Box>
                   </Grid>
@@ -473,7 +476,11 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
                   error={Boolean(errors.hourlyRate)}
                   helperText={errors.hourlyRate}
                   InputProps={{
-                    startAdornment: <span style={{ marginRight: 8 }}>¥</span>,
+                    startAdornment: (
+                      <span style={{ marginRight: 8 }}>
+                        {country === 'UK' ? '£' : country === 'DE' || country === 'FI' || country === 'AT' ? '€' : country === 'DK' || country === 'NO' ? 'kr' : country === 'PL' ? 'zł' : country === 'HU' ? 'Ft' : '¥'}
+                      </span>
+                    ),
                   }}
                 />
               </Grid>
@@ -499,7 +506,7 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
                     更新後収入
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                    ¥{calculateEarnings(editData).toLocaleString()}
+                    {formatCurrency(calculateEarnings(editData))}
                   </Typography>
                 </Box>
               </Grid>

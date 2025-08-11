@@ -133,15 +133,24 @@ export const useShiftStore = create<ShiftState>()(
           );
           if (!workplace) return;
 
+          const tz = workplace.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const endBeforeStart = shiftData.endTime < shiftData.startTime;
+          const endDateStr = endBeforeStart
+            ? new Date(new Date(shiftData.date).getTime() + 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split('T')[0]
+            : shiftData.date;
           const actualWorkMinutes = calculateWorkMinutes(
             shiftData.startTime,
             shiftData.endTime,
-            shiftData.breakMinutes
+            shiftData.breakMinutes,
+            { startDate: shiftData.date, endDate: endDateStr, timeZone: tz }
           );
 
           const newShift: Shift = {
             id: `shift-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             date: shiftData.date,
+            endDate: endDateStr !== shiftData.date ? endDateStr : undefined,
             startTime: shiftData.startTime,
             endTime: shiftData.endTime,
             workplaceId: workplace.id,
@@ -174,10 +183,20 @@ export const useShiftStore = create<ShiftState>()(
                 shiftData.endTime ||
                 shiftData.breakMinutes
               ) {
+                const wp = get().workplaces.find(w => w.id === updatedShift.workplaceId);
+                const tzLocal = wp?.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+                const endBeforeStartLocal = updatedShift.endTime < updatedShift.startTime;
+                const endDateLocal = endBeforeStartLocal
+                  ? new Date(new Date(updatedShift.date).getTime() + 24 * 60 * 60 * 1000)
+                      .toISOString()
+                      .split('T')[0]
+                  : updatedShift.endDate || updatedShift.date;
+                updatedShift.endDate = endDateLocal !== updatedShift.date ? endDateLocal : undefined;
                 updatedShift.actualWorkMinutes = calculateWorkMinutes(
                   updatedShift.startTime,
                   updatedShift.endTime,
-                  updatedShift.breakMinutes || 0
+                  updatedShift.breakMinutes || 0,
+                  { startDate: updatedShift.date, endDate: endDateLocal, timeZone: tzLocal }
                 );
               }
               updatedShift.totalEarnings = calculateShiftEarnings(updatedShift);

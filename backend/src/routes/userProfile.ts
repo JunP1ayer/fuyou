@@ -26,7 +26,7 @@ router.get(
       };
 
       res.status(200).json(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to get user profile:', error);
       
       const response: ApiResponse = {
@@ -34,7 +34,7 @@ router.get(
         error: {
           message: 'プロフィール情報の取得に失敗しました',
           code: 'PROFILE_FETCH_FAILED',
-          details: error.message,
+          details: (error as Error).message,
         },
       };
 
@@ -67,7 +67,7 @@ router.put(
       };
 
       res.status(200).json(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to update user profile:', error);
       
       const response: ApiResponse = {
@@ -75,7 +75,7 @@ router.put(
         error: {
           message: 'プロフィール情報の更新に失敗しました',
           code: 'PROFILE_UPDATE_FAILED',
-          details: error.message,
+          details: (error as Error).message,
         },
       };
 
@@ -107,7 +107,7 @@ router.post(
       };
 
       res.status(201).json(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to initialize user profile:', error);
       
       const response: ApiResponse = {
@@ -115,7 +115,7 @@ router.post(
         error: {
           message: 'プロフィール初期化に失敗しました',
           code: 'PROFILE_INIT_FAILED',
-          details: error.message,
+          details: (error as Error).message,
         },
       };
 
@@ -143,7 +143,7 @@ router.get(
       };
 
       res.status(200).json(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to get shift filter name:', error);
       
       const response: ApiResponse = {
@@ -151,7 +151,7 @@ router.get(
         error: {
           message: 'シフトフィルタ名の取得に失敗しました',
           code: 'SHIFT_FILTER_NAME_FAILED',
-          details: error.message,
+          details: (error as Error).message,
         },
       };
 

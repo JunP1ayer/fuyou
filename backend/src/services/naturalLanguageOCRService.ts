@@ -179,25 +179,36 @@ ${userNameText}の今月のシフトは以下の通りです：
         throw new Error('No JSON found in GPT-4 response');
       }
 
-      const parsed = JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonMatch[0]) as Record<string, unknown>;
       
       // バリデーションと変換
-      const shifts: CreateShiftRequest[] = (parsed.shifts || []).map((shift: any) => ({
-        date: shift.date,
-        startTime: shift.startTime,
-        endTime: shift.endTime,
-        jobSourceName: shift.workplace || 'アルバイト先',
-        hourlyRate: shift.hourlyRate || 1000,
-        breakMinutes: 60, // デフォルト
-        description: `OCR自動登録 (信頼度: ${Math.round((shift.confidence || 0.5) * 100)}%)`,
-        isConfirmed: (shift.confidence || 0.5) > 0.8,
-      }));
+      const shifts: CreateShiftRequest[] = Array.isArray((parsed as Record<string, unknown>).shifts)
+        ? ((parsed as Record<string, unknown>).shifts as Array<Record<string, unknown>>).map((shift) => {
+            const s = shift as Record<string, unknown>;
+            const date = typeof s.date === 'string' ? s.date : '';
+            const startTime = typeof s.startTime === 'string' ? s.startTime : '';
+            const endTime = typeof s.endTime === 'string' ? s.endTime : '';
+            const workplace = typeof s.workplace === 'string' ? s.workplace : 'アルバイト先';
+            const hourlyRate = typeof s.hourlyRate === 'number' ? s.hourlyRate : 1000;
+            const confidence = typeof s.confidence === 'number' ? s.confidence : 0.5;
+            return {
+              date,
+              startTime,
+              endTime,
+              jobSourceName: workplace,
+              hourlyRate,
+              breakMinutes: 60,
+              description: `OCR自動登録 (信頼度: ${Math.round(confidence * 100)}%)`,
+              isConfirmed: confidence > 0.8,
+            };
+          })
+        : [];
 
       return {
-        naturalLanguageMessage: parsed.naturalLanguageMessage || 'シフト情報を処理しました。',
+        naturalLanguageMessage: (parsed.naturalLanguageMessage as string) || 'シフト情報を処理しました。',
         extractedShifts: shifts,
-        confidence: parsed.confidence || 0.5,
-        needsReview: parsed.needsReview !== false, // デフォルトはtrue
+        confidence: (parsed.confidence as number) || 0.5,
+        needsReview: (parsed.needsReview as boolean) !== false,
       };
     } catch (error) {
       console.error('Failed to parse GPT-4 response:', error);

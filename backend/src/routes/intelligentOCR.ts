@@ -6,7 +6,7 @@ import { asyncHandler } from '../middleware/errorHandler';
 import { uploadConfig } from '../middleware/uploadMiddleware';
 import { intelligentOCRService } from '../services/intelligentOCRService';
 import { shiftService } from '../services/shiftService';
-import { OCRProcessingSchema, type OCRProcessingRequest, type ApiResponse, type OCRProcessingResponse } from '../types/api';
+import { OCRProcessingSchema, type OCRProcessingRequest, type ApiResponse, type OCRProcessingResponse, type ShiftResponse } from '../types/api';
 
 const router = express.Router();
 
@@ -89,7 +89,7 @@ router.post(
       };
 
       res.status(200).json(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Intelligent OCR processing failed:', error);
 
       const response: ApiResponse = {
@@ -98,7 +98,7 @@ router.post(
           message: 'インテリジェントOCR処理に失敗しました',
           code: 'INTELLIGENT_OCR_FAILED',
           details: {
-            originalError: error.message,
+            originalError: (error as Error).message,
             userId,
             timestamp: new Date().toISOString(),
           },
@@ -157,7 +157,7 @@ router.post(
       const processingTime = Date.now() - startTime;
       console.log(`File processing completed in ${processingTime}ms`);
 
-      let savedShifts: any[] = [];
+      let savedShifts: ShiftResponse[] = [];
       let saveMetaData = {};
 
       // Auto-save if requested
@@ -191,7 +191,7 @@ router.post(
       };
 
       res.status(200).json(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('File processing failed:', error);
 
       const response: ApiResponse = {
@@ -200,7 +200,7 @@ router.post(
           message: 'ファイル処理に失敗しました',
           code: 'FILE_PROCESSING_FAILED',
           details: {
-            originalError: error.message,
+            originalError: (error as Error).message,
             fileName: req.file.originalname,
             fileSize: req.file.size,
             mimeType: req.file.mimetype,

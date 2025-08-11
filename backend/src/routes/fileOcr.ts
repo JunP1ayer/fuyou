@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
@@ -10,7 +10,7 @@ const router = express.Router();
 
 // ファイルアップロード設定
 const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
+  destination: async (_req, _file, cb) => {
     const uploadDir = path.join(__dirname, '../../uploads');
     try {
       await fs.mkdir(uploadDir, { recursive: true });
@@ -19,7 +19,7 @@ const storage = multer.diskStorage({
       cb(error as Error, uploadDir);
     }
   },
-  filename: (req, file, cb) => {
+  filename: (_req, file, cb) => {
     const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}-${file.originalname}`;
     cb(null, uniqueName);
   },
@@ -30,7 +30,7 @@ const upload = multer({
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (_req, file, cb) => {
     const allowedTypes = [
       'image/jpeg',
       'image/png',
@@ -55,7 +55,7 @@ const upload = multer({
 // API エンドポイント
 
 // 統合ファイル解析（OpenAI/Gemini使用）
-router.post('/analyze', requireAuthOrDemo, upload.single('file'), asyncHandler(async (req: any, res: any) => {
+router.post('/analyze', requireAuthOrDemo, upload.single('file'), asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({
       success: false,
@@ -87,7 +87,7 @@ router.post('/analyze', requireAuthOrDemo, upload.single('file'), asyncHandler(a
         },
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     // エラー時もファイル削除
     try {
       await fs.unlink(req.file.path);
@@ -103,7 +103,7 @@ router.post('/analyze', requireAuthOrDemo, upload.single('file'), asyncHandler(a
 }));
 
 // 画像専用エンドポイント（後方互換性）
-router.post('/image', requireAuthOrDemo, upload.single('file'), asyncHandler(async (req: any, res: any) => {
+router.post('/image', requireAuthOrDemo, upload.single('file'), asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({
       success: false,
@@ -129,7 +129,7 @@ router.post('/image', requireAuthOrDemo, upload.single('file'), asyncHandler(asy
         provider: result.provider,
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     // エラー時もファイル削除
     try {
       await fs.unlink(req.file.path);
@@ -145,7 +145,7 @@ router.post('/image', requireAuthOrDemo, upload.single('file'), asyncHandler(asy
 }));
 
 // Excel解析（AI使用）
-router.post('/excel', requireAuthOrDemo, upload.single('file'), asyncHandler(async (req: any, res: any) => {
+router.post('/excel', requireAuthOrDemo, upload.single('file'), asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({
       success: false,
@@ -170,7 +170,7 @@ router.post('/excel', requireAuthOrDemo, upload.single('file'), asyncHandler(asy
         provider: result.provider,
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     // エラー時もファイル削除
     try {
       await fs.unlink(req.file.path);
@@ -186,7 +186,7 @@ router.post('/excel', requireAuthOrDemo, upload.single('file'), asyncHandler(asy
 }));
 
 // CSV解析（AI使用）
-router.post('/csv', requireAuthOrDemo, upload.single('file'), asyncHandler(async (req: any, res: any) => {
+router.post('/csv', requireAuthOrDemo, upload.single('file'), asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({
       success: false,
@@ -211,7 +211,7 @@ router.post('/csv', requireAuthOrDemo, upload.single('file'), asyncHandler(async
         provider: result.provider,
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     // エラー時もファイル削除
     try {
       await fs.unlink(req.file.path);
@@ -227,7 +227,7 @@ router.post('/csv', requireAuthOrDemo, upload.single('file'), asyncHandler(async
 }));
 
 // PDF解析（AI使用）
-router.post('/pdf', requireAuthOrDemo, upload.single('file'), asyncHandler(async (req: any, res: any) => {
+router.post('/pdf', requireAuthOrDemo, upload.single('file'), asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({
       success: false,
@@ -252,7 +252,7 @@ router.post('/pdf', requireAuthOrDemo, upload.single('file'), asyncHandler(async
         provider: result.provider,
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     // エラー時もファイル削除
     try {
       await fs.unlink(req.file.path);

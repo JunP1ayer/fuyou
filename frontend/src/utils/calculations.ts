@@ -1,6 +1,7 @@
 // 💰 扶養・給料計算ユーティリティ
 
 import type { Shift, FuyouStatus, MonthlyEarnings } from '../types/index';
+import useI18nStore from '../store/i18nStore';
 
 /**
  * 2025年扶養制度の限度額定数
@@ -154,11 +155,39 @@ export const predictEarnings = (
 /**
  * 収入を人間が読みやすい形式にフォーマット
  */
-export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('ja-JP', {
-    style: 'currency',
-    currency: 'JPY',
-  }).format(amount);
+const ZERO_DECIMAL_CURRENCIES = new Set(['JPY', 'HUF', 'CLP', 'VND', 'KRW']);
+
+export const formatCurrency = (
+  amount: number,
+  options?: { language?: string; currency?: string }
+): string => {
+  const { language: storeLanguage, country } = useI18nStore.getState();
+  const language = options?.language || storeLanguage || 'ja';
+  const currency =
+    options?.currency ||
+    (country === 'UK'
+      ? 'GBP'
+      : country === 'DE'
+      ? 'EUR'
+      : country === 'DK'
+      ? 'DKK'
+      : country === 'FI'
+      ? 'EUR'
+      : country === 'NO'
+      ? 'NOK'
+      : country === 'AT'
+      ? 'EUR'
+      : country === 'PL'
+      ? 'PLN'
+      : country === 'HU'
+      ? 'HUF'
+      : 'JPY');
+
+  const nfOptions: Intl.NumberFormatOptions = { style: 'currency', currency };
+  if (ZERO_DECIMAL_CURRENCIES.has(currency)) {
+    nfOptions.maximumFractionDigits = 0;
+  }
+  return new Intl.NumberFormat(language, nfOptions).format(amount);
 };
 
 /**

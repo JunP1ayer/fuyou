@@ -77,7 +77,7 @@ router.post(
         res.status(422).json(result); // Unprocessable Entity
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('OCR API エラー:', error);
       
       res.status(500).json({
@@ -168,7 +168,7 @@ router.post(
         },
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('自然言語OCR API エラー:', error);
       
       res.status(500).json({

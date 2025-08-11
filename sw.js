@@ -1,18 +1,28 @@
-// Service Worker for 扶養プロ - Progressive Web App
-const CACHE_NAME = 'fuyou-pro-v1.2.0'; // 🆕 強制キャッシュクリア
+// Service Worker for 扶養プロ - Progressive Web App v3.0
+const CACHE_NAME = 'fuyou-pro-v3.0.0'; // 🆕 友達共有・国際化・API連携対応
+const API_CACHE_NAME = 'fuyou-api-v3.0.0';
 const urlsToCache = [
   '/',
-  '/ai-vision-service.js',
-  '/fuyou-optimization-engine.js',
   '/manifest.json',
-  '/config.js',
-  '/secure-config-loader.js',
-  '/setup-wizard.js',
-  '/analytics-tracker.js',
-  '/backup-manager.js',
-  '/premium-features.js',
-  '/gemini-vision-service.js'
+  '/icon-192.png',
+  '/icon-512.png',
+  '/favicon-16x16.png',
+  '/favicon-32x32.png',
+  // 静的アセット
+  '/assets/', // Viteビルド結果
 ];
+
+// API エンドポイントのキャッシュ戦略
+const API_STRATEGIES = {
+  // 即座にキャッシュ、ネットワーク更新
+  'cache-first': ['/api/shifts', '/api/job-sources', '/api/workplaces'],
+  // ネットワーク優先、フォールバックでキャッシュ
+  'network-first': ['/api/calculations', '/api/intelligent-ocr'],
+  // キャッシュのみ（オフライン用）
+  'cache-only': ['/api/offline-data'],
+  // ネットワークのみ（リアルタイム）
+  'network-only': ['/api/sync', '/api/push']
+};
 
 // インストール時のキャッシュ処理
 self.addEventListener('install', (event) => {
@@ -57,42 +67,117 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// ネットワークリクエストのインターセプト
+// ネットワークリクエストのインターセプト（高度な戦略）
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // キャッシュにある場合はキャッシュから返す
-        if (response) {
-          return response;
-        }
-
-        // ネットワークリクエストを実行
-        return fetch(event.request)
-          .then((response) => {
-            // 有効なレスポンスかチェック
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // レスポンスをクローンしてキャッシュに保存
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          })
-          .catch(() => {
-            // ネットワークエラー時のフォールバック
-            if (event.request.destination === 'document') {
-              return caches.match('/');
-            }
-          });
-      })
-  );
+  const url = new URL(event.request.url);
+  
+  // API リクエストの場合は専用戦略を適用
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(handleApiRequest(event.request));
+    return;
+  }
+  
+  // 静的アセットの場合
+  if (url.pathname.startsWith('/assets/') || url.pathname.includes('.js') || url.pathname.includes('.css')) {
+    event.respondWith(handleStaticAsset(event.request));
+    return;
+  }
+  
+  // その他のリクエスト（HTML等）
+  event.respondWith(handleDocumentRequest(event.request));
 });
+
+// API リクエスト処理
+async function handleApiRequest(request) {
+  const url = new URL(request.url);
+  const strategy = getApiStrategy(url.pathname);
+  
+  switch (strategy) {
+    case 'cache-first':
+      return cacheFirst(request, API_CACHE_NAME);
+    case 'network-first':
+      return networkFirst(request, API_CACHE_NAME);
+    case 'cache-only':
+      return cacheOnly(request, API_CACHE_NAME);
+    case 'network-only':
+      return networkOnly(request);
+    default:
+      return networkFirst(request, API_CACHE_NAME);
+  }
+}
+
+// 静的アセット処理
+async function handleStaticAsset(request) {
+  return cacheFirst(request, CACHE_NAME);
+}
+
+// ドキュメントリクエスト処理
+async function handleDocumentRequest(request) {
+  return networkFirst(request, CACHE_NAME, '/');
+}
+
+// キャッシュ優先戦略
+async function cacheFirst(request, cacheName) {
+  const cachedResponse = await caches.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const cache = await caches.open(cacheName);
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch (error) {
+    console.log('Network failed, no cached version available');
+    throw error;
+  }
+}
+
+// ネットワーク優先戦略
+async function networkFirst(request, cacheName, fallbackUrl = null) {
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const cache = await caches.open(cacheName);
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch (error) {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    if (fallbackUrl) {
+      return caches.match(fallbackUrl);
+    }
+    
+    throw error;
+  }
+}
+
+// キャッシュのみ戦略
+async function cacheOnly(request, cacheName) {
+  return caches.match(request);
+}
+
+// ネットワークのみ戦略
+async function networkOnly(request) {
+  return fetch(request);
+}
+
+// API戦略判定
+function getApiStrategy(pathname) {
+  for (const [strategy, patterns] of Object.entries(API_STRATEGIES)) {
+    if (patterns.some(pattern => pathname.startsWith(pattern))) {
+      return strategy;
+    }
+  }
+  return 'network-first'; // デフォルト
+}
 
 // バックグラウンド同期
 self.addEventListener('sync', (event) => {

@@ -8,7 +8,7 @@ export interface ParsedTransaction {
   description: string;
   type: 'income' | 'expense' | 'unknown';
   confidence: number;
-  rawData: Record<string, any>;
+  rawData: Record<string, string>;
 }
 
 export interface CSVParseResult {
@@ -22,7 +22,7 @@ export interface CSVParseResult {
 
 interface BankFormat {
   name: string;
-  detectPattern: (headers: string[]) => boolean;
+  detectPattern: (h: string[]) => boolean;
   columnMap: {
     date: string;
     amount: string;
@@ -30,16 +30,16 @@ interface BankFormat {
     balance?: string;
   };
   dateFormat: string;
-  amountParser: (value: string) => number;
+  amountParser: (v: string) => number;
 }
 
 // 主要銀行のCSVフォーマット定義
 const BANK_FORMATS: BankFormat[] = [
   {
     name: '三菱UFJ銀行',
-    detectPattern: (headers) => 
-      headers.some(h => h.includes('取引日')) && 
-      headers.some(h => h.includes('摘要')),
+    detectPattern: (h) => 
+      h.some(hh => hh.includes('取引日')) && 
+      h.some(hh => hh.includes('摘要')),
     columnMap: {
       date: '取引日',
       amount: '取引金額',
@@ -47,17 +47,16 @@ const BANK_FORMATS: BankFormat[] = [
       balance: '残高'
     },
     dateFormat: 'YYYY/MM/DD',
-    amountParser: (value: string) => {
-      // カンマを除去してパース
-      const cleaned = value.replace(/[,円]/g, '');
+    amountParser: (v: string) => {
+      const cleaned = (v || '').replace(/[,円]/g, '');
       return parseInt(cleaned) || 0;
     }
   },
   {
     name: '三井住友銀行',
-    detectPattern: (headers) => 
-      headers.some(h => h.includes('日付')) && 
-      headers.some(h => h.includes('金額')),
+    detectPattern: (h) => 
+      h.some(hh => hh.includes('日付')) && 
+      h.some(hh => hh.includes('金額')),
     columnMap: {
       date: '日付',
       amount: '金額',
@@ -65,40 +64,40 @@ const BANK_FORMATS: BankFormat[] = [
       balance: '残高'
     },
     dateFormat: 'YYYY/MM/DD',
-    amountParser: (value: string) => {
-      const cleaned = value.replace(/[,円]/g, '');
+    amountParser: (v: string) => {
+      const cleaned = (v || '').replace(/[,円]/g, '');
       return parseInt(cleaned) || 0;
     }
   },
   {
     name: 'みずほ銀行',
-    detectPattern: (headers) => 
-      headers.some(h => h.includes('年月日')) && 
-      headers.some(h => h.includes('出金金額') || h.includes('入金金額')),
+    detectPattern: (h) => 
+      h.some(hh => hh.includes('年月日')) && 
+      h.some(hh => hh.includes('出金金額') || hh.includes('入金金額')),
     columnMap: {
       date: '年月日',
       amount: '入金金額', // または出金金額
       description: '摘要',
     },
     dateFormat: 'YYYY/MM/DD',
-    amountParser: (value: string) => {
-      const cleaned = value.replace(/[,円]/g, '');
+    amountParser: (v: string) => {
+      const cleaned = (v || '').replace(/[,円]/g, '');
       return parseInt(cleaned) || 0;
     }
   },
   {
     name: 'ゆうちょ銀行',
-    detectPattern: (headers) => 
-      headers.some(h => h.includes('取扱日')) && 
-      headers.some(h => h.includes('お取扱内容')),
+    detectPattern: (h) => 
+      h.some(hh => hh.includes('取扱日')) && 
+      h.some(hh => hh.includes('お取扱内容')),
     columnMap: {
       date: '取扱日',
       amount: '取扱金額',
       description: 'お取扱内容',
     },
     dateFormat: 'YYYY/MM/DD',
-    amountParser: (value: string) => {
-      const cleaned = value.replace(/[,円]/g, '');
+    amountParser: (v: string) => {
+      const cleaned = (v || '').replace(/[,円]/g, '');
       return parseInt(cleaned) || 0;
     }
   }
@@ -167,9 +166,9 @@ export class CSVParserService {
     }
   }
   
-  private async parseCSVContent(content: string): Promise<Record<string, any>[]> {
+  private async parseCSVContent(content: string): Promise<Record<string, string>[]> {
     return new Promise((resolve, reject) => {
-      const results: Record<string, any>[] = [];
+      const results: Record<string, string>[] = [];
       
       Readable.from(content)
         .pipe(csv())
@@ -189,7 +188,7 @@ export class CSVParserService {
   }
   
   private convertToTransactions(
-    rawData: Record<string, any>[], 
+    rawData: Record<string, string>[], 
     bankFormat: BankFormat
   ): ParsedTransaction[] {
     return rawData.map(row => {

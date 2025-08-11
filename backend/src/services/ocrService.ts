@@ -1,5 +1,5 @@
 import { ImageAnnotatorClient } from '@google-cloud/vision';
-import { OCRResponse, ExtractedShiftData } from '../types/ocr';
+import { OCRResponse } from '../types/ocr';
 
 class OCRService {
   private client: ImageAnnotatorClient;
@@ -81,13 +81,13 @@ class OCRService {
         },
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('OCR processing error:', error);
       
       return {
         success: false,
         error: {
-          code: error.code || 'UNKNOWN_ERROR',
+          code: (error as { code?: string }).code || 'UNKNOWN_ERROR',
           message: this.getErrorMessage(error),
           details: process.env.NODE_ENV === 'development' ? error : undefined,
         },
@@ -115,13 +115,13 @@ class OCRService {
     possibleTimes?: string[];
     possibleAmounts?: string[];
   } {
-    const suggestions: any = {};
+    const suggestions: { possibleDates?: string[]; possibleTimes?: string[]; possibleAmounts?: string[] } = {};
 
     // 日付パターンの検出
-    const datePatterns = [
-      /(\d{1,2})[\/\-月](\d{1,2})[日]?/g,
-      /(\d{4})[\/\-年](\d{1,2})[\/\-月](\d{1,2})[日]?/g,
-    ];
+      const datePatterns = [
+        /(\d{1,2})[/-月](\d{1,2})[日]?/g,
+        /(\d{4})[/-年](\d{1,2})[/-月](\d{1,2})[日]?/g,
+      ];
     
     const dates: string[] = [];
     datePatterns.forEach(pattern => {
@@ -172,7 +172,7 @@ class OCRService {
   /**
    * 全体的な信頼度を計算
    */
-  private calculateOverallConfidence(boundingBoxes: any[]): number {
+  private calculateOverallConfidence(boundingBoxes: Array<{ confidence: number }>): number {
     if (boundingBoxes.length === 0) return 0;
     
     // 簡単な信頼度計算 (実際のプロジェクトでは更に複雑なロジック)
@@ -183,8 +183,9 @@ class OCRService {
   /**
    * エラーメッセージの生成
    */
-  private getErrorMessage(error: any): string {
-    switch (error.code) {
+  private getErrorMessage(error: unknown): string {
+    const code = (error as { code?: string }).code;
+    switch (code) {
       case 'PERMISSION_DENIED':
         return 'Google Cloud Vision APIの認証に失敗しました。設定を確認してください。';
       case 'QUOTA_EXCEEDED':

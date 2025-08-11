@@ -14,10 +14,13 @@ import {
   subMonths,
 } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import useI18nStore from '../store/i18nStore';
+import { formatCurrency } from '../utils/calculations';
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
 
 export const SimpleCalendarView: React.FC = () => {
   const theme = useTheme();
+  const { language } = useI18nStore();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const { shifts, getShiftsByDate, getTotalEarnings } = useSimpleShiftStore();
 
@@ -69,10 +72,10 @@ export const SimpleCalendarView: React.FC = () => {
             </IconButton>
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                📅 {format(currentMonth, 'yyyy年M月', { locale: ja })}
+                📅 {new Date(currentMonth).toLocaleDateString(language, { year: 'numeric', month: 'long' })}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                総収入: ¥{getTotalEarnings().toLocaleString()} | シフト数:{' '}
+                総収入: {formatCurrency(getTotalEarnings())} | シフト数:{' '}
                 {shifts.length}件
               </Typography>
             </Box>
