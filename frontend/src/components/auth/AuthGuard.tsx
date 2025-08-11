@@ -102,6 +102,14 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   const { user, loading, initialized } = useAuth();
   const { t, isLanguageSelected } = useLanguage();
 
+  console.log('🛡️ AuthGuard state:', { 
+    user: user?.email, 
+    loading, 
+    initialized, 
+    isLanguageSelected, 
+    requireAuth 
+  });
+
   // 初期化中
   if (!initialized) {
     return <LoadingScreen message={t('loading.authenticating', '認証情報を確認しています...')} />;

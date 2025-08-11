@@ -28,17 +28,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const initializeAuth = async () => {
       try {
+        console.log('🔐 Auth initialization started');
         const currentUser = await authService.getCurrentUser();
+        console.log('🔐 Current user:', currentUser);
         
         if (isMounted) {
           setUser(currentUser);
           setInitialized(true);
+          console.log('🔐 Auth initialized with user:', currentUser?.email);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
         if (isMounted) {
           setUser(null);
           setInitialized(true);
+          console.log('🔐 Auth initialized without user');
         }
       }
     };
@@ -48,6 +52,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // 認証状態の変更を監視
     const { data: { subscription } } = authService.onAuthStateChange((user) => {
       if (isMounted) {
+        console.log('🔄 Auth state changed to:', user?.email || 'null');
         setUser(user);
         if (!initialized) {
           setInitialized(true);
@@ -65,7 +70,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (credentials: LoginCredentials): Promise<void> => {
     try {
       setLoading(true);
+      console.log('🔐 Login attempt for:', credentials.email);
       const user = await authService.login(credentials);
+      console.log('🔐 Login successful, user:', user);
       
       // ステート更新は onAuthStateChange で自動的に処理される
       
@@ -74,6 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         icon: '👋',
       });
     } catch (error) {
+      console.error('🔐 Login failed:', error);
       const authError = error as AuthError;
       toast.error(authError.message, {
         duration: 4000,
@@ -89,7 +97,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (credentials: SignupCredentials): Promise<void> => {
     try {
       setLoading(true);
+      console.log('🎆 Signup attempt for:', credentials.email);
       const user = await authService.signup(credentials);
+      console.log('🎆 Signup successful, user:', user);
       
       // ステート更新は onAuthStateChange で自動的に処理される
       
@@ -98,6 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         icon: '🎉',
       });
     } catch (error) {
+      console.error('🎆 Signup failed:', error);
       const authError = error as AuthError;
       toast.error(authError.message, {
         duration: 4000,

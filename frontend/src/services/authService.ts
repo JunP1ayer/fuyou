@@ -109,10 +109,19 @@ export const authService = {
   // 現在のユーザーを取得
   getCurrentUser: async (): Promise<User | null> => {
     try {
+      console.log('📱 Getting current user...');
       const { data: { user }, error } = await supabase.auth.getUser();
       
-      if (error) throw error;
-      if (!user) return null;
+      if (error) {
+        console.log('📱 Get user error:', error);
+        throw error;
+      }
+      if (!user) {
+        console.log('📱 No user found');
+        return null;
+      }
+
+      console.log('📱 Found user:', user.email);
 
       // プロフィール情報を取得
       const { data: profile, error: profileError } = await supabase
