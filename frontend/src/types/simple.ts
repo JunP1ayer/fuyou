@@ -10,6 +10,14 @@ export interface Shift {
   hourlyRate: number;
   totalEarnings: number;
   status: 'confirmed' | 'tentative';
+  // 休憩時間設定
+  breakTime?: number; // 分単位の休憩時間（手動入力）
+  autoBreak6Hours?: boolean; // 6時間越えで自動休憩45分
+  autoBreak8Hours?: boolean; // 8時間越えで自動休憩60分
+  // 残業設定
+  overtimeEnabled?: boolean; // 残業割増25%を有効にするか（デフォルト true）
+  // 曜日別設定
+  dayOfWeekSettingsEnabled?: boolean; // 曜日別設定を有効にするか
 }
 
 export interface Workplace {

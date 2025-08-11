@@ -13,9 +13,9 @@ export class ShiftService {
       // Check for time conflicts with existing shifts on the same date
       await this.checkForTimeConflicts(userId, data.date, data.startTime, data.endTime);
 
-      // Calculate working hours and earnings
-      const workingHours = this.calculateWorkingHours(data.startTime, data.endTime, data.breakMinutes);
-      const calculatedEarnings = workingHours * data.hourlyRate;
+      // Calculate working hours and earnings with auto-break and overtime support
+      const workingHours = this.calculateWorkingHours(data.startTime, data.endTime, data.breakMinutes, data.autoBreak6Hours, data.autoBreak8Hours);
+      const calculatedEarnings = this.calculateEarnings(workingHours, data.hourlyRate, data.overtimeEnabled);
 
       const shift = {
         id: uuidv4(),
@@ -27,6 +27,10 @@ export class ShiftService {
         end_time: data.endTime,
         hourly_rate: data.hourlyRate,
         break_minutes: data.breakMinutes,
+        auto_break_6_hours: data.autoBreak6Hours !== false, // デフォルト true
+        auto_break_8_hours: data.autoBreak8Hours !== false, // デフォルト true
+        overtime_enabled: data.overtimeEnabled !== false, // デフォルト true
+        day_of_week_settings_enabled: data.dayOfWeekSettingsEnabled || false,
         working_hours: workingHours.toString(),
         calculated_earnings: calculatedEarnings.toString(),
         description: data.description || null,
@@ -57,7 +61,7 @@ export class ShiftService {
     try {
       let query = serviceSupabase
         .from('shifts')
-        .select('id,user_id,job_source_id,job_source_name,date,start_time,end_time,hourly_rate,break_minutes,working_hours,calculated_earnings,description,is_confirmed,created_at,updated_at')
+        .select('id,user_id,job_source_id,job_source_name,date,start_time,end_time,hourly_rate,break_minutes,auto_break_6_hours,auto_break_8_hours,overtime_enabled,day_of_week_settings_enabled,working_hours,calculated_earnings,description,is_confirmed,created_at,updated_at')
         .eq('user_id', userId);
 
       // Apply filters
@@ -91,7 +95,7 @@ export class ShiftService {
     try {
       const { data: shift, error } = await supabase
         .from('shifts')
-        .select('id,user_id,job_source_id,job_source_name,date,start_time,end_time,hourly_rate,break_minutes,working_hours,calculated_earnings,description,is_confirmed,created_at,updated_at')
+        .select('id,user_id,job_source_id,job_source_name,date,start_time,end_time,hourly_rate,break_minutes,auto_break_6_hours,auto_break_8_hours,overtime_enabled,day_of_week_settings_enabled,working_hours,calculated_earnings,description,is_confirmed,created_at,updated_at')
         .eq('id', shiftId)
         .eq('user_id', userId)
         .single();
@@ -133,21 +137,28 @@ export class ShiftService {
       if (data.endTime !== undefined) updateData.end_time = data.endTime;
       if (data.hourlyRate !== undefined) updateData.hourly_rate = data.hourlyRate;
       if (data.breakMinutes !== undefined) updateData.break_minutes = data.breakMinutes;
+      if (data.autoBreak6Hours !== undefined) updateData.auto_break_6_hours = data.autoBreak6Hours;
+      if (data.autoBreak8Hours !== undefined) updateData.auto_break_8_hours = data.autoBreak8Hours;
+      if (data.overtimeEnabled !== undefined) updateData.overtime_enabled = data.overtimeEnabled;
+      if (data.dayOfWeekSettingsEnabled !== undefined) updateData.day_of_week_settings_enabled = data.dayOfWeekSettingsEnabled;
       if (data.description !== undefined) updateData.description = data.description;
       if (data.isConfirmed !== undefined) updateData.is_confirmed = data.isConfirmed;
 
       // Recalculate working hours and earnings if time or rate changed
-      if (data.startTime || data.endTime || data.breakMinutes || data.hourlyRate) {
+      if (data.startTime || data.endTime || data.breakMinutes || data.autoBreak6Hours !== undefined || data.autoBreak8Hours !== undefined || data.overtimeEnabled !== undefined || data.hourlyRate) {
         // Get current shift to fill missing values
         const currentShift = await this.getShiftById(userId, shiftId);
         
         const startTime = data.startTime || currentShift.startTime;
         const endTime = data.endTime || currentShift.endTime;
         const breakMinutes = data.breakMinutes ?? currentShift.breakMinutes;
+        const autoBreak6Hours = data.autoBreak6Hours ?? currentShift.autoBreak6Hours;
+        const autoBreak8Hours = data.autoBreak8Hours ?? currentShift.autoBreak8Hours;
+        const overtimeEnabled = data.overtimeEnabled ?? currentShift.overtimeEnabled;
         const hourlyRate = data.hourlyRate || currentShift.hourlyRate;
 
-        const workingHours = this.calculateWorkingHours(startTime, endTime, breakMinutes);
-        const calculatedEarnings = workingHours * hourlyRate;
+        const workingHours = this.calculateWorkingHours(startTime, endTime, breakMinutes, autoBreak6Hours, autoBreak8Hours);
+        const calculatedEarnings = this.calculateEarnings(workingHours, hourlyRate, overtimeEnabled);
 
         updateData.working_hours = workingHours.toString();
         updateData.calculated_earnings = calculatedEarnings.toString();
@@ -158,7 +169,7 @@ export class ShiftService {
         .update(updateData)
         .eq('id', shiftId)
         .eq('user_id', userId)
-        .select('id,user_id,job_source_id,job_source_name,date,start_time,end_time,hourly_rate,break_minutes,working_hours,calculated_earnings,description,is_confirmed,created_at,updated_at')
+        .select('id,user_id,job_source_id,job_source_name,date,start_time,end_time,hourly_rate,break_minutes,auto_break_6_hours,auto_break_8_hours,overtime_enabled,day_of_week_settings_enabled,working_hours,calculated_earnings,description,is_confirmed,created_at,updated_at')
         .single();
 
       if (error) {
@@ -218,8 +229,8 @@ export class ShiftService {
     }
   }
 
-  // Helper method to calculate working hours
-  private calculateWorkingHours(startTime: string, endTime: string, breakMinutes: number): number {
+  // Helper method to calculate working hours with auto-break support
+  private calculateWorkingHours(startTime: string, endTime: string, breakMinutes: number = 0, autoBreak6Hours?: boolean, autoBreak8Hours?: boolean): number {
     const start = new Date(`1970-01-01T${startTime}:00`);
     const end = new Date(`1970-01-01T${endTime}:00`);
     
@@ -231,16 +242,44 @@ export class ShiftService {
     }
     
     const totalMinutes = diffMs / (1000 * 60);
-    const workingMinutes = totalMinutes - breakMinutes;
+    const totalHours = totalMinutes / 60;
+    
+    // Calculate break time
+    let totalBreakMinutes = breakMinutes;
+    
+    // Add automatic break time based on total work hours
+    if (autoBreak8Hours !== false && totalHours > 8) {
+      totalBreakMinutes += 60; // 8時間越えで1時間休憩
+    } else if (autoBreak6Hours !== false && totalHours > 6) {
+      totalBreakMinutes += 45; // 6時間越えで45分休憩
+    }
+    
+    const workingMinutes = totalMinutes - totalBreakMinutes;
     
     return Math.max(0, workingMinutes / 60); // Convert to hours, minimum 0
+  }
+
+  // Helper method to calculate earnings with overtime support
+  private calculateEarnings(workingHours: number, hourlyRate: number, overtimeEnabled?: boolean): number {
+    if (overtimeEnabled !== false && workingHours > 8) { // デフォルト true
+      // 8時間以内は通常時給
+      const regularHours = 8;
+      const overtimeHours = workingHours - 8;
+      
+      return (regularHours * hourlyRate) + (overtimeHours * hourlyRate * 1.25);
+    } else {
+      // 通常計算
+      return workingHours * hourlyRate;
+    }
   }
 
   // Helper method to transform database response
   private transformShiftResponse(shift: {
     id: string; user_id: string; job_source_id: string | null; job_source_name: string; date: string;
-    start_time: string; end_time: string; hourly_rate: number; break_minutes: number; working_hours: string;
-    calculated_earnings: string; description: string | null; is_confirmed: boolean; created_at: string; updated_at: string;
+    start_time: string; end_time: string; hourly_rate: number; break_minutes: number; 
+    auto_break_6_hours?: boolean; auto_break_8_hours?: boolean; overtime_enabled?: boolean; day_of_week_settings_enabled?: boolean;
+    working_hours: string; calculated_earnings: string; description: string | null; is_confirmed: boolean; 
+    created_at: string; updated_at: string;
   }): ShiftResponse {
     return {
       id: shift.id,
@@ -252,6 +291,10 @@ export class ShiftService {
       endTime: shift.end_time,
       hourlyRate: shift.hourly_rate,
       breakMinutes: shift.break_minutes,
+      autoBreak6Hours: shift.auto_break_6_hours,
+      autoBreak8Hours: shift.auto_break_8_hours,
+      overtimeEnabled: shift.overtime_enabled,
+      dayOfWeekSettingsEnabled: shift.day_of_week_settings_enabled,
       workingHours: parseFloat(shift.working_hours),
       calculatedEarnings: parseFloat(shift.calculated_earnings),
       description: shift.description ?? undefined,

@@ -147,7 +147,7 @@ export const SimpleAuthForm: React.FC = () => {
             />
 
             {/* パスワード強度（サインアップ時のみ） */}
-            {mode === 'signup' && (
+            {mode === 'signup' && formData.password && (
               <Box sx={{ mb: 2 }}>
                 <Typography variant="caption" color="text.secondary">
                   パスワード強度: {strength.label}
@@ -157,11 +157,6 @@ export const SimpleAuthForm: React.FC = () => {
                     <Box key={i} sx={{ height: 6, flex: 1, borderRadius: 9999, background: i < strength.score ? '#5ac8fa' : '#e0e0e0' }} />
                   ))}
                 </Box>
-                {strength.suggestions.length > 0 && (
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                    {strength.suggestions[0]}
-                  </Typography>
-                )}
               </Box>
             )}
 

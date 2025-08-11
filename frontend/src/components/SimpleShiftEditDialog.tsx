@@ -18,6 +18,8 @@ import {
   Chip,
   Divider,
   IconButton,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import {
   Edit,
@@ -58,7 +60,14 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
   // ダイアログが開いた時の初期化
   React.useEffect(() => {
     if (shift && open) {
-      setEditData({ ...shift });
+      const shiftWithDefaults = {
+        ...shift,
+        // デフォルト値を設定
+        overtimeEnabled: shift.overtimeEnabled !== false, // デフォルト true
+        autoBreak6Hours: shift.autoBreak6Hours !== false, // デフォルト true
+        autoBreak8Hours: shift.autoBreak8Hours !== false, // デフォルト true
+      };
+      setEditData(shiftWithDefaults);
       setIsEditing(false);
       setErrors({});
     }
@@ -105,13 +114,49 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  // 収入計算
+  // 収入計算（休憩時間・残業割増対応）
   const calculateEarnings = (data: Shift) => {
     if (data.startTime && data.endTime && data.hourlyRate) {
       const start = new Date(`2024-01-01T${data.startTime}`);
       const end = new Date(`2024-01-01T${data.endTime}`);
-      const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-      return Math.floor(hours * data.hourlyRate);
+      const totalMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
+      
+      // 休憩時間を計算
+      let breakMinutes = 0;
+      
+      // 手動入力の休憩時間
+      if (data.breakTime) {
+        breakMinutes = data.breakTime;
+      }
+      
+      // 自動休憩時間（6時間・8時間越え）
+      const workHours = totalMinutes / 60;
+      if (data.autoBreak8Hours && workHours > 8) {
+        breakMinutes += 60; // 8時間越えで1時間休憩
+      } else if (data.autoBreak6Hours && workHours > 6) {
+        breakMinutes += 45; // 6時間越えで45分休憩
+      }
+      
+      // 実労働時間を計算
+      const actualWorkMinutes = Math.max(0, totalMinutes - breakMinutes);
+      const actualWorkHours = actualWorkMinutes / 60;
+      
+      // 残業割増計算
+      let earnings = 0;
+      const overtimeEnabled = data.overtimeEnabled !== false; // デフォルト true
+      
+      if (overtimeEnabled && actualWorkHours > 8) {
+        // 8時間以内は通常時給
+        const regularHours = 8;
+        const overtimeHours = actualWorkHours - 8;
+        
+        earnings = (regularHours * data.hourlyRate) + (overtimeHours * data.hourlyRate * 1.25);
+      } else {
+        // 通常計算
+        earnings = actualWorkHours * data.hourlyRate;
+      }
+      
+      return Math.floor(earnings);
     }
     return 0;
   };
@@ -178,14 +223,38 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
 
   if (!shift || !editData) return null;
 
-  const workHours =
-    editData.startTime && editData.endTime
-      ? (
-          (new Date(`2024-01-01T${editData.endTime}`).getTime() -
-            new Date(`2024-01-01T${editData.startTime}`).getTime()) /
-          (1000 * 60 * 60)
-        ).toFixed(1)
-      : '0';
+  // 勤務時間・休憩時間・実働時間の計算
+  const getTimeInfo = () => {
+    if (!editData.startTime || !editData.endTime) {
+      return { totalHours: '0', breakMinutes: 0, actualHours: '0' };
+    }
+    
+    const start = new Date(`2024-01-01T${editData.startTime}`);
+    const end = new Date(`2024-01-01T${editData.endTime}`);
+    const totalMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
+    const totalHours = totalMinutes / 60;
+    
+    let breakMinutes = 0;
+    if (editData.breakTime) breakMinutes += editData.breakTime;
+    
+    const workHours = totalMinutes / 60;
+    if (editData.autoBreak8Hours && workHours > 8) {
+      breakMinutes += 60;
+    } else if (editData.autoBreak6Hours && workHours > 6) {
+      breakMinutes += 45;
+    }
+    
+    const actualMinutes = Math.max(0, totalMinutes - breakMinutes);
+    const actualHours = actualMinutes / 60;
+    
+    return {
+      totalHours: totalHours.toFixed(1),
+      breakMinutes,
+      actualHours: actualHours.toFixed(1)
+    };
+  };
+
+  const timeInfo = getTimeInfo();
 
   return (
     <Dialog
@@ -295,19 +364,25 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
                       </Box>
                     </Grid>
 
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12}>
                       <Box
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}
                       >
                         <AccessTime color="action" />
                         <Typography variant="body1" color="text.secondary">
                           時間:
                         </Typography>
                         <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                          {editData.startTime} - {editData.endTime} ({workHours}
-                          h)
+                          {editData.startTime} - {editData.endTime} (総{timeInfo.totalHours}h)
                         </Typography>
                       </Box>
+                      {timeInfo.breakMinutes > 0 && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 3 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            休憩: {timeInfo.breakMinutes}分 → 実働: {timeInfo.actualHours}h
+                          </Typography>
+                        </Box>
+                      )}
                     </Grid>
                   </Grid>
                 </Box>
@@ -361,7 +436,7 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
                         variant="h5"
                         sx={{ fontWeight: 700, color: 'warning.contrastText' }}
                       >
-                        {workHours}h
+                        {timeInfo.actualHours}h
                       </Typography>
                     </Box>
                   </Grid>
@@ -485,6 +560,107 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
                 />
               </Grid>
 
+              {/* 残業設定 */}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                  💼 労働条件設定
+                </Typography>
+              </Grid>
+
+              {/* 残業割増設定 */}
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={editData.overtimeEnabled !== false} // デフォルト true
+                      onChange={e =>
+                        handleFieldChange('overtimeEnabled', e.target.checked)
+                      }
+                      color="primary"
+                    />
+                  }
+                  label="残業割増25%（8時間超）"
+                />
+              </Grid>
+
+              {/* 曜日別設定オンオフ */}
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={editData.dayOfWeekSettingsEnabled || false}
+                      onChange={e =>
+                        handleFieldChange('dayOfWeekSettingsEnabled', e.target.checked)
+                      }
+                      color="primary"
+                    />
+                  }
+                  label="曜日別詳細設定"
+                />
+              </Grid>
+
+              {/* 曜日別設定が有効な場合のみ表示 */}
+              {editData.dayOfWeekSettingsEnabled && (
+                <>
+                  {/* 休憩時間設定 */}
+                  <Grid item xs={12}>
+                    <Divider sx={{ my: 2 }} />
+                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                      ⏱️ 休憩時間設定
+                    </Typography>
+                  </Grid>
+
+                  {/* 自動休憩設定 */}
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={editData.autoBreak6Hours !== false} // デフォルト true
+                            onChange={e =>
+                              handleFieldChange('autoBreak6Hours', e.target.checked)
+                            }
+                            color="primary"
+                          />
+                        }
+                        label="6時間越えで45分休憩"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={editData.autoBreak8Hours !== false} // デフォルト true
+                            onChange={e =>
+                              handleFieldChange('autoBreak8Hours', e.target.checked)
+                            }
+                            color="primary"
+                          />
+                        }
+                        label="8時間越えで60分休憩"
+                      />
+                    </Box>
+                  </Grid>
+
+                  {/* 手動休憩時間入力 */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="追加休憩時間（分）"
+                      type="number"
+                      fullWidth
+                      value={editData.breakTime || ''}
+                      onChange={e =>
+                        handleFieldChange(
+                          'breakTime',
+                          e.target.value ? parseInt(e.target.value) : undefined
+                        )
+                      }
+                      helperText="手動で追加する休憩時間を分単位で入力"
+                      inputProps={{ min: 0, max: 480 }}
+                    />
+                  </Grid>
+                </>
+              )}
+
               {/* 予想収入 */}
               <Grid item xs={12} md={6}>
                 <Box
@@ -507,6 +683,33 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 700 }}>
                     {formatCurrency(calculateEarnings(editData))}
+                  </Typography>
+                </Box>
+              </Grid>
+
+              {/* 時間詳細表示 */}
+              <Grid item xs={12} md={6}>
+                <Box
+                  sx={{
+                    p: 2,
+                    border: '1px solid',
+                    borderColor: 'info.main',
+                    borderRadius: 1,
+                    backgroundColor: 'info.light',
+                    color: 'info.contrastText',
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    時間詳細
+                  </Typography>
+                  <Typography variant="body2">
+                    総勤務時間: {timeInfo.totalHours}h
+                  </Typography>
+                  <Typography variant="body2">
+                    休憩時間: {timeInfo.breakMinutes}分
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    実働時間: {timeInfo.actualHours}h
                   </Typography>
                 </Box>
               </Grid>

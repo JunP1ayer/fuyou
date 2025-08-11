@@ -351,6 +351,9 @@ ${userFilter}
               jobSourceName,
               hourlyRate,
               breakMinutes,
+              autoBreak6Hours: true,
+              autoBreak8Hours: true,
+              overtimeEnabled: true,
               description,
               isConfirmed: false,
             };

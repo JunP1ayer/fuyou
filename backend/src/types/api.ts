@@ -179,6 +179,13 @@ export const CreateShiftSchema = z.object({
   endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)'),
   hourlyRate: z.number().positive('Hourly rate must be positive'),
   breakMinutes: z.number().int().min(0).default(0),
+  // 休憩時間設定の追加
+  autoBreak6Hours: z.boolean().default(true),
+  autoBreak8Hours: z.boolean().default(true),
+  // 残業設定の追加
+  overtimeEnabled: z.boolean().default(true),
+  // 曜日別設定の追加
+  dayOfWeekSettingsEnabled: z.boolean().optional(),
   description: z.string().optional(),
   isConfirmed: z.boolean().default(false),
 });
@@ -318,6 +325,13 @@ export interface ShiftResponse {
   endTime: string;
   hourlyRate: number;
   breakMinutes: number;
+  // 休憩時間設定の追加
+  autoBreak6Hours?: boolean;
+  autoBreak8Hours?: boolean;
+  // 残業設定の追加
+  overtimeEnabled?: boolean;
+  // 曜日別設定の追加
+  dayOfWeekSettingsEnabled?: boolean;
   workingHours: number;
   calculatedEarnings: number;
   description?: string;

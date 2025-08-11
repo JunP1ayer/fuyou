@@ -198,6 +198,9 @@ ${userNameText}の今月のシフトは以下の通りです：
               jobSourceName: workplace,
               hourlyRate,
               breakMinutes: 60,
+              autoBreak6Hours: true,
+              autoBreak8Hours: true,
+              overtimeEnabled: true,
               description: `OCR自動登録 (信頼度: ${Math.round(confidence * 100)}%)`,
               isConfirmed: confidence > 0.8,
             };
@@ -296,6 +299,9 @@ ${shiftList}
               jobSourceName: this.extractWorkplace(line) || 'アルバイト先',
               hourlyRate: this.extractHourlyRate(line) || 1000,
               breakMinutes: 60,
+              autoBreak6Hours: true,
+              autoBreak8Hours: true,
+              overtimeEnabled: true,
               description: 'OCR自動登録（フォールバック処理）',
               isConfirmed: false,
             };

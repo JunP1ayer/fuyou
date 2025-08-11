@@ -129,17 +129,20 @@ interface WorkplaceFormData {
   }[];
 }
 
+// 虹色カラーパレット（彩度と明度を統一）
 const defaultColors = [
-  '#b3e5fc', // 非常に薄い水色
-  '#81d4fa', // 薄い水色
-  '#4fc3f7', // ライトブルー
-  '#29b6f6', // ブルー
-  '#03a9f4', // ライトブルー2
-  '#00bcd4', // シアン
-  '#4dd0e1', // ライトシアン
-  '#26c6da', // シアン2
-  '#0288d1', // ディープブルー
-  '#0277bd', // ダークブルー
+  '#FF6B6B', // レッド
+  '#4ECDC4', // ティール
+  '#45B7D1', // ブルー
+  '#96CEB4', // グリーン
+  '#FFEAA7', // イエロー
+  '#DDA0DD', // ライトパープル
+  '#98D8C8', // ミント
+  '#F7DC6F', // ゴールド
+  '#BB8FCE', // パープル
+  '#85C1E9', // ライトブルー
+  '#F8C471', // オレンジ
+  '#82E0AA', // ライトグリーン
 ];
 
 export const WorkplaceManager: React.FC = () => {
@@ -151,7 +154,7 @@ export const WorkplaceManager: React.FC = () => {
   const [formData, setFormData] = useState<WorkplaceFormData>({
     name: '',
     defaultHourlyRate: 0, // 空の状態から開始
-    color: '#b3e5fc',
+    color: '#FF6B6B',
     description: '',
     
     // 新しいフィールドのデフォルト値
@@ -195,7 +198,7 @@ export const WorkplaceManager: React.FC = () => {
     setFormData({
       name: '',
       defaultHourlyRate: 0,
-      color: '#b3e5fc',
+      color: '#FF6B6B',
       description: '',
       
       // 新しいフィールドのデフォルト値
@@ -642,23 +645,6 @@ export const WorkplaceManager: React.FC = () => {
 
         <DialogContent sx={{ maxHeight: '70vh', overflow: 'auto' }}>
           <Grid container spacing={2}>
-            {/* タイムゾーン選択 */}
-            <Grid item xs={12}>
-              <FormControl fullWidth size="small">
-                <InputLabel>タイムゾーン</InputLabel>
-                <Select
-                  label="タイムゾーン"
-                  value={formData.timeZone || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, timeZone: e.target.value as string }))}
-                >
-                  {[
-                    'Asia/Tokyo','Europe/Berlin','Europe/Vienna','Europe/Copenhagen','Europe/Oslo','Europe/Helsinki','Europe/London','Europe/Warsaw','Europe/Budapest'
-                  ].map(tz => (
-                    <MenuItem key={tz} value={tz}>{tz}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
             {/* 基本情報 */}
             <Grid item xs={12}>
               <TextField
@@ -779,220 +765,61 @@ export const WorkplaceManager: React.FC = () => {
                 sx={{ mb: 1, display: 'flex', alignItems: 'center' }}
               >
                 <Palette sx={{ mr: 0.5, fontSize: 16 }} />
-                カラー
+                カラー選択
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {defaultColors.map(color => (
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                バイト先を区別するための色を選んでください
+              </Typography>
+              <Box sx={{ 
+                display: 'grid',
+                gridTemplateColumns: 'repeat(6, 1fr)',
+                gap: 1.5,
+                maxWidth: 300
+              }}>
+                {defaultColors.map((color, index) => (
                   <Box
                     key={color}
                     onClick={() => setFormData(prev => ({ ...prev, color }))}
                     sx={{
-                      width: 24,
-                      height: 24,
+                      width: 36,
+                      height: 36,
                       backgroundColor: color,
-                      borderRadius: '50%',
+                      borderRadius: 2,
                       cursor: 'pointer',
-                      border:
-                        formData.color === color ? '2px solid' : '1px solid',
-                      borderColor:
-                        formData.color === color
-                          ? 'primary.main'
-                          : 'transparent',
+                      border: formData.color === color ? '3px solid' : '2px solid',
+                      borderColor: formData.color === color ? 'primary.main' : 'rgba(255,255,255,0.3)',
+                      boxShadow: formData.color === color 
+                        ? `0 4px 12px ${color}40`
+                        : `0 2px 8px ${color}30`,
+                      position: 'relative',
                       '&:hover': {
                         transform: 'scale(1.1)',
+                        boxShadow: `0 6px 20px ${color}50`,
                       },
-                      transition: 'all 0.2s ease',
+                      '&:active': {
+                        transform: 'scale(0.95)',
+                      },
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                     }}
-                  />
+                  >
+                    {formData.color === color && (
+                      <Box sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: 16,
+                        height: 16,
+                        borderRadius: '50%',
+                        backgroundColor: 'white',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      }} />
+                    )}
+                  </Box>
                 ))}
               </Box>
             </Grid>
 
-            {/* 時間帯別時給 */}
-            <Grid item xs={12}>
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMore />}>
-                  <Typography variant="subtitle2">時間帯別時給設定</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Box
-                    sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
-                  >
-                    {formData.timeBasedRates?.map((rate, index) => (
-                      <Box
-                        key={index}
-                        sx={{ display: 'flex', gap: 1, alignItems: 'center' }}
-                      >
-                        <TextField
-                          label="名前"
-                          value={rate.name}
-                          onChange={e => {
-                            const newRates = [
-                              ...(formData.timeBasedRates || []),
-                            ];
-                            newRates[index] = { ...rate, name: e.target.value };
-                            setFormData(prev => ({
-                              ...prev,
-                              timeBasedRates: newRates,
-                            }));
-                          }}
-                          size="small"
-                          sx={{ width: '120px' }}
-                          placeholder="深夜"
-                        />
-                        <TextField
-                          label="開始時間"
-                          type="time"
-                          value={rate.startTime}
-                          onChange={e => {
-                            const newRates = [
-                              ...(formData.timeBasedRates || []),
-                            ];
-                            newRates[index] = {
-                              ...rate,
-                              startTime: e.target.value,
-                            };
-                            setFormData(prev => ({
-                              ...prev,
-                              timeBasedRates: newRates,
-                            }));
-                          }}
-                          size="small"
-                          sx={{ width: '120px' }}
-                        />
-                        <TextField
-                          label="終了時間"
-                          type="time"
-                          value={rate.endTime}
-                          onChange={e => {
-                            const newRates = [
-                              ...(formData.timeBasedRates || []),
-                            ];
-                            newRates[index] = {
-                              ...rate,
-                              endTime: e.target.value,
-                            };
-                            setFormData(prev => ({
-                              ...prev,
-                              timeBasedRates: newRates,
-                            }));
-                          }}
-                          size="small"
-                          sx={{ width: '120px' }}
-                        />
-                        <TextField
-                          label="時給"
-                          type="number"
-                          value={rate.rate}
-                          onChange={e => {
-                            const newRates = [
-                              ...(formData.timeBasedRates || []),
-                            ];
-                            newRates[index] = {
-                              ...rate,
-                              rate: parseInt(e.target.value) || 0,
-                            };
-                            setFormData(prev => ({
-                              ...prev,
-                              timeBasedRates: newRates,
-                            }));
-                          }}
-                          size="small"
-                          sx={{ width: '100px' }}
-                        />
-                        <IconButton
-                          onClick={() => {
-                            const newRates =
-                              formData.timeBasedRates?.filter(
-                                (_, i) => i !== index
-                              ) || [];
-                            setFormData(prev => ({
-                              ...prev,
-                              timeBasedRates: newRates,
-                            }));
-                          }}
-                          size="small"
-                          color="error"
-                        >
-                          <RemoveCircle />
-                        </IconButton>
-                      </Box>
-                    ))}
-                    <Button
-                      startIcon={<AddCircle />}
-                      onClick={() => {
-                        const newRate = {
-                          name: '',
-                          startTime: '22:00',
-                          endTime: '05:00',
-                          rate: 0,
-                        };
-                        setFormData(prev => ({
-                          ...prev,
-                          timeBasedRates: [
-                            ...(prev.timeBasedRates || []),
-                            newRate,
-                          ],
-                        }));
-                      }}
-                      variant="outlined"
-                      size="small"
-                    >
-                      時間帯を追加
-                    </Button>
-                  </Box>
-                </AccordionDetails>
-              </Accordion>
-            </Grid>
-
-            {/* 曜日別時給 */}
-            <Grid item xs={12}>
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMore />}>
-                  <Typography variant="subtitle2">曜日別時給設定</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Grid container spacing={1}>
-                    {[
-                      'monday',
-                      'tuesday',
-                      'wednesday',
-                      'thursday',
-                      'friday',
-                      'saturday',
-                      'sunday',
-                    ].map((day, index) => (
-                      <Grid item xs={6} sm={4} key={day}>
-                        <TextField
-                          fullWidth
-                          type="number"
-                          label={
-                            ['月', '火', '水', '木', '金', '土', '日'][index]
-                          }
-                          value={
-                            formData.weekdayRates?.[
-                              day as keyof typeof formData.weekdayRates
-                            ] || ''
-                          }
-                          onChange={e =>
-                            setFormData(prev => ({
-                              ...prev,
-                              weekdayRates: {
-                                ...prev.weekdayRates,
-                                [day]: e.target.value
-                                  ? parseInt(e.target.value)
-                                  : undefined,
-                              },
-                            }))
-                          }
-                          size="small"
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-                </AccordionDetails>
-              </Accordion>
-            </Grid>
 
             {/* 詳細設定アコーディオン */}
             <Grid item xs={12}>
@@ -1001,7 +828,152 @@ export const WorkplaceManager: React.FC = () => {
                   <Typography variant="subtitle2">詳細設定</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Grid container spacing={2}>
+                  <Grid container spacing={3}>
+                    
+                    {/* 時間帯別時給設定 */}
+                    <Grid item xs={12}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 2 }}>
+                        時間帯別時給設定
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {formData.timeBasedRates?.map((rate, index) => (
+                          <Box
+                            key={index}
+                            sx={{ 
+                              display: 'flex', 
+                              gap: 1, 
+                              alignItems: 'center', 
+                              flexWrap: 'wrap',
+                              p: 2,
+                              border: '1px solid',
+                              borderColor: 'divider',
+                              borderRadius: 1,
+                              bgcolor: 'background.paper'
+                            }}
+                          >
+                            <TextField
+                              label="名前"
+                              value={rate.name}
+                              onChange={e => {
+                                const newRates = [...(formData.timeBasedRates || [])];
+                                newRates[index] = { ...rate, name: e.target.value };
+                                setFormData(prev => ({ ...prev, timeBasedRates: newRates }));
+                              }}
+                              size="small"
+                              sx={{ minWidth: '120px' }}
+                              placeholder="深夜"
+                            />
+                            <TextField
+                              label="開始時間"
+                              type="time"
+                              value={rate.startTime}
+                              onChange={e => {
+                                const newRates = [...(formData.timeBasedRates || [])];
+                                newRates[index] = { ...rate, startTime: e.target.value };
+                                setFormData(prev => ({ ...prev, timeBasedRates: newRates }));
+                              }}
+                              size="small"
+                              sx={{ minWidth: '140px' }}
+                            />
+                            <TextField
+                              label="終了時間"
+                              type="time"
+                              value={rate.endTime}
+                              onChange={e => {
+                                const newRates = [...(formData.timeBasedRates || [])];
+                                newRates[index] = { ...rate, endTime: e.target.value };
+                                setFormData(prev => ({ ...prev, timeBasedRates: newRates }));
+                              }}
+                              size="small"
+                              sx={{ minWidth: '140px' }}
+                            />
+                            <TextField
+                              label="時給"
+                              type="number"
+                              value={rate.rate}
+                              onChange={e => {
+                                const newRates = [...(formData.timeBasedRates || [])];
+                                newRates[index] = { ...rate, rate: parseInt(e.target.value) || 0 };
+                                setFormData(prev => ({ ...prev, timeBasedRates: newRates }));
+                              }}
+                              size="small"
+                              sx={{ minWidth: '100px' }}
+                              InputProps={{
+                                startAdornment: <span style={{ marginRight: 4 }}>¥</span>,
+                              }}
+                            />
+                            <IconButton
+                              onClick={() => {
+                                const newRates = formData.timeBasedRates?.filter((_, i) => i !== index) || [];
+                                setFormData(prev => ({ ...prev, timeBasedRates: newRates }));
+                              }}
+                              size="small"
+                              color="error"
+                            >
+                              <RemoveCircle />
+                            </IconButton>
+                          </Box>
+                        ))}
+                        <Button
+                          startIcon={<AddCircle />}
+                          onClick={() => {
+                            const newRate = {
+                              name: '',
+                              startTime: '22:00',
+                              endTime: '05:00',
+                              rate: 0,
+                            };
+                            setFormData(prev => ({
+                              ...prev,
+                              timeBasedRates: [...(prev.timeBasedRates || []), newRate],
+                            }));
+                          }}
+                          variant="outlined"
+                          size="small"
+                          sx={{ alignSelf: 'flex-start' }}
+                        >
+                          時間帯を追加
+                        </Button>
+                      </Box>
+                    </Grid>
+
+                    {/* 曜日別時給設定 */}
+                    <Grid item xs={12}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 2 }}>
+                        曜日別時給設定
+                      </Typography>
+                      <Grid container spacing={1}>
+                        {[
+                          'monday', 'tuesday', 'wednesday', 'thursday', 
+                          'friday', 'saturday', 'sunday'
+                        ].map((day, index) => (
+                          <Grid item xs={6} sm={4} key={day}>
+                            <TextField
+                              fullWidth
+                              type="number"
+                              label={['月', '火', '水', '木', '金', '土', '日'][index]}
+                              value={
+                                formData.weekdayRates?.[day as keyof typeof formData.weekdayRates] || ''
+                              }
+                              onChange={e =>
+                                setFormData(prev => ({
+                                  ...prev,
+                                  weekdayRates: {
+                                    ...prev.weekdayRates,
+                                    [day]: e.target.value ? parseInt(e.target.value) : undefined,
+                                  },
+                                }))
+                              }
+                              size="small"
+                              placeholder="未設定"
+                              InputProps={{
+                                startAdornment: <span style={{ marginRight: 4 }}>¥</span>,
+                              }}
+                            />
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Grid>
                     
                     {/* 法定割増設定 */}
                     <Grid item xs={12}>
@@ -1027,21 +999,6 @@ export const WorkplaceManager: React.FC = () => {
                         <FormControlLabel
                           control={
                             <Switch
-                              checked={formData.overtimeSettings.holiday}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                overtimeSettings: {
-                                  ...prev.overtimeSettings,
-                                  holiday: e.target.checked
-                                }
-                              }))}
-                            />
-                          }
-                          label="休日割増 35%"
-                        />
-                        <FormControlLabel
-                          control={
-                            <Switch
                               checked={formData.overtimeSettings.overtime}
                               onChange={(e) => setFormData(prev => ({
                                 ...prev,
@@ -1057,59 +1014,17 @@ export const WorkplaceManager: React.FC = () => {
                       </Box>
                     </Grid>
 
-                    {/* 丸め・休憩ルール */}
+                    {/* 休憩時間設定 */}
                     <Grid item xs={12}>
                       <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                        丸め・休憩ルール
+                        休憩時間
                       </Typography>
-                      <Grid container spacing={1}>
-                        <Grid item xs={6} sm={3}>
-                          <FormControl fullWidth size="small">
-                            <InputLabel>丸め単位</InputLabel>
-                            <Select
-                              value={formData.roundingRule.minutes}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                roundingRule: {
-                                  ...prev.roundingRule,
-                                  minutes: e.target.value as any
-                                }
-                              }))}
-                              label="丸め単位"
-                            >
-                              <MenuItem value={1}>1分</MenuItem>
-                              <MenuItem value={5}>5分</MenuItem>
-                              <MenuItem value={10}>10分</MenuItem>
-                              <MenuItem value={15}>15分</MenuItem>
-                              <MenuItem value={30}>30分</MenuItem>
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid item xs={6} sm={3}>
-                          <FormControl fullWidth size="small">
-                            <InputLabel>丸め方法</InputLabel>
-                            <Select
-                              value={formData.roundingRule.method}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                roundingRule: {
-                                  ...prev.roundingRule,
-                                  method: e.target.value as any
-                                }
-                              }))}
-                              label="丸め方法"
-                            >
-                              <MenuItem value="down">切り捨て</MenuItem>
-                              <MenuItem value="up">切り上げ</MenuItem>
-                              <MenuItem value="round">四捨五入</MenuItem>
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid item xs={6} sm={3}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={6}>
                           <TextField
                             fullWidth
                             type="number"
-                            label="6h超休憩（分）"
+                            label="6時間超の休憩時間（分）"
                             value={formData.breakRules.over6h}
                             onChange={e =>
                               setFormData(prev => ({
@@ -1123,13 +1038,14 @@ export const WorkplaceManager: React.FC = () => {
                             error={Boolean(errors.over6h)}
                             helperText={errors.over6h}
                             size="small"
+                            placeholder="例：45"
                           />
                         </Grid>
-                        <Grid item xs={6} sm={3}>
+                        <Grid item xs={6}>
                           <TextField
                             fullWidth
                             type="number"
-                            label="8h超休憩（分）"
+                            label="8時間超の休憩時間（分）"
                             value={formData.breakRules.over8h}
                             onChange={e =>
                               setFormData(prev => ({
@@ -1143,6 +1059,7 @@ export const WorkplaceManager: React.FC = () => {
                             error={Boolean(errors.over8h)}
                             helperText={errors.over8h}
                             size="small"
+                            placeholder="例：60"
                           />
                         </Grid>
                       </Grid>
@@ -1223,24 +1140,6 @@ export const WorkplaceManager: React.FC = () => {
                       </Grid>
                     </Grid>
 
-                    {/* その他設定 */}
-                    <Grid item xs={12}>
-                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                        その他設定
-                      </Typography>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={formData.allowCrossDayShifts}
-                            onChange={(e) => setFormData(prev => ({
-                              ...prev,
-                              allowCrossDayShifts: e.target.checked
-                            }))}
-                          />
-                        }
-                        label="跨日シフトを許可（例：22:00-翌2:00）"
-                      />
-                    </Grid>
 
                   </Grid>
                 </AccordionDetails>

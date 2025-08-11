@@ -1,5 +1,5 @@
 // 🔐 シンプル認証コンテキスト
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { simpleSupabase } from '../lib/simpleSupabase';
 import { toFriendlyAuthMessage, isEmailNotConfirmed } from '../lib/authErrorMapper';
 
@@ -22,6 +22,7 @@ const SimpleAuthContext = createContext<SimpleAuthContextType | undefined>(undef
 export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const lastAuthEventRef = useRef<{ key: string; ts: number } | null>(null);
 
   // 初期化
   useEffect(() => {
@@ -50,16 +51,31 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
     // 認証状態変更を監視
     const { data: { subscription } } = simpleSupabase.auth.onAuthStateChange((event, session) => {
+      const userId = session?.user?.id ?? 'none';
+      const key = `${event}:${userId}`;
+      const now = Date.now();
+
+      // 短時間に同一イベントが集中する場合は無視（開発のStrictModeや内部リフレッシュ対策）
+      if (lastAuthEventRef.current && lastAuthEventRef.current.key === key && now - lastAuthEventRef.current.ts < 1000) {
+        return;
+      }
+      lastAuthEventRef.current = { key, ts: now };
+
+      // ログ出力（デバッグ用）
       console.log('🔐 Auth state change:', event, session?.user?.email || 'none');
-      
+
       if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email!,
-          name: session.user.user_metadata?.name || 'ユーザー',
+        // 同一ユーザーであれば不要な再設定を避ける
+        setUser((prev) => {
+          if (prev && prev.id === session.user!.id) return prev;
+          return {
+            id: session.user!.id,
+            email: session.user!.email!,
+            name: session.user!.user_metadata?.name || 'ユーザー',
+          };
         });
       } else {
-        setUser(null);
+        if (user !== null) setUser(null);
       }
     });
 

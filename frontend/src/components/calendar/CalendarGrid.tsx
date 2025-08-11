@@ -85,10 +85,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     }
   };
 
-  // 縦スクロール用の月間データ生成（モバイル用）
+  // 縦スクロール用の月間データ生成（モバイル用）- より多くの月を表示
   const generateMultipleMonths = () => {
     const months = [];
-    for (let i = -1; i <= 2; i++) {
+    for (let i = -3; i <= 6; i++) { // 前3ヶ月、後6ヶ月の計10ヶ月表示
       const targetMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + i, 1);
       months.push(targetMonth);
     }
@@ -104,8 +104,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
       flexDirection: 'column',
       overflow: isMobile && viewMode === 'vertical' ? 'auto' : 'hidden',
     }}>
-      {/* 曜日ヘッダー（固定高さ） - 縦スクロール時は非表示 */}
-      {!(isMobile && viewMode === 'vertical') && (
+      {/* 曜日ヘッダー（固定高さ） - 縦スクロール時も表示 */}
+      {true && (
         <Box sx={{ height: '30px', flexShrink: 0 }}>
           <Grid container spacing={0} sx={{ height: '100%' }}>
             {[0,1,2,3,4,5,6].map((dow, index) => {
@@ -162,61 +162,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
             <Box key={monthIndex} sx={{
               display: 'flex',
               flexDirection: 'column',
-              mb: isMobile && viewMode === 'vertical' && monthIndex < multipleMonths.length - 1 ? 2 : 0,
+              mb: 0, // 月間のマージンを削除
               flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
-              minHeight: isMobile && viewMode === 'vertical' ? '450px' : 'auto',
+              minHeight: isMobile && viewMode === 'vertical' ? 'auto' : 'auto', // 固定高さを削除
             }}>
-              {/* 月表示ヘッダー（縦スクロール時のみ） */}
-              {isMobile && viewMode === 'vertical' && (
-                <>
-                  <Box sx={{
-                    py: 1.5,
-                    borderBottom: '2px solid',
-                    borderColor: 'primary.main',
-                    backgroundColor: 'background.paper',
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 10,
-                  }}>
-                    <Typography variant="h6" align="center" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                      {format(month, 'yyyy年M月')}
-                    </Typography>
-                  </Box>
-                  
-                  {/* 曜日ヘッダー（各月ごと） */}
-                  <Box sx={{ height: '40px', flexShrink: 0, backgroundColor: 'grey.50' }}>
-                    <Grid container spacing={0} sx={{ height: '100%' }}>
-                      {[0,1,2,3,4,5,6].map((dow, index) => {
-                        const day = t(`calendar.weekdays.${dow}`, WEEKDAYS_JA[dow]);
-                        return (
-                          <Grid item xs key={day}>
-                            <Box
-                              sx={{
-                              height: '100%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontWeight: 600,
-                              fontSize: '12px',
-                              color:
-                                index === 0
-                                  ? 'error.main'
-                                  : index === 6
-                                    ? 'primary.main'
-                                    : 'text.secondary',
-                              borderBottom: '1px solid',
-                              borderColor: 'divider',
-                              }}
-                            >
-                              {day}
-                            </Box>
-                          </Grid>
-                        );
-                      })}
-                    </Grid>
-                  </Box>
-                </>
-              )}
+              {/* 月表示ヘッダーを削除してシームレススクロールを実現 */}
 
               {weeks.map((week, weekIndex) => (
                 <Box key={weekIndex} sx={{ 
