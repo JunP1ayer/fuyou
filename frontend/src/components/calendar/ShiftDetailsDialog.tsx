@@ -28,8 +28,8 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
-import type { Shift } from '@types/index';
-import { formatCurrency, formatDuration } from '@/utils/calculations';
+import type { Shift } from '../../types/index';
+import { formatCurrency, formatDuration } from '../../utils/calculations';
 
 interface ShiftDetailsDialogProps {
   open: boolean;

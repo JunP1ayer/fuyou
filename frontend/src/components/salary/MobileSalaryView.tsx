@@ -57,6 +57,38 @@ export const MobileSalaryView: React.FC = () => {
   const { shifts, workplaces } = useSimpleShiftStore();
   const [tabValue, setTabValue] = useState<'month' | 'year'>('month');
   const [monthOffset, setMonthOffset] = useState(0);
+  
+  // 扶養状況の初回設定チェック
+  const [dependencySetupOpen, setDependencySetupOpen] = useState(() => {
+    const saved = localStorage.getItem('dependencyStatus');
+    return !saved; // 未設定なら自動で開く
+  });
+  
+  // 扶養状況の状態（詳細版）
+  const [dependencyStatus, setDependencyStatus] = useState(() => {
+    const saved = localStorage.getItem('dependencyStatus');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return {
+      // 基本情報
+      isStudent: null, // null, true, false
+      age: null, // null, 'under20', '20to22', 'over23'
+      
+      // 家族状況
+      livingWithParents: null, // null, true, false
+      hasSpouse: false, // 配偶者がいるか
+      parentsDependency: null, // 'father', 'mother', 'both', 'none'
+      
+      // 働き方
+      workHoursPerWeek: null, // null, 'under20', '20to30', 'over30'
+      employmentType: null, // 'parttime', 'arbeit', 'contract'
+      
+      // 目標設定
+      priority: null, // 'maxIncome', 'keepDependency', 'balance'
+      selectedLimit: null, // 自動計算される
+    };
+  });
 
   // 月間目標（sessionStorage 永続化）
   const [monthlyTarget, setMonthlyTarget] = useState<number>(() => {
@@ -84,6 +116,69 @@ export const MobileSalaryView: React.FC = () => {
   useEffect(() => {
     sessionStorage.setItem('monthlyTargetJPY', String(monthlyTarget));
   }, [monthlyTarget]);
+
+  // 扶養状況の保存
+  const saveDependencyStatus = (status: any) => {
+    setDependencyStatus(status);
+    localStorage.setItem('dependencyStatus', JSON.stringify(status));
+    setDependencySetupOpen(false);
+  };
+  
+  // 扶養限度額の自動計算
+  const calculateDependencyLimit = () => {
+    const status = dependencyStatus;
+    
+    // 質問が完了していない場合はデフォルト
+    if (!status.isStudent || !status.priority) {
+      return { limit: 1030000, type: '103万円（基本）' };
+    }
+    
+    // 学生で勤労学生控除を活用する場合
+    if (status.isStudent && status.age !== 'over23' && status.priority === 'maxIncome') {
+      return { limit: 1500000, type: '150万円（勤労学生控除）' };
+    }
+    
+    // 配偶者がいる場合
+    if (status.hasSpouse) {
+      return { limit: 1300000, type: '130万円（配偶者控除）' };
+    }
+    
+    // 週20時間以上働く場合
+    if (status.workHoursPerWeek === '20to30' || status.workHoursPerWeek === 'over30') {
+      if (status.priority === 'keepDependency') {
+        return { limit: 1060000, type: '106万円（社会保険の壁）' };
+      }
+    }
+    
+    // 親の扶養を維持したい場合
+    if (status.priority === 'keepDependency' && status.parentsDependency !== 'none') {
+      return { limit: 1030000, type: '103万円（所得税の壁）' };
+    }
+    
+    // バランス重視
+    if (status.priority === 'balance') {
+      return { limit: 1030000, type: '103万円（バランス重視）' };
+    }
+    
+    return { limit: 1030000, type: '103万円（基本）' };
+  };
+  
+  const dependencyLimit = calculateDependencyLimit();
+  
+  // 今年の残り稼げる金額を計算
+  const calculateRemainingAllowance = () => {
+    const limit = dependencyLimit.limit;
+    const remaining = limit - yearEarningsJPY;
+    const monthsLeft = 12 - (new Date().getMonth() + 1);
+    const monthlyAllowance = monthsLeft > 0 ? Math.floor(remaining / monthsLeft) : remaining;
+    
+    return {
+      yearRemaining: Math.max(0, remaining),
+      monthlyAllowance: Math.max(0, monthlyAllowance),
+      isOverLimit: remaining < 0,
+      percentageUsed: Math.min(100, Math.round((yearEarningsJPY / limit) * 100)),
+    };
+  };
 
   // 設定の永続化
   useEffect(() => {
@@ -175,6 +270,8 @@ export const MobileSalaryView: React.FC = () => {
     };
   }, [shifts]);
 
+  const remainingInfo = useMemo(() => calculateRemainingAllowance(), [yearEarningsJPY, dependencyLimit]);
+
   const hours = Math.floor(monthHoursMin / 60);
   const mins = Math.floor(monthHoursMin % 60);
 
@@ -263,13 +360,15 @@ export const MobileSalaryView: React.FC = () => {
         </Box>
       )}
 
-      {/* 月間目標 行（チップ風） */}
+      {/* 月間目標と扶養設定 行 */}
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           mb: 2,
+          gap: 1,
+          flexWrap: 'wrap',
         }}
       >
         <Box
@@ -298,15 +397,70 @@ export const MobileSalaryView: React.FC = () => {
             <Edit fontSize="small" />
           </IconButton>
         </Box>
+        
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => setDependencySetupOpen(true)}
+          sx={{ borderRadius: 999 }}
+        >
+          扶養: {dependencyLimit.type}
+        </Button>
       </Box>
+
+      {/* 扶養状況カード - 残り稼げる金額を強調 */}
+      <Card sx={{ mb: 2, p: 2, bgcolor: remainingInfo.isOverLimit ? 'error.lighter' : 'success.lighter' }}>
+        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+          扶養限度額まで
+        </Typography>
+        <Typography 
+          variant="h3" 
+          sx={{ 
+            fontWeight: 800, 
+            color: remainingInfo.isOverLimit ? 'error.main' : 'success.main',
+            mb: 1 
+          }}
+        >
+          {remainingInfo.isOverLimit ? '超過！' : `あと ¥${remainingInfo.yearRemaining.toLocaleString()}`}
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              今月の目安
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              ¥{remainingInfo.monthlyAllowance.toLocaleString()}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              使用率
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              {remainingInfo.percentageUsed}%
+            </Typography>
+          </Box>
+        </Box>
+        <Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 1, overflow: 'hidden' }}>
+          <Box 
+            sx={{ 
+              width: `${remainingInfo.percentageUsed}%`,
+              height: 8,
+              bgcolor: remainingInfo.percentageUsed > 90 ? 'error.main' : 
+                       remainingInfo.percentageUsed > 70 ? 'warning.main' : 'success.main',
+              transition: 'width 0.3s ease'
+            }}
+          />
+        </Box>
+      </Card>
 
       {/* 円形カード：タブ別表示 */}
       {tabValue === 'month' ? (
         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
           <Box
             sx={{
-              width: 200,
-              height: 200,
+              width: 180,
+              height: 180,
               borderRadius: '50%',
               background: 'white',
               boxShadow: 3,
@@ -321,10 +475,10 @@ export const MobileSalaryView: React.FC = () => {
               color="text.secondary"
               sx={{ mb: 0.5 }}
             >
-              今日までの給料
+              今月の給料
             </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800 }}>
-              ¥{ytdMonthJPY.toLocaleString()}
+            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+              ¥{monthEstJPY.toLocaleString()}
             </Typography>
           </Box>
         </Box>
@@ -352,6 +506,16 @@ export const MobileSalaryView: React.FC = () => {
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800 }}>
               ¥{yearEarningsJPY.toLocaleString()}
+            </Typography>
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                mt: 1, 
+                color: yearEarningsJPY > dependencyLimit.limit ? 'error.main' : 'success.main',
+                fontWeight: 600 
+              }}
+            >
+              扶養限度: ¥{(dependencyLimit.limit / 10000).toFixed(0)}万
             </Typography>
           </Box>
         </Box>
@@ -539,6 +703,129 @@ export const MobileSalaryView: React.FC = () => {
             }}
           >
             保存
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 扶養状況設定ダイアログ */}
+      <Dialog
+        open={dependencySetupOpen}
+        onClose={() => setDependencySetupOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            扶養状況の確認
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            あなたに最適な扶養限度額を設定します
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+              1. あなたは学生ですか？
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Chip
+                label="はい（学生です）"
+                color={dependencyStatus.isStudent ? "primary" : "default"}
+                variant={dependencyStatus.isStudent ? "filled" : "outlined"}
+                onClick={() => setDependencyStatus({...dependencyStatus, isStudent: true})}
+                sx={{ cursor: 'pointer' }}
+              />
+              <Chip
+                label="いいえ（学生ではありません）"
+                color={!dependencyStatus.isStudent ? "primary" : "default"}
+                variant={!dependencyStatus.isStudent ? "filled" : "outlined"}
+                onClick={() => setDependencyStatus({...dependencyStatus, isStudent: false})}
+                sx={{ cursor: 'pointer' }}
+              />
+            </Box>
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+              2. 目標とする扶養限度額は？
+            </Typography>
+            <FormControl fullWidth size="small">
+              <Select
+                value={dependencyStatus.selectedLimit}
+                onChange={(e) => setDependencyStatus({...dependencyStatus, selectedLimit: Number(e.target.value)})}
+              >
+                <MenuItem value={103}>103万円 - 所得税の壁（基本）</MenuItem>
+                <MenuItem value={106}>106万円 - 社会保険加入の壁</MenuItem>
+                <MenuItem value={130}>130万円 - 配偶者の扶養から外れる壁</MenuItem>
+                {dependencyStatus.isStudent && (
+                  <MenuItem value={150}>150万円 - 学生特例（勤労学生控除）</MenuItem>
+                )}
+              </Select>
+            </FormControl>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+              {dependencyStatus.selectedLimit === 103 && "基本的な扶養控除の限度額です"}
+              {dependencyStatus.selectedLimit === 106 && "週20時間以上働く場合の社会保険加入基準"}
+              {dependencyStatus.selectedLimit === 130 && "配偶者の社会保険の扶養から外れる基準"}
+              {dependencyStatus.selectedLimit === 150 && "学生の場合、勤労学生控除で150万円まで非課税"}
+            </Typography>
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+              3. 親の収入レベルは？（任意）
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Chip
+                label="〜400万円"
+                size="small"
+                color={dependencyStatus.parentIncome === 'low' ? "primary" : "default"}
+                variant={dependencyStatus.parentIncome === 'low' ? "filled" : "outlined"}
+                onClick={() => setDependencyStatus({...dependencyStatus, parentIncome: 'low'})}
+                sx={{ cursor: 'pointer' }}
+              />
+              <Chip
+                label="400〜800万円"
+                size="small"
+                color={dependencyStatus.parentIncome === 'middle' ? "primary" : "default"}
+                variant={dependencyStatus.parentIncome === 'middle' ? "filled" : "outlined"}
+                onClick={() => setDependencyStatus({...dependencyStatus, parentIncome: 'middle'})}
+                sx={{ cursor: 'pointer' }}
+              />
+              <Chip
+                label="800万円〜"
+                size="small"
+                color={dependencyStatus.parentIncome === 'high' ? "primary" : "default"}
+                variant={dependencyStatus.parentIncome === 'high' ? "filled" : "outlined"}
+                onClick={() => setDependencyStatus({...dependencyStatus, parentIncome: 'high'})}
+                sx={{ cursor: 'pointer' }}
+              />
+            </Box>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+              親の収入により扶養控除の影響が変わります
+            </Typography>
+          </Box>
+
+          <Box sx={{ p: 2, bgcolor: 'info.lighter', borderRadius: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+              あなたの推奨設定
+            </Typography>
+            <Typography variant="h5" color="primary.main" sx={{ fontWeight: 700 }}>
+              年間 {dependencyStatus.selectedLimit}万円まで
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              月平均: 約{Math.floor(dependencyStatus.selectedLimit * 10000 / 12).toLocaleString()}円
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDependencySetupOpen(false)}>
+            あとで
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => saveDependencyStatus(dependencyStatus)}
+          >
+            設定を保存
           </Button>
         </DialogActions>
       </Dialog>

@@ -41,7 +41,7 @@ import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
 import { useShiftStore } from '@store/shiftStore';
-import type { Shift, ShiftFormData } from '@types/index';
+import type { Shift, ShiftFormData } from '@/types/index';
 import { calculateWorkMinutes } from '@/utils/dateUtils';
 import { formatCurrency, formatDuration } from '@/utils/calculations';
 
@@ -73,7 +73,8 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
     notes: '',
   });
 
-  const [errors, setErrors] = useState<Partial<ShiftFormData>>({});
+  type ShiftFormErrors = Partial<Record<keyof ShiftFormData, string>>;
+  const [errors, setErrors] = useState<ShiftFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 編集時にデータを設定
@@ -119,7 +120,7 @@ export const ShiftForm: React.FC<ShiftFormProps> = ({
 
   // バリデーション
   const validateForm = (): boolean => {
-    const newErrors: Partial<ShiftFormData> = {};
+    const newErrors: ShiftFormErrors = {};
 
     if (!formData.date) newErrors.date = '日付を選択してください';
     if (!formData.startTime) newErrors.startTime = '開始時間を入力してください';

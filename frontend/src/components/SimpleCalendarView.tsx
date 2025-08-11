@@ -1,17 +1,8 @@
 // 📅 シンプルなカレンダー表示コンポーネント
 
 import React, { useState } from 'react';
-import {
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  Box,
-  IconButton,
-  useTheme,
-  Chip,
-  alpha,
-} from '@mui/material';
+import { Card, CardContent, Typography, Grid, Box, IconButton, useTheme, Chip } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import {
@@ -135,8 +126,7 @@ export const SimpleCalendarView: React.FC = () => {
                         justifyContent: 'center',
                         backgroundColor: 'transparent',
                         '&:hover': {
-                          backgroundColor: alpha =>
-                            alpha(theme.palette.primary.main, 0.08),
+                          backgroundColor: alpha(theme.palette.primary.main, 0.08),
                         },
                       }}
                       onClick={() => {

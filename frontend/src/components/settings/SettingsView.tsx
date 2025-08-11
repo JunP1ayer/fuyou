@@ -41,7 +41,7 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 import { useShiftStore } from '@store/shiftStore';
-import type { ThemeMode } from '@types/index';
+import type { ThemeMode } from '@/types/index';
 
 interface SettingsViewProps {
   themeMode: ThemeMode;

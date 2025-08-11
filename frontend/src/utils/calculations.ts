@@ -1,6 +1,6 @@
 // 💰 扶養・給料計算ユーティリティ
 
-import type { Shift, FuyouStatus, MonthlyEarnings } from '@types/index';
+import type { Shift, FuyouStatus, MonthlyEarnings } from '../types/index';
 
 /**
  * 2025年扶養制度の限度額定数
@@ -159,6 +159,22 @@ export const formatCurrency = (amount: number): string => {
     style: 'currency',
     currency: 'JPY',
   }).format(amount);
+};
+
+/**
+ * 時間（分）を「X時間Y分」形式でフォーマット
+ */
+export const formatDuration = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  
+  if (hours === 0) {
+    return `${mins}分`;
+  } else if (mins === 0) {
+    return `${hours}時間`;
+  } else {
+    return `${hours}時間${mins}分`;
+  }
 };
 
 /**

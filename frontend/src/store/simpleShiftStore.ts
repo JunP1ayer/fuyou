@@ -17,36 +17,15 @@ interface ShiftState {
   deleteWorkplace: (id: string) => void;
 }
 
-// サンプルデータ
-const sampleWorkplaces: Workplace[] = [
-  {
-    id: 'wp-1',
-    name: 'カフェ・ド・クリーム',
-    color: '#4caf50',
-    defaultHourlyRate: 1000,
-  },
-  {
-    id: 'wp-2',
-    name: 'コンビニABC',
-    color: '#2196f3',
-    defaultHourlyRate: 950,
-  },
-  {
-    id: 'wp-3',
-    name: 'ファミレス・ハッピー',
-    color: '#ff9800',
-    defaultHourlyRate: 1100,
-  },
-];
-
-// サンプルシフトデータ（空）
-const sampleShifts: Shift[] = [];
+// 初期データ（空）
+const initialWorkplaces: Workplace[] = [];
+const initialShifts: Shift[] = [];
 
 export const useSimpleShiftStore = create<ShiftState>()(
   persist(
     (set, get) => ({
-      shifts: sampleShifts,
-      workplaces: sampleWorkplaces,
+      shifts: initialShifts,
+      workplaces: initialWorkplaces,
 
       getShiftsByDate: (date: Date) => {
         const dateString = date.toISOString().split('T')[0];

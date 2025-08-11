@@ -41,7 +41,7 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] =
     useState<ShiftAnalysisResult | null>(null);
-  const [step, setStep] = useState<'upload' | 'analyzing' | 'review'>('upload');
+  const [step, setStep] = useState<'upload' | 'analyzing' | 'review' | 'input' | 'select'>('upload');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showWorkplaceWarning, setShowWorkplaceWarning] = useState(false);
 
@@ -52,7 +52,8 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
       setSelectedWorkplace({
         id: workplace.id,
         name: workplace.name,
-        hourlyRate: workplace.defaultHourlyRate,
+        defaultHourlyRate: workplace.defaultHourlyRate,
+        color: workplace.color,
       });
     }
   };
@@ -67,7 +68,7 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
     }
 
     setIsAnalyzing(true);
-    setStep('analyzing');
+      setStep('analyzing');
 
     try {
       let result: ShiftAnalysisResult | null = null;

@@ -1,10 +1,10 @@
-// シンプルな型定義
+// 最小限のシンプル型（シンプルビュー/簡易ストア用）
 
 export interface Shift {
   id: string;
-  date: string;
-  startTime: string;
-  endTime: string;
+  date: string; // YYYY-MM-DD
+  startTime: string; // HH:MM
+  endTime: string; // HH:MM
   workplaceName: string;
   hourlyRate: number;
   totalEarnings: number;
@@ -16,17 +16,16 @@ export interface Workplace {
   name: string;
   color: string;
   defaultHourlyRate: number;
+  // 追加の任意フィールド（詳細編集用）
   description?: string;
-  // 給料日設定
-  paymentDate?: number; // 毎月の支払日（例: 25日）
-  // 時間帯別時給
+  paymentDate?: number;
   timeBasedRates?: {
     startTime: string;
     endTime: string;
     rate: number;
     name: string;
   }[];
-  // 曜日別時給
+  transportationFee?: number;
   weekdayRates?: {
     monday?: number;
     tuesday?: number;
@@ -36,18 +35,16 @@ export interface Workplace {
     saturday?: number;
     sunday?: number;
   };
-  // 交通費・手当・天引き
-  transportationFee?: number; // 交通費（日額）
   allowances?: {
     name: string;
     amount: number;
-    type: 'daily' | 'monthly' | 'shift'; // 支給タイプ
+    type: 'daily' | 'monthly' | 'shift';
   }[];
   deductions?: {
     name: string;
     amount: number;
-    type: 'percentage' | 'fixed'; // 天引きタイプ
+    type: 'percentage' | 'fixed';
   }[];
 }
 
-export type ThemeMode = 'light' | 'dark';
+

@@ -1,7 +1,7 @@
 // 🎨 FUYOU PRO - 美しいテーマシステム
 
 import { createTheme, ThemeOptions } from '@mui/material/styles';
-import type { ThemeMode } from '@types/index';
+import type { ThemeMode } from '@/types/index';
 
 // カスタムカラーパレット
 const colors = {

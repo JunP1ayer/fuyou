@@ -9,6 +9,7 @@ import {
   Grid,
   Chip,
   useTheme,
+  useMediaQuery,
   alpha,
   Fab,
   Tooltip,
@@ -35,15 +36,16 @@ import {
 } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
-import { useShiftStore } from '@store/shiftStore';
-import { formatCurrency } from '@/utils/calculations';
+import { useShiftStore } from '../../store/shiftStore';
+import { formatCurrency } from '../../utils/calculations';
 import { CalendarDay } from './CalendarDay';
 import { ShiftDetailsDialog } from './ShiftDetailsDialog';
-import { ShiftForm } from '@components/forms/ShiftForm';
-import type { Shift } from '@types/index';
+import { ShiftForm } from '../forms/ShiftForm';
+import type { Shift } from '../../types/index';
 
 export const CalendarView: React.FC = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const {
     shifts,
     selectedDate,
@@ -57,14 +59,103 @@ export const CalendarView: React.FC = () => {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [shiftFormOpen, setShiftFormOpen] = useState(false);
 
-  // カレンダーの日付を生成
+  // カレンダーの日付を生成（最下段の来月のみ行を除外）
   const calendarDays = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
     const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 }); // 日曜始まり
     const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
-    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+    
+    const allDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+    
+    // 最後の週が全て来月の日付かチェック
+    const weeks = [];
+    for (let i = 0; i < allDays.length; i += 7) {
+      weeks.push(allDays.slice(i, i + 7));
+    }
+    
+    // 最後の週の今月日付数をチェック
+    const lastWeek = weeks[weeks.length - 1];
+    const currentMonthDaysInLastWeek = lastWeek.filter(day => 
+      isSameMonth(day, currentMonth)
+    ).length;
+    
+    // 最下段の最適化判定:
+    // 1. 最下段に今月の日付が1-2個しかない場合（来月の日付が多い）
+    // 2. 最下段が全て来月の日付の場合
+    // 3. 6週間ある場合は最適化対象
+    const shouldOptimize = weeks.length > 1 && (
+      currentMonthDaysInLastWeek === 0 || // 全て来月
+      (currentMonthDaysInLastWeek <= 2 && weeks.length === 6) // 来月の日付が多い6週間
+    );
+    
+    if (shouldOptimize) {
+      console.log(`🗓️ [${format(currentMonth, 'yyyy年M月')}] ✅最下段除外: ${weeks.length}週 → ${weeks.length - 1}週 (今月日付: ${currentMonthDaysInLastWeek}個)`);
+      return allDays.slice(0, -7); // 最後の7日間を除外
+    }
+    
+    console.log(`🗓️ [${format(currentMonth, 'yyyy年M月')}] ❌そのまま表示: ${weeks.length}週 (今月日付: ${currentMonthDaysInLastWeek}個)`);
+    
+    return allDays;
   }, [currentMonth]);
+
+  // 月に基づいた最適化されたカレンダーレイアウト（最下段除外対応）
+  const calendarLayout = useMemo(() => {
+    const weeks = Math.ceil(calendarDays.length / 7);
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    
+    // 月の詳細情報
+    const firstDayOfWeek = monthStart.getDay(); // 0 = 日曜日
+    const lastDayOfWeek = monthEnd.getDay();
+    const daysInMonth = monthEnd.getDate();
+    
+    // 最下段除外によるレイアウトタイプ判定
+    const isOptimizedLayout = weeks < 6; // 6週未満=最下段が除外された可能性
+    const isCompact = weeks === 4;
+    const isMedium = weeks === 5;
+    const isLong = weeks === 6;
+    
+    // 動的グリッド設定（最適化された行数に基づく）
+    let gridConfig;
+    let dayHeight;
+    let spacing;
+    
+    if (isCompact) {
+      // 4週間（最下段除外で短縮された月 + 元々短い月）
+      gridConfig = 'repeat(7, minmax(120px, 1fr))';
+      dayHeight = 120; // より大きな高さで見やすく
+      spacing = 1.0;
+    } else if (isMedium) {
+      // 5週間（最も一般的なケース）
+      gridConfig = 'repeat(7, minmax(100px, 1fr))';
+      dayHeight = 100;
+      spacing = 0.8;
+    } else {
+      // 6週間（まれなケース）
+      gridConfig = 'repeat(7, minmax(85px, 1fr))';
+      dayHeight = 85;
+      spacing = 0.5;
+    }
+    
+    return {
+      weeks,
+      firstDayOfWeek,
+      lastDayOfWeek,
+      daysInMonth,
+      isOptimizedLayout,
+      isCompact,
+      isMedium,
+      isLong,
+      gridColumns: gridConfig,
+      dayMinHeight: dayHeight,
+      spacing: spacing,
+      // レスポンシブ対応
+      mobileGridColumns: 'repeat(7, minmax(60px, 1fr))',
+      mobileDayHeight: Math.max(dayHeight * 0.75, 60), // 最小60px確保
+      mobileSpacing: spacing * 0.6,
+    };
+  }, [calendarDays, currentMonth]);
 
   // 月の統計を計算
   const monthStats = useMemo(() => {
@@ -150,9 +241,22 @@ export const CalendarView: React.FC = () => {
             >
               <Typography
                 variant="h4"
-                sx={{ fontWeight: 700, textAlign: 'center' }}
+                sx={{ fontWeight: 700, textAlign: 'center', color: 'red' }}
               >
-                {format(currentMonth, 'yyyy年M月', { locale: ja })}
+                🔥 テスト中 🔥 {format(currentMonth, 'yyyy年M月', { locale: ja })}
+              </Typography>
+              {/* Debug: Layout info */}
+              <Typography
+                variant="caption"
+                sx={{ 
+                  opacity: 0.7, 
+                  textAlign: 'center',
+                  display: 'block',
+                  fontSize: '0.75rem',
+                  mt: 0.5 
+                }}
+              >
+                {calendarLayout.weeks}週間 | {calendarLayout.isCompact ? 'コンパクト' : calendarLayout.isMedium ? '標準' : '拡張'} | 高さ: {calendarLayout.dayMinHeight}px | {calendarLayout.isOptimizedLayout ? '最適化済み' : '標準レイアウト'}
               </Typography>
             </motion.div>
 
@@ -205,31 +309,60 @@ export const CalendarView: React.FC = () => {
       {/* カレンダー */}
       <Card sx={{ overflow: 'hidden' }}>
         <Box sx={{ p: { xs: 1, md: 2 } }}>
-          {/* 曜日ヘッダー */}
-          <Grid container spacing={0} sx={{ mb: 1 }}>
+          {/* 曜日ヘッダー - レスポンシブ最適化 */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: calendarLayout.mobileGridColumns,
+                md: calendarLayout.gridColumns,
+              },
+              gap: {
+                xs: calendarLayout.mobileSpacing,
+                md: calendarLayout.spacing,
+              },
+              mb: 1,
+            }}
+          >
             {weekDays.map((day, index) => (
-              <Grid item xs key={day}>
-                <Box
-                  sx={{
-                    textAlign: 'center',
-                    py: 1,
-                    fontWeight: 600,
-                    color:
-                      index === 0
-                        ? 'error.main'
-                        : index === 6
-                          ? 'primary.main'
-                          : 'text.secondary',
-                  }}
-                >
-                  {day}
-                </Box>
-              </Grid>
+              <Box
+                key={day}
+                sx={{
+                  textAlign: 'center',
+                  py: { xs: 0.5, md: 1 },
+                  fontWeight: 600,
+                  fontSize: { xs: '0.875rem', md: '1rem' },
+                  color:
+                    index === 0
+                      ? 'error.main'
+                      : index === 6
+                        ? 'primary.main'
+                        : 'text.secondary',
+                }}
+              >
+                {day}
+              </Box>
             ))}
-          </Grid>
+          </Box>
 
-          {/* カレンダー本体 */}
-          <Grid container spacing={0.5}>
+          {/* カレンダー本体 - 月別最適化 & レスポンシブ */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: calendarLayout.mobileGridColumns,
+                md: calendarLayout.gridColumns,
+              },
+              gap: {
+                xs: calendarLayout.mobileSpacing,
+                md: calendarLayout.spacing,
+              },
+              minHeight: {
+                xs: `${calendarLayout.weeks * calendarLayout.mobileDayHeight}px`,
+                md: `${calendarLayout.weeks * calendarLayout.dayMinHeight}px`,
+              },
+            }}
+          >
             <AnimatePresence mode="wait">
               {calendarDays.map(date => {
                 const dayShifts = getShiftsByDate(date);
@@ -238,31 +371,35 @@ export const CalendarView: React.FC = () => {
                 const isCurrentDay = isToday(date);
 
                 return (
-                  <Grid item xs key={date.getTime()}>
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{
-                        duration: 0.2,
-                        delay: 0.01 * calendarDays.indexOf(date),
-                      }}
-                    >
-                      <CalendarDay
-                        date={date}
-                        shifts={dayShifts}
-                        isCurrentMonth={isCurrentMonth}
-                        isSelected={isSelected}
-                        isToday={isCurrentDay}
-                        onClick={() => handleDateClick(date)}
-                        onShiftClick={handleShiftClick}
-                      />
-                    </motion.div>
-                  </Grid>
+                  <motion.div
+                    key={date.getTime()}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{
+                      duration: 0.2,
+                      delay: 0.01 * calendarDays.indexOf(date),
+                    }}
+                    style={{ 
+                      minHeight: isMobile ? calendarLayout.mobileDayHeight : calendarLayout.dayMinHeight,
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <CalendarDay
+                      date={date}
+                      shifts={dayShifts}
+                      isCurrentMonth={isCurrentMonth}
+                      isSelected={isSelected}
+                      isToday={isCurrentDay}
+                      onClick={() => handleDateClick(date)}
+                      onShiftClick={handleShiftClick}
+                    />
+                  </motion.div>
                 );
               })}
             </AnimatePresence>
-          </Grid>
+          </Box>
         </Box>
       </Card>
 

@@ -28,6 +28,32 @@ export const SafeCalendarView: React.FC = () => {
   const [shiftFormOpen, setShiftFormOpen] = useState(false);
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  
+  // 設定から週の開始曜日を取得（リアルタイム反映用）
+  const [weekStartsOnMonday, setWeekStartsOnMonday] = useState(
+    localStorage.getItem('weekStartsOnMonday') === 'true'
+  );
+
+  // localStorageの変更を監視
+  React.useEffect(() => {
+    const handleStorageChange = () => {
+      setWeekStartsOnMonday(localStorage.getItem('weekStartsOnMonday') === 'true');
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    // 同じタブ内での変更も検知
+    const interval = setInterval(() => {
+      const current = localStorage.getItem('weekStartsOnMonday') === 'true';
+      if (current !== weekStartsOnMonday) {
+        setWeekStartsOnMonday(current);
+      }
+    }, 500);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [weekStartsOnMonday]);
   const { shifts, getShiftsByDate, getTotalEarnings } = useSimpleShiftStore();
 
   // 簡単な月移動
@@ -54,7 +80,9 @@ export const SafeCalendarView: React.FC = () => {
     currentMonth.getMonth() + 1,
     0
   );
-  const firstDayOfWeek = firstDayOfMonth.getDay(); // 0=日曜日, 1=月曜日...
+  const firstDayOfWeek = weekStartsOnMonday ? 
+    (firstDayOfMonth.getDay() === 0 ? 6 : firstDayOfMonth.getDay() - 1) : // 月曜始まりなら調整
+    firstDayOfMonth.getDay(); // 日曜始まり
   const daysInMonth = lastDayOfMonth.getDate();
 
   // 前月の末日を取得
@@ -64,7 +92,7 @@ export const SafeCalendarView: React.FC = () => {
     0
   ).getDate();
 
-  // カレンダーに表示する日付の配列を作成（6週間×7日=42日分）
+  // カレンダーに表示する日付の配列を作成（最適化版）
   const calendarDays: {
     day: number;
     month: 'prev' | 'current' | 'next';
@@ -94,9 +122,9 @@ export const SafeCalendarView: React.FC = () => {
     });
   }
 
-  // 次月の日付を追加（42日になるまで）
-  const remainingDays = 42 - calendarDays.length;
-  for (let day = 1; day <= remainingDays; day++) {
+  // まずは全日付（6週間分）を生成
+  const totalDaysNeeded = 42 - calendarDays.length;
+  for (let day = 1; day <= totalDaysNeeded; day++) {
     calendarDays.push({
       day,
       month: 'next',
@@ -108,7 +136,41 @@ export const SafeCalendarView: React.FC = () => {
     });
   }
 
-  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+  // 週ごとにグループ化
+  const allWeeks = [];
+  for (let i = 0; i < Math.ceil(calendarDays.length / 7); i++) {
+    allWeeks.push(calendarDays.slice(i * 7, (i + 1) * 7));
+  }
+
+  // 最適化されたカレンダー
+  let optimizedCalendarDays = calendarDays;
+  let isOptimized = false;
+
+  // 最後の週（6週目）を確認
+  if (allWeeks.length === 6) {
+    const lastWeek = allWeeks[5];
+    const currentMonthInLastWeek = lastWeek.filter(d => d.month === 'current').length;
+    
+    // 6週目が全て来月の日付の場合のみ除外
+    if (currentMonthInLastWeek === 0) {
+      optimizedCalendarDays = calendarDays.slice(0, 35); // 5週間のみ表示
+      isOptimized = true;
+    }
+  }
+
+  const finalWeeks = Math.ceil(optimizedCalendarDays.length / 7);
+  const lastWeekCurrentMonth = allWeeks.length === 6 ? 
+    allWeeks[5].filter(d => d.month === 'current').length : 
+    'N/A';
+  
+  console.log(`🗓️ [${currentMonth.getFullYear()}年${currentMonth.getMonth() + 1}月] ${finalWeeks}週間表示 ${isOptimized ? '✅最適化' : '❌標準'} (6週目今月日付: ${lastWeekCurrentMonth}個)`);
+
+  // 最終的なカレンダーデータ
+  const finalCalendarDays = optimizedCalendarDays;
+
+  const weekDays = weekStartsOnMonday ? 
+    ['月', '火', '水', '木', '金', '土', '日'] :
+    ['日', '月', '火', '水', '木', '金', '土'];
 
   // シフト選択処理
   const handleShiftClick = (shift: Shift, event: React.MouseEvent) => {
@@ -212,12 +274,9 @@ export const SafeCalendarView: React.FC = () => {
                     py: 0.5,
                     fontSize: { xs: '0.7rem', sm: '0.75rem' },
                     fontWeight: 600,
-                    color:
-                      index === 0
-                        ? '#e57373'
-                        : index === 6
-                          ? '#64b5f6'
-                          : '#757575',
+                    color: weekStartsOnMonday
+                      ? (index === 5 ? '#64b5f6' : index === 6 ? '#e57373' : '#757575') // 月曜始まり：土=青、日=赤
+                      : (index === 0 ? '#e57373' : index === 6 ? '#64b5f6' : '#757575'), // 日曜始まり：日=赤、土=青
                   }}
                 >
                   {day}
@@ -226,7 +285,7 @@ export const SafeCalendarView: React.FC = () => {
             ))}
           </Grid>
 
-          {/* シンプルカレンダーUI - 隙間なし表示 */}
+          {/* 最適化されたシンプルカレンダーUI */}
           <Box
             sx={{
               flex: 1,
@@ -235,11 +294,13 @@ export const SafeCalendarView: React.FC = () => {
               minHeight: 0,
               display: 'flex',
               flexDirection: 'column',
+              // 動的な高さ設定
+              height: finalWeeks * (isMobile ? 80 : 100), // 週数に応じてサイズ調整
             }}
           >
-            {Array.from({ length: 6 }, (_, weekIndex) => {
+            {Array.from({ length: finalWeeks }, (_, weekIndex) => {
               const weekStart = weekIndex * 7;
-              const weekCalendarDays = calendarDays.slice(
+              const weekCalendarDays = finalCalendarDays.slice(
                 weekStart,
                 weekStart + 7
               );

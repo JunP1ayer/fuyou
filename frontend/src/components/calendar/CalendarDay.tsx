@@ -5,8 +5,8 @@ import { Box, Typography, Chip, useTheme, alpha } from '@mui/material';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 
-import type { Shift } from '@types/index';
-import { formatCurrency } from '@/utils/calculations';
+import type { Shift } from '../../types/index';
+import { formatCurrency } from '../../utils/calculations';
 
 interface CalendarDayProps {
   date: Date;
@@ -103,11 +103,20 @@ export const CalendarDay: React.FC<CalendarDayProps> = ({
         <Typography
           variant="body2"
           sx={{
-            fontSize: { xs: '0.75rem', md: '0.875rem' },
-            fontWeight: isToday || isSelected ? 600 : 400,
+            fontSize: { xs: '1.5rem', md: '2rem' }, // 大きくして目立たせる
+            fontWeight: 900, // 太字
             lineHeight: 1,
             textAlign: 'center',
             mb: 0.5,
+            color: '#FF0000 !important', // 強制的に赤色
+            backgroundColor: 'yellow', // 背景も黄色にして確実に見える
+            border: '3px solid blue', // 青い境界線
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           {format(date, 'd')}

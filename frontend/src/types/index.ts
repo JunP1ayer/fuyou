@@ -25,6 +25,13 @@ export interface Workplace {
   address?: string;
   phone?: string;
   notes?: string;
+  description?: string;
+  paymentDate?: number; // 給料日（日付）
+  timeBasedRates?: { startTime: string; endTime: string; rate: number }[]; // 時間帯別時給
+  transportationFee?: number; // 交通費
+  weekdayRates?: Record<string, number>; // 曜日別時給
+  allowances?: { name: string; amount: number }[]; // 手当
+  deductions?: { name: string; amount: number }[]; // 控除
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -98,4 +105,17 @@ export interface AppSettings {
     shiftReminders: boolean;
     limitWarnings: boolean;
   };
+}
+
+// Friend collaboration types
+export interface Friend {
+  id: string;
+  displayName: string;
+  color: string;
+}
+
+export interface FriendSchedule {
+  friendId: string;
+  // 柔軟に扱うため詳細構造は未固定。必要に応じて厳密化する
+  days: unknown;
 }

@@ -18,7 +18,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 
-import type { ThemeMode } from '@types/index';
+import type { ThemeMode } from '@/types/index';
 
 interface AppHeaderProps {
   currentView: string;

@@ -268,8 +268,18 @@ const App: React.FC = () => {
         onClose={() => setSettingsOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
-        sx={{ zIndex: 1300 }}
+        PaperProps={{ 
+          sx: { 
+            borderRadius: 3,
+            backgroundColor: 'background.paper',
+          } 
+        }}
+        sx={{ 
+          zIndex: 1300,
+          '& .MuiBackdrop-root': {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)', // 濃い背景で後ろを隠す
+          }
+        }}
       >
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -285,17 +295,36 @@ const App: React.FC = () => {
               <ListItemIcon>
                 <CalendarToday />
               </ListItemIcon>
-              <ListItemText primary="カレンダー設定" secondary="週の開始曜日" />
-              <Switch
-                checked={weekStartsOnMonday}
-                onChange={e => setWeekStartsOnMonday(e.target.checked)}
-                color="primary"
+              <ListItemText 
+                primary="週の開始曜日" 
+                secondary={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                    <Chip 
+                      label="日曜始まり" 
+                      size="small" 
+                      color={!weekStartsOnMonday ? "primary" : "default"}
+                      variant={!weekStartsOnMonday ? "filled" : "outlined"}
+                      onClick={() => setWeekStartsOnMonday(false)}
+                      sx={{ cursor: 'pointer' }}
+                    />
+                    <Chip 
+                      label="月曜始まり" 
+                      size="small" 
+                      color={weekStartsOnMonday ? "primary" : "default"}
+                      variant={weekStartsOnMonday ? "filled" : "outlined"}
+                      onClick={() => setWeekStartsOnMonday(true)}
+                      sx={{ cursor: 'pointer' }}
+                    />
+                  </Box>
+                } 
               />
             </ListItem>
 
             <Box sx={{ pl: 7, pb: 1 }}>
-              <Typography variant="caption" color="text.secondary">
-                {weekStartsOnMonday ? '月曜日から始まる' : '日曜日から始まる'}
+              <Typography variant="caption" color="primary.main" sx={{ fontWeight: 500 }}>
+                {weekStartsOnMonday ? 
+                  '📅 月・火・水・木・金・土・日' : 
+                  '📅 日・月・火・水・木・金・土'}
               </Typography>
             </Box>
 

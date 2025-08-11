@@ -2,9 +2,9 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import type { Shift, Workplace, ShiftFormData } from '@types/index';
-import { calculateShiftEarnings } from '@/utils/calculations';
-import { calculateWorkMinutes } from '@/utils/dateUtils';
+import type { Shift, Workplace, ShiftFormData } from '../types/index';
+import { calculateShiftEarnings } from '../utils/calculations';
+import { calculateWorkMinutes } from '../utils/dateUtils';
 
 interface ShiftState {
   shifts: Shift[];
