@@ -26,7 +26,18 @@ export default async function handler(req, res) {
     // 環境変数からAPIキーを取得
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'OpenAI API key not configured' });
+      return res.status(500).json({ 
+        error: 'OpenAI API key not configured',
+        debug: 'OPENAI_API_KEY environment variable is not set'
+      });
+    }
+    
+    // APIキーの形式チェック（sk-で始まる）
+    if (!apiKey.startsWith('sk-')) {
+      return res.status(500).json({ 
+        error: 'Invalid OpenAI API key format',
+        debug: `API key should start with 'sk-', got: ${apiKey.substring(0, 10)}...`
+      });
     }
 
     // OpenAI API呼び出し
@@ -88,10 +99,17 @@ export default async function handler(req, res) {
 
     if (!openaiResponse.ok) {
       const errorData = await openaiResponse.text();
-      console.error('OpenAI API Error:', errorData);
+      console.error('OpenAI API Error:', {
+        status: openaiResponse.status,
+        statusText: openaiResponse.statusText,
+        errorData: errorData
+      });
+      
       return res.status(openaiResponse.status).json({ 
         error: 'OpenAI API request failed',
-        details: openaiResponse.statusText
+        details: openaiResponse.statusText,
+        status: openaiResponse.status,
+        openai_error: errorData.substring(0, 500) // 最初の500文字のみ表示
       });
     }
 
