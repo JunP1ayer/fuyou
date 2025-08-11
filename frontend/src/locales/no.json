@@ -243,4 +243,15 @@
   "country.fi.parentalBenefits": "Foreldreytelser påvirkes ved €8 500+/år",
   "yes": "Ja",
   "no": "Nei"
+  ,
+  "calendar.shift.detailsTitle": "Skiftdetaljer",
+  "calendar.shift.confirmed": "Bekreftet",
+  "calendar.shift.tentative": "Foreløpig",
+  "calendar.shift.hasMemo": "Har notat",
+  "calendar.shift.workplace": "Arbeidsplass",
+  "calendar.shift.time": "Arbeidstid",
+  "calendar.shift.start": "Start",
+  "calendar.shift.end": "Slutt",
+  "calendar.shift.workDuration": "Arbeidsvarighet",
+  "calendar.shift.breakDuration": "Pause"
 }

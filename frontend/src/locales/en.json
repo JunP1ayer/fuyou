@@ -241,6 +241,20 @@
   "country.no.taxInfo": "Norway: Tax-free threshold NOK 65,550/year for students",
   "country.no.studentLimits": "Students can earn NOK 65,550 tax-free",
   "country.no.parentalBenefits": "Parental benefits affected at NOK 50,000+/year",
+  "country.jp.taxInfo": "Japan: Student allowance threshold ¥1,230,000/year",
+  "country.jp.studentLimits": "Students can earn up to ¥1,230,000",
+  "country.jp.parentalBenefits": "Parental benefits affected at ¥1,030,000+/year",
+  
+  "calendar.shift.detailsTitle": "Shift Details",
+  "calendar.shift.confirmed": "Confirmed",
+  "calendar.shift.tentative": "Tentative",
+  "calendar.shift.hasMemo": "Has memo",
+  "calendar.shift.workplace": "Workplace",
+  "calendar.shift.time": "Work time",
+  "calendar.shift.start": "Start",
+  "calendar.shift.end": "End",
+  "calendar.shift.workDuration": "Work duration",
+  "calendar.shift.breakDuration": "Break duration",
   
   "yes": "Yes",
   "no": "No"

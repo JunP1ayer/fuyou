@@ -243,4 +243,15 @@
   "country.no.parentalBenefits": "Vanhempainetuuksiin vaikutus NOK 50 000+/vuosi",
   "yes": "Kyllä",
   "no": "Ei"
+  ,
+  "calendar.shift.detailsTitle": "Vuoron tiedot",
+  "calendar.shift.confirmed": "Vahvistettu",
+  "calendar.shift.tentative": "Alustava",
+  "calendar.shift.hasMemo": "Muistiinpano",
+  "calendar.shift.workplace": "Työpaikka",
+  "calendar.shift.time": "Työaika",
+  "calendar.shift.start": "Alku",
+  "calendar.shift.end": "Loppu",
+  "calendar.shift.workDuration": "Työaika yhteensä",
+  "calendar.shift.breakDuration": "Taukoaika"
 }

@@ -243,4 +243,15 @@
   "country.no.parentalBenefits": "Forældreydelser påvirkes ved NOK 50.000+/år",
   "yes": "Ja",
   "no": "Nej"
+  ,
+  "calendar.shift.detailsTitle": "Vagtdetaljer",
+  "calendar.shift.confirmed": "Bekræftet",
+  "calendar.shift.tentative": "Foreløbig",
+  "calendar.shift.hasMemo": "Har note",
+  "calendar.shift.workplace": "Arbejdsplads",
+  "calendar.shift.time": "Arbejdstid",
+  "calendar.shift.start": "Start",
+  "calendar.shift.end": "Slut",
+  "calendar.shift.workDuration": "Arbejdsvarighed",
+  "calendar.shift.breakDuration": "Pausetid"
 }

@@ -55,46 +55,12 @@ export const LanguageSelectionScreen: React.FC = () => {
                   variant="h3" 
                   sx={{ 
                     fontWeight: 600, 
-                    mb: 1,
+                    mb: 3,
                     color: '#1a1a1a',
                     letterSpacing: '-0.02em',
                   }}
                 >
                   扶養管理カレンダー
-                </Typography>
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 400, 
-                    mb: 2,
-                    color: '#666',
-                    letterSpacing: '-0.01em',
-                  }}
-                >
-                  Dependent Management Calendar
-                </Typography>
-                
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    color: '#666',
-                    mb: 1,
-                    fontSize: '1.0rem',
-                    lineHeight: 1.6,
-                  }}
-                >
-                  学生向け扶養控除管理システム
-                </Typography>
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
-                    color: '#888',
-                    mb: 4,
-                    fontSize: '0.9rem',
-                    lineHeight: 1.5,
-                  }}
-                >
-                  Tax dependent management system for students
                 </Typography>
               </motion.div>
 
@@ -105,42 +71,21 @@ export const LanguageSelectionScreen: React.FC = () => {
                 transition={{ delay: 0.4, duration: 0.5 }}
               >
                 <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 500,
-                    mb: 0.5,
-                    color: '#333',
-                  }}
-                >
-                  言語を選択
-                </Typography>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    fontWeight: 400,
-                    mb: 1,
-                    color: '#666',
-                    fontSize: '1.1rem',
-                  }}
-                >
-                  Select Language
-                </Typography>
-                
-                <Typography 
-                  variant="body2" 
+                  variant="body1" 
                   sx={{ 
                     color: '#666',
                     mb: 1,
+                    fontSize: '1.0rem',
                   }}
                 >
                   使用する言語を選択してください
                 </Typography>
                 <Typography 
-                  variant="body2" 
+                  variant="body1" 
                   sx={{ 
                     color: '#888',
                     mb: 3,
-                    fontSize: '0.9rem',
+                    fontSize: '1.0rem',
                   }}
                 >
                   Please select your preferred language
@@ -155,25 +100,6 @@ export const LanguageSelectionScreen: React.FC = () => {
                   />
                 </Box>
 
-                <Typography 
-                  variant="caption" 
-                  sx={{ 
-                    color: '#999',
-                    fontSize: '0.85rem',
-                    mb: 0.5,
-                  }}
-                >
-                  設定からいつでも変更できます
-                </Typography>
-                <Typography 
-                  variant="caption" 
-                  sx={{ 
-                    color: '#aaa',
-                    fontSize: '0.8rem',
-                  }}
-                >
-                  You can change this anytime in settings
-                </Typography>
               </motion.div>
             </CardContent>
           </Card>
