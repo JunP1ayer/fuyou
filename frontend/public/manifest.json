@@ -1,0 +1,19 @@
+{
+  "name": "扶養管理カレンダー",
+  "short_name": "扶養管理",
+  "description": "学生アルバイト向けの扶養控除管理システム",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#5ac8fa",
+  "icons": [
+    {
+      "src": "vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "orientation": "portrait-primary",
+  "categories": ["finance", "productivity", "utilities"],
+  "lang": "ja"
+}
