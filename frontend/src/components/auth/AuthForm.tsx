@@ -165,11 +165,11 @@ export const AuthForm: React.FC<AuthFormProps> = ({
         sx={{
           maxWidth: 420,
           mx: 'auto',
-          boxShadow: 'none',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
           borderRadius: 4,
           overflow: 'visible',
-          background: 'transparent',
-          border: 'none',
+          background: '#ffffff',
+          border: '1px solid rgba(0,0,0,0.05)',
         }}
       >
         {/* ヘッダー */}
@@ -182,8 +182,8 @@ export const AuthForm: React.FC<AuthFormProps> = ({
           }}
         >
           {/* 言語選択ドロップダウン（小型版） */}
-          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
-            <Box sx={{ transform: 'scale(0.85)' }}>
+          <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{ transform: 'scale(0.7)' }}>
               <LanguageDropdown variant="outlined" showCurrentFlag />
             </Box>
           </Box>
