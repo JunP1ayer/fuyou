@@ -143,6 +143,11 @@ export const SimpleShiftForm: React.FC<SimpleShiftFormProps> = ({
       hourlyRate: formData.hourlyRate,
       totalEarnings,
       status: 'confirmed', // 追加時は確定にする
+      // 新機能のデフォルト値
+      overtimeEnabled: true,
+      autoBreak6Hours: true,
+      autoBreak8Hours: true,
+      dayOfWeekSettingsEnabled: false,
     };
 
     try {

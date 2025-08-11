@@ -38,8 +38,8 @@ export const JobManagementHub: React.FC<JobManagementHubProps> = ({
       </Box>
 
       {/* メイン機能選択 */}
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6}>
+      <Grid container spacing={2} alignItems="stretch">
+        <Grid item xs={12} sm={6} sx={{ display: 'flex' }}>
           <Card
             sx={{
               cursor: 'pointer',
@@ -47,10 +47,14 @@ export const JobManagementHub: React.FC<JobManagementHubProps> = ({
               '&:hover': {
                 boxShadow: '0 4px 12px rgba(179, 229, 252, 0.3)',
               },
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
             }}
             onClick={onNavigateToWorkplaceManager}
           >
-            <CardContent sx={{ p: 2, textAlign: 'center' }}>
+            <CardContent sx={{ p: 2, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', flexGrow: 1 }}>
               <Box
                 sx={{
                   width: 48,
@@ -76,7 +80,7 @@ export const JobManagementHub: React.FC<JobManagementHubProps> = ({
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={12} sm={6} sx={{ display: 'flex' }}>
           <Card
             sx={{
               cursor: 'pointer',
@@ -84,10 +88,14 @@ export const JobManagementHub: React.FC<JobManagementHubProps> = ({
               '&:hover': {
                 boxShadow: '0 4px 12px rgba(67, 233, 123, 0.3)',
               },
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
             }}
             onClick={onNavigateToAISubmission}
           >
-            <CardContent sx={{ p: 2, textAlign: 'center' }}>
+            <CardContent sx={{ p: 2, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', flexGrow: 1 }}>
               <Box
                 sx={{
                   width: 48,

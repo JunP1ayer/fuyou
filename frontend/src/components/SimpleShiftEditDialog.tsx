@@ -56,6 +56,26 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Shift | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // デバッグ: 編集中の変更を可視化
+  React.useEffect(() => {
+    if (!isEditing || !editData) return;
+    try {
+      const next = calculateEarnings(editData);
+      // 重要: 開発時のみ詳細ログ
+      if (process.env.NODE_ENV !== 'production') {
+        console.debug('🧮 SimpleShiftEditDialog recalculated', {
+          startTime: editData.startTime,
+          endTime: editData.endTime,
+          hourlyRate: editData.hourlyRate,
+          breakTime: editData.breakTime,
+          autoBreak6Hours: editData.autoBreak6Hours,
+          autoBreak8Hours: editData.autoBreak8Hours,
+          overtimeEnabled: editData.overtimeEnabled,
+          nextEarnings: next,
+        });
+      }
+    } catch {}
+  }, [isEditing, editData?.startTime, editData?.endTime, editData?.hourlyRate, editData?.breakTime, editData?.autoBreak6Hours, editData?.autoBreak8Hours, editData?.overtimeEnabled]);
 
   // ダイアログが開いた時の初期化
   React.useEffect(() => {
@@ -185,7 +205,12 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
     if (
       field === 'startTime' ||
       field === 'endTime' ||
-      field === 'hourlyRate'
+      field === 'hourlyRate' ||
+      field === 'breakTime' ||
+      field === 'autoBreak6Hours' ||
+      field === 'autoBreak8Hours' ||
+      field === 'overtimeEnabled' ||
+      field === 'dayOfWeekSettingsEnabled'
     ) {
       updatedData.totalEarnings = calculateEarnings(updatedData);
     }

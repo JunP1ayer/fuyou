@@ -85,6 +85,9 @@ interface WorkplaceFormData {
     over6h: number; // 6時間超の休憩（分）
     over8h: number; // 8時間超の休憩（分）
   };
+  freeBreakDefault: number; // 自由休憩（分）
+  breakAuto6hEnabled: boolean; // 6時間超の自動休憩ON/OFF
+  breakAuto8hEnabled: boolean; // 8時間超の自動休憩ON/OFF
   
   // 交通費詳細設定
   transportationSettings: {
@@ -117,6 +120,7 @@ interface WorkplaceFormData {
     saturday?: number;
     sunday?: number;
   };
+  weekdayRatesEnabled?: boolean; // 曜日別時給の有効フラグ
   allowances?: {
     name: string;
     amount: number;
@@ -165,7 +169,7 @@ export const WorkplaceManager: React.FC = () => {
     overtimeSettings: {
       nightShift: true, // 深夜割増適用
       holiday: true, // 休日割増適用  
-      overtime: false, // 残業割増は任意なのでデフォルトOFF
+      overtime: true, // デフォルトON
     },
     roundingRule: {
       minutes: 1, // 1分単位
@@ -175,6 +179,9 @@ export const WorkplaceManager: React.FC = () => {
       over6h: 45, // 6時間超で45分休憩
       over8h: 60, // 8時間超で60分休憩
     },
+    freeBreakDefault: 0,
+    breakAuto6hEnabled: true,
+    breakAuto8hEnabled: true,
     transportationSettings: {
       type: 'none', // 交通費なし
       amount: 0,
@@ -188,10 +195,53 @@ export const WorkplaceManager: React.FC = () => {
     transportationFee: 0,
     timeBasedRates: [],
     weekdayRates: {},
+    weekdayRatesEnabled: false,
     allowances: [],
     deductions: [],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // プレビュー用サンプルシフト（詳細設定の即時計算確認用）
+  const [preview, setPreview] = useState({
+    startTime: '09:00',
+    endTime: '17:00',
+    extraBreak: 0,
+  });
+
+  const computePreviewEarnings = () => {
+    // 時給制のみ試算（その他形態は対象外）
+    if (formData.paymentType !== 'hourly') return { earnings: 0, totalMinutes: 0, breakMinutes: 0, actualMinutes: 0 };
+
+    const rate = formData.defaultHourlyRate || 0;
+    if (!preview.startTime || !preview.endTime || rate <= 0) return { earnings: 0, totalMinutes: 0, breakMinutes: 0, actualMinutes: 0 };
+
+    const start = new Date(`2000-01-01T${preview.startTime}`);
+    const end = new Date(`2000-01-01T${preview.endTime}`);
+    const totalMinutes = Math.max(0, (end.getTime() - start.getTime()) / 60000);
+
+    // 休憩（手動 + 自動）
+    let breakMinutes = Math.max(0, Number(preview.extraBreak) || 0);
+    breakMinutes += Math.max(0, Number(formData.freeBreakDefault) || 0);
+    const workHours = totalMinutes / 60;
+    if (formData.breakAuto8hEnabled && formData.breakRules.over8h && workHours > 8) {
+      breakMinutes += formData.breakRules.over8h;
+    } else if (formData.breakAuto6hEnabled && formData.breakRules.over6h && workHours > 6) {
+      breakMinutes += formData.breakRules.over6h;
+    }
+
+    const actualMinutes = Math.max(0, totalMinutes - breakMinutes);
+    const actualHours = actualMinutes / 60;
+
+    // 残業（8h超は1.25倍）
+    let earnings = Math.floor(actualHours * rate);
+    if (formData.overtimeSettings.overtime && actualHours > 8) {
+      const regularHours = 8;
+      const overtimeHours = actualHours - 8;
+      earnings = Math.floor(regularHours * rate + overtimeHours * rate * 1.25);
+    }
+
+    return { earnings, totalMinutes, breakMinutes, actualMinutes };
+  };
 
   // フォームリセット
   const resetForm = () => {
@@ -209,7 +259,7 @@ export const WorkplaceManager: React.FC = () => {
       overtimeSettings: {
         nightShift: true,
         holiday: true,
-        overtime: false,
+        overtime: true,
       },
       roundingRule: {
         minutes: 1,
@@ -219,6 +269,9 @@ export const WorkplaceManager: React.FC = () => {
         over6h: 45,
         over8h: 60,
       },
+      freeBreakDefault: 0,
+      breakAuto6hEnabled: true,
+      breakAuto8hEnabled: true,
       transportationSettings: {
         type: 'none',
         amount: 0,
@@ -231,6 +284,7 @@ export const WorkplaceManager: React.FC = () => {
       transportationFee: 0,
       timeBasedRates: [],
       weekdayRates: {},
+      weekdayRatesEnabled: false,
       allowances: [],
       deductions: [],
     });
@@ -262,7 +316,7 @@ export const WorkplaceManager: React.FC = () => {
         overtimeSettings: (workplace as any).overtimeSettings || {
           nightShift: true,
           holiday: true,
-          overtime: false,
+          overtime: true,
         },
         roundingRule: (workplace as any).roundingRule || {
           minutes: 1,
@@ -272,6 +326,9 @@ export const WorkplaceManager: React.FC = () => {
           over6h: 45,
           over8h: 60,
         },
+        freeBreakDefault: (workplace as any).freeBreakDefault || 0,
+        breakAuto6hEnabled: (workplace as any).breakAuto6hEnabled ?? true,
+        breakAuto8hEnabled: (workplace as any).breakAuto8hEnabled ?? true,
         transportationSettings: (workplace as any).transportationSettings || {
           type: workplace.transportationFee ? 'fixed' : 'none',
           amount: workplace.transportationFee || 0,
@@ -285,6 +342,7 @@ export const WorkplaceManager: React.FC = () => {
         timeBasedRates: workplace.timeBasedRates || [],
         transportationFee: workplace.transportationFee || 0,
         weekdayRates: workplace.weekdayRates || {},
+        weekdayRatesEnabled: (workplace as any).weekdayRatesEnabled ?? (workplace.weekdayRates ? Object.keys(workplace.weekdayRates).length > 0 : false),
         allowances: workplace.allowances || [],
         deductions: workplace.deductions || [],
       });
@@ -661,7 +719,7 @@ export const WorkplaceManager: React.FC = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
                 type="number"
@@ -686,7 +744,71 @@ export const WorkplaceManager: React.FC = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} md={6}>
+              <Grid container spacing={1}>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>交通費</InputLabel>
+                    <Select
+                      value={formData.transportationSettings.type}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        transportationSettings: {
+                          ...prev.transportationSettings,
+                          type: e.target.value as any
+                        }
+                      }))}
+                      label="交通費"
+                    >
+                      <MenuItem value="none">なし</MenuItem>
+                      <MenuItem value="fixed">固定</MenuItem>
+                      <MenuItem value="actual">実費（上限）</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                {formData.transportationSettings.type !== 'none' && (
+                  <>
+                    <Grid item xs={6} sm={3}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label={formData.transportationSettings.type === 'fixed' ? '固定額' : '上限額'}
+                        value={formData.transportationSettings.amount}
+                        onChange={e => setFormData(prev => ({
+                          ...prev,
+                          transportationSettings: {
+                            ...prev.transportationSettings,
+                            amount: parseInt(e.target.value) || 0
+                          }
+                        }))}
+                        size="small"
+                        InputProps={{ startAdornment: <span style={{ marginRight: 6 }}>¥</span> }}
+                      />
+                    </Grid>
+                    <Grid item xs={6} sm={3}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>単位</InputLabel>
+                        <Select
+                          value={formData.transportationSettings.unit}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            transportationSettings: {
+                              ...prev.transportationSettings,
+                              unit: e.target.value as any
+                            }
+                          }))}
+                          label="単位"
+                        >
+                          <MenuItem value="daily">日額</MenuItem>
+                          <MenuItem value="monthly">月額</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </>
+                )}
+              </Grid>
+            </Grid>
+            <Grid item xs={12} md={6}>
               <FormControl fullWidth size="small">
                 <InputLabel>支払い形態</InputLabel>
                 <Select
@@ -937,42 +1059,50 @@ export const WorkplaceManager: React.FC = () => {
                       </Box>
                     </Grid>
 
-                    {/* 曜日別時給設定 */}
+                    {/* 曜日別時給設定（ON/OFF） */}
                     <Grid item xs={12}>
-                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 2 }}>
-                        曜日別時給設定
-                      </Typography>
-                      <Grid container spacing={1}>
-                        {[
-                          'monday', 'tuesday', 'wednesday', 'thursday', 
-                          'friday', 'saturday', 'sunday'
-                        ].map((day, index) => (
-                          <Grid item xs={6} sm={4} key={day}>
-                            <TextField
-                              fullWidth
-                              type="number"
-                              label={['月', '火', '水', '木', '金', '土', '日'][index]}
-                              value={
-                                formData.weekdayRates?.[day as keyof typeof formData.weekdayRates] || ''
-                              }
-                              onChange={e =>
-                                setFormData(prev => ({
-                                  ...prev,
-                                  weekdayRates: {
-                                    ...prev.weekdayRates,
-                                    [day]: e.target.value ? parseInt(e.target.value) : undefined,
-                                  },
-                                }))
-                              }
-                              size="small"
-                              placeholder="未設定"
-                              InputProps={{
-                                startAdornment: <span style={{ marginRight: 4 }}>¥</span>,
-                              }}
-                            />
-                          </Grid>
-                        ))}
-                      </Grid>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          曜日別時給設定
+                        </Typography>
+                        <FormControlLabel
+                          control={<Switch checked={!!formData.weekdayRatesEnabled} onChange={(e) => setFormData(prev => ({ ...prev, weekdayRatesEnabled: e.target.checked, weekdayRates: e.target.checked ? prev.weekdayRates : {} }))} />}
+                          label={formData.weekdayRatesEnabled ? 'ON' : 'OFF'}
+                        />
+                      </Box>
+                      {formData.weekdayRatesEnabled && (
+                        <Grid container spacing={1}>
+                          {[
+                            'monday', 'tuesday', 'wednesday', 'thursday', 
+                            'friday', 'saturday', 'sunday'
+                          ].map((day, index) => (
+                            <Grid item xs={6} sm={4} key={day}>
+                              <TextField
+                                fullWidth
+                                type="number"
+                                label={['月', '火', '水', '木', '金', '土', '日'][index]}
+                                value={
+                                  formData.weekdayRates?.[day as keyof typeof formData.weekdayRates] || ''
+                                }
+                                onChange={e =>
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    weekdayRates: {
+                                      ...prev.weekdayRates,
+                                      [day]: e.target.value ? parseInt(e.target.value) : undefined,
+                                    },
+                                  }))
+                                }
+                                size="small"
+                                placeholder="未設定"
+                                InputProps={{
+                                  startAdornment: <span style={{ marginRight: 4 }}>¥</span>,
+                                }}
+                              />
+                            </Grid>
+                          ))}
+                        </Grid>
+                      )}
                     </Grid>
                     
                     {/* 法定割増設定 */}
@@ -1014,133 +1144,114 @@ export const WorkplaceManager: React.FC = () => {
                       </Box>
                     </Grid>
 
-                    {/* 休憩時間設定 */}
+                    {/* 休憩時間設定（自由入力 + 自動休憩） */}
                     <Grid item xs={12}>
                       <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                         休憩時間
                       </Typography>
                       <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                          <TextField
-                            fullWidth
-                            type="number"
-                            label="6時間超の休憩時間（分）"
-                            value={formData.breakRules.over6h}
-                            onChange={e =>
-                              setFormData(prev => ({
-                                ...prev,
-                                breakRules: {
-                                  ...prev.breakRules,
-                                  over6h: parseInt(e.target.value) || 0
-                                }
-                              }))
-                            }
-                            error={Boolean(errors.over6h)}
-                            helperText={errors.over6h}
-                            size="small"
-                            placeholder="例：45"
-                          />
-                        </Grid>
-                        <Grid item xs={6}>
-                          <TextField
-                            fullWidth
-                            type="number"
-                            label="8時間超の休憩時間（分）"
-                            value={formData.breakRules.over8h}
-                            onChange={e =>
-                              setFormData(prev => ({
-                                ...prev,
-                                breakRules: {
-                                  ...prev.breakRules,
-                                  over8h: parseInt(e.target.value) || 0
-                                }
-                              }))
-                            }
-                            error={Boolean(errors.over8h)}
-                            helperText={errors.over8h}
-                            size="small"
-                            placeholder="例：60"
-                          />
-                        </Grid>
-                      </Grid>
-                    </Grid>
-
-                    {/* 交通費設定 */}
-                    <Grid item xs={12}>
-                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                        交通費設定
-                      </Typography>
-                      <Grid container spacing={1}>
                         <Grid item xs={12} sm={4}>
-                          <FormControl fullWidth size="small">
-                            <InputLabel>支給方式</InputLabel>
-                            <Select
-                              value={formData.transportationSettings.type}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                transportationSettings: {
-                                  ...prev.transportationSettings,
-                                  type: e.target.value as any
-                                }
-                              }))}
-                              label="支給方式"
-                            >
-                              <MenuItem value="none">なし</MenuItem>
-                              <MenuItem value="fixed">固定支給</MenuItem>
-                              <MenuItem value="actual">実費支給</MenuItem>
-                            </Select>
-                          </FormControl>
+                          <TextField
+                            fullWidth
+                            type="number"
+                            label="自由休憩（分）"
+                            value={formData.freeBreakDefault}
+                            onChange={e => setFormData(prev => ({ ...prev, freeBreakDefault: Math.max(0, parseInt(e.target.value) || 0) }))}
+                            size="small"
+                            placeholder="例：15"
+                          />
                         </Grid>
-                        {formData.transportationSettings.type !== 'none' && (
-                          <>
-                            <Grid item xs={6} sm={4}>
-                              <TextField
-                                fullWidth
-                                type="number"
-                                label={formData.transportationSettings.type === 'fixed' ? '固定金額' : '上限金額'}
-                                value={formData.transportationSettings.amount}
-                                onChange={e =>
-                                  setFormData(prev => ({
-                                    ...prev,
-                                    transportationSettings: {
-                                      ...prev.transportationSettings,
-                                      amount: parseInt(e.target.value) || 0
-                                    }
-                                  }))
-                                }
-                                error={Boolean(errors.transportationAmount)}
-                                helperText={errors.transportationAmount}
-                                size="small"
-                                InputProps={{
-                                  startAdornment: <span style={{ marginRight: 8 }}>¥</span>,
-                                }}
+                        <Grid item xs={12} sm={8}>
+                          <Grid container spacing={2}>
+                            <Grid item xs={12} sm={6}>
+                              <FormControlLabel
+                                control={<Switch checked={formData.breakAuto6hEnabled} onChange={(e) => setFormData(prev => ({ ...prev, breakAuto6hEnabled: e.target.checked }))} />}
+                                label="6時間越えで休憩"
                               />
+                              {formData.breakAuto6hEnabled && (
+                                <TextField
+                                  fullWidth
+                                  type="number"
+                                  label="6時間超の休憩（分）"
+                                  value={formData.breakRules.over6h}
+                                  onChange={e => setFormData(prev => ({ ...prev, breakRules: { ...prev.breakRules, over6h: parseInt(e.target.value) || 0 } }))}
+                                  size="small"
+                                />
+                              )}
                             </Grid>
-                            <Grid item xs={6} sm={4}>
-                              <FormControl fullWidth size="small">
-                                <InputLabel>単位</InputLabel>
-                                <Select
-                                  value={formData.transportationSettings.unit}
-                                  onChange={(e) => setFormData(prev => ({
-                                    ...prev,
-                                    transportationSettings: {
-                                      ...prev.transportationSettings,
-                                      unit: e.target.value as any
-                                    }
-                                  }))}
-                                  label="単位"
-                                >
-                                  <MenuItem value="daily">日額</MenuItem>
-                                  <MenuItem value="monthly">月額</MenuItem>
-                                </Select>
-                              </FormControl>
+                            <Grid item xs={12} sm={6}>
+                              <FormControlLabel
+                                control={<Switch checked={formData.breakAuto8hEnabled} onChange={(e) => setFormData(prev => ({ ...prev, breakAuto8hEnabled: e.target.checked }))} />}
+                                label="8時間越えで休憩"
+                              />
+                              {formData.breakAuto8hEnabled && (
+                                <TextField
+                                  fullWidth
+                                  type="number"
+                                  label="8時間超の休憩（分）"
+                                  value={formData.breakRules.over8h}
+                                  onChange={e => setFormData(prev => ({ ...prev, breakRules: { ...prev.breakRules, over8h: parseInt(e.target.value) || 0 } }))}
+                                  size="small"
+                                />
+                              )}
                             </Grid>
-                          </>
-                        )}
+                          </Grid>
+                        </Grid>
                       </Grid>
                     </Grid>
 
-
+                    {/* 収入シミュレーション（詳細設定の即時計算確認用） */}
+                    <Grid item xs={12}>
+                      <Divider sx={{ my: 2 }} />
+                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                        サンプルシフト収入シミュレーション（時給制）
+                      </Typography>
+                      <Grid container spacing={2} alignItems="center">
+                        <Grid item xs={12} sm={4}>
+                          <TextField
+                            fullWidth
+                            type="time"
+                            label="開始"
+                            value={preview.startTime}
+                            onChange={(e) => setPreview(prev => ({ ...prev, startTime: e.target.value }))}
+                            size="small"
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <TextField
+                            fullWidth
+                            type="time"
+                            label="終了"
+                            value={preview.endTime}
+                            onChange={(e) => setPreview(prev => ({ ...prev, endTime: e.target.value }))}
+                            size="small"
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <TextField
+                            fullWidth
+                            type="number"
+                            label="追加休憩（分）"
+                            value={preview.extraBreak}
+                            onChange={(e) => setPreview(prev => ({ ...prev, extraBreak: Math.max(0, parseInt(e.target.value) || 0) }))}
+                            size="small"
+                          />
+                        </Grid>
+                      </Grid>
+                      {(() => {
+                        const r = computePreviewEarnings();
+                        return (
+                          <Box sx={{ mt: 2, p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 2 }}>
+                            <Typography variant="body2" sx={{ mb: 0.5 }}>
+                              試算結果: <strong>¥{r.earnings.toLocaleString()}</strong>
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              総勤務 {(r.totalMinutes/60).toFixed(1)}h ／ 休憩 {r.breakMinutes}分 → 実働 {(r.actualMinutes/60).toFixed(1)}h
+                            </Typography>
+                          </Box>
+                        );
+                      })()}
+                    </Grid>
                   </Grid>
                 </AccordionDetails>
               </Accordion>
