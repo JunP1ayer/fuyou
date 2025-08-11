@@ -82,10 +82,14 @@ interface WorkplaceFormData {
     method: 'up' | 'down' | 'round';
   };
   breakRules: {
+    over4h: number; // 4時間超の休憩（分）
     over6h: number; // 6時間超の休憩（分）
     over8h: number; // 8時間超の休憩（分）
   };
   freeBreakDefault: number; // 自由休憩（分）
+  freeBreakMinHoursEnabled: boolean; // 自由休憩最小時間適用ON/OFF
+  freeBreakMinHours: number; // 自由休憩適用最小時間（時間）
+  breakAuto4hEnabled: boolean; // 4時間超の自動休憩ON/OFF
   breakAuto6hEnabled: boolean; // 6時間超の自動休憩ON/OFF
   breakAuto8hEnabled: boolean; // 8時間超の自動休憩ON/OFF
   
@@ -172,10 +176,14 @@ export const WorkplaceManager: React.FC = () => {
       method: 'round', // 四捨五入
     },
     breakRules: {
+      over4h: 15, // デフォルト15分
       over6h: 45, // デフォルト45分
       over8h: 60, // デフォルト60分
     },
     freeBreakDefault: '' as any,
+    freeBreakMinHoursEnabled: false,
+    freeBreakMinHours: 4,
+    breakAuto4hEnabled: true,
     breakAuto6hEnabled: true,
     breakAuto8hEnabled: true,
     transportationSettings: {
@@ -222,12 +230,26 @@ export const WorkplaceManager: React.FC = () => {
     const totalMinutes = Math.max(0, (end.getTime() - start.getTime()) / 60000);
 
     // 休憩（自動）
-    let breakMinutes = Math.max(0, Number(formData.freeBreakDefault) || 0);
     const workHours = totalMinutes / 60;
+    
+    // 自由休憩（最小時間チェック付き）
+    let breakMinutes = 0;
+    if (formData.freeBreakDefault && Number(formData.freeBreakDefault) > 0) {
+      // 最小時間チェックが有効で、勤務時間が最小時間に満たない場合は適用しない
+      if (formData.freeBreakMinHoursEnabled && workHours < formData.freeBreakMinHours) {
+        breakMinutes = 0;
+      } else {
+        breakMinutes = Math.max(0, Number(formData.freeBreakDefault) || 0);
+      }
+    }
+    
+    // 自動休憩の適用（階層的に適用）
     if (formData.breakAuto8hEnabled && formData.breakRules.over8h && workHours > 8) {
       breakMinutes += formData.breakRules.over8h;
     } else if (formData.breakAuto6hEnabled && formData.breakRules.over6h && workHours > 6) {
       breakMinutes += formData.breakRules.over6h;
+    } else if (formData.breakAuto4hEnabled && formData.breakRules.over4h && workHours > 4) {
+      breakMinutes += formData.breakRules.over4h;
     }
 
     const actualMinutes = Math.max(0, totalMinutes - breakMinutes);
@@ -248,8 +270,12 @@ export const WorkplaceManager: React.FC = () => {
     formData.paymentType,
     formData.defaultHourlyRate,
     formData.freeBreakDefault,
+    formData.freeBreakMinHoursEnabled,
+    formData.freeBreakMinHours,
+    formData.breakAuto4hEnabled,
     formData.breakAuto6hEnabled,
     formData.breakAuto8hEnabled,
+    formData.breakRules?.over4h,
     formData.breakRules?.over6h,
     formData.breakRules?.over8h,
     preview.startTime,
@@ -279,10 +305,14 @@ export const WorkplaceManager: React.FC = () => {
         method: 'round',
       },
       breakRules: {
+        over4h: 15, // デフォルト15分
         over6h: 45, // デフォルト45分
         over8h: 60, // デフォルト60分
       },
       freeBreakDefault: '' as any,
+      freeBreakMinHoursEnabled: false,
+      freeBreakMinHours: 4,
+      breakAuto4hEnabled: true,
       breakAuto6hEnabled: true,
       breakAuto8hEnabled: true,
       transportationSettings: {
@@ -337,10 +367,14 @@ export const WorkplaceManager: React.FC = () => {
           method: 'round',
         },
         breakRules: (workplace as any).breakRules || {
+          over4h: 15,
           over6h: 45,
           over8h: 60,
         },
         freeBreakDefault: (workplace as any).freeBreakDefault || 0,
+        freeBreakMinHoursEnabled: (workplace as any).freeBreakMinHoursEnabled ?? false,
+        freeBreakMinHours: (workplace as any).freeBreakMinHours || 4,
+        breakAuto4hEnabled: (workplace as any).breakAuto4hEnabled ?? true,
         breakAuto6hEnabled: (workplace as any).breakAuto6hEnabled ?? true,
         breakAuto8hEnabled: (workplace as any).breakAuto8hEnabled ?? true,
         transportationSettings: (workplace as any).transportationSettings || {
@@ -395,6 +429,13 @@ export const WorkplaceManager: React.FC = () => {
       formData.paymentDay > 31
     ) {
       newErrors.paymentDay = '支給日を入力してください（1-31）';
+    }
+
+    if (
+      formData.breakAuto4hEnabled &&
+      (formData.breakRules.over4h === undefined || formData.breakRules.over4h === null || Number(formData.breakRules.over4h) < 0)
+    ) {
+      newErrors.over4h = '休憩時間を入力してください（0以上）';
     }
 
     if (
@@ -1174,18 +1215,50 @@ export const WorkplaceManager: React.FC = () => {
                         <TextField
                           fullWidth
                           type="number"
-                          label="自由休憩時間（毎回適用）"
+                          label="自由休憩時間"
                           value={formData.freeBreakDefault}
                           onChange={e => setFormData(prev => ({ ...prev, freeBreakDefault: e.target.value ? Math.max(0, parseInt(e.target.value)) : '' as any }))}
                           size="small"
                           placeholder="0"
-                          helperText="シフトに関係なく毎回引かれる休憩時間"
+                          helperText={formData.freeBreakMinHoursEnabled 
+                            ? `${formData.freeBreakMinHours}時間以上の勤務時のみ適用される休憩時間`
+                            : "シフトに関係なく毎回引かれる休憩時間"
+                          }
                           inputProps={{ min: 0, step: 5 }}
-                          sx={{ maxWidth: 300 }}
+                          sx={{ maxWidth: 300, mb: 2 }}
                           InputProps={{
                             endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
                           }}
                         />
+                        
+                        {/* 最小時間適用設定 */}
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={formData.freeBreakMinHoursEnabled}
+                              onChange={e => setFormData(prev => ({ ...prev, freeBreakMinHoursEnabled: e.target.checked }))}
+                              size="small"
+                            />
+                          }
+                          label="○時間以上で適用"
+                          sx={{ mb: 1 }}
+                        />
+                        
+                        {formData.freeBreakMinHoursEnabled && (
+                          <TextField
+                            type="number"
+                            label="最小適用時間"
+                            value={formData.freeBreakMinHours}
+                            onChange={e => setFormData(prev => ({ ...prev, freeBreakMinHours: e.target.value ? Math.max(0.5, parseFloat(e.target.value)) : 4 }))}
+                            size="small"
+                            inputProps={{ min: 0.5, step: 0.5, max: 12 }}
+                            sx={{ maxWidth: 200, ml: 2 }}
+                            InputProps={{
+                              endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>時間</span>,
+                            }}
+                            helperText="この時間以上の勤務でのみ自由休憩を適用"
+                          />
+                        )}
                       </Box>
 
                       {/* 労働時間に応じた自動休憩 */}
@@ -1193,8 +1266,46 @@ export const WorkplaceManager: React.FC = () => {
                         労働時間に応じた自動休憩
                       </Typography>
                       
-                      <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} md={4}>
+                          <Box sx={{ 
+                            p: 2, 
+                            border: '1px solid',
+                            borderColor: formData.breakAuto4hEnabled ? 'primary.main' : 'divider',
+                            borderRadius: 2,
+                            backgroundColor: formData.breakAuto4hEnabled ? 'primary.light' : 'transparent',
+                            transition: 'all 0.2s',
+                          }}>
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  checked={formData.breakAuto4hEnabled}
+                                  onChange={e => setFormData(prev => ({ ...prev, breakAuto4hEnabled: e.target.checked }))}
+                                  size="small"
+                                />
+                              }
+                              label="4時間超"
+                              sx={{ mb: 2 }}
+                            />
+                            <TextField
+                              fullWidth
+                              type="number"
+                              label="休憩時間"
+                              value={formData.breakRules.over4h}
+                              onChange={e => setFormData(prev => ({ ...prev, breakRules: { ...prev.breakRules, over4h: e.target.value ? parseInt(e.target.value) : 15 } }))}
+                              size="small"
+                              disabled={!formData.breakAuto4hEnabled}
+                              inputProps={{ min: 0, step: 5 }}
+                              error={!!errors.over4h}
+                              helperText={errors.over4h || "一般的: 15分"}
+                              InputProps={{
+                                endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
+                              }}
+                            />
+                          </Box>
+                        </Grid>
+                        
+                        <Grid item xs={12} md={4}>
                           <Box sx={{ 
                             p: 2, 
                             border: '1px solid',
@@ -1235,7 +1346,7 @@ export const WorkplaceManager: React.FC = () => {
                           </Box>
                         </Grid>
                         
-                        <Grid item xs={12} md={6}>
+                        <Grid item xs={12} md={4}>
                           <Box sx={{ 
                             p: 2, 
                             border: '1px solid',
@@ -1278,7 +1389,7 @@ export const WorkplaceManager: React.FC = () => {
                       </Grid>
                       
                       <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'info.main' }}>
-                        ※ 8時間超の休憩は6時間超の休憩を上書きします
+                        ※ 長時間の休憩設定は短時間の設定を上書きします（8h {'>'} 6h {'>'} 4h）
                       </Typography>
                     </Grid>
 
