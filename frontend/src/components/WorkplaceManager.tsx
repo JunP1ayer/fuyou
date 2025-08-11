@@ -1561,19 +1561,20 @@ export const WorkplaceManager: React.FC = () => {
                                       深夜残業: {overtimeNightHours.toFixed(1)}h × ¥{rate} × 1.50 = ¥{Math.floor(overtimeNightHours * rate * 1.5).toLocaleString()}
                                     </Typography>
                                   )}
-                                  <Typography variant="caption" sx={{ display: 'block', fontSize: '11px', fontWeight: 600, mt: 0.5 }}>
-                                    小計: ¥{previewResult.baseEarnings?.toLocaleString()}
-                                  </Typography>
                                 </Box>
                               );
                             })()}
                             
                             {previewResult.transportationFee > 0 && (
-                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '11px', mt: 0.5 }}>
                                 交通費: ¥{previewResult.transportationFee?.toLocaleString()}
                                 {formData.transportationSettings.unit === 'monthly' && ' (月額÷22日)'}
                               </Typography>
                             )}
+                            
+                            <Typography variant="caption" sx={{ display: 'block', fontSize: '11px', fontWeight: 600, mt: 0.5 }}>
+                              合計: ¥{previewResult.earnings?.toLocaleString()}
+                            </Typography>
                             
                             {/* 適用設定の表示 */}
                             <Box sx={{ mt: 0.5, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
