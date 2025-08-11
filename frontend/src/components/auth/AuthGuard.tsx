@@ -136,7 +136,9 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
         }}
       >
         <DialogContent sx={{ p: 0 }}>
-          <AuthForm />
+          <AuthForm onClose={() => {
+            // 認証後は自動的にユーザー状態が更新されるので特に何もしない
+          }} />
         </DialogContent>
       </Dialog>
     );

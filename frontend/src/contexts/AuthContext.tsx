@@ -28,7 +28,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const initializeAuth = async () => {
       try {
-        setLoading(true);
         const currentUser = await authService.getCurrentUser();
         
         if (isMounted) {
@@ -41,10 +40,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(null);
           setInitialized(true);
         }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
       }
     };
 
@@ -54,7 +49,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { data: { subscription } } = authService.onAuthStateChange((user) => {
       if (isMounted) {
         setUser(user);
-        setInitialized(true);
+        if (!initialized) {
+          setInitialized(true);
+        }
       }
     });
 
@@ -69,7 +66,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       const user = await authService.login(credentials);
-      setUser(user);
+      
+      // ステート更新は onAuthStateChange で自動的に処理される
       
       toast.success(`お帰りなさい、${user.name}さん！`, {
         duration: 3000,
@@ -92,7 +90,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       const user = await authService.signup(credentials);
-      setUser(user);
+      
+      // ステート更新は onAuthStateChange で自動的に処理される
       
       toast.success(`ようこそ、${user.name}さん！\nアカウントが作成されました。`, {
         duration: 4000,

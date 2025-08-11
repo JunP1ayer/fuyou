@@ -110,7 +110,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 
     try {
       await login(loginForm);
-      onClose?.();
+      // ログイン成功後、少し待ってからダイアログを閉じる
+      setTimeout(() => {
+        onClose?.();
+      }, 100);
     } catch (error) {
       const authError = error as AuthError;
       setError(authError.message);
@@ -124,7 +127,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 
     try {
       await signup(signupForm);
-      onClose?.();
+      // 新規登録成功後、少し待ってからダイアログを閉じる
+      setTimeout(() => {
+        onClose?.();
+      }, 100);
     } catch (error) {
       const authError = error as AuthError;
       setError(authError.message);

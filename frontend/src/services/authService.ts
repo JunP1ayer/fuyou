@@ -27,6 +27,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
+    flowType: 'pkce',
+    storage: localStorage,
   },
 });
 
@@ -297,11 +299,17 @@ export const authService = {
   // 認証状態の変更を監視
   onAuthStateChange: (callback: (user: User | null) => void) => {
     return supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
+      console.log('Auth state change:', event, session?.user?.id);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
         const user = await authService.getCurrentUser();
         callback(user);
-      } else {
+      } else if (event === 'SIGNED_OUT' || !session) {
         callback(null);
+      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+        // トークン更新時も現在のユーザー情報を保持
+        const user = await authService.getCurrentUser();
+        callback(user);
       }
     });
   },
