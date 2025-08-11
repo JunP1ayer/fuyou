@@ -25,6 +25,11 @@ import {
   Tabs,
   Tab,
   Divider,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import {
   Share,
@@ -37,6 +42,7 @@ import {
   CalendarToday,
   QrCode,
   PersonAdd,
+  ExpandMore,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useFriendStore } from '../store/friendStore';
@@ -68,6 +74,10 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  // 共有オプション（Googleの哲学: デフォルトは安全・最小選択）
+  const [sharePeriod, setSharePeriod] = useState<'week' | 'month' | 'nextMonth'>('month');
+  const [hideWorkplace, setHideWorkplace] = useState<boolean>(true); // プライバシーはデフォルトで守る
+
   // 色パレット
   const colorPalette = [
     '#4fc3f7', '#81c784', '#ffb74d', '#f06292',
@@ -75,29 +85,53 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
   ];
 
   // 自分のシフトデータをシェアコード化（デモ用）
-  const generateShareCode = () => {
+  const generateShareCode = (period: 'week' | 'month' | 'nextMonth' = sharePeriod, options?: { hideWorkplace?: boolean }) => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
     const dayAfter = new Date(today);
     dayAfter.setDate(today.getDate() + 2);
-    
-    const demoSchedule = {
-      days: {
-        [today.toISOString().split('T')[0]]: { 
-          shifts: [{ start: '09:00', end: '17:00', workplace: '自分のバイト先' }] 
-        },
-        [tomorrow.toISOString().split('T')[0]]: { 
-          shifts: [{ start: '18:00', end: '22:00', workplace: '自分のバイト先' }] 
-        },
-        [dayAfter.toISOString().split('T')[0]]: { 
-          shifts: [{ start: '14:00', end: '19:00', workplace: '別のバイト先' }] 
-        },
-      }
+
+    // デモデータ（最小・わかりやすい）
+    const baseDays: Record<string, { shifts: Array<{ start: string; end: string; workplace?: string }> }> = {
+      [today.toISOString().split('T')[0]]: { 
+        shifts: [{ start: '09:00', end: '17:00', workplace: '自分のバイト先' }]
+      },
+      [tomorrow.toISOString().split('T')[0]]: { 
+        shifts: [{ start: '18:00', end: '22:00', workplace: '自分のバイト先' }]
+      },
+      [dayAfter.toISOString().split('T')[0]]: { 
+        shifts: [{ start: '14:00', end: '19:00', workplace: '別のバイト先' }]
+      },
     };
+
+    const shouldHideWorkplace = options?.hideWorkplace ?? hideWorkplace;
+    const maskedDays: typeof baseDays = Object.fromEntries(
+      Object.entries(baseDays).map(([date, value]) => [
+        date,
+        {
+          shifts: value.shifts.map(s => ({
+            start: s.start,
+            end: s.end,
+            workplace: shouldHideWorkplace ? undefined : s.workplace,
+          })),
+        },
+      ])
+    );
+
+    const demoSchedule = {
+      meta: {
+        period,
+        hideWorkplace: shouldHideWorkplace,
+        generatedAt: new Date().toISOString(),
+      },
+      days: maskedDays,
+    };
+
     const encoded = btoa(JSON.stringify(demoSchedule));
     setShareCode(encoded);
     setShowShareDialog(true);
+    return encoded;
   };
 
   // シェアコードをクリップボードにコピー
@@ -212,8 +246,8 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
           onChange={(_, newValue) => setActiveTab(newValue)}
           variant="fullWidth"
         >
-          <Tab icon={<Share />} label="シェア" />
-          <Tab icon={<PersonAdd />} label="友達追加" />
+          <Tab icon={<Share />} label="シェア" data-testid="share-tab" />
+          <Tab icon={<PersonAdd />} label="友達追加" data-testid="add-friend-tab" />
           <Tab icon={<CalendarToday />} label="共有カレンダー" />
         </Tabs>
       </Card>
@@ -221,32 +255,111 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
       {/* シェアタブ */}
       {activeTab === 0 && (
         <Card>
-          <CardContent sx={{ textAlign: 'center', p: 4 }}>
-            <QrCode sx={{ fontSize: 64, color: 'warning.main', mb: 2 }} />
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-              自分のシフトを共有
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              シェアコードを生成して友達に送信
-            </Typography>
-            
-            <Button
-              variant="contained"
-              size="large"
-              onClick={generateShareCode}
-              sx={{
-                background: 'linear-gradient(135deg, #ffd54f 0%, #ffcc02 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #ffcc02 0%, #ffd54f 100%)',
-                },
-                px: 4,
-                py: 1.5,
-                fontSize: '1.1rem',
-                fontWeight: 600,
-              }}
-            >
-              シェアコードを生成
-            </Button>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ textAlign: 'center' }}>
+              <QrCode sx={{ fontSize: 56, color: 'warning.main', mb: 1 }} />
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                かんたん共有
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                今のコンテキストに合わせて、シフトだけを共有します
+              </Typography>
+            </Box>
+
+            {/* クイック共有（最小選択） */}
+            <Grid container spacing={1} sx={{ mb: 2 }}>
+              <Grid item xs={4}>
+                <Button
+                  variant={sharePeriod === 'week' ? 'contained' : 'outlined'}
+                  color={sharePeriod === 'week' ? 'primary' : 'inherit'}
+                  fullWidth
+                  onClick={() => setSharePeriod('week')}
+                >
+                  今週
+                </Button>
+              </Grid>
+              <Grid item xs={4}>
+                <Button
+                  variant={sharePeriod === 'month' ? 'contained' : 'outlined'}
+                  color={sharePeriod === 'month' ? 'primary' : 'inherit'}
+                  fullWidth
+                  onClick={() => setSharePeriod('month')}
+                >
+                  今月
+                </Button>
+              </Grid>
+              <Grid item xs={4}>
+                <Button
+                  variant={sharePeriod === 'nextMonth' ? 'contained' : 'outlined'}
+                  color={sharePeriod === 'nextMonth' ? 'primary' : 'inherit'}
+                  fullWidth
+                  onClick={() => setSharePeriod('nextMonth')}
+                >
+                  来月
+                </Button>
+              </Grid>
+            </Grid>
+
+            {/* メインCTA（ワンタップ） */}
+            <Box sx={{ textAlign: 'center', mb: 2 }}>
+              <Button
+                variant="contained"
+                size="large"
+                data-testid="generate-share-code-button"
+                onClick={async () => {
+                  const code = generateShareCode(sharePeriod, { hideWorkplace });
+                  try {
+                    await navigator.clipboard.writeText(code);
+                    setAlert({ type: 'success', message: 'シェアコードをコピーしました' });
+                  } catch {
+                    // 失敗してもダイアログからコピー可能
+                  }
+                }}
+                sx={{
+                  background: 'linear-gradient(135deg, #ffd54f 0%, #ffcc02 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #ffcc02 0%, #ffd54f 100%)',
+                  },
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '1.05rem',
+                  fontWeight: 700,
+                  width: '100%',
+                }}
+              >
+                {sharePeriod === 'week' && '今週のシフトを共有してコピー'}
+                {sharePeriod === 'month' && '今月のシフトを共有してコピー'}
+                {sharePeriod === 'nextMonth' && '来月のシフトを共有してコピー'}
+              </Button>
+              <Typography variant="caption" color="text.secondary">
+                職場名は相手に表示されません（変更可）
+              </Typography>
+            </Box>
+
+            {/* 高度な設定（プログレッシブディスクロージャ） */}
+            <Accordion sx={{ boxShadow: 'none', border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>高度な設定（任意）</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>内容</Typography>
+                    <Chip label="シフトのみ" color="primary" size="small" />
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      個人予定は共有しません
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>表示</Typography>
+                    <FormControlLabel
+                      control={<Switch checked={hideWorkplace} onChange={(_, v) => setHideWorkplace(v)} />}
+                      label="職場名を隠す"
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
           </CardContent>
         </Card>
       )}
@@ -266,6 +379,7 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
                   value={friendName}
                   onChange={e => setFriendName(e.target.value)}
                   placeholder="例: 田中太郎"
+                  inputProps={{ 'data-testid': 'friend-name' }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -302,6 +416,7 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
                   value={importCode}
                   onChange={e => setImportCode(e.target.value)}
                   placeholder="友達から受け取ったシェアコードを貼り付け"
+                  inputProps={{ 'data-testid': 'friend-share-code' }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -311,6 +426,7 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
                   onClick={handleAddFriend}
                   disabled={!friendName.trim() || !importCode.trim()}
                   sx={{ py: 1.5 }}
+                  data-testid="confirm-add-friend"
                 >
                   友達を追加
                 </Button>
@@ -466,6 +582,7 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
                 wordBreak: 'break-all',
                 fontSize: '0.8rem',
               }}
+              data-testid="my-share-code"
             >
               {shareCode}
             </Typography>

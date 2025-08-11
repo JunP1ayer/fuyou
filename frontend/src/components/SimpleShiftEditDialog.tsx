@@ -667,11 +667,11 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
                   </Grid>
 
                   {/* 手動休憩時間入力 */}
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} md={4}>
                     <TextField
                       label="追加休憩時間（分）"
                       type="number"
-                      fullWidth
+                      size="small"
                       value={editData.breakTime || ''}
                       onChange={e =>
                         handleFieldChange(
@@ -681,6 +681,7 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
                       }
                       helperText="手動で追加する休憩時間を分単位で入力"
                       inputProps={{ min: 0, max: 480 }}
+                      sx={{ maxWidth: 300 }}
                     />
                   </Grid>
                 </>
