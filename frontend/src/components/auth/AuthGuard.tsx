@@ -11,7 +11,9 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { AuthForm } from './AuthForm';
+import { LanguageSelector } from './LanguageSelector';
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -25,7 +27,10 @@ interface LoadingScreenProps {
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ 
   message = 'アプリを起動しています...' 
-}) => (
+}) => {
+  const { t } = useLanguage();
+  
+  return (
   <Backdrop
     open
     sx={{
@@ -56,7 +61,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
             letterSpacing: '-0.01em',
           }}
         >
-          扶養管理カレンダー
+          {t('app.name', '扶養管理カレンダー')}
         </Typography>
       </motion.div>
 
@@ -86,7 +91,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
       </motion.div>
     </Box>
   </Backdrop>
-);
+  );
+};
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({
   children,
@@ -94,15 +100,37 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   requireAuth = true,
 }) => {
   const { user, loading, initialized } = useAuth();
+  const { isLanguageSelected, setLanguage, t } = useLanguage();
 
   // 初期化中
   if (!initialized) {
-    return <LoadingScreen message="認証情報を確認しています..." />;
+    return <LoadingScreen message={t('loading.authenticating', '認証情報を確認しています...')} />;
   }
 
   // ローディング中
   if (loading) {
-    return <LoadingScreen message="処理中です..." />;
+    return <LoadingScreen message={t('loading.processing', '処理中です...')} />;
+  }
+
+  // 言語が選択されていない場合
+  if (!isLanguageSelected) {
+    return (
+      <Dialog
+        open
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            overflow: 'visible',
+          },
+        }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          <LanguageSelector onLanguageSelect={setLanguage} />
+        </DialogContent>
+      </Dialog>
+    );
   }
 
   // 認証が必要だが未認証の場合

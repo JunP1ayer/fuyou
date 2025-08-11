@@ -50,6 +50,7 @@ import { useCalendarStore } from '../../store/calendarStore';
 import { useSimpleShiftStore } from '../../store/simpleShiftStore';
 import type { CalendarEvent, EventType, NotificationTime, RepeatFrequency } from '../../types/calendar';
 import { DEFAULT_EVENT_CATEGORIES } from '../../types/calendar';
+import { useI18n } from '@/hooks/useI18n';
 
 interface EventDialogProps {
   onNavigateToWorkplaceManager?: () => void;
@@ -72,6 +73,7 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => {
 export const EventDialog: React.FC<EventDialogProps> = ({ 
   onNavigateToWorkplaceManager 
 }) => {
+  const { t } = useI18n();
   const { 
     isEventDialogOpen, 
     selectedDate, 
@@ -293,7 +295,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {editingEvent ? '予定を編集' : '新しい予定を追加'}
+            {editingEvent ? t('calendar.event.editTitle', '予定を編集') : t('calendar.event.newTitle', '新しい予定を追加')}
             {formData.date && (
               <Chip
                 label={format(new Date(formData.date), 'M月d日(E)', { locale: ja })}
@@ -324,7 +326,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
               }}
               sx={{ minWidth: 'auto', px: 2 }}
             >
-              クイック登録
+              {t('calendar.event.quickAdd', 'クイック登録')}
             </Button>
           )}
         </Box>
@@ -341,8 +343,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
           variant="fullWidth"
           sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
         >
-          <Tab label="シフト" icon={<Work />} iconPosition="start" />
-          <Tab label="個人" icon={<Person />} iconPosition="start" />
+          <Tab label={t('calendar.event.tab.shift', 'シフト')} icon={<Work />} iconPosition="start" />
+          <Tab label={t('calendar.event.tab.personal', '個人')} icon={<Person />} iconPosition="start" />
         </Tabs>
 
         {/* シフトタブ */}
@@ -352,10 +354,10 @@ export const EventDialog: React.FC<EventDialogProps> = ({
             <Box sx={{ p: 3, textAlign: 'center', border: '2px dashed', borderColor: 'divider', borderRadius: 2, mb: 2 }}>
               <Business sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
               <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                シフトを登録する方法
+                {t('calendar.event.howToRegisterShift', 'シフトを登録する方法')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                定期的にバイトをする場合は先にバイト先を登録しましょう
+                {t('calendar.event.registerWorkplaceHint', '定期的にバイトをする場合は先にバイト先を登録しましょう')}
               </Typography>
               
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -377,11 +379,11 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     }
                   }}
                 >
-                  バイト先を登録する
+                  {t('calendar.event.registerWorkplace', 'バイト先を登録する')}
                 </Button>
                 
                 <Typography variant="body2" color="text.secondary" sx={{ my: 1 }}>
-                  または
+                  {t('common.or', 'または')}
                 </Typography>
                 
                 <Button 
@@ -400,12 +402,12 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     }
                   }}
                 >
-                  単発バイトとして登録
+                  {t('calendar.event.registerOneTime', '単発バイトとして登録')}
                 </Button>
               </Box>
               
               <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-                単発バイト：一回限りのバイトやイベントスタッフなど
+                {t('calendar.event.oneTimeDesc', '単発バイト：一回限りのバイトやイベントスタッフなど')}
               </Typography>
             </Box>
           ) : null}
@@ -417,7 +419,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
               {workplaces.length > 0 && (
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    バイト先を選択
+                    {t('calendar.event.pickWorkplace', 'バイト先を選択')}
                   </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
                   {workplaces.map((workplace) => (
@@ -437,13 +439,13 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     />
                   ))}
                   <Chip
-                    label="単発バイト"
+                    label={t('calendar.event.oneTime', '単発バイト')}
                     clickable
                     color={isOneTime ? 'secondary' : 'default'}
                     variant={isOneTime ? 'filled' : 'outlined'}
                     onClick={() => {
                       setIsOneTime(true);
-                      setFormData(prev => ({ ...prev, title: '単発バイト', workplaceId: '', workplaceName: '' }));
+                      setFormData(prev => ({ ...prev, title: t('calendar.event.oneTime', '単発バイト'), workplaceId: '', workplaceName: '' }));
                     }}
                     sx={{ fontSize: '0.8rem' }}
                   />
@@ -456,14 +458,14 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 <Box sx={{ mb: 2 }}>
                   <TextField
                     fullWidth
-                    label="バイト先名"
+                    label={t('calendar.event.company', 'バイト先名')}
                     value={formData.oneTimeCompany}
                     onChange={(e) => setFormData(prev => ({ 
                       ...prev, 
                       oneTimeCompany: e.target.value,
                       title: e.target.value,
                     }))}
-                    placeholder="例: イベントスタッフ"
+                    placeholder={t('calendar.event.company.placeholder', '例: イベントスタッフ')}
                     sx={{ mb: 2 }}
                   />
                   <Grid container spacing={2}>
@@ -471,7 +473,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       <TextField
                         fullWidth
                         type="number"
-                        label="時給"
+                        label={t('calendar.event.hourlyRate', '時給')}
                         value={formData.oneTimeHourlyRate}
                         onChange={(e) => {
                           const value = Math.max(0, parseInt(e.target.value) || 0);
@@ -489,7 +491,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       <TextField
                         fullWidth
                         type="number"
-                        label="交通費"
+                        label={t('calendar.event.transportFee', '交通費')}
                         value={formData.oneTimeTransportFee}
                         onChange={(e) => {
                           const value = Math.max(0, parseInt(e.target.value) || 0);
@@ -509,9 +511,9 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
               {/* 色選択 */}
               <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  色を選択
-                </Typography>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                {t('calendar.event.pickColor', '色を選択')}
+              </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   {[
                     { key: 'yellow', label: 'イエロー', color: '#FFD54F' },
@@ -547,17 +549,17 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
               {/* 時間選択（簡潔版） */}
               <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  時間を選択
-                </Typography>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                {t('calendar.event.pickTime', '時間を選択')}
+              </Typography>
                 {/* クイック時間設定 */}
                 <Box sx={{ mb: 2 }}>
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {[
-                      { label: '朝シフト', start: '09:00', end: '13:00' },
-                      { label: '昼シフト', start: '13:00', end: '17:00' },
-                      { label: '夜シフト', start: '17:00', end: '21:00' },
-                      { label: 'フルタイム', start: '09:00', end: '17:00' }
+                      { label: t('calendar.event.quick.morning','朝シフト'), start: '09:00', end: '13:00' },
+                      { label: t('calendar.event.quick.noon','昼シフト'), start: '13:00', end: '17:00' },
+                      { label: t('calendar.event.quick.evening','夜シフト'), start: '17:00', end: '21:00' },
+                      { label: t('calendar.event.quick.full','フルタイム'), start: '09:00', end: '17:00' }
                     ].map((timeSet) => (
                       <Chip
                         key={timeSet.label}
@@ -582,7 +584,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     <TextField
                       fullWidth
                       type="time"
-                      label="開始時間"
+                      label={t('calendar.event.startTime', '開始時間')}
                       value={formData.startTime}
                       onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
                       InputLabelProps={{ shrink: true }}
@@ -592,12 +594,12 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     <TextField
                       fullWidth
                       type="time"
-                      label="終了時間"
+                      label={t('calendar.event.endTime', '終了時間')}
                       value={formData.endTime}
                       onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
                       InputLabelProps={{ shrink: true }}
                       error={formData.startTime && formData.endTime && formData.endTime <= formData.startTime}
-                      helperText={formData.startTime && formData.endTime && formData.endTime <= formData.startTime ? '終了時間は開始時間より後にしてください' : ''}
+                      helperText={formData.startTime && formData.endTime && formData.endTime <= formData.startTime ? t('calendar.event.timeError', '終了時間は開始時間より後にしてください') : ''}
                     />
                   </Grid>
                 </Grid>
@@ -607,7 +609,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
               {formData.startTime && formData.endTime && formData.endTime > formData.startTime && (formData.workplaceId || isOneTime) && (
                 <Box sx={{ p: 2, bgcolor: 'success.lighter', borderRadius: 1, textAlign: 'center', mb: 2 }}>
                   <Typography variant="h6" color="success.main" sx={{ fontWeight: 600 }}>
-                    予想収入: ¥{calculateEarnings().toLocaleString()}
+                    {t('calendar.event.estimatedIncome', '予想収入')}: ¥{calculateEarnings().toLocaleString()}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {(() => {
@@ -616,7 +618,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       const minutes = Math.max(0, (end.getTime() - start.getTime()) / 60000);
                       const breakMinutes = isOneTime ? formData.oneTimeBreakMinutes : 0;
                       const workMinutes = Math.max(0, minutes - breakMinutes);
-                      return `勤務時間: ${Math.floor(workMinutes / 60)}時間${Math.floor(workMinutes % 60)}分`;
+                      return `${t('calendar.event.workMinutes','勤務時間')}: ${Math.floor(workMinutes / 60)}${t('calendar.event.hours','時間')}${Math.floor(workMinutes % 60)}${t('calendar.event.minutes','分')}`;
                     })()}
                   </Typography>
                 </Box>
@@ -639,8 +641,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                         <Repeat sx={{ fontSize: 20, color: 'text.secondary' }} />
                       </ListItemIcon>
                       <ListItemText 
-                        primary="繰り返し" 
-                        secondary="定期シフトの場合に便利"
+                        primary={t('calendar.event.repeat', '繰り返し')} 
+                        secondary={t('calendar.event.repeatHint', '定期シフトの場合に便利')}
                         sx={{ '& .MuiTypography-root': { fontWeight: 500 } }}
                       />
                       <FormControl sx={{ minWidth: 120 }}>
@@ -657,9 +659,9 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                             }
                           }}
                         >
-                          <MenuItem value="none">なし</MenuItem>
-                          <MenuItem value="weekly">毎週</MenuItem>
-                          <MenuItem value="monthly">毎月</MenuItem>
+                          <MenuItem value="none">{t('common.none', 'なし')}</MenuItem>
+                          <MenuItem value="weekly">{t('calendar.event.weekly', '毎週')}</MenuItem>
+                          <MenuItem value="monthly">{t('calendar.event.monthly', '毎月')}</MenuItem>
                         </Select>
                       </FormControl>
                       <ChevronRight sx={{ fontSize: 16, color: 'text.disabled', ml: 1 }} />

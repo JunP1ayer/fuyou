@@ -25,6 +25,7 @@ import { SimpleCalendarView } from './components/SimpleCalendarView';
 import { ToastProvider } from './components/Toast/ToastProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthGuard, ProtectedRoute } from './components/auth/AuthGuard';
 import { SafeCalendarView } from './components/SafeCalendarView';
 import { ShiftboardTabs, type TabValue } from './components/ShiftboardTabs';
@@ -150,8 +151,9 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <ThemeProvider theme={theme}>
-        <AuthProvider>
-          <ToastProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <ToastProvider>
             <CssBaseline />
 
             <Container
@@ -193,8 +195,9 @@ const App: React.FC = () => {
               </Box>
             </Container>
 
-          </ToastProvider>
-        </AuthProvider>
+            </ToastProvider>
+          </AuthProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

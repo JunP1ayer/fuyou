@@ -33,6 +33,7 @@ import {
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import type { LoginCredentials, SignupCredentials, AuthError } from '../../types/auth';
 
 interface AuthFormProps {
@@ -72,6 +73,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 }) => {
   const theme = useTheme();
   const { login, signup, resetPassword, loading } = useAuth();
+  const { t } = useLanguage();
   
   const [currentTab, setCurrentTab] = useState<'login' | 'signup'>(defaultTab);
   const [showPassword, setShowPassword] = useState(false);
@@ -182,7 +184,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
               letterSpacing: '-0.01em',
             }}
           >
-            扶養管理カレンダー
+{t('app.name', '扶養管理カレンダー')}
           </Typography>
         </Box>
 
@@ -214,7 +216,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                   fontSize: '0.9rem',
                 }}
               >
-                ログイン
+{t('auth.login', 'ログイン')}
               </Box>
               <Box
                 onClick={() => handleTabChange(null, 'signup')}
@@ -232,7 +234,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                   fontSize: '0.9rem',
                 }}
               >
-                新規登録
+{t('auth.signup', '新規登録')}
               </Box>
             </Box>
           </Box>
