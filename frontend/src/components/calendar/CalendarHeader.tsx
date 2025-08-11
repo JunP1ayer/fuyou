@@ -2,18 +2,21 @@
 
 import React from 'react';
 import { Box, IconButton, Typography } from '@mui/material';
-import { ChevronLeft, ChevronRight, Add } from '@mui/icons-material';
+import { ChevronLeft, ChevronRight, Settings } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { useCalendarStore } from '../../store/calendarStore';
 
-export const CalendarHeader: React.FC = () => {
-  const { currentMonth, navigateMonth, openEventDialog } = useCalendarStore();
+interface CalendarHeaderProps {
+  onSettingsClick?: () => void;
+}
+
+export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick }) => {
+  const { currentMonth, navigateMonth } = useCalendarStore();
   
-  // プラスボタンクリック時の処理（今日の日付で新規予定作成）
-  const handleAddClick = () => {
-    const today = new Date().toISOString().split('T')[0];
-    openEventDialog(today);
+  // 設定ボタンクリック時の処理
+  const handleSettingsClick = () => {
+    onSettingsClick?.();
   };
 
   return (
@@ -56,20 +59,21 @@ export const CalendarHeader: React.FC = () => {
         {format(currentMonth, 'yyyy年M月', { locale: ja })}
       </Typography>
 
-      {/* 右側：プラスボタンと次月ボタン */}
+      {/* 右側：設定ボタンと次月ボタン */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
         <IconButton 
-          onClick={handleAddClick}
+          onClick={handleSettingsClick}
           sx={{ 
-            color: 'primary.main',
+            color: 'text.secondary',
             p: 0.5,
             '& .MuiSvgIcon-root': { fontSize: 20 },
             '&:hover': {
-              backgroundColor: 'primary.lighter',
+              backgroundColor: 'action.hover',
+              color: 'primary.main',
             }
           }}
         >
-          <Add />
+          <Settings />
         </IconButton>
         <IconButton 
           onClick={() => navigateMonth('next')}

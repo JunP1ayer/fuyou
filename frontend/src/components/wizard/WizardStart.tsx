@@ -1,9 +1,11 @@
 import React from 'react';
 import { Box, Card, CardContent, Typography, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useI18n } from '@/hooks/useI18n';
 
 export const WizardStart: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useI18n();
   return (
     <Box
       sx={{
@@ -21,7 +23,7 @@ export const WizardStart: React.FC = () => {
             sx={{ fontWeight: 700, mb: 1 }}
             align="center"
           >
-            税金・保険料のチェック
+            {t('wizard.start.title', '税金・保険料のチェック')}
           </Typography>
           <Typography
             variant="body2"
@@ -29,18 +31,18 @@ export const WizardStart: React.FC = () => {
             sx={{ mb: 3 }}
             align="center"
           >
-            いくつかの質問に答えるだけで、123万/130万/106万の壁の目安を確認できます。
+            {t('wizard.start.subtitle', 'いくつかの質問に答えるだけで、123万/130万/106万の壁の目安を確認できます。')}
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
             <Button variant="outlined" onClick={() => navigate('/submit')}>
-              先にシフト表を提出する
+              {t('wizard.start.goSubmit', '先にシフト表を提出する')}
             </Button>
             <Button
               variant="contained"
               onClick={() => navigate('/wizard/steps')}
               size="large"
             >
-              チェックを開始
+              {t('wizard.start.begin', 'チェックを開始')}
             </Button>
           </Box>
         </CardContent>

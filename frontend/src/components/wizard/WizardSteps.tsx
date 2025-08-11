@@ -17,9 +17,11 @@ import { useNavigate } from 'react-router-dom';
 import { evaluateRules, type WizardAnswers } from '../../lib/fuyou/rules';
 import { useSimpleShiftStore } from '../../store/simpleShiftStore';
 import { formatCurrency } from '../../utils/calculations';
+import { useI18n } from '@/hooks/useI18n';
 
 export const WizardSteps: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [answers, setAnswers] = useState<WizardAnswers>({
     officeSize51: 'unknown',
   });
@@ -66,11 +68,10 @@ export const WizardSteps: React.FC = () => {
       <Card sx={{ width: '100%', maxWidth: 560 }}>
         <CardContent sx={{ textAlign: 'center', py: 4 }}>
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-            かんたんチェック（収入がわからない方向け）
+            {t('wizard.steps.title', 'かんたんチェック（収入がわからない方向け）')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            週ごとのバラつきがあってもOK。直近のシフトから自動推定、または「週の勤務日数
-            × 1日の平均時間」でざっくり入力できます。
+            {t('wizard.steps.subtitle', '週ごとのバラつきがあってもOK。直近のシフトから自動推定、または「週の勤務日数 × 1日の平均時間」でざっくり入力できます。')}
           </Typography>
 
           <Box
@@ -89,7 +90,7 @@ export const WizardSteps: React.FC = () => {
                   onChange={(_, v) => setUseAuto(v)}
                 />
               }
-              label={`直近のシフトから自動見積もり（約${weeklyAuto.toFixed(1)}時間/週）`}
+              label={t('wizard.steps.autoEstimate', '直近のシフトから自動見積もり')} + `（約${weeklyAuto.toFixed(1)}${t('wizard.steps.hoursPerWeek','時間/週')}）`
             />
             {!useAuto && (
               <Box
@@ -101,31 +102,31 @@ export const WizardSteps: React.FC = () => {
                 }}
               >
                 <FormControl size="small" sx={{ minWidth: 180 }}>
-                  <InputLabel id="wd">週の勤務日数</InputLabel>
+                  <InputLabel id="wd">{t('wizard.steps.weekDays', '週の勤務日数')}</InputLabel>
                   <Select
                     labelId="wd"
-                    label="週の勤務日数"
+                    label={t('wizard.steps.weekDays', '週の勤務日数')}
                     value={weekDays}
                     onChange={e => setWeekDays(Number(e.target.value))}
                   >
                     {[0, 1, 2, 3, 4, 5, 6].map(n => (
                       <MenuItem key={n} value={n}>
-                        {n} 日/週
+                        {n} {t('wizard.steps.daysPerWeek', '日/週')}
                       </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
                 <FormControl size="small" sx={{ minWidth: 180 }}>
-                  <InputLabel id="hd">1日の平均時間</InputLabel>
+                  <InputLabel id="hd">{t('wizard.steps.avgHours', '1日の平均時間')}</InputLabel>
                   <Select
                     labelId="hd"
-                    label="1日の平均時間"
+                    label={t('wizard.steps.avgHours', '1日の平均時間')}
                     value={avgHoursPerDay}
                     onChange={e => setAvgHoursPerDay(Number(e.target.value))}
                   >
                     {[3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                       <MenuItem key={n} value={n}>
-                        {n} 時間/日
+                        {n} {t('wizard.steps.hoursPerDay', '時間/日')}
                       </MenuItem>
                     ))}
                   </Select>
@@ -135,7 +136,7 @@ export const WizardSteps: React.FC = () => {
             <TextField
               type="number"
               inputMode="numeric"
-              label="平均時給 (円)"
+              label={t('wizard.steps.avgRate', '平均時給 (円)')}
               value={hourlyRate}
               onChange={e => setHourlyRate(e.target.value)}
               sx={{ maxWidth: 280 }}
@@ -147,11 +148,11 @@ export const WizardSteps: React.FC = () => {
             color="text.secondary"
             sx={{ display: 'block', mb: 1 }}
           >
-            今年の登録済み見込み: {formatCurrency(ytd)} / 残り
-            {remainingMonths}か月を入力ペースで見積り
+            {t('wizard.steps.ytd', '今年の登録済み見込み')}: {formatCurrency(ytd)} / {t('wizard.steps.remainingMonths', '残り')}
+            {remainingMonths}{t('wizard.steps.months', 'か月を入力ペースで見積り')}
           </Typography>
           <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
-            今年の見込み収入（自動計算）: {Number.isFinite(projected) ? formatCurrency(projected) : '—'}
+            {t('wizard.steps.projected', '今年の見込み収入（自動計算）')}: {Number.isFinite(projected) ? formatCurrency(projected) : '—'}
           </Typography>
 
           <Button
@@ -177,7 +178,7 @@ export const WizardSteps: React.FC = () => {
               });
             }}
           >
-            結果を見る
+            {t('wizard.steps.seeResult', '結果を見る')}
           </Button>
         </CardContent>
       </Card>

@@ -25,8 +25,8 @@ interface ShiftboardTabsProps {
 const tabConfig = [
   { value: 'shift' as TabValue, label: 'シフト', icon: CalendarMonth },
   { value: 'salary' as TabValue, label: '給料管理', icon: AttachMoney },
-  { value: 'other' as TabValue, label: '友達のシフト共有', icon: Share },
   { value: 'submit' as TabValue, label: 'バイト管理', icon: Business },
+  { value: 'other' as TabValue, label: '友達のシフト共有', icon: Share },
 ];
 
 export const ShiftboardTabs: React.FC<ShiftboardTabsProps> = ({

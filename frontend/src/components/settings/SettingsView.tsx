@@ -29,6 +29,7 @@ import {
   LightMode,
   Palette,
   Notifications,
+  NotificationsOff,
   Security,
   Storage,
   Info,
@@ -38,6 +39,12 @@ import {
   School,
   ViewModule,
   ViewAgenda,
+  VolumeUp,
+  VolumeOff,
+  Vibration,
+  CloudSync,
+  Backup,
+  AutoAwesome,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -70,6 +77,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     return saved || 'vertical';
   });
 
+  // 通知設定
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    const saved = localStorage.getItem('notificationsEnabled');
+    return saved ? JSON.parse(saved) : true;
+  });
+
+  // サウンド設定
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('soundEnabled');
+    return saved ? JSON.parse(saved) : true;
+  });
+
+  // バイブレーション設定
+  const [vibrationEnabled, setVibrationEnabled] = useState(() => {
+    const saved = localStorage.getItem('vibrationEnabled');
+    return saved ? JSON.parse(saved) : true;
+  });
+
+  // 自動同期設定
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState(() => {
+    const saved = localStorage.getItem('autoSyncEnabled');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  // AIアシスタント設定
+  const [aiAssistantEnabled, setAiAssistantEnabled] = useState(() => {
+    const saved = localStorage.getItem('aiAssistantEnabled');
+    return saved ? JSON.parse(saved) : true;
+  });
+
   // カレンダー表示モード変更
   const handleCalendarViewModeChange = () => {
     const newMode = calendarViewMode === 'vertical' ? 'horizontal' : 'vertical';
@@ -83,6 +120,46 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         newMode === 'vertical' ? '縦スクロールに変更しました' : '横表示に変更しました'
       )
     );
+  };
+
+  // 通知設定の切り替え
+  const handleNotificationToggle = () => {
+    const newValue = !notificationsEnabled;
+    setNotificationsEnabled(newValue);
+    localStorage.setItem('notificationsEnabled', JSON.stringify(newValue));
+    toast.success(newValue ? '通知を有効にしました' : '通知を無効にしました');
+  };
+
+  // サウンド設定の切り替え
+  const handleSoundToggle = () => {
+    const newValue = !soundEnabled;
+    setSoundEnabled(newValue);
+    localStorage.setItem('soundEnabled', JSON.stringify(newValue));
+    toast.success(newValue ? 'サウンドを有効にしました' : 'サウンドを無効にしました');
+  };
+
+  // バイブレーション設定の切り替え
+  const handleVibrationToggle = () => {
+    const newValue = !vibrationEnabled;
+    setVibrationEnabled(newValue);
+    localStorage.setItem('vibrationEnabled', JSON.stringify(newValue));
+    toast.success(newValue ? 'バイブレーションを有効にしました' : 'バイブレーションを無効にしました');
+  };
+
+  // 自動同期設定の切り替え
+  const handleAutoSyncToggle = () => {
+    const newValue = !autoSyncEnabled;
+    setAutoSyncEnabled(newValue);
+    localStorage.setItem('autoSyncEnabled', JSON.stringify(newValue));
+    toast.success(newValue ? '自動同期を有効にしました' : '自動同期を無効にしました');
+  };
+
+  // AIアシスタント設定の切り替え
+  const handleAiAssistantToggle = () => {
+    const newValue = !aiAssistantEnabled;
+    setAiAssistantEnabled(newValue);
+    localStorage.setItem('aiAssistantEnabled', JSON.stringify(newValue));
+    toast.success(newValue ? 'AIアシスタントを有効にしました' : 'AIアシスタントを無効にしました');
   };
 
   // データ削除
@@ -244,11 +321,120 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </Card>
       </motion.div>
 
-      {/* データ管理 */}
+      {/* 通知とシステム設定 */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
+      >
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+              {t('settings.notifications.title', '🔔 通知とシステム')}
+            </Typography>
+
+            <List disablePadding>
+              <ListItem>
+                <ListItemIcon>
+                  {notificationsEnabled ? <Notifications /> : <NotificationsOff />}
+                </ListItemIcon>
+                <ListItemText
+                  primary={t('settings.notifications.enable', 'プッシュ通知')}
+                  secondary={t('settings.notifications.enable.desc', 'シフトやリマインダーの通知を受け取る')}
+                />
+                <ListItemSecondaryAction>
+                  <Switch
+                    edge="end"
+                    checked={notificationsEnabled}
+                    onChange={handleNotificationToggle}
+                    color="primary"
+                  />
+                </ListItemSecondaryAction>
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon>
+                  {soundEnabled ? <VolumeUp /> : <VolumeOff />}
+                </ListItemIcon>
+                <ListItemText
+                  primary={t('settings.sound.enable', '通知音')}
+                  secondary={t('settings.sound.enable.desc', '通知時にサウンドを再生する')}
+                />
+                <ListItemSecondaryAction>
+                  <Switch
+                    edge="end"
+                    checked={soundEnabled}
+                    onChange={handleSoundToggle}
+                    color="primary"
+                  />
+                </ListItemSecondaryAction>
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon>
+                  <Vibration />
+                </ListItemIcon>
+                <ListItemText
+                  primary={t('settings.vibration.enable', 'バイブレーション')}
+                  secondary={t('settings.vibration.enable.desc', '通知時にデバイスを振動させる')}
+                />
+                <ListItemSecondaryAction>
+                  <Switch
+                    edge="end"
+                    checked={vibrationEnabled}
+                    onChange={handleVibrationToggle}
+                    color="primary"
+                  />
+                </ListItemSecondaryAction>
+              </ListItem>
+
+              <Divider sx={{ my: 1 }} />
+
+              <ListItem>
+                <ListItemIcon>
+                  <CloudSync />
+                </ListItemIcon>
+                <ListItemText
+                  primary={t('settings.autoSync.enable', '自動同期')}
+                  secondary={t('settings.autoSync.enable.desc', 'データを自動的にクラウドに同期する')}
+                />
+                <ListItemSecondaryAction>
+                  <Switch
+                    edge="end"
+                    checked={autoSyncEnabled}
+                    onChange={handleAutoSyncToggle}
+                    color="primary"
+                  />
+                </ListItemSecondaryAction>
+              </ListItem>
+
+              <ListItem>
+                <ListItemIcon>
+                  <AutoAwesome />
+                </ListItemIcon>
+                <ListItemText
+                  primary={t('settings.ai.enable', 'AIアシスタント')}
+                  secondary={t('settings.ai.enable.desc', 'AI機能による自動提案と分析を有効にする')}
+                />
+                <ListItemSecondaryAction>
+                  <Switch
+                    edge="end"
+                    checked={aiAssistantEnabled}
+                    onChange={handleAiAssistantToggle}
+                    color="primary"
+                  />
+                </ListItemSecondaryAction>
+              </ListItem>
+            </List>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* データ管理 */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
       >
         <Card sx={{ mb: 3 }}>
           <CardContent>
@@ -308,7 +494,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+        transition={{ delay: 0.4 }}
       >
         <Card>
           <CardContent>

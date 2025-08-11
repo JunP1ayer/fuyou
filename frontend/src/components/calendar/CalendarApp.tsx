@@ -1,16 +1,19 @@
 // メインカレンダーアプリコンポーネント
 
 import React, { useState, useEffect } from 'react';
-import { Box, Card } from '@mui/material';
+import { Box, Card, Slide, IconButton, useTheme } from '@mui/material';
+import { Close } from '@mui/icons-material';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
 import { EventDialog } from './EventDialog';
 import { DayEventsView } from './DayEventsView';
 import { QuickActionMenu } from './QuickActionMenu';
 import { NewBottomNavigation, type NewTabValue } from './NewBottomNavigation';
+import { SettingsView } from '../settings/SettingsView';
 import { useCalendarStore } from '../../store/calendarStore';
 import { useSimpleShiftStore } from '../../store/simpleShiftStore';
 import type { CalendarEvent } from '../../types/calendar';
+import type { ThemeMode } from '../../types';
 
 interface CalendarAppProps {
   onNavigateToWorkplaceManager?: () => void;
@@ -19,6 +22,7 @@ interface CalendarAppProps {
 export const CalendarApp: React.FC<CalendarAppProps> = ({ 
   onNavigateToWorkplaceManager 
 }) => {
+  const theme = useTheme();
   const { importFromShifts, openEventDialog, openEditDialog } = useCalendarStore();
   const { shifts } = useSimpleShiftStore();
   
@@ -26,6 +30,11 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   const [dayEventsOpen, setDayEventsOpen] = useState(false);
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem('themeMode') as ThemeMode;
+    return saved || 'light';
+  });
 
   // 初回起動時に既存のシフトデータをインポート
   useEffect(() => {
@@ -89,6 +98,18 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
     setDayEventsOpen(true);
   };
 
+  // 設定画面の表示/非表示
+  const handleSettingsToggle = () => {
+    setSettingsOpen(!settingsOpen);
+  };
+
+  // テーマ切り替え
+  const handleThemeToggle = () => {
+    const newTheme = themeMode === 'light' ? 'dark' : 'light';
+    setThemeMode(newTheme);
+    localStorage.setItem('themeMode', newTheme);
+  };
+
   return (
     <Box sx={{ 
       height: '100%', // 親コンテナのサイズをそのまま使用
@@ -113,7 +134,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
         }}>
           {/* ヘッダー（超コンパクト：32px高さ） */}
           <Box sx={{ flexShrink: 0 }}>
-            <CalendarHeader />
+            <CalendarHeader onSettingsClick={handleSettingsToggle} />
           </Box>
           
           {/* カレンダーグリッド（フレックス対応） */}
@@ -150,6 +171,55 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
 
       {/* イベント入力ダイアログ */}
       <EventDialog onNavigateToWorkplaceManager={onNavigateToWorkplaceManager} />
+
+      {/* 設定画面（右からスライドイン） */}
+      <Slide direction="left" in={settingsOpen} mountOnEnter unmountOnExit>
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            right: 0,
+            width: { xs: '100%', md: '400px' },
+            height: '100vh',
+            backgroundColor: 'background.paper',
+            boxShadow: theme.shadows[16],
+            zIndex: 1300,
+            overflow: 'auto',
+          }}
+        >
+          {/* 設定画面ヘッダー（閉じるボタン） */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 2,
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <IconButton
+              onClick={handleSettingsToggle}
+              sx={{
+                color: 'text.secondary',
+                '&:hover': {
+                  backgroundColor: 'action.hover',
+                },
+              }}
+            >
+              <Close />
+            </IconButton>
+          </Box>
+
+          {/* 設定画面内容 */}
+          <Box sx={{ pb: 2 }}>
+            <SettingsView
+              themeMode={themeMode}
+              onThemeToggle={handleThemeToggle}
+            />
+          </Box>
+        </Box>
+      </Slide>
 
     </Box>
   );

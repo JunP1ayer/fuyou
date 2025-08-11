@@ -7,6 +7,7 @@ import { useSimpleShiftStore } from '../../store/simpleShiftStore';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import useI18nStore from '../../store/i18nStore';
+import { useI18n } from '@/hooks/useI18n';
 import { BankingDashboard } from '../banking/BankingDashboard';
 
 export const MobileSalaryView: React.FC = () => {
@@ -15,6 +16,7 @@ export const MobileSalaryView: React.FC = () => {
   // const navigate = useNavigate();
   const { shifts } = useSimpleShiftStore();
   const { language, country } = useI18nStore();
+  const { t } = useI18n();
   const currency = ((): string => {
     switch (country) {
       case 'UK': return 'GBP';
@@ -348,8 +350,8 @@ export const MobileSalaryView: React.FC = () => {
         centered={!isMobile}
         sx={{ mb: 1, minHeight: 36, '& .MuiTab-root': { minHeight: 36 } }}
       >
-        <Tab value="month" label="月" sx={{ fontSize: { xs: 12, sm: 14 } }} />
-        <Tab value="year" label="年" sx={{ fontSize: { xs: 12, sm: 14 } }} />
+        <Tab value="month" label={t('salary.tab.month', '月')} sx={{ fontSize: { xs: 12, sm: 14 } }} />
+        <Tab value="year" label={t('salary.tab.year', '年')} sx={{ fontSize: { xs: 12, sm: 14 } }} />
       </Tabs>
 
       {/* ヘッダー タイトル（タブ別） */}
@@ -364,7 +366,7 @@ export const MobileSalaryView: React.FC = () => {
           }}
         >
           <IconButton
-            aria-label="前月"
+            aria-label={t('salary.nav.prevMonth', '前月')}
             onClick={() => setMonthOffset(o => o - 1)}
             size="small"
           >
@@ -374,7 +376,7 @@ export const MobileSalaryView: React.FC = () => {
             {shownDate.getFullYear()}年{shownDate.getMonth() + 1}月
           </Typography>
           <IconButton
-            aria-label="翌月"
+            aria-label={t('salary.nav.nextMonth', '翌月')}
             onClick={() => setMonthOffset(o => o + 1)}
             size="small"
           >
@@ -393,7 +395,7 @@ export const MobileSalaryView: React.FC = () => {
           }}
         >
           <IconButton
-            aria-label="前年"
+            aria-label={t('salary.nav.prevYear', '前年')}
             onClick={() => setMonthOffset(o => o - 12)}
             size="small"
             sx={{ position: 'absolute', left: 0 }}
@@ -404,7 +406,7 @@ export const MobileSalaryView: React.FC = () => {
             {shownDate.getFullYear()}年
           </Typography>
           <IconButton
-            aria-label="翌年"
+            aria-label={t('salary.nav.nextYear', '翌年')}
             onClick={() => setMonthOffset(o => o + 12)}
             size="small"
             sx={{ position: 'absolute', right: 0 }}
@@ -429,7 +431,7 @@ export const MobileSalaryView: React.FC = () => {
           onClick={() => setDependencySetupOpen(true)}
           sx={{ borderRadius: 999 }}
         >
-          扶養: {dependencyLimit.type}
+          {t('salary.dependency', '扶養')}: {dependencyLimit.type}
         </Button>
       </Box>
 
@@ -460,7 +462,7 @@ export const MobileSalaryView: React.FC = () => {
               {/* メイン情報 */}
               <Box sx={{ p: 3, textAlign: 'center' }}>
                 <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 1 }}>
-                  今月の収入状況
+                  {t('salary.monthly.status', '今月の収入状況')}
                 </Typography>
                 
                 {/* 円形進捗表示 */}
@@ -552,7 +554,7 @@ export const MobileSalaryView: React.FC = () => {
                 }}>
                   <Box sx={{ textAlign: 'left' }}>
                     <Typography variant="caption" color="text.secondary">
-                      今月の収入
+                      {t('salary.monthly.income', '今月の収入')}
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       {formatMoney(monthEstJPY)}
@@ -563,7 +565,7 @@ export const MobileSalaryView: React.FC = () => {
                   </Typography>
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="caption" color="text.secondary">
-                      限度額
+                      {t('salary.limit', '限度額')}
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       {formatMoney(displayInfo.monthlyDependencyLimit)}
@@ -572,7 +574,7 @@ export const MobileSalaryView: React.FC = () => {
                 </Box>
                 
                 <Typography variant="body2" color="text.secondary">
-                  勤務時間: {hours}h{mins}m
+                  {t('salary.workHours', '勤務時間')}: {hours}h{mins}m
                 </Typography>
               </Box>
             </>
@@ -599,7 +601,7 @@ export const MobileSalaryView: React.FC = () => {
               {/* 年間メイン情報 */}
               <Box sx={{ p: 3, textAlign: 'center' }}>
                 <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 1 }}>
-                  年間収入状況
+                  {t('salary.yearly.status', '年間収入状況')}
                 </Typography>
                 
                 {/* 年間円形進捗表示 */}
@@ -691,7 +693,7 @@ export const MobileSalaryView: React.FC = () => {
                 }}>
                   <Box sx={{ textAlign: 'left' }}>
                     <Typography variant="caption" color="text.secondary">
-                      年間収入
+                      {t('salary.yearly.income', '年間収入')}
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       {formatMoney(yearEarningsJPY)}
@@ -702,7 +704,7 @@ export const MobileSalaryView: React.FC = () => {
                   </Typography>
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="caption" color="text.secondary">
-                      扶養限度額
+                      {t('salary.dependency.limit', '扶養限度額')}
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       {formatMoney(dependencyLimit.limit)}
@@ -711,7 +713,7 @@ export const MobileSalaryView: React.FC = () => {
                 </Box>
                 
                 <Typography variant="body2" color="text.secondary">
-                  勤務時間: {Math.floor(yearHoursMin / 60)}h{Math.floor(yearHoursMin % 60)}m
+                  {t('salary.workHours', '勤務時間')}: {Math.floor(yearHoursMin / 60)}h{Math.floor(yearHoursMin % 60)}m
                 </Typography>
               </Box>
             </>
@@ -729,7 +731,7 @@ export const MobileSalaryView: React.FC = () => {
         sx={{ mb: 2 }}
         onClick={() => setDependencyRecheckOpen(true)}
       >
-        扶養設定を変更
+        {t('salary.changeDependency', '扶養設定を変更')}
       </Button>
 
       {/* 銀行連携UI */}
@@ -738,12 +740,12 @@ export const MobileSalaryView: React.FC = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'center' }}>
             <AccountBalance sx={{ mr: 1, color: 'primary.main' }} />
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              銀行連携
+              {t('bank.link.title', '銀行連携')}
             </Typography>
           </Box>
           
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
-            銀行口座と連携して、自動で収入データを取得・分析できます
+            {t('bank.link.desc', '銀行口座と連携して、自動で収入データを取得・分析できます')}
           </Typography>
           
           <Box sx={{ display: 'flex', gap: 2 }}>
@@ -756,14 +758,14 @@ export const MobileSalaryView: React.FC = () => {
                 '&:hover': { backgroundColor: 'primary.dark' }
               }}
             >
-              銀行連携を開始
+              {t('bank.link.start', '銀行連携を開始')}
             </Button>
             <Button 
               variant="outlined"
               onClick={() => setBankingDashboardOpen(true)}
               sx={{ minWidth: 120 }}
             >
-              詳細を見る
+              {t('common.details', '詳細を見る')}
             </Button>
           </Box>
         </CardContent>
@@ -779,10 +781,10 @@ export const MobileSalaryView: React.FC = () => {
       >
         <DialogTitle>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            扶養状況の確認
+            {t('salary.dependency.check', '扶養状況の確認')}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            あなたに最適な扶養限度額を設定します
+            {t('salary.dependency.check.desc', 'あなたに最適な扶養限度額を設定します')}
           </Typography>
         </DialogTitle>
         <DialogContent>
@@ -797,7 +799,7 @@ export const MobileSalaryView: React.FC = () => {
           {currentStep === 0 && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
-                あなたは学生ですか？
+                {t('wizard.q.isStudent', 'あなたは学生ですか？')}
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
                 <Button
@@ -808,7 +810,7 @@ export const MobileSalaryView: React.FC = () => {
                   }}
                   sx={{ flex: 1, py: 2 }}
                 >
-                  はい、学生です
+                  {t('common.yesStudent', 'はい、学生です')}
                 </Button>
                 <Button
                   variant={dependencyStatus.isStudent === false ? "contained" : "outlined"}
@@ -818,7 +820,7 @@ export const MobileSalaryView: React.FC = () => {
                   }}
                   sx={{ flex: 1, py: 2 }}
                 >
-                  いいえ、学生ではありません
+                  {t('common.noStudent', 'いいえ、学生ではありません')}
                 </Button>
               </Box>
             </Box>
@@ -828,16 +830,16 @@ export const MobileSalaryView: React.FC = () => {
           {currentStep === 1 && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
-                あなたの年齢を教えてください
+                {t('wizard.q.age', 'あなたの年齢を教えてください')}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block', textAlign: 'center' }}>
-                扶養や健康保険の基準が年齢によって異なります
+                {t('wizard.q.age.desc', '扶養や健康保険の基準が年齢によって異なります')}
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
                 {[
-                  { key: 'under20', label: '19歳以下' },
-                  { key: '20to22', label: '20〜22歳' },
-                  { key: 'over23', label: '23歳以上' }
+                  { key: 'under20', label: t('wizard.age.under20', '19歳以下') },
+                  { key: '20to22', label: t('wizard.age.20to22', '20〜22歳') },
+                  { key: 'over23', label: t('wizard.age.over23', '23歳以上') }
                 ].map(option => (
                   <Chip
                     key={option.key}
@@ -860,14 +862,14 @@ export const MobileSalaryView: React.FC = () => {
           {currentStep === 2 && dependencyStatus.isStudent && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
-                あてはまるものがあれば教えてください
+                {t('wizard.q.studentDetail', 'あてはまるものがあれば教えてください')}
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
                 {[
-                  { key: 'none', label: '該当なし' },
-                  { key: 'leave', label: '現在休学中' },
-                  { key: 'night', label: '夜間・通信制の課程' },
-                  { key: 'graduate_soon', label: '来年3月に卒業予定' }
+                  { key: 'none', label: t('wizard.student.none', '該当なし') },
+                  { key: 'leave', label: t('wizard.student.leave', '現在休学中') },
+                  { key: 'night', label: t('wizard.student.night', '夜間・通信制の課程') },
+                  { key: 'graduate_soon', label: t('wizard.student.graduateSoon', '来年3月に卒業予定') }
                 ].map(option => (
                   <Chip
                     key={option.key}
@@ -883,7 +885,7 @@ export const MobileSalaryView: React.FC = () => {
                 ))}
               </Box>
               <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block', textAlign: 'center' }}>
-                学生でも働き方によって税の扱いが変わることがあります
+                {t('wizard.student.note', '学生でも働き方によって税の扱いが変わることがあります')}
               </Typography>
             </Box>
           )}
@@ -892,14 +894,14 @@ export const MobileSalaryView: React.FC = () => {
           {currentStep === getWorkStyleStep() && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
-                あてはまる働き方があれば教えてください
+                {t('wizard.q.workstyle', 'あてはまる働き方があれば教えてください')}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block', textAlign: 'center' }}>
-                わからなければ未選択でOKです
+                {t('wizard.q.workstyle.desc', 'わからなければ未選択でOKです')}
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Chip
-                  label="週20時間以上で働く予定"
+                  label={t('wizard.workstyle.week20', '週20時間以上で働く予定')}
                   color={dependencyStatus.weeklyHours20 ? 'primary' : 'default'}
                   variant={dependencyStatus.weeklyHours20 ? 'filled' : 'outlined'}
                   onClick={() => {
@@ -908,7 +910,7 @@ export const MobileSalaryView: React.FC = () => {
                   sx={{ cursor: 'pointer', m: 0.5 }}
                 />
                 <Chip
-                  label="同じ勤務先で2か月を超えて働く予定"
+                  label={t('wizard.workstyle.over2m', '同じ勤務先で2か月を超えて働く予定')}
                   color={dependencyStatus.contractLength === 'over2m' ? 'primary' : 'default'}
                   variant={dependencyStatus.contractLength === 'over2m' ? 'filled' : 'outlined'}
                   onClick={() => {
@@ -917,7 +919,7 @@ export const MobileSalaryView: React.FC = () => {
                   sx={{ cursor: 'pointer', m: 0.5 }}
                 />
                 <Chip
-                  label="勤務先の従業員は51人以上"
+                  label={t('wizard.workstyle.office51', '勤務先の従業員は51人以上')}
                   color={dependencyStatus.officeSize51 === 'yes' ? 'primary' : 'default'}
                   variant={dependencyStatus.officeSize51 === 'yes' ? 'filled' : 'outlined'}
                   onClick={() => {
@@ -932,7 +934,7 @@ export const MobileSalaryView: React.FC = () => {
                   onClick={() => setCurrentStep(getTotalSteps() - 1)}
                   sx={{ px: 4 }}
                 >
-                  次へ
+                  {t('common.next', '次へ')}
                 </Button>
               </Box>
             </Box>
@@ -942,17 +944,17 @@ export const MobileSalaryView: React.FC = () => {
           {currentStep === getTotalSteps() - 1 && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
-                あなたの推奨設定
+                {t('wizard.result.title', 'あなたの推奨設定')}
               </Typography>
               <Box sx={{ p: 3, bgcolor: 'primary.lighter', borderRadius: 2, textAlign: 'center' }}>
                 <Typography variant="h4" color="primary.main" sx={{ fontWeight: 800, mb: 1 }}>
-                  年間 {Math.round(dependencyLimit.limit / 10000)}万円まで
+                  {t('wizard.result.yearLimit', '年間')} {Math.round(dependencyLimit.limit / 10000)}{t('wizard.result.manYen', '万円まで')}
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
                   {dependencyLimit.type}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  残り月目安: {displayInfo.monthlyDependencyLimit.toLocaleString()}円/月
+                  {t('wizard.result.monthlyHint', '残り月目安')}: {displayInfo.monthlyDependencyLimit.toLocaleString()}{t('wizard.result.yenPerMonth', '円/月')}
                 </Typography>
               </Box>
               
@@ -964,18 +966,18 @@ export const MobileSalaryView: React.FC = () => {
                       onChange={(_, checked) => setDependencyStatus({ ...dependencyStatus, autoRecommend: checked })}
                     />
                   }
-                  label={dependencyStatus.autoRecommend ? '自動推奨を使用' : '手動で金額を指定'}
+                  label={dependencyStatus.autoRecommend ? t('wizard.result.useAuto', '自動推奨を使用') : t('wizard.result.useManual', '手動で金額を指定')}
                 />
               </Box>
 
               {!dependencyStatus.autoRecommend && (
                 <Box sx={{ mt: 2 }}>
                   <FormControl fullWidth size="small">
-                    <InputLabel>年間上限を選択</InputLabel>
+                    <InputLabel>{t('wizard.result.pickAnnual', '年間上限を選択')}</InputLabel>
                     <Select
                       value={dependencyStatus.selectedLimit}
                       onChange={(e) => setDependencyStatus({ ...dependencyStatus, selectedLimit: Number(e.target.value) })}
-                      label="年間上限を選択"
+                      label={t('wizard.result.pickAnnual', '年間上限を選択')}
                     >
                       <MenuItem value={103}>103万円</MenuItem>
                       <MenuItem value={106}>106万円</MenuItem>
@@ -995,18 +997,18 @@ export const MobileSalaryView: React.FC = () => {
             <Button 
               onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
             >
-              前へ
+              {t('common.previous', '前へ')}
             </Button>
           )}
           <Button onClick={() => setDependencySetupOpen(false)}>
-            あとで
+            {t('common.later', 'あとで')}
           </Button>
           {currentStep === getTotalSteps() - 1 && (
             <Button
               variant="contained"
               onClick={() => saveDependencyStatus(dependencyStatus)}
             >
-              設定を保存
+              {t('common.saveSettings', '設定を保存')}
             </Button>
           )}
         </DialogActions>
@@ -1020,27 +1022,27 @@ export const MobileSalaryView: React.FC = () => {
         fullWidth
       >
         <DialogTitle>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            扶養限度額を選択
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              {t('salary.dependency.select', '扶養限度額を選択')}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            現在の設定: {dependencyLimit.type}
+              {t('salary.dependency.current', '現在の設定')}: {dependencyLimit.type}
           </Typography>
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            あなたに適した年間収入限度額を選択してください
+            {t('salary.dependency.select.desc', 'あなたに適した年間収入限度額を選択してください')}
           </Typography>
 
           {/* 金額選択オプション */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {[
-              { value: 103, label: '103万円', desc: '所得税の基礎控除額（一般的）' },
-              { value: 106, label: '106万円', desc: '社会保険加入の壁' },
-              { value: 123, label: '123万円', desc: '特定親族特別控除（2025年改正後）' },
-              { value: 130, label: '130万円', desc: '健康保険の被扶養者限度額' },
-              { value: 150, label: '150万円', desc: '19-22歳健保被扶養（2025年改正後）' },
-              { value: 160, label: '160万円', desc: '学生特例最大限度額（2025年改正後）' }
+              { value: 103, label: '103万円', desc: t('salary.dependency.option.103', '所得税の基礎控除額（一般的）') },
+              { value: 106, label: '106万円', desc: t('salary.dependency.option.106', '社会保険加入の壁') },
+              { value: 123, label: '123万円', desc: t('salary.dependency.option.123', '特定親族特別控除（2025年改正後）') },
+              { value: 130, label: '130万円', desc: t('salary.dependency.option.130', '健康保険の被扶養者限度額') },
+              { value: 150, label: '150万円', desc: t('salary.dependency.option.150', '19-22歳健保被扶養（2025年改正後）') },
+              { value: 160, label: '160万円', desc: t('salary.dependency.option.160', '学生特例最大限度額（2025年改正後）') }
             ].map(option => (
               <Card 
                 key={option.value}
@@ -1098,10 +1100,10 @@ export const MobileSalaryView: React.FC = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Box>
                     <Typography variant="h6" sx={{ fontWeight: 600, color: 'success.main' }}>
-                      自動推奨（おすすめ）
+                      {t('salary.dependency.auto.title', '自動推奨（おすすめ）')}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      あなたの状況に最適な限度額を自動計算
+                      {t('salary.dependency.auto.desc', 'あなたの状況に最適な限度額を自動計算')}
                     </Typography>
                   </Box>
                   <Box sx={{ 
@@ -1120,7 +1122,7 @@ export const MobileSalaryView: React.FC = () => {
           {/* 現在の設定プレビュー */}
           <Box sx={{ mt: 3, p: 2, bgcolor: 'primary.lighter', borderRadius: 2 }}>
             <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-              選択中の設定
+              {t('salary.dependency.preview.title', '選択中の設定')}
             </Typography>
             <Typography variant="h5" color="primary.main" sx={{ fontWeight: 700 }}>
               年間 {Math.round(
@@ -1128,17 +1130,17 @@ export const MobileSalaryView: React.FC = () => {
               )}万円まで
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              {dependencyStatus.autoRecommend ? dependencyLimit.type : `${dependencyStatus.selectedLimit || 103}万円（手動選択）`}
+              {dependencyStatus.autoRecommend ? dependencyLimit.type : `${dependencyStatus.selectedLimit || 103}${t('wizard.result.manYen', '万円まで').replace('まで','')}（${t('wizard.result.manual', '手動選択')}）`}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              月間目安: {Math.floor(
+              {t('wizard.result.monthlyHint', '残り月目安')}: {Math.floor(
                 (dependencyStatus.autoRecommend ? dependencyLimit.limit : (dependencyStatus.selectedLimit || 103) * 10000) / 12
               ).toLocaleString()}円/月
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDependencyRecheckOpen(false)}>キャンセル</Button>
+          <Button onClick={() => setDependencyRecheckOpen(false)}>{t('common.cancel', 'キャンセル')}</Button>
           <Button
             variant="contained"
             onClick={() => {
@@ -1146,7 +1148,7 @@ export const MobileSalaryView: React.FC = () => {
               setDependencyRecheckOpen(false);
             }}
           >
-            設定を更新
+            {t('common.updateSettings', '設定を更新')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1163,7 +1165,7 @@ export const MobileSalaryView: React.FC = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <AccountBalance color="primary" />
             <Typography variant="h5" sx={{ fontWeight: 600 }}>
-              銀行連携ダッシュボード
+              {t('bank.dashboard.title', '銀行連携ダッシュボード')}
             </Typography>
           </Box>
         </DialogTitle>
@@ -1172,7 +1174,7 @@ export const MobileSalaryView: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setBankingDashboardOpen(false)}>
-            閉じる
+            {t('common.close', '閉じる')}
           </Button>
         </DialogActions>
       </Dialog>
