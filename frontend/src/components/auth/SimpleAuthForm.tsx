@@ -17,6 +17,8 @@ import {
   VisibilityOff,
 } from '@mui/icons-material';
 import { useSimpleAuth } from '../../contexts/SimpleAuthContext';
+import { evaluatePasswordStrength } from '../../lib/passwordStrength';
+import simpleSupabase from '../../lib/simpleSupabase';
 
 export const SimpleAuthForm: React.FC = () => {
   const { login, signup, loading } = useSimpleAuth();
@@ -30,6 +32,8 @@ export const SimpleAuthForm: React.FC = () => {
     password: '',
     name: '',
   });
+
+  const strength = evaluatePasswordStrength(formData.password);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,6 +146,25 @@ export const SimpleAuthForm: React.FC = () => {
               required
             />
 
+            {/* パスワード強度（サインアップ時のみ） */}
+            {mode === 'signup' && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.secondary">
+                  パスワード強度: {strength.label}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5 }}>
+                  {[0,1,2,3].map((i) => (
+                    <Box key={i} sx={{ height: 6, flex: 1, borderRadius: 9999, background: i < strength.score ? '#5ac8fa' : '#e0e0e0' }} />
+                  ))}
+                </Box>
+                {strength.suggestions.length > 0 && (
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                    {strength.suggestions[0]}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
             <Button
               type="submit"
               fullWidth
@@ -160,6 +183,31 @@ export const SimpleAuthForm: React.FC = () => {
                 mode === 'login' ? 'ログイン' : 'アカウント作成'
               )}
             </Button>
+
+            {/* 未確認メール用の再送リンク（ログインモード） */}
+            {mode === 'login' && (
+              <Box sx={{ mt: 2, textAlign: 'center' }}>
+                <Button
+                  variant="text"
+                  size="small"
+                  onClick={async () => {
+                    if (!formData.email) {
+                      setError('メールアドレスを入力してください');
+                      return;
+                    }
+                    try {
+                      await simpleSupabase.auth.resend({ type: 'signup', email: formData.email.trim() });
+                      setError(null);
+                      alert('確認メールを再送しました。受信ボックスをご確認ください。');
+                    } catch (e) {
+                      setError('確認メールの再送に失敗しました。時間をおいて再度お試しください。');
+                    }
+                  }}
+                >
+                  確認メールを再送する
+                </Button>
+              </Box>
+            )}
           </Box>
         </CardContent>
       </Card>

@@ -13,7 +13,6 @@ const PROTECTED_PATTERNS = [
   /\.env$/,
   /\.env\./,
   /secret/i,
-  /password/i,
   /api[_-]?key/i,
   /token/i,
   /private[_-]?key/i,

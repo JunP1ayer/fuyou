@@ -1,6 +1,7 @@
 // 🔐 シンプル認証コンテキスト
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { simpleSupabase } from '../lib/simpleSupabase';
+import { toFriendlyAuthMessage, isEmailNotConfirmed } from '../lib/authErrorMapper';
 
 interface User {
   id: string;
@@ -69,22 +70,37 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     console.log('🔐 Login attempt:', email);
     setLoading(true);
-    
+
+    // 簡易バックオフ（最大3回、100ms, 300ms, 700ms）
+    const delays = [100, 300, 700];
+
     try {
-      const { data, error } = await simpleSupabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+      for (let i = 0; i < delays.length; i += 1) {
+        const { data, error } = await simpleSupabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
 
-      if (error) {
-        console.error('🔐 Login error:', error);
-        throw new Error(error.message);
+        if (!error) {
+          console.log('🔐 Login success:', data.user?.email);
+          return;
+        }
+
+        // メール未確認はリトライせず即時返却
+        if (isEmailNotConfirmed(error)) {
+          throw new Error(toFriendlyAuthMessage(error));
+        }
+
+        // 最終試行で失敗したらエラーを投げる
+        if (i === delays.length - 1) {
+          throw new Error(toFriendlyAuthMessage(error));
+        }
+
+        await new Promise((r) => setTimeout(r, delays[i]));
       }
-
-      console.log('🔐 Login success:', data.user?.email);
     } catch (error) {
       console.error('🔐 Login failed:', error);
-      throw error;
+      throw error instanceof Error ? error : new Error(toFriendlyAuthMessage(error));
     } finally {
       setLoading(false);
     }
@@ -106,13 +122,13 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
       if (error) {
         console.error('🔐 Signup error:', error);
-        throw new Error(error.message);
+        throw new Error(toFriendlyAuthMessage(error));
       }
 
       console.log('🔐 Signup success:', data.user?.email);
     } catch (error) {
       console.error('🔐 Signup failed:', error);
-      throw error;
+      throw error instanceof Error ? error : new Error(toFriendlyAuthMessage(error));
     } finally {
       setLoading(false);
     }
@@ -125,7 +141,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     
     try {
       const { error } = await simpleSupabase.auth.signOut();
-      if (error) throw error;
+      if (error) throw new Error(toFriendlyAuthMessage(error));
     } catch (error) {
       console.error('🔐 Logout error:', error);
     } finally {
