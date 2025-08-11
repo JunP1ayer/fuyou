@@ -13,7 +13,19 @@ import { AUTH_ERROR_MESSAGES, VALIDATION_RULES } from '../types/auth';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// 本番環境での環境変数デバッグ
+console.log('🌍 Environment check:', {
+  hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
+  supabaseUrl: supabaseUrl ? 'SET' : 'MISSING',
+  supabaseAnonKey: supabaseAnonKey ? 'SET' : 'MISSING',
+  nodeEnv: import.meta.env.VITE_APP_ENV || 'unknown'
+});
+
 if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('🔐 Missing environment variables:', {
+    VITE_SUPABASE_URL: supabaseUrl,
+    VITE_SUPABASE_ANON_KEY: supabaseAnonKey ? '[SET]' : '[MISSING]'
+  });
   throw new Error(
     '🔐 Supabase環境変数が設定されていません。\n' +
     'frontend/.env ファイルで以下を設定してください:\n' +

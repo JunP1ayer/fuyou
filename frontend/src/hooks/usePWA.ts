@@ -52,7 +52,12 @@ export const usePWA = () => {
   useEffect(() => {
     // Service Workerを無効化してテスト
     console.log('🔧 Service Worker registration disabled for debugging');
-    return;
+    
+    // 一時的にService Worker登録を無効化
+    const SW_DISABLED = true;
+    if (SW_DISABLED) {
+      return;
+    }
     
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker

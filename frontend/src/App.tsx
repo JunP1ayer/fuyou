@@ -1,5 +1,12 @@
 // 扶養カレンダー - 最強扶養管理アプリ
 
+// 本番環境初期化ログ
+console.log('🚀 App.tsx loading:', {
+  timestamp: new Date().toISOString(),
+  hostname: typeof window !== 'undefined' ? window.location.hostname : 'SSR',
+  pathname: typeof window !== 'undefined' ? window.location.pathname : 'SSR'
+});
+
 import React, { useState } from 'react';
 import {
   ThemeProvider,
