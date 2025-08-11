@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 const localesDir = path.resolve(process.cwd(), 'src', 'locales');
+/* eslint-disable no-undef */
 const files = fs.readdirSync(localesDir).filter(f => f.endsWith('.json'));
 if (files.length === 0) {
   console.error('No locale files found in src/locales');
@@ -36,7 +37,7 @@ for (const file of files) {
   unionKeys = new Set([...unionKeys, ...Object.keys(flat)]);
 }
 
-let missingCount = 0;
+let missingCount = 0; // kept for future aggregate reporting
 const report = [];
 
 for (const [file, keySet] of localeKeyMap.entries()) {

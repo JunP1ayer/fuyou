@@ -27,12 +27,8 @@ function safeAtob(base64: string): string {
     return window.atob(base64);
   }
   // Fallback: try global atob (some environments polyfill it)
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  if (typeof atob === 'function') {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return atob(base64);
+  if (typeof (globalThis as any).atob === 'function') {
+    return (globalThis as any).atob(base64);
   }
   throw new Error('Base64 decode is not available in this environment');
 }

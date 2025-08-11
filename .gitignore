@@ -50,3 +50,4 @@ secure-backups/
 deployment-secrets.md
 production-keys.txt
 server.log
+.vercel

@@ -212,12 +212,16 @@ export const authService = {
           data: {
             name: credentials.name.trim(),
           },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
       if (error) throw error;
       if (!data.user) throw new Error('アカウント作成に失敗しました');
 
+      // メール未確認でもユーザー作成成功として扱う
+      console.log('🎆 User created, email confirmed:', data.user.email_confirmed_at ? 'YES' : 'NO');
+      
       // プロフィールテーブルにレコード作成
       const { error: profileError } = await supabase
         .from('profiles')
@@ -231,6 +235,13 @@ export const authService = {
 
       if (profileError) {
         console.warn('Profile creation error:', profileError);
+      }
+
+      // メール確認が必要な場合のメッセージを表示
+      if (!data.user.email_confirmed_at && !data.session) {
+        console.log('🎆 Account created, but email confirmation required');
+        // 確認メール送信の通知
+        throw new Error(`アカウントが作成されました！\n${credentials.email} に送信された確認メールをチェックしてください。`);
       }
 
       return {
