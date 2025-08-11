@@ -28,7 +28,7 @@ export const LanguageSelectionScreen: React.FC = () => {
         px: 2,
       }}
     >
-      <Container maxWidth="sm">
+      <Container maxWidth="md">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -36,6 +36,8 @@ export const LanguageSelectionScreen: React.FC = () => {
         >
           <Card
             sx={{
+              maxWidth: 500,
+              mx: 'auto',
               boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
               borderRadius: 4,
               overflow: 'hidden',
@@ -44,39 +46,39 @@ export const LanguageSelectionScreen: React.FC = () => {
               border: '1px solid rgba(255,255,255,0.2)',
             }}
           >
-            <CardContent sx={{ px: 4, py: 5, textAlign: 'center' }}>
+            <CardContent sx={{ px: 5, py: 6, textAlign: 'center' }}>
               {/* 言語選択セクション */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
               >
                 <Typography 
-                  variant="h5" 
+                  variant="h4" 
                   sx={{ 
-                    color: '#333',
-                    mb: 1,
-                    fontSize: '1.3rem',
-                    fontWeight: 500,
+                    color: '#2c2c2c',
+                    mb: 1.5,
+                    fontSize: '1.8rem',
+                    fontWeight: 600,
                   }}
                 >
                   言語を選択
                 </Typography>
                 <Typography 
-                  variant="h5" 
+                  variant="h4" 
                   sx={{ 
-                    color: '#555',
-                    mb: 4,
-                    fontSize: '1.3rem',
-                    fontWeight: 500,
+                    color: '#666',
+                    mb: 5,
+                    fontSize: '1.8rem',
+                    fontWeight: 600,
                   }}
                 >
                   Select Language
                 </Typography>
 
                 {/* 言語選択ドロップダウン（大きく） */}
-                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-                  <Box sx={{ minWidth: 280 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Box sx={{ minWidth: 320, maxWidth: 400 }}>
                     <LanguageDropdown 
                       variant="outlined" 
                       showCurrentFlag 
