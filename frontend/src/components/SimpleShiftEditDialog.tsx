@@ -636,36 +636,6 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
                     </Typography>
                   </Grid>
 
-                  {/* 自動休憩設定 */}
-                  <Grid item xs={12} md={6}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={editData.autoBreak6Hours !== false} // デフォルト true
-                            onChange={e =>
-                              handleFieldChange('autoBreak6Hours', e.target.checked)
-                            }
-                            color="primary"
-                          />
-                        }
-                        label="6時間越えで45分休憩"
-                      />
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={editData.autoBreak8Hours !== false} // デフォルト true
-                            onChange={e =>
-                              handleFieldChange('autoBreak8Hours', e.target.checked)
-                            }
-                            color="primary"
-                          />
-                        }
-                        label="8時間越えで60分休憩"
-                      />
-                    </Box>
-                  </Grid>
-
                   {/* 手動休憩時間入力 */}
                   <Grid item xs={12} md={4}>
                     <TextField
@@ -681,6 +651,39 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
                       }
                       helperText="手動で追加する休憩時間を分単位で入力"
                       inputProps={{ min: 0, max: 480 }}
+                      sx={{ maxWidth: 300 }}
+                    />
+                  </Grid>
+
+                  {/* 自動休憩設定 */}
+                  <Grid item xs={12} md={4}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={editData.autoBreak6Hours !== false} // デフォルト true
+                          onChange={e =>
+                            handleFieldChange('autoBreak6Hours', e.target.checked)
+                          }
+                          color="primary"
+                        />
+                      }
+                      label="6時間以上で45分休憩を適用"
+                      sx={{ maxWidth: 300 }}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={4}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={editData.autoBreak8Hours !== false} // デフォルト true
+                          onChange={e =>
+                            handleFieldChange('autoBreak8Hours', e.target.checked)
+                          }
+                          color="primary"
+                        />
+                      }
+                      label="8時間以上で60分休憩を適用"
                       sx={{ maxWidth: 300 }}
                     />
                   </Grid>
