@@ -179,21 +179,23 @@ export const AuthForm: React.FC<AuthFormProps> = ({
         <Box
           sx={{
             textAlign: 'center',
-            py: 3,
+            py: 2,
             px: 3,
             position: 'relative',
           }}
         >
-          {/* 言語選択ドロップダウン */}
-          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-            <LanguageDropdown variant="outlined" showCurrentFlag />
+          {/* 言語選択ドロップダウン（小型版） */}
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{ transform: 'scale(0.85)' }}>
+              <LanguageDropdown variant="outlined" showCurrentFlag />
+            </Box>
           </Box>
           
           <Typography 
             variant="h4" 
             sx={{ 
               fontWeight: 500, 
-              mb: 1,
+              mb: 0.5,
               color: '#1a1a1a',
               letterSpacing: '-0.01em',
             }}
@@ -204,7 +206,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 
         <CardContent sx={{ px: 3, pb: 3, pt: 0 }}>
           {/* タブ */}
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 2 }}>
             <Box 
               sx={{ 
                 display: 'flex',
@@ -494,7 +496,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
             variant="body2"
             color="text.secondary"
             textAlign="center"
-            sx={{ mt: 3, fontSize: '0.8rem' }}
+            sx={{ mt: 2, fontSize: '0.8rem' }}
           >
 {t('auth.agreement', 'ログインにより、利用規約とプライバシーポリシーに同意するものとします')}
           </Typography>
