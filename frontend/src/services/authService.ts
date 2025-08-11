@@ -1,6 +1,6 @@
 // 🔐 Supabase認証サービス
 
-import { createClient } from '@supabase/supabase-js';
+import supabase from '../lib/supabaseClient';
 import type { 
   User, 
   LoginCredentials, 
@@ -8,41 +8,6 @@ import type {
   AuthError
 } from '../types/auth';
 import { AUTH_ERROR_MESSAGES, VALIDATION_RULES } from '../types/auth';
-
-// Supabaseクライアント初期化
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// 本番環境での環境変数デバッグ
-console.log('🌍 Environment check:', {
-  hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
-  supabaseUrl: supabaseUrl ? 'SET' : 'MISSING',
-  supabaseAnonKey: supabaseAnonKey ? 'SET' : 'MISSING',
-  nodeEnv: import.meta.env.VITE_APP_ENV || 'unknown'
-});
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('🔐 Missing environment variables:', {
-    VITE_SUPABASE_URL: supabaseUrl,
-    VITE_SUPABASE_ANON_KEY: supabaseAnonKey ? '[SET]' : '[MISSING]'
-  });
-  throw new Error(
-    '🔐 Supabase環境変数が設定されていません。\n' +
-    'frontend/.env ファイルで以下を設定してください:\n' +
-    '- VITE_SUPABASE_URL\n' +
-    '- VITE_SUPABASE_ANON_KEY'
-  );
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce',
-    storage: localStorage,
-  },
-});
 
 // バリデーション関数
 export const validateCredentials = {
@@ -121,17 +86,15 @@ export const authService = {
   // 現在のユーザーを取得
   getCurrentUser: async (): Promise<User | null> => {
     try {
-      console.log('📱 Getting current user...');
+      // まずセッション有無を確認（セッションが無い場合は例外にせず null を返す）
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.warn('Auth session fetch error:', sessionError);
+      }
+      if (!sessionData?.session) return null;
+
       const { data: { user }, error } = await supabase.auth.getUser();
-      
-      if (error) {
-        console.log('📱 Get user error:', error);
-        throw error;
-      }
-      if (!user) {
-        console.log('📱 No user found');
-        return null;
-      }
+      if (error || !user) return null;
 
       console.log('📱 Found user:', user.email);
 
@@ -234,19 +197,20 @@ export const authService = {
       // メール未確認でもユーザー作成成功として扱う
       console.log('🎆 User created, email confirmed:', data.user.email_confirmed_at ? 'YES' : 'NO');
       
-      // プロフィールテーブルにレコード作成
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: data.user.id,
-            name: credentials.name.trim(),
-            email: credentials.email.trim(),
-          },
-        ]);
-
-      if (profileError) {
-        console.warn('Profile creation error:', profileError);
+      // 認証セッションがある場合のみプロフィールを作成（メール確認フローでは 401 を回避）
+      if (data.session) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: data.user.id,
+              name: credentials.name.trim(),
+              email: credentials.email.trim(),
+            },
+          ]);
+        if (profileError) {
+          console.warn('Profile creation error:', profileError);
+        }
       }
 
       // メール確認が必要な場合のメッセージを表示
