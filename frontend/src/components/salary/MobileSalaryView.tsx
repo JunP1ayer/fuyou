@@ -58,11 +58,14 @@ export const MobileSalaryView: React.FC = () => {
   const [tabValue, setTabValue] = useState<'month' | 'year'>('month');
   const [monthOffset, setMonthOffset] = useState(0);
   
-  // 扶養状況の初回設定チェック
+  // 扶養状況の初回設定チェック（アプリ起動時に必ず表示）
   const [dependencySetupOpen, setDependencySetupOpen] = useState(() => {
     const saved = localStorage.getItem('dependencyStatus');
     return !saved; // 未設定なら自動で開く
   });
+  
+  // 扶養再設定用の状態
+  const [dependencyRecheckOpen, setDependencyRecheckOpen] = useState(false);
   
   // 扶養状況の状態（詳細版）
   const [dependencyStatus, setDependencyStatus] = useState(() => {
@@ -458,51 +461,6 @@ export const MobileSalaryView: React.FC = () => {
         </Button>
       </Box>
 
-      {/* 扶養状況カード - 残り稼げる金額を強調 */}
-      <Card sx={{ mb: 2, p: 2, bgcolor: remainingInfo.isOverLimit ? 'error.lighter' : 'success.lighter' }}>
-        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-          扶養限度額まで
-        </Typography>
-        <Typography 
-          variant="h3" 
-          sx={{ 
-            fontWeight: 800, 
-            color: remainingInfo.isOverLimit ? 'error.main' : 'success.main',
-            mb: 1 
-          }}
-        >
-          {remainingInfo.isOverLimit ? '超過！' : `あと ¥${remainingInfo.yearRemaining.toLocaleString()}`}
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              今月の目安
-            </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              ¥{remainingInfo.monthlyAllowance.toLocaleString()}
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              使用率
-            </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {remainingInfo.percentageUsed}%
-            </Typography>
-          </Box>
-        </Box>
-        <Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 1, overflow: 'hidden' }}>
-          <Box 
-            sx={{ 
-              width: `${remainingInfo.percentageUsed}%`,
-              height: 8,
-              bgcolor: remainingInfo.percentageUsed > 90 ? 'error.main' : 
-                       remainingInfo.percentageUsed > 70 ? 'warning.main' : 'success.main',
-              transition: 'width 0.3s ease'
-            }}
-          />
-        </Box>
-      </Card>
 
       {/* 円形カード：タブ別表示 */}
       {tabValue === 'month' ? (
@@ -733,6 +691,17 @@ export const MobileSalaryView: React.FC = () => {
         給与計算の内訳を見る
       </Button>
 
+      {/* 扶養チェックボタン */}
+      <Button 
+        variant="contained" 
+        color="primary"
+        fullWidth 
+        sx={{ mb: 2 }}
+        onClick={() => setDependencyRecheckOpen(true)}
+      >
+        扶養をもう一度チェック
+      </Button>
+
       <Box
         sx={{
           backgroundColor: 'grey.100',
@@ -883,6 +852,90 @@ export const MobileSalaryView: React.FC = () => {
             onClick={() => saveDependencyStatus(dependencyStatus)}
           >
             設定を保存
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 扶養再設定ダイアログ */}
+      <Dialog
+        open={dependencyRecheckOpen}
+        onClose={() => setDependencyRecheckOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            扶養状況の再確認
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            現在の設定: {dependencyLimit.type}
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+              1. あなたは学生ですか？
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Chip
+                label="はい（学生です）"
+                color={dependencyStatus.isStudent ? "primary" : "default"}
+                variant={dependencyStatus.isStudent ? "filled" : "outlined"}
+                onClick={() => setDependencyStatus({...dependencyStatus, isStudent: true})}
+                sx={{ cursor: 'pointer' }}
+              />
+              <Chip
+                label="いいえ（学生ではありません）"
+                color={!dependencyStatus.isStudent ? "primary" : "default"}
+                variant={!dependencyStatus.isStudent ? "filled" : "outlined"}
+                onClick={() => setDependencyStatus({...dependencyStatus, isStudent: false})}
+                sx={{ cursor: 'pointer' }}
+              />
+            </Box>
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+              2. 目標とする扶養限度額は？
+            </Typography>
+            <FormControl fullWidth size="small">
+              <Select
+                value={dependencyStatus.selectedLimit}
+                onChange={(e) => setDependencyStatus({...dependencyStatus, selectedLimit: Number(e.target.value)})}
+              >
+                <MenuItem value={103}>103万円 - 所得税の壁（2025年11月まで）</MenuItem>
+                <MenuItem value={123}>123万円 - 所得税の壁（2025年12月以降）</MenuItem>
+                <MenuItem value={106}>106万円 - 社会保険加入の壁</MenuItem>
+                <MenuItem value={130}>130万円 - 配偶者の扶養から外れる壁</MenuItem>
+                {dependencyStatus.isStudent && (
+                  <MenuItem value={150}>150万円 - 学生特例（勤労学生控除）</MenuItem>
+                )}
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box sx={{ p: 2, bgcolor: 'info.lighter', borderRadius: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+              更新後の設定
+            </Typography>
+            <Typography variant="h5" color="primary.main" sx={{ fontWeight: 700 }}>
+              年間 {dependencyStatus.selectedLimit || 103}万円まで
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              月平均: 約{Math.floor((dependencyStatus.selectedLimit || 103) * 10000 / 12).toLocaleString()}円
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDependencyRecheckOpen(false)}>キャンセル</Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              saveDependencyStatus(dependencyStatus);
+              setDependencyRecheckOpen(false);
+            }}
+          >
+            設定を更新
           </Button>
         </DialogActions>
       </Dialog>
