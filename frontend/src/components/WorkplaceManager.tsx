@@ -205,7 +205,6 @@ export const WorkplaceManager: React.FC = () => {
   const [preview, setPreview] = useState({
     startTime: '09:00',
     endTime: '17:00',
-    extraBreak: 0,
   });
 
   const computePreviewEarnings = () => {
@@ -219,9 +218,8 @@ export const WorkplaceManager: React.FC = () => {
     const end = new Date(`2000-01-01T${preview.endTime}`);
     const totalMinutes = Math.max(0, (end.getTime() - start.getTime()) / 60000);
 
-    // 休憩（手動 + 自動）
-    let breakMinutes = Math.max(0, Number(preview.extraBreak) || 0);
-    breakMinutes += Math.max(0, Number(formData.freeBreakDefault) || 0);
+    // 休憩（自動）
+    let breakMinutes = Math.max(0, Number(formData.freeBreakDefault) || 0);
     const workHours = totalMinutes / 60;
     if (formData.breakAuto8hEnabled && formData.breakRules.over8h && workHours > 8) {
       breakMinutes += formData.breakRules.over8h;
@@ -253,7 +251,6 @@ export const WorkplaceManager: React.FC = () => {
     formData.breakRules?.over8h,
     preview.startTime,
     preview.endTime,
-    preview.extraBreak,
   ]);
 
   // フォームリセット
@@ -1322,7 +1319,7 @@ export const WorkplaceManager: React.FC = () => {
                         サンプルシフト収入シミュレーション（時給制）
                       </Typography>
                       <Grid container spacing={2} alignItems="center">
-                        <Grid item xs={12} sm={4}>
+                        <Grid item xs={12} sm={6}>
                           <TextField
                             fullWidth
                             type="time"
@@ -1332,23 +1329,13 @@ export const WorkplaceManager: React.FC = () => {
                             size="small"
                           />
                         </Grid>
-                        <Grid item xs={12} sm={4}>
+                        <Grid item xs={12} sm={6}>
                           <TextField
                             fullWidth
                             type="time"
                             label="終了"
                             value={preview.endTime}
                             onChange={(e) => setPreview(prev => ({ ...prev, endTime: e.target.value }))}
-                            size="small"
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                          <TextField
-                            fullWidth
-                            type="number"
-                            label="追加休憩（分）"
-                            value={preview.extraBreak}
-                            onChange={(e) => setPreview(prev => ({ ...prev, extraBreak: Math.max(0, parseInt(e.target.value) || 0) }))}
                             size="small"
                           />
                         </Grid>
