@@ -787,14 +787,20 @@ export const MobileSalaryView: React.FC = () => {
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
                 <Button
                   variant={dependencyStatus.isStudent ? "contained" : "outlined"}
-                  onClick={() => setDependencyStatus({...dependencyStatus, isStudent: true})}
+                  onClick={() => {
+                    setDependencyStatus({...dependencyStatus, isStudent: true});
+                    setTimeout(() => setCurrentStep(1), 300);
+                  }}
                   sx={{ flex: 1, py: 2 }}
                 >
                   はい、学生です
                 </Button>
                 <Button
                   variant={dependencyStatus.isStudent === false ? "contained" : "outlined"}
-                  onClick={() => setDependencyStatus({...dependencyStatus, isStudent: false})}
+                  onClick={() => {
+                    setDependencyStatus({...dependencyStatus, isStudent: false});
+                    setTimeout(() => setCurrentStep(getWorkStyleStep()), 300);
+                  }}
                   sx={{ flex: 1, py: 2 }}
                 >
                   いいえ、学生ではありません
@@ -821,7 +827,10 @@ export const MobileSalaryView: React.FC = () => {
                     label={option.label}
                     color={dependencyStatus.studentException === option.key ? 'primary' : 'default'}
                     variant={dependencyStatus.studentException === option.key ? 'filled' : 'outlined'}
-                    onClick={() => setDependencyStatus({ ...dependencyStatus, studentException: option.key })}
+                    onClick={() => {
+                      setDependencyStatus({ ...dependencyStatus, studentException: option.key });
+                      setTimeout(() => setCurrentStep(getWorkStyleStep()), 300);
+                    }}
                     sx={{ cursor: 'pointer', m: 0.5 }}
                   />
                 ))}
@@ -846,23 +855,38 @@ export const MobileSalaryView: React.FC = () => {
                   label="週20時間以上で働く予定"
                   color={dependencyStatus.weeklyHours20 ? 'primary' : 'default'}
                   variant={dependencyStatus.weeklyHours20 ? 'filled' : 'outlined'}
-                  onClick={() => setDependencyStatus({ ...dependencyStatus, weeklyHours20: !dependencyStatus.weeklyHours20 })}
+                  onClick={() => {
+                    setDependencyStatus({ ...dependencyStatus, weeklyHours20: !dependencyStatus.weeklyHours20 });
+                  }}
                   sx={{ cursor: 'pointer', m: 0.5 }}
                 />
                 <Chip
                   label="同じ勤務先で2か月を超えて働く予定"
                   color={dependencyStatus.contractLength === 'over2m' ? 'primary' : 'default'}
                   variant={dependencyStatus.contractLength === 'over2m' ? 'filled' : 'outlined'}
-                  onClick={() => setDependencyStatus({ ...dependencyStatus, contractLength: dependencyStatus.contractLength === 'over2m' ? 'under2m' : 'over2m' })}
+                  onClick={() => {
+                    setDependencyStatus({ ...dependencyStatus, contractLength: dependencyStatus.contractLength === 'over2m' ? 'under2m' : 'over2m' });
+                  }}
                   sx={{ cursor: 'pointer', m: 0.5 }}
                 />
                 <Chip
                   label="勤務先の従業員は51人以上"
                   color={dependencyStatus.officeSize51 === 'yes' ? 'primary' : 'default'}
                   variant={dependencyStatus.officeSize51 === 'yes' ? 'filled' : 'outlined'}
-                  onClick={() => setDependencyStatus({ ...dependencyStatus, officeSize51: dependencyStatus.officeSize51 === 'yes' ? 'no' : 'yes' })}
+                  onClick={() => {
+                    setDependencyStatus({ ...dependencyStatus, officeSize51: dependencyStatus.officeSize51 === 'yes' ? 'no' : 'yes' });
+                  }}
                   sx={{ cursor: 'pointer', m: 0.5 }}
                 />
+              </Box>
+              <Box sx={{ mt: 3, textAlign: 'center' }}>
+                <Button
+                  variant="contained"
+                  onClick={() => setCurrentStep(getTotalSteps() - 1)}
+                  sx={{ px: 4 }}
+                >
+                  次へ
+                </Button>
               </Box>
             </Box>
           )}
@@ -921,24 +945,17 @@ export const MobileSalaryView: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button 
-            onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
-            disabled={currentStep === 0}
-          >
-            前へ
-          </Button>
+          {currentStep > 0 && (
+            <Button 
+              onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
+            >
+              前へ
+            </Button>
+          )}
           <Button onClick={() => setDependencySetupOpen(false)}>
             あとで
           </Button>
-          {currentStep < getTotalSteps() - 1 ? (
-            <Button
-              variant="contained"
-              onClick={() => setCurrentStep(prev => prev + 1)}
-              disabled={!canProceedToNext()}
-            >
-              次へ
-            </Button>
-          ) : (
+          {currentStep === getTotalSteps() - 1 && (
             <Button
               variant="contained"
               onClick={() => saveDependencyStatus(dependencyStatus)}
