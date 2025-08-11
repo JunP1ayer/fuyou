@@ -157,13 +157,13 @@ export const WorkplaceManager: React.FC = () => {
   const [editingWorkplace, setEditingWorkplace] = useState<string | null>(null);
   const [formData, setFormData] = useState<WorkplaceFormData>({
     name: '',
-    defaultHourlyRate: 0, // 空の状態から開始
+    defaultHourlyRate: '' as any, // 空の状態から開始
     color: '#FF6B6B',
     description: '',
     
     // 新しいフィールドのデフォルト値
-    cutoffDay: 31, // 月末締め
-    paymentDay: 25, // 25日支給
+    cutoffDay: '' as any, // 空の状態から開始
+    paymentDay: '' as any, // 空の状態から開始
     paymentTiming: 'nextMonth', // 翌月支給
     paymentType: 'hourly', // 時給制
     overtimeSettings: {
@@ -176,23 +176,23 @@ export const WorkplaceManager: React.FC = () => {
       method: 'round', // 四捨五入
     },
     breakRules: {
-      over6h: 45, // 6時間超で45分休憩
-      over8h: 60, // 8時間超で60分休憩
+      over6h: '' as any, // 空の状態から開始
+      over8h: '' as any, // 空の状態から開始
     },
-    freeBreakDefault: 0,
+    freeBreakDefault: '' as any,
     breakAuto6hEnabled: true,
     breakAuto8hEnabled: true,
     transportationSettings: {
       type: 'none', // 交通費なし
-      amount: 0,
+      amount: '' as any,
       unit: 'daily',
     },
     allowCrossDayShifts: true, // 跨日シフト許可
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     
     // 既存フィールド（後方互換性）
-    paymentDate: 25,
-    transportationFee: 0,
+    paymentDate: '' as any,
+    transportationFee: '' as any,
     timeBasedRates: [],
     weekdayRates: {},
     weekdayRatesEnabled: false,
@@ -247,13 +247,13 @@ export const WorkplaceManager: React.FC = () => {
   const resetForm = () => {
     setFormData({
       name: '',
-      defaultHourlyRate: 0,
+      defaultHourlyRate: '' as any,
       color: '#FF6B6B',
       description: '',
       
       // 新しいフィールドのデフォルト値
-      cutoffDay: 31,
-      paymentDay: 25,
+      cutoffDay: '' as any,
+      paymentDay: '' as any,
       paymentTiming: 'nextMonth',
       paymentType: 'hourly',
       overtimeSettings: {
@@ -266,22 +266,22 @@ export const WorkplaceManager: React.FC = () => {
         method: 'round',
       },
       breakRules: {
-        over6h: 45,
-        over8h: 60,
+        over6h: '' as any,
+        over8h: '' as any,
       },
-      freeBreakDefault: 0,
+      freeBreakDefault: '' as any,
       breakAuto6hEnabled: true,
       breakAuto8hEnabled: true,
       transportationSettings: {
         type: 'none',
-        amount: 0,
+        amount: '' as any,
         unit: 'daily',
       },
       allowCrossDayShifts: true,
       
       // 既存フィールド
-      paymentDate: 25,
-      transportationFee: 0,
+      paymentDate: '' as any,
+      transportationFee: '' as any,
       timeBasedRates: [],
       weekdayRates: {},
       weekdayRatesEnabled: false,
@@ -359,28 +359,32 @@ export const WorkplaceManager: React.FC = () => {
       newErrors.name = 'バイト先名を入力してください';
     }
 
-    if (formData.paymentType === 'hourly' && formData.defaultHourlyRate <= 0) {
-      newErrors.defaultHourlyRate = '正しい時給を入力してください';
+    if (formData.paymentType === 'hourly' && (!formData.defaultHourlyRate || formData.defaultHourlyRate <= 0)) {
+      newErrors.defaultHourlyRate = '時給を入力してください';
     }
 
-    if (formData.cutoffDay < 1 || formData.cutoffDay > 31) {
-      newErrors.cutoffDay = '締日は1-31の間で入力してください';
+    if (!formData.cutoffDay || formData.cutoffDay < 1 || formData.cutoffDay > 31) {
+      newErrors.cutoffDay = '締日を入力してください（1-31）';
     }
 
-    if (formData.paymentDay < 1 || formData.paymentDay > 31) {
-      newErrors.paymentDay = '支給日は1-31の間で入力してください';
+    if (!formData.paymentDay || formData.paymentDay < 1 || formData.paymentDay > 31) {
+      newErrors.paymentDay = '支給日を入力してください（1-31）';
     }
 
-    if (formData.breakRules.over6h < 0) {
-      newErrors.over6h = '休憩時間は0以上で入力してください';
+    if (formData.breakAuto6hEnabled && (!formData.breakRules.over6h || Number(formData.breakRules.over6h) < 0)) {
+      newErrors.over6h = '休憩時間を入力してください（0以上）';
     }
 
-    if (formData.breakRules.over8h < formData.breakRules.over6h) {
+    if (formData.breakAuto8hEnabled && (!formData.breakRules.over8h || Number(formData.breakRules.over8h) < 0)) {
+      newErrors.over8h = '休憩時間を入力してください（0以上）';
+    }
+    
+    if (formData.breakAuto6hEnabled && formData.breakAuto8hEnabled && formData.breakRules.over8h && formData.breakRules.over6h && formData.breakRules.over8h < formData.breakRules.over6h) {
       newErrors.over8h = '8時間超の休憩は6時間超以上で入力してください';
     }
 
-    if (formData.transportationSettings.type !== 'none' && formData.transportationSettings.amount < 0) {
-      newErrors.transportationAmount = '交通費は0以上で入力してください';
+    if (formData.transportationSettings.type !== 'none' && (!formData.transportationSettings.amount || formData.transportationSettings.amount < 0)) {
+      newErrors.transportationAmount = '交通費を入力してください（0以上）';
     }
 
     setErrors(newErrors);
@@ -728,11 +732,12 @@ export const WorkplaceManager: React.FC = () => {
                 onChange={e =>
                   setFormData(prev => ({
                     ...prev,
-                    defaultHourlyRate: parseInt(e.target.value) || 0,
+                    defaultHourlyRate: e.target.value ? parseInt(e.target.value) : '' as any,
                   }))
                 }
                 error={Boolean(errors.defaultHourlyRate)}
                 helperText={errors.defaultHourlyRate}
+                placeholder="1050"
                 InputProps={{
                   startAdornment: (
                     <span style={{ marginRight: 8 }}>
@@ -778,10 +783,11 @@ export const WorkplaceManager: React.FC = () => {
                           ...prev,
                           transportationSettings: {
                             ...prev.transportationSettings,
-                            amount: parseInt(e.target.value) || 0
+                            amount: e.target.value ? parseInt(e.target.value) : '' as any
                           }
                         }))}
                         size="small"
+                        placeholder="500"
                         InputProps={{ startAdornment: <span style={{ marginRight: 6 }}>¥</span> }}
                       />
                     </Grid>
@@ -833,11 +839,12 @@ export const WorkplaceManager: React.FC = () => {
                 onChange={e =>
                   setFormData(prev => ({
                     ...prev,
-                    cutoffDay: parseInt(e.target.value) || 31,
+                    cutoffDay: e.target.value ? parseInt(e.target.value) : '' as any,
                   }))
                 }
                 error={Boolean(errors.cutoffDay)}
-                helperText={errors.cutoffDay}
+                helperText={errors.cutoffDay || '31の場合は月末'}
+                placeholder="31"
                 size="small"
                 InputProps={{
                   endAdornment: <span style={{ marginLeft: 4 }}>日</span>,
@@ -854,11 +861,12 @@ export const WorkplaceManager: React.FC = () => {
                 onChange={e =>
                   setFormData(prev => ({
                     ...prev,
-                    paymentDay: parseInt(e.target.value) || 25,
+                    paymentDay: e.target.value ? parseInt(e.target.value) : '' as any,
                   }))
                 }
                 error={Boolean(errors.paymentDay)}
                 helperText={errors.paymentDay}
+                placeholder="25"
                 size="small"
                 InputProps={{
                   endAdornment: <span style={{ marginLeft: 4 }}>日</span>,
@@ -1156,9 +1164,9 @@ export const WorkplaceManager: React.FC = () => {
                             type="number"
                             label="自由休憩（分）"
                             value={formData.freeBreakDefault}
-                            onChange={e => setFormData(prev => ({ ...prev, freeBreakDefault: Math.max(0, parseInt(e.target.value) || 0) }))}
+                            onChange={e => setFormData(prev => ({ ...prev, freeBreakDefault: e.target.value ? Math.max(0, parseInt(e.target.value)) : '' as any }))}
                             size="small"
-                            placeholder="例：15"
+                            placeholder="0"
                           />
                         </Grid>
                         <Grid item xs={12} sm={8}>
@@ -1174,8 +1182,9 @@ export const WorkplaceManager: React.FC = () => {
                                   type="number"
                                   label="6時間超の休憩（分）"
                                   value={formData.breakRules.over6h}
-                                  onChange={e => setFormData(prev => ({ ...prev, breakRules: { ...prev.breakRules, over6h: parseInt(e.target.value) || 0 } }))}
+                                  onChange={e => setFormData(prev => ({ ...prev, breakRules: { ...prev.breakRules, over6h: e.target.value ? parseInt(e.target.value) : '' as any } }))}
                                   size="small"
+                                  placeholder="45"
                                 />
                               )}
                             </Grid>
@@ -1190,8 +1199,9 @@ export const WorkplaceManager: React.FC = () => {
                                   type="number"
                                   label="8時間超の休憩（分）"
                                   value={formData.breakRules.over8h}
-                                  onChange={e => setFormData(prev => ({ ...prev, breakRules: { ...prev.breakRules, over8h: parseInt(e.target.value) || 0 } }))}
+                                  onChange={e => setFormData(prev => ({ ...prev, breakRules: { ...prev.breakRules, over8h: e.target.value ? parseInt(e.target.value) : '' as any } }))}
                                   size="small"
+                                  placeholder="60"
                                 />
                               )}
                             </Grid>
@@ -1318,7 +1328,9 @@ export const WorkplaceManager: React.FC = () => {
             variant="contained"
             disabled={
               !formData.name.trim() || 
-              (formData.paymentType === 'hourly' && formData.defaultHourlyRate <= 0)
+              (formData.paymentType === 'hourly' && (!formData.defaultHourlyRate || formData.defaultHourlyRate <= 0)) ||
+              !formData.cutoffDay || 
+              !formData.paymentDay
             }
             sx={{
               background: 'linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%)',
