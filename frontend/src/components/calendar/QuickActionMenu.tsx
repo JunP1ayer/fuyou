@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { useI18n } from '@/hooks/useI18n';
 import { useCalendarStore } from '../../store/calendarStore';
 
 interface QuickActionMenuProps {
@@ -45,6 +46,7 @@ export const QuickActionMenu: React.FC<QuickActionMenuProps> = ({
   onViewDayEvents,
 }) => {
   const { events } = useCalendarStore();
+  const { t } = useI18n();
 
   // その日の予定数を取得
   const dayEventsCount = selectedDate 
@@ -54,16 +56,16 @@ export const QuickActionMenu: React.FC<QuickActionMenuProps> = ({
   const quickActions = [
     {
       id: 'shift',
-      label: 'シフトを追加',
-      subtitle: 'バイト、アルバイトの予定',
+      label: t('calendar.quick.addShift', 'シフトを追加'),
+      subtitle: t('calendar.quick.shiftSubtitle', 'バイト、アルバイトの予定'),
       icon: <Work />,
       color: '#FFD54F',
       action: onAddShiftEvent,
     },
     {
       id: 'personal',
-      label: '個人の予定を追加',
-      subtitle: '遊び、勉強、病院など',
+      label: t('calendar.quick.addPersonal', '個人の予定を追加'),
+      subtitle: t('calendar.quick.personalSubtitle', '遊び、勉強、病院など'),
       icon: <Person />,
       color: '#64B5F6',
       action: onAddPersonalEvent,
@@ -90,7 +92,7 @@ export const QuickActionMenu: React.FC<QuickActionMenuProps> = ({
           </Typography>
           {dayEventsCount > 0 && (
             <Chip
-              label={`${dayEventsCount}件の予定`}
+              label={`${dayEventsCount}${t('calendar.quick.numEvents', '件の予定')}`}
               size="small"
               color="primary"
               variant="outlined"
@@ -162,7 +164,7 @@ export const QuickActionMenu: React.FC<QuickActionMenuProps> = ({
               }}
               sx={{ py: 1.5 }}
             >
-              この日の予定を見る ({dayEventsCount}件)
+              {t('calendar.quick.viewDayEvents', 'この日の予定を見る')} ({dayEventsCount}{t('common.items','件')})
             </Button>
           </>
         )}

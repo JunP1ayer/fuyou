@@ -30,6 +30,7 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { useI18n } from '@/hooks/useI18n';
 import { useCalendarStore } from '../../store/calendarStore';
 import type { CalendarEvent, EventType } from '../../types/calendar';
 
@@ -49,6 +50,7 @@ export const DayEventsView: React.FC<DayEventsViewProps> = ({
   onEditEvent,
 }) => {
   const { events } = useCalendarStore();
+  const { t } = useI18n();
 
   // その日の予定を取得
   const dayEvents = selectedDate 
@@ -94,7 +96,7 @@ export const DayEventsView: React.FC<DayEventsViewProps> = ({
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            {selectedDate && format(new Date(selectedDate), 'M月d日(E)', { locale: ja })}の予定
+            {selectedDate && format(new Date(selectedDate), 'M月d日(E)', { locale: ja })}{t('calendar.dayEvents.of', 'の予定')}
           </Typography>
           <Chip
             label={`${dayEvents.length}件`}
@@ -182,10 +184,10 @@ export const DayEventsView: React.FC<DayEventsViewProps> = ({
           }}>
             <Event sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
             <Typography variant="h6" sx={{ mb: 1 }}>
-              予定がありません
+              {t('calendar.dayEvents.empty', '予定がありません')}
             </Typography>
             <Typography variant="body2">
-              下のボタンから新しい予定を追加できます
+              {t('calendar.dayEvents.hint', '下のボタンから新しい予定を追加できます')}
             </Typography>
           </Box>
         )}

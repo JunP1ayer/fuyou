@@ -10,8 +10,17 @@ import type {
 import { AUTH_ERROR_MESSAGES, VALIDATION_RULES } from '../types/auth';
 
 // Supabaseクライアント初期化
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    '🔐 Supabase環境変数が設定されていません。\n' +
+    'frontend/.env ファイルで以下を設定してください:\n' +
+    '- VITE_SUPABASE_URL\n' +
+    '- VITE_SUPABASE_ANON_KEY'
+  );
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

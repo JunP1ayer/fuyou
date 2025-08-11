@@ -176,22 +176,13 @@ export const AuthForm: React.FC<AuthFormProps> = ({
           <Typography 
             variant="h4" 
             sx={{ 
-              fontWeight: 300, 
+              fontWeight: 500, 
               mb: 1,
               color: '#1a1a1a',
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.01em',
             }}
           >
-            FUYOU
-          </Typography>
-          <Typography 
-            variant="body1" 
-            sx={{ 
-              color: 'text.secondary',
-              fontWeight: 400,
-            }}
-          >
-            スマートな扶養管理
+            扶養管理カレンダー
           </Typography>
         </Box>
 

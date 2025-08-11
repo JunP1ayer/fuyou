@@ -48,25 +48,15 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
         <Typography 
-          variant="h2" 
+          variant="h3" 
           sx={{ 
-            fontWeight: 300, 
-            mb: 1,
+            fontWeight: 500, 
+            mb: 4,
             color: '#1a1a1a',
-            letterSpacing: '-0.02em',
+            letterSpacing: '-0.01em',
           }}
         >
-          FUYOU
-        </Typography>
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            mb: 4, 
-            color: '#666',
-            fontWeight: 400,
-          }}
-        >
-          スマートな扶養管理
+          扶養管理カレンダー
         </Typography>
       </motion.div>
 
