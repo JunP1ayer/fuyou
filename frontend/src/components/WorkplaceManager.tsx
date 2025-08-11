@@ -1376,7 +1376,7 @@ export const WorkplaceManager: React.FC = () => {
                                   size="small"
                                 />
                               }
-                              label="4時間超"
+                              label="4時間越"
                               sx={{ mb: 2 }}
                             />
                             <TextField
@@ -1414,7 +1414,7 @@ export const WorkplaceManager: React.FC = () => {
                                   color="primary"
                                 />
                               }
-                              label="6時間超勤務"
+                              label="6時間越勤務"
                               sx={{ mb: 2 }}
                             />
                             <TextField
@@ -1429,7 +1429,7 @@ export const WorkplaceManager: React.FC = () => {
                               InputProps={{
                                 endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
                               }}
-                              helperText="45分"
+                              helperText="労働基準法45分"
                             />
                           </Box>
                         </Grid>
@@ -1451,7 +1451,7 @@ export const WorkplaceManager: React.FC = () => {
                                   color="primary"
                                 />
                               }
-                              label="8時間超勤務"
+                              label="8時間越勤務"
                               sx={{ mb: 2 }}
                             />
                             <TextField
