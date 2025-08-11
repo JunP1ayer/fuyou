@@ -50,10 +50,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
 
     // 認証状態の変更を監視
-    const { data: { subscription } } = authService.onAuthStateChange((user) => {
+    const { data: { subscription } } = authService.onAuthStateChange((newUser) => {
       if (isMounted) {
-        console.log('🔄 Auth state changed to:', user?.email || 'null');
-        setUser(user);
+        console.log('🔄 Auth state changed to:', newUser?.email || 'null');
+        
+        // 現在のユーザーと異なる場合のみ更新
+        setUser(prevUser => {
+          if (prevUser?.id !== newUser?.id) {
+            console.log('🔄 User state actually changed');
+            return newUser;
+          }
+          return prevUser;
+        });
+        
         if (!initialized) {
           setInitialized(true);
         }
@@ -74,7 +83,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const user = await authService.login(credentials);
       console.log('🔐 Login successful, user:', user);
       
-      // ステート更新は onAuthStateChange で自動的に処理される
+      // 即座にユーザー状態を更新
+      setUser(user);
       
       toast.success(`お帰りなさい、${user.name}さん！`, {
         duration: 3000,
@@ -101,7 +111,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const user = await authService.signup(credentials);
       console.log('🎆 Signup successful, user:', user);
       
-      // ステート更新は onAuthStateChange で自動的に処理される
+      // 即座にユーザー状態を更新
+      setUser(user);
       
       toast.success(`ようこそ、${user.name}さん！\nアカウントが作成されました。`, {
         duration: 4000,
