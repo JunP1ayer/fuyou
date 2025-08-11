@@ -44,7 +44,7 @@ interface AuthFormProps {
 
 // 共通のTextFieldスタイル
 const textFieldSx = {
-  mb: 2,
+  mb: 1.5,
   '& .MuiOutlinedInput-root': {
     borderRadius: 3,
     backgroundColor: '#fafbfc',
@@ -171,6 +171,8 @@ export const AuthForm: React.FC<AuthFormProps> = ({
           background: 'rgba(255,255,255,0.95)',
           backdropFilter: 'blur(20px)',
           border: '1px solid rgba(255,255,255,0.2)',
+          maxHeight: '95vh',
+          overflowY: 'auto',
         }}
       >
         {/* ヘッダー */}
@@ -200,7 +202,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
           </Typography>
         </Box>
 
-        <CardContent sx={{ px: 4, pb: 4, pt: 0 }}>
+        <CardContent sx={{ px: 3, pb: 3, pt: 0 }}>
           {/* タブ */}
           <Box sx={{ mb: 3 }}>
             <Box 
@@ -427,7 +429,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                       ),
                     }}
                     helperText={t('auth.passwordHelper', '8文字以上、大文字・数字を含む')}
-                    sx={{ ...textFieldSx, mb: 2 }}
+                    sx={{ ...textFieldSx, mb: 1.5 }}
                     required
                   />
 
@@ -451,7 +453,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                         </InputAdornment>
                       ),
                     }}
-                    sx={{ ...textFieldSx, mb: 3 }}
+                    sx={{ ...textFieldSx, mb: 2 }}
                     required
                   />
 
