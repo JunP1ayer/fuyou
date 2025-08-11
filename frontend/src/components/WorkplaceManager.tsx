@@ -1414,7 +1414,7 @@ export const WorkplaceManager: React.FC = () => {
                                   color="primary"
                                 />
                               }
-                              label="6時間越勤務"
+                              label="6時間越"
                               sx={{ mb: 2 }}
                             />
                             <TextField
@@ -1451,7 +1451,7 @@ export const WorkplaceManager: React.FC = () => {
                                   color="primary"
                                 />
                               }
-                              label="8時間越勤務"
+                              label="8時間越"
                               sx={{ mb: 2 }}
                             />
                             <TextField
