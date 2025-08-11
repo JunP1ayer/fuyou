@@ -1,6 +1,6 @@
 // 🏢 シフトボード風バイト先管理コンポーネント
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Typography,
@@ -176,8 +176,8 @@ export const WorkplaceManager: React.FC = () => {
       method: 'round', // 四捨五入
     },
     breakRules: {
-      over6h: '' as any, // 空の状態から開始
-      over8h: '' as any, // 空の状態から開始
+      over6h: 45, // デフォルト45分
+      over8h: 60, // デフォルト60分
     },
     freeBreakDefault: '' as any,
     breakAuto6hEnabled: true,
@@ -243,6 +243,19 @@ export const WorkplaceManager: React.FC = () => {
     return { earnings, totalMinutes, breakMinutes, actualMinutes };
   };
 
+  const previewResult = useMemo(() => computePreviewEarnings(), [
+    formData.paymentType,
+    formData.defaultHourlyRate,
+    formData.freeBreakDefault,
+    formData.breakAuto6hEnabled,
+    formData.breakAuto8hEnabled,
+    formData.breakRules?.over6h,
+    formData.breakRules?.over8h,
+    preview.startTime,
+    preview.endTime,
+    preview.extraBreak,
+  ]);
+
   // フォームリセット
   const resetForm = () => {
     setFormData({
@@ -266,8 +279,8 @@ export const WorkplaceManager: React.FC = () => {
         method: 'round',
       },
       breakRules: {
-        over6h: '' as any,
-        over8h: '' as any,
+        over6h: 45, // デフォルト45分
+        over8h: 60, // デフォルト60分
       },
       freeBreakDefault: '' as any,
       breakAuto6hEnabled: true,
@@ -359,31 +372,58 @@ export const WorkplaceManager: React.FC = () => {
       newErrors.name = 'バイト先名を入力してください';
     }
 
-    if (formData.paymentType === 'hourly' && (!formData.defaultHourlyRate || formData.defaultHourlyRate <= 0)) {
+    if (
+      formData.paymentType === 'hourly' &&
+      (!formData.defaultHourlyRate || formData.defaultHourlyRate <= 0)
+    ) {
       newErrors.defaultHourlyRate = '時給を入力してください';
     }
 
-    if (!formData.cutoffDay || formData.cutoffDay < 1 || formData.cutoffDay > 31) {
+    if (
+      !formData.cutoffDay ||
+      formData.cutoffDay < 1 ||
+      formData.cutoffDay > 31
+    ) {
       newErrors.cutoffDay = '締日を入力してください（1-31）';
     }
 
-    if (!formData.paymentDay || formData.paymentDay < 1 || formData.paymentDay > 31) {
+    if (
+      !formData.paymentDay ||
+      formData.paymentDay < 1 ||
+      formData.paymentDay > 31
+    ) {
       newErrors.paymentDay = '支給日を入力してください（1-31）';
     }
 
-    if (formData.breakAuto6hEnabled && (!formData.breakRules.over6h || Number(formData.breakRules.over6h) < 0)) {
+    if (
+      formData.breakAuto6hEnabled &&
+      (formData.breakRules.over6h === undefined || formData.breakRules.over6h === null || Number(formData.breakRules.over6h) < 0)
+    ) {
       newErrors.over6h = '休憩時間を入力してください（0以上）';
     }
 
-    if (formData.breakAuto8hEnabled && (!formData.breakRules.over8h || Number(formData.breakRules.over8h) < 0)) {
+    if (
+      formData.breakAuto8hEnabled &&
+      (formData.breakRules.over8h === undefined || formData.breakRules.over8h === null || Number(formData.breakRules.over8h) < 0)
+    ) {
       newErrors.over8h = '休憩時間を入力してください（0以上）';
     }
     
-    if (formData.breakAuto6hEnabled && formData.breakAuto8hEnabled && formData.breakRules.over8h && formData.breakRules.over6h && formData.breakRules.over8h < formData.breakRules.over6h) {
+    if (
+      formData.breakAuto6hEnabled &&
+      formData.breakAuto8hEnabled &&
+      typeof formData.breakRules.over8h === 'number' &&
+      typeof formData.breakRules.over6h === 'number' &&
+      formData.breakRules.over8h < formData.breakRules.over6h
+    ) {
       newErrors.over8h = '8時間超の休憩は6時間超以上で入力してください';
     }
 
-    if (formData.transportationSettings.type !== 'none' && (!formData.transportationSettings.amount || formData.transportationSettings.amount < 0)) {
+    if (
+      formData.transportationSettings.type !== 'none' &&
+      (!formData.transportationSettings.amount ||
+        formData.transportationSettings.amount < 0)
+    ) {
       newErrors.transportationAmount = '交通費を入力してください（0以上）';
     }
 
@@ -745,6 +785,7 @@ export const WorkplaceManager: React.FC = () => {
                     </span>
                   ),
                 }}
+                inputProps={{ min: 0, step: 1 }}
                 size="small"
               />
             </Grid>
@@ -789,6 +830,7 @@ export const WorkplaceManager: React.FC = () => {
                         size="small"
                         placeholder="500"
                         InputProps={{ startAdornment: <span style={{ marginRight: 6 }}>¥</span> }}
+                        inputProps={{ min: 0, step: 1 }}
                       />
                     </Grid>
                     <Grid item xs={6} sm={3}>
@@ -849,6 +891,7 @@ export const WorkplaceManager: React.FC = () => {
                 InputProps={{
                   endAdornment: <span style={{ marginLeft: 4 }}>日</span>,
                 }}
+                inputProps={{ min: 1, max: 31, step: 1 }}
               />
             </Grid>
 
@@ -871,6 +914,7 @@ export const WorkplaceManager: React.FC = () => {
                 InputProps={{
                   endAdornment: <span style={{ marginLeft: 4 }}>日</span>,
                 }}
+                inputProps={{ min: 1, max: 31, step: 1 }}
               />
             </Grid>
 
@@ -1154,60 +1198,121 @@ export const WorkplaceManager: React.FC = () => {
 
                     {/* 休憩時間設定（自由入力 + 自動休憩） */}
                     <Grid item xs={12}>
-                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
-                        休憩時間
+                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 2 }}>
+                        休憩時間設定
                       </Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={4}>
-                          <TextField
-                            fullWidth
-                            type="number"
-                            label="自由休憩（分）"
-                            value={formData.freeBreakDefault}
-                            onChange={e => setFormData(prev => ({ ...prev, freeBreakDefault: e.target.value ? Math.max(0, parseInt(e.target.value)) : '' as any }))}
-                            size="small"
-                            placeholder="0"
-                          />
+                      
+                      {/* 自由休憩 */}
+                      <Box sx={{ mb: 3 }}>
+                        <TextField
+                          fullWidth
+                          type="number"
+                          label="自由休憩時間（毎回適用）"
+                          value={formData.freeBreakDefault}
+                          onChange={e => setFormData(prev => ({ ...prev, freeBreakDefault: e.target.value ? Math.max(0, parseInt(e.target.value)) : '' as any }))}
+                          size="small"
+                          placeholder="0"
+                          helperText="シフトに関係なく毎回引かれる休憩時間"
+                          inputProps={{ min: 0, step: 5 }}
+                          sx={{ maxWidth: 300 }}
+                          InputProps={{
+                            endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
+                          }}
+                        />
+                      </Box>
+
+                      {/* 労働時間に応じた自動休憩 */}
+                      <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                        労働時間に応じた自動休憩
+                      </Typography>
+                      
+                      <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                          <Box sx={{ 
+                            p: 2, 
+                            border: '1px solid',
+                            borderColor: formData.breakAuto6hEnabled ? 'primary.main' : 'divider',
+                            borderRadius: 2,
+                            bgcolor: formData.breakAuto6hEnabled ? 'primary.lighter' : 'transparent',
+                            transition: 'all 0.3s ease'
+                          }}>
+                            <FormControlLabel
+                              control={
+                                <Switch 
+                                  checked={formData.breakAuto6hEnabled} 
+                                  onChange={(e) => setFormData(prev => ({ ...prev, breakAuto6hEnabled: e.target.checked }))}
+                                  color="primary"
+                                />
+                              }
+                              label={
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  6時間超勤務
+                                </Typography>
+                              }
+                              sx={{ mb: 2 }}
+                            />
+                            <TextField
+                              fullWidth
+                              type="number"
+                              label="休憩時間"
+                              value={formData.breakRules.over6h}
+                              onChange={e => setFormData(prev => ({ ...prev, breakRules: { ...prev.breakRules, over6h: e.target.value ? parseInt(e.target.value) : 45 } }))}
+                              size="small"
+                              disabled={!formData.breakAuto6hEnabled}
+                              inputProps={{ min: 0, step: 5 }}
+                              InputProps={{
+                                endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
+                              }}
+                              helperText="労働基準法推奨: 45分"
+                            />
+                          </Box>
                         </Grid>
-                        <Grid item xs={12} sm={8}>
-                          <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}>
-                              <FormControlLabel
-                                control={<Switch checked={formData.breakAuto6hEnabled} onChange={(e) => setFormData(prev => ({ ...prev, breakAuto6hEnabled: e.target.checked }))} />}
-                                label="6時間越えで休憩"
-                              />
-                              {formData.breakAuto6hEnabled && (
-                                <TextField
-                                  fullWidth
-                                  type="number"
-                                  label="6時間超の休憩（分）"
-                                  value={formData.breakRules.over6h}
-                                  onChange={e => setFormData(prev => ({ ...prev, breakRules: { ...prev.breakRules, over6h: e.target.value ? parseInt(e.target.value) : '' as any } }))}
-                                  size="small"
-                                  placeholder="45"
+                        
+                        <Grid item xs={12} md={6}>
+                          <Box sx={{ 
+                            p: 2, 
+                            border: '1px solid',
+                            borderColor: formData.breakAuto8hEnabled ? 'primary.main' : 'divider',
+                            borderRadius: 2,
+                            bgcolor: formData.breakAuto8hEnabled ? 'primary.lighter' : 'transparent',
+                            transition: 'all 0.3s ease'
+                          }}>
+                            <FormControlLabel
+                              control={
+                                <Switch 
+                                  checked={formData.breakAuto8hEnabled} 
+                                  onChange={(e) => setFormData(prev => ({ ...prev, breakAuto8hEnabled: e.target.checked }))}
+                                  color="primary"
                                 />
-                              )}
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                              <FormControlLabel
-                                control={<Switch checked={formData.breakAuto8hEnabled} onChange={(e) => setFormData(prev => ({ ...prev, breakAuto8hEnabled: e.target.checked }))} />}
-                                label="8時間越えで休憩"
-                              />
-                              {formData.breakAuto8hEnabled && (
-                                <TextField
-                                  fullWidth
-                                  type="number"
-                                  label="8時間超の休憩（分）"
-                                  value={formData.breakRules.over8h}
-                                  onChange={e => setFormData(prev => ({ ...prev, breakRules: { ...prev.breakRules, over8h: e.target.value ? parseInt(e.target.value) : '' as any } }))}
-                                  size="small"
-                                  placeholder="60"
-                                />
-                              )}
-                            </Grid>
-                          </Grid>
+                              }
+                              label={
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  8時間超勤務
+                                </Typography>
+                              }
+                              sx={{ mb: 2 }}
+                            />
+                            <TextField
+                              fullWidth
+                              type="number"
+                              label="休憩時間"
+                              value={formData.breakRules.over8h}
+                              onChange={e => setFormData(prev => ({ ...prev, breakRules: { ...prev.breakRules, over8h: e.target.value ? parseInt(e.target.value) : 60 } }))}
+                              size="small"
+                              disabled={!formData.breakAuto8hEnabled}
+                              inputProps={{ min: 0, step: 5 }}
+                              InputProps={{
+                                endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
+                              }}
+                              helperText="労働基準法推奨: 60分"
+                            />
+                          </Box>
                         </Grid>
                       </Grid>
+                      
+                      <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'info.main' }}>
+                        ※ 8時間超の休憩は6時間超の休憩を上書きします
+                      </Typography>
                     </Grid>
 
                     {/* 収入シミュレーション（詳細設定の即時計算確認用） */}
@@ -1248,19 +1353,14 @@ export const WorkplaceManager: React.FC = () => {
                           />
                         </Grid>
                       </Grid>
-                      {(() => {
-                        const r = computePreviewEarnings();
-                        return (
-                          <Box sx={{ mt: 2, p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 2 }}>
-                            <Typography variant="body2" sx={{ mb: 0.5 }}>
-                              試算結果: <strong>¥{r.earnings.toLocaleString()}</strong>
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              総勤務 {(r.totalMinutes/60).toFixed(1)}h ／ 休憩 {r.breakMinutes}分 → 実働 {(r.actualMinutes/60).toFixed(1)}h
-                            </Typography>
-                          </Box>
-                        );
-                      })()}
+                      <Box sx={{ mt: 2, p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 2 }}>
+                        <Typography variant="body2" sx={{ mb: 0.5 }}>
+                          試算結果: <strong>¥{previewResult.earnings.toLocaleString()}</strong>
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          総勤務 {(previewResult.totalMinutes/60).toFixed(1)}h ／ 休憩 {previewResult.breakMinutes}分 → 実働 {(previewResult.actualMinutes/60).toFixed(1)}h
+                        </Typography>
+                      </Box>
                     </Grid>
                   </Grid>
                 </AccordionDetails>
@@ -1294,10 +1394,16 @@ export const WorkplaceManager: React.FC = () => {
                     設定プレビュー
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    <strong>{formData.name}</strong> - {
-                      formData.paymentType === 'hourly' ? `時給 ¥${formData.defaultHourlyRate.toLocaleString()}` :
-                      formData.paymentType === 'daily' ? '日給制' :
-                      formData.paymentType === 'monthly' ? '月給制' : '歩合制'
+                      <strong>{formData.name}</strong> - {
+                      formData.paymentType === 'hourly'
+                        ? (typeof formData.defaultHourlyRate === 'number' && formData.defaultHourlyRate > 0
+                            ? `時給 ¥${formData.defaultHourlyRate.toLocaleString()}`
+                            : '時給 未設定')
+                        : formData.paymentType === 'daily'
+                        ? '日給制'
+                        : formData.paymentType === 'monthly'
+                        ? '月給制'
+                        : '歩合制'
                     }
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -1305,10 +1411,15 @@ export const WorkplaceManager: React.FC = () => {
                     {formData.paymentTiming === 'nextMonth' ? '翌月' : '当月'}
                     {formData.paymentDay}日支給 | 
                     交通費: {
-                      formData.transportationSettings.type === 'none' ? 'なし' :
-                      formData.transportationSettings.type === 'fixed' 
-                        ? `固定${formData.transportationSettings.unit === 'daily' ? '日額' : '月額'} ${formatCurrency(formData.transportationSettings.amount)}`
-                        : `実費（上限${formData.transportationSettings.unit === 'daily' ? '日額' : '月額'} ${formatCurrency(formData.transportationSettings.amount)}）`
+                      formData.transportationSettings.type === 'none'
+                        ? 'なし'
+                        : formData.transportationSettings.type === 'fixed'
+                        ? (typeof formData.transportationSettings.amount === 'number'
+                            ? `固定${formData.transportationSettings.unit === 'daily' ? '日額' : '月額'} ${formatCurrency(formData.transportationSettings.amount)}`
+                            : `固定${formData.transportationSettings.unit === 'daily' ? '日額' : '月額'} 未設定`)
+                        : (typeof formData.transportationSettings.amount === 'number'
+                            ? `実費（上限${formData.transportationSettings.unit === 'daily' ? '日額' : '月額'} ${formatCurrency(formData.transportationSettings.amount)}）`
+                            : '実費（上限 未設定）')
                     } | 
                     丸め: {formData.roundingRule.minutes}分{
                       formData.roundingRule.method === 'up' ? '切り上げ' :
@@ -1327,9 +1438,9 @@ export const WorkplaceManager: React.FC = () => {
             onClick={handleSave}
             variant="contained"
             disabled={
-              !formData.name.trim() || 
+              !formData.name.trim() ||
               (formData.paymentType === 'hourly' && (!formData.defaultHourlyRate || formData.defaultHourlyRate <= 0)) ||
-              !formData.cutoffDay || 
+              !formData.cutoffDay ||
               !formData.paymentDay
             }
             sx={{
