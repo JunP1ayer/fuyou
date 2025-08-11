@@ -32,12 +32,12 @@ export class IntelligentOCRService {
       console.log('Gemini AI client initialized');
     }
 
-    // OpenAI初期化
-    const openaiApiKey = process.env.OPENAI_API_KEY;
-    if (openaiApiKey && openaiApiKey !== 'YOUR_OPENAI_API_KEY_HERE') {
-      this.openaiClient = new OpenAI({ apiKey: openaiApiKey });
-      console.log('OpenAI client initialized');
-    }
+    // OpenAI初期化 (一時的にコメントアウト)
+    // const openaiApiKey = process.env.OPENAI_API_KEY;
+    // if (openaiApiKey && openaiApiKey !== 'YOUR_OPENAI_API_KEY_HERE') {
+    //   this.openaiClient = new OpenAI({ apiKey: openaiApiKey });
+    //   console.log('OpenAI client initialized');
+    // }
   }
 
   /**

@@ -28,16 +28,17 @@ export class NaturalLanguageOCRService {
       const apiKey = process.env.OPENAI_API_KEY;
       console.log(`OpenAI API Key status: ${apiKey ? 'SET' : 'NOT_SET'}`);
       
-      if (apiKey && apiKey !== 'YOUR_OPENAI_API_KEY_HERE') {
-        this.openai = new OpenAI({
-          apiKey: apiKey,
-        });
-        this.fallbackMode = false;
-        console.log('OpenAI API initialized successfully');
-      } else {
+      // 一時的にコメントアウト
+      // if (apiKey && apiKey !== 'YOUR_OPENAI_API_KEY_HERE') {
+      //   this.openai = new OpenAI({
+      //     apiKey: apiKey,
+      //   });
+      //   this.fallbackMode = false;
+      //   console.log('OpenAI API initialized successfully');
+      // } else {
         this.fallbackMode = true;
         console.log('OpenAI API key not configured, using fallback mode');
-      }
+      // }
     } catch (error) {
       console.error('Failed to initialize OpenAI:', error);
       this.fallbackMode = true;

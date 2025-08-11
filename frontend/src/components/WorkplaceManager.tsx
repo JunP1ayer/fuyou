@@ -134,20 +134,15 @@ interface WorkplaceFormData {
   }[];
 }
 
-// 虹色カラーパレット（彩度と明度を統一）
+// 虹色カラーパレット（七色・パステル調）
 const defaultColors = [
-  '#FF6B6B', // レッド
-  '#4ECDC4', // ティール
-  '#45B7D1', // ブルー
-  '#96CEB4', // グリーン
-  '#FFEAA7', // イエロー
-  '#DDA0DD', // ライトパープル
-  '#98D8C8', // ミント
-  '#F7DC6F', // ゴールド
-  '#BB8FCE', // パープル
-  '#85C1E9', // ライトブルー
-  '#F8C471', // オレンジ
-  '#82E0AA', // ライトグリーン
+  '#FFB3BA', // 薄い赤（Light Red）
+  '#FFDFBA', // 薄い橙（Light Orange）
+  '#FFFFBA', // 薄い黄（Light Yellow）
+  '#BAFFC9', // 薄い緑（Light Green）
+  '#BAE1FF', // 薄い青（Light Blue）
+  '#C9BAFF', // 薄い藍（Light Indigo）
+  '#E1BAFF', // 薄い紫（Light Violet）
 ];
 
 export const WorkplaceManager: React.FC = () => {
@@ -159,7 +154,7 @@ export const WorkplaceManager: React.FC = () => {
   const [formData, setFormData] = useState<WorkplaceFormData>({
     name: '',
     defaultHourlyRate: '' as any, // 空の状態から開始
-    color: '#FF6B6B',
+    color: '#FFB3BA',
     description: '',
     
     // 新しいフィールドのデフォルト値
@@ -266,7 +261,7 @@ export const WorkplaceManager: React.FC = () => {
     setFormData({
       name: '',
       defaultHourlyRate: '' as any,
-      color: '#FF6B6B',
+      color: '#FFB3BA',
       description: '',
       
       // 新しいフィールドのデフォルト値

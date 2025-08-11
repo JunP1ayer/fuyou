@@ -156,8 +156,8 @@ if (process.env.NODE_ENV !== 'test') {
     logger.info(`📁 Current working directory: ${process.cwd()}`);
     logger.info(`📁 Environment file path: ${envPath}`);
     // Warm rules cache and optionally start auto refresh
-    warmUpRulesCache().catch(() => undefined);
-    startRulesAutoRefresh();
+    // warmUpRulesCache().catch(() => undefined);
+    // startRulesAutoRefresh();
   });
 }
 
