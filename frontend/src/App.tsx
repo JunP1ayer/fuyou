@@ -24,6 +24,8 @@ import { useSimpleShiftStore } from './store/simpleShiftStore';
 import { SimpleCalendarView } from './components/SimpleCalendarView';
 import { ToastProvider } from './components/Toast/ToastProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { AuthProvider } from './contexts/AuthContext';
+import { AuthGuard, ProtectedRoute } from './components/auth/AuthGuard';
 import { SafeCalendarView } from './components/SafeCalendarView';
 import { ShiftboardTabs, type TabValue } from './components/ShiftboardTabs';
 import { WizardStart } from './components/wizard/WizardStart';
@@ -148,45 +150,51 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <ThemeProvider theme={theme}>
-        <ToastProvider>
-          <CssBaseline />
+        <AuthProvider>
+          <ToastProvider>
+            <CssBaseline />
 
-      <Container
-        maxWidth="lg"
-        sx={{
-          py: 0, // パディングを削除
-          pt: 0, // 上部パディングを削除
-          pb: 0, // 下部パディングを削除
-          height: '100vh', // 100dvh から 100vh に変更
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-      >
-        {/* ヘッダー削除（スペースを節約） */}
+            <Container
+              maxWidth="lg"
+              sx={{
+                py: 0, // パディングを削除
+                pt: 0, // 上部パディングを削除
+                pb: 0, // 下部パディングを削除
+                height: '100vh', // 100dvh から 100vh に変更
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+              }}
+            >
+              {/* ヘッダー削除（スペースを節約） */}
 
-        {/* メインコンテンツ（スクロール） */}
-        <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-          <Routes>
-            <Route path="/" element={
-              <ShiftboardTabs
-                currentTab={currentTab}
-                onTabChange={handleTabChange}
-                renderContent={renderContent}
-                jobHubView={jobHubView}
-                setJobHubView={(view: string) => setJobHubView(view as 'hub' | 'workplace' | 'ai' | 'friends')}
-              />
-            } />
-            <Route path="/wizard" element={<WizardStart />} />
-            <Route path="/wizard/steps" element={<WizardSteps />} />
-            <Route path="/wizard/result" element={<WizardResult />} />
-            <Route path="/submit" element={<GPTShiftSubmitter />} />
-            <Route path="/legal" element={<LegalPage />} />
-          </Routes>
-        </Box>
-      </Container>
+              {/* メインコンテンツ（スクロール） */}
+              <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+                <AuthGuard>
+                  <Routes>
+                    <Route path="/" element={
+                      <ProtectedRoute>
+                        <ShiftboardTabs
+                          currentTab={currentTab}
+                          onTabChange={handleTabChange}
+                          renderContent={renderContent}
+                          jobHubView={jobHubView}
+                          setJobHubView={(view: string) => setJobHubView(view as 'hub' | 'workplace' | 'ai' | 'friends')}
+                        />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/wizard" element={<ProtectedRoute><WizardStart /></ProtectedRoute>} />
+                    <Route path="/wizard/steps" element={<ProtectedRoute><WizardSteps /></ProtectedRoute>} />
+                    <Route path="/wizard/result" element={<ProtectedRoute><WizardResult /></ProtectedRoute>} />
+                    <Route path="/submit" element={<ProtectedRoute><GPTShiftSubmitter /></ProtectedRoute>} />
+                    <Route path="/legal" element={<LegalPage />} />
+                  </Routes>
+                </AuthGuard>
+              </Box>
+            </Container>
 
-        </ToastProvider>
+          </ToastProvider>
+        </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
