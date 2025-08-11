@@ -208,8 +208,8 @@ export const WorkplaceManager: React.FC = () => {
 
   // プレビュー用サンプルシフト（詳細設定の即時計算確認用）
   const [preview, setPreview] = useState({
-    startTime: '09:00',
-    endTime: '17:00',
+    startTime: '18:00',
+    endTime: '02:00',
   });
 
   const computePreviewEarnings = () => {
@@ -255,15 +255,94 @@ export const WorkplaceManager: React.FC = () => {
     const actualMinutes = Math.max(0, totalMinutes - breakMinutes);
     const actualHours = actualMinutes / 60;
 
-    // 残業（8h超は1.25倍）
-    let earnings = Math.floor(actualHours * rate);
-    if (formData.overtimeSettings.overtime && actualHours > 8) {
-      const regularHours = 8;
-      const overtimeHours = actualHours - 8;
-      earnings = Math.floor(regularHours * rate + overtimeHours * rate * 1.25);
+    // 基本時給
+    const baseRate = rate;
+    
+    // 深夜時間の判定（22:00-05:00）
+    let nightHours = 0;
+    if (formData.overtimeSettings.nightShift) {
+      const [startHour, startMin] = preview.startTime.split(':').map(Number);
+      const [endHour, endMin] = preview.endTime.split(':').map(Number);
+      
+      // 時刻を分に変換
+      let startMinutes = startHour * 60 + startMin;
+      let endMinutes = endHour * 60 + endMin;
+      
+      // 日跨ぎの場合
+      if (endMinutes <= startMinutes) {
+        endMinutes += 24 * 60; // 翌日に調整
+      }
+      
+      // 深夜時間帯（22:00-05:00）との重複を計算
+      const nightStart = 22 * 60; // 22:00 = 1320分
+      const nightEnd = 29 * 60;   // 05:00（翌日）= 1740分（24+5時間）
+      
+      // 勤務時間と深夜時間帯の重複部分を計算
+      const overlapStart = Math.max(startMinutes, nightStart);
+      const overlapEnd = Math.min(endMinutes, nightEnd);
+      
+      if (overlapStart < overlapEnd) {
+        nightHours = (overlapEnd - overlapStart) / 60;
+        // 休憩時間分を差し引いて実際の深夜労働時間を計算
+        nightHours = Math.min(nightHours, actualHours);
+      }
     }
+    
+    // 基本時間と残業時間の分離
+    let regularHours = actualHours;
+    let overtimeHours = 0;
+    
+    if (formData.overtimeSettings.overtime && actualHours > 8) {
+      regularHours = 8;
+      overtimeHours = actualHours - 8;
+    }
+    
+    // 深夜時間を基本時間と残業時間に振り分け
+    const regularNightHours = Math.min(nightHours, regularHours);
+    const overtimeNightHours = Math.max(0, nightHours - regularNightHours);
+    
+    // 通常時間（深夜以外）
+    const regularDayHours = regularHours - regularNightHours;
+    const overtimeDayHours = overtimeHours - overtimeNightHours;
+    
+    // 収入計算
+    let earnings = 0;
+    
+    // 基本時間（通常）
+    earnings += regularDayHours * baseRate;
+    
+    // 基本時間（深夜）25%割増
+    earnings += regularNightHours * baseRate * 1.25;
+    
+    // 残業時間（通常）25%割増
+    earnings += overtimeDayHours * baseRate * 1.25;
+    
+    // 残業時間（深夜）50%割増（25%+25%）
+    earnings += overtimeNightHours * baseRate * 1.5;
+    
+    // 交通費を追加
+    let transportationFee = 0;
+    if (formData.transportationSettings.type === 'fixed') {
+      if (formData.transportationSettings.unit === 'daily') {
+        transportationFee = formData.transportationSettings.amount || 0;
+      } else if (formData.transportationSettings.unit === 'monthly') {
+        // 月額の場合は日割り計算（月22日勤務として概算）
+        transportationFee = (formData.transportationSettings.amount || 0) / 22;
+      }
+    }
+    
+    const totalEarnings = Math.floor(earnings + transportationFee);
 
-    return { earnings, totalMinutes, breakMinutes, actualMinutes };
+    return { 
+      earnings: totalEarnings, 
+      totalMinutes, 
+      breakMinutes, 
+      actualMinutes,
+      baseEarnings: Math.floor(earnings),
+      transportationFee: Math.floor(transportationFee),
+      nightHours,
+      overtimeHours 
+    };
   };
 
   const previewResult = useMemo(() => computePreviewEarnings(), [
@@ -278,6 +357,12 @@ export const WorkplaceManager: React.FC = () => {
     formData.breakRules?.over4h,
     formData.breakRules?.over6h,
     formData.breakRules?.over8h,
+    formData.overtimeSettings?.nightShift,
+    formData.overtimeSettings?.overtime,
+    formData.overtimeSettings?.holiday,
+    formData.transportationSettings?.type,
+    formData.transportationSettings?.amount,
+    formData.transportationSettings?.unit,
     preview.startTime,
     preview.endTime,
   ]);
@@ -1424,13 +1509,52 @@ export const WorkplaceManager: React.FC = () => {
                           />
                         </Grid>
                       </Grid>
-                      <Box sx={{ mt: 2, p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 2 }}>
-                        <Typography variant="body2" sx={{ mb: 0.5 }}>
-                          試算結果: <strong>¥{previewResult.earnings.toLocaleString()}</strong>
+                      <Box sx={{ mt: 2, p: 2, border: '1px dashed', borderColor: 'divider', borderRadius: 2, bgcolor: 'background.paper' }}>
+                        <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
+                          試算結果: <strong style={{ fontSize: '1.1em', color: '#2e7d32' }}>¥{previewResult.earnings.toLocaleString()}</strong>
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        
+                        {/* 時間の内訳 */}
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                           総勤務 {(previewResult.totalMinutes/60).toFixed(1)}h ／ 休憩 {previewResult.breakMinutes}分 → 実働 {(previewResult.actualMinutes/60).toFixed(1)}h
                         </Typography>
+                        
+                        {/* 収入の内訳 */}
+                        {previewResult.baseEarnings > 0 && (
+                          <Box sx={{ mt: 1, pl: 1, borderLeft: '2px solid #e0e0e0' }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                              基本収入: ¥{previewResult.baseEarnings?.toLocaleString()}
+                              {previewResult.nightHours > 0 && ` (深夜${previewResult.nightHours.toFixed(1)}h含む)`}
+                              {previewResult.overtimeHours > 0 && ` (残業${previewResult.overtimeHours.toFixed(1)}h含む)`}
+                            </Typography>
+                            
+                            {previewResult.transportationFee > 0 && (
+                              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                交通費: ¥{previewResult.transportationFee?.toLocaleString()}
+                                {formData.transportationSettings.unit === 'monthly' && ' (月額÷22日)'}
+                              </Typography>
+                            )}
+                            
+                            {/* 適用設定の表示 */}
+                            <Box sx={{ mt: 0.5, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                              {formData.overtimeSettings.nightShift && (
+                                <Typography variant="caption" sx={{ px: 0.5, py: 0.2, bgcolor: 'info.light', borderRadius: 0.5, fontSize: '10px' }}>
+                                  深夜25%
+                                </Typography>
+                              )}
+                              {formData.overtimeSettings.overtime && (
+                                <Typography variant="caption" sx={{ px: 0.5, py: 0.2, bgcolor: 'warning.light', borderRadius: 0.5, fontSize: '10px' }}>
+                                  残業25%
+                                </Typography>
+                              )}
+                              {formData.transportationSettings.type !== 'none' && (
+                                <Typography variant="caption" sx={{ px: 0.5, py: 0.2, bgcolor: 'success.light', borderRadius: 0.5, fontSize: '10px' }}>
+                                  交通費
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                        )}
                       </Box>
                     </Grid>
                   </Grid>
