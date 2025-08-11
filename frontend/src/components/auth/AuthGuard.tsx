@@ -136,12 +136,15 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
         open
         maxWidth="sm"
         fullWidth
+        scroll="body"
+        disableScrollLock
         PaperProps={{
           sx: {
             background: 'transparent',
             boxShadow: 'none',
             borderRadius: 0,
             overflow: 'visible',
+            maxHeight: 'none',
           },
         }}
         sx={{
@@ -150,7 +153,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
           },
         }}
       >
-        <DialogContent sx={{ p: 0 }}>
+        <DialogContent sx={{ p: 0, overflow: 'visible' }}>
           <AuthForm onClose={() => {
             // 認証後は自動的にユーザー状態が更新されるので特に何もしない
           }} />

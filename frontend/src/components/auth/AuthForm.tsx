@@ -167,11 +167,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({
           mx: 'auto',
           boxShadow: 'none',
           borderRadius: 4,
-          overflow: 'hidden',
+          overflow: 'visible',
           background: 'transparent',
           border: 'none',
-          maxHeight: '95vh',
-          overflowY: 'auto',
         }}
       >
         {/* ヘッダー */}
