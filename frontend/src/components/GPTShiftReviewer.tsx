@@ -43,6 +43,7 @@ import type {
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
 import useI18nStore from '../store/i18nStore';
 import { formatCurrency } from '../utils/calculations';
+import { useCalendarStore } from '../store/calendarStore';
 
 interface GPTShiftReviewerProps {
   analysisResult: ShiftAnalysisResult;
@@ -60,6 +61,7 @@ export const GPTShiftReviewer: React.FC<GPTShiftReviewerProps> = ({
   onBack,
 }) => {
   const { addShift } = useSimpleShiftStore();
+  const { importFromShifts } = useCalendarStore();
   const { language, country } = useI18nStore();
   const [shifts, setShifts] = useState<AnalyzedShift[]>(analysisResult.shifts);
   const [editingShift, setEditingShift] = useState<AnalyzedShift | null>(null);
@@ -113,6 +115,21 @@ export const GPTShiftReviewer: React.FC<GPTShiftReviewerProps> = ({
         status: 'confirmed', // 確定後は confirmed に変更
       });
     });
+
+    // カレンダーにも即時反映（重複インポートを避けるため、今回確定した分のみ）
+    importFromShifts(
+      shifts.map(s => ({
+        id: s.id,
+        date: s.date,
+        startTime: s.startTime,
+        endTime: s.endTime,
+        workplaceName: s.workplaceName,
+        hourlyRate: s.hourlyRate,
+        totalEarnings: s.totalEarnings,
+      }))
+    );
+    // 初回自動インポートとの二重反映を防止
+    localStorage.setItem('calendar-shifts-imported', 'true');
 
     onConfirm(shifts);
   };
