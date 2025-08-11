@@ -111,6 +111,12 @@ export const EventDialog: React.FC<EventDialogProps> = ({
     oneTimeOtherAllowances: 0,
     oneTimeBreakMinutes: 0,
     oneTimeMemo: '',
+    // 労働条件設定（通常シフト用）
+    overtimeEnabled: true,
+    dayOfWeekSettingsEnabled: false,
+    autoBreak6Hours: true,
+    autoBreak8Hours: true,
+    extraBreakMinutes: 0,
     // 通知・繰り返し設定
     notification: 'none' as NotificationTime,
     repeatFrequency: 'none' as RepeatFrequency,
@@ -145,6 +151,12 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         oneTimeOtherAllowances: editingEvent.oneTimeDetails?.otherAllowances || 0,
         oneTimeBreakMinutes: editingEvent.oneTimeDetails?.breakMinutes || 0,
         oneTimeMemo: editingEvent.oneTimeDetails?.memo || '',
+        // 新規追加フィールド（編集時はデフォルトを付与）
+        overtimeEnabled: true,
+        dayOfWeekSettingsEnabled: false,
+        autoBreak6Hours: true,
+        autoBreak8Hours: true,
+        extraBreakMinutes: 0,
         // 通知・繰り返し設定
         notification: editingEvent.notification || 'none',
         repeatFrequency: editingEvent.repeat?.frequency || 'none',
@@ -191,22 +203,43 @@ export const EventDialog: React.FC<EventDialogProps> = ({
     
     const start = parse(formData.startTime, 'HH:mm', new Date());
     const end = parse(formData.endTime, 'HH:mm', new Date());
-    let hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-    
-    // 休憩時間を引く
-    if (isOneTime && formData.oneTimeBreakMinutes) {
-      hours -= formData.oneTimeBreakMinutes / 60;
-    }
-    
-    const rate = isOneTime ? formData.oneTimeHourlyRate : formData.hourlyRate;
-    const baseEarnings = Math.floor(hours * rate);
-    
-    // 単発の場合は交通費とその他手当を追加
+    const totalMinutes = Math.max(0, (end.getTime() - start.getTime()) / (1000 * 60));
+
+    // 休憩時間の算出
+    let breakMinutes = 0;
     if (isOneTime) {
-      return baseEarnings + formData.oneTimeTransportFee + formData.oneTimeOtherAllowances;
+      breakMinutes += formData.oneTimeBreakMinutes || 0;
+    } else {
+      // 手動休憩
+      if (formData.extraBreakMinutes) breakMinutes += Math.max(0, Number(formData.extraBreakMinutes) || 0);
+      // 自動休憩（6h/8h）
+      const workHours = totalMinutes / 60;
+      if (formData.autoBreak8Hours && workHours > 8) {
+        breakMinutes += 60;
+      } else if (formData.autoBreak6Hours && workHours > 6) {
+        breakMinutes += 45;
+      }
     }
-    
-    return baseEarnings;
+
+    const actualMinutes = Math.max(0, totalMinutes - breakMinutes);
+    const actualHours = actualMinutes / 60;
+
+    const rate = isOneTime ? formData.oneTimeHourlyRate : formData.hourlyRate;
+    let earnings = Math.floor(actualHours * rate);
+
+    // 残業割増（8h超は1.25倍）
+    if (!isOneTime && formData.overtimeEnabled && actualHours > 8) {
+      const regularHours = 8;
+      const overtimeHours = actualHours - 8;
+      earnings = Math.floor(regularHours * rate + overtimeHours * rate * 1.25);
+    }
+
+    // 単発は交通費等を加算
+    if (isOneTime) {
+      earnings += (formData.oneTimeTransportFee || 0) + (formData.oneTimeOtherAllowances || 0);
+    }
+
+    return earnings;
   };
 
   // バイト先選択
@@ -605,6 +638,83 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 </Grid>
               </Box>
 
+              {/* 労働条件設定 */}
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  💼 労働条件設定
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.overtimeEnabled}
+                          onChange={(e) => setFormData(prev => ({ ...prev, overtimeEnabled: e.target.checked }))}
+                        />
+                      }
+                      label="残業割増25%（8時間超）"
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.dayOfWeekSettingsEnabled}
+                          onChange={(e) => setFormData(prev => ({ ...prev, dayOfWeekSettingsEnabled: e.target.checked }))}
+                        />
+                      }
+                      label="曜日別詳細設定"
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+
+              {/* 曜日別設定が有効な場合の休憩設定 */}
+              {formData.dayOfWeekSettingsEnabled && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    ⏱️ 休憩時間設定
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={formData.autoBreak6Hours}
+                            onChange={(e) => setFormData(prev => ({ ...prev, autoBreak6Hours: e.target.checked }))}
+                          />
+                        }
+                        label="6時間越えで45分休憩"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={formData.autoBreak8Hours}
+                            onChange={(e) => setFormData(prev => ({ ...prev, autoBreak8Hours: e.target.checked }))}
+                          />
+                        }
+                        label="8時間越えで60分休憩"
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label="追加休憩時間（分）"
+                        value={formData.extraBreakMinutes}
+                        onChange={(e) => {
+                          const value = Math.max(0, parseInt(e.target.value) || 0);
+                          setFormData(prev => ({ ...prev, extraBreakMinutes: value }));
+                        }}
+                        helperText="手動で追加する休憩時間を分単位で入力"
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
+
               {/* 予想収入表示 */}
               {formData.startTime && formData.endTime && formData.endTime > formData.startTime && (formData.workplaceId || isOneTime) && (
                 <Box sx={{ p: 2, bgcolor: 'success.lighter', borderRadius: 1, textAlign: 'center', mb: 2 }}>
@@ -615,10 +725,18 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     {(() => {
                       const start = new Date(`2000-01-01T${formData.startTime}`);
                       const end = new Date(`2000-01-01T${formData.endTime}`);
-                      const minutes = Math.max(0, (end.getTime() - start.getTime()) / 60000);
-                      const breakMinutes = isOneTime ? formData.oneTimeBreakMinutes : 0;
-                      const workMinutes = Math.max(0, minutes - breakMinutes);
-                      return `${t('calendar.event.workMinutes','勤務時間')}: ${Math.floor(workMinutes / 60)}${t('calendar.event.hours','時間')}${Math.floor(workMinutes % 60)}${t('calendar.event.minutes','分')}`;
+                      const totalMinutes = Math.max(0, (end.getTime() - start.getTime()) / 60000);
+                      let breakMinutes = 0;
+                      if (isOneTime) {
+                        breakMinutes += formData.oneTimeBreakMinutes || 0;
+                      } else {
+                        if (formData.extraBreakMinutes) breakMinutes += Math.max(0, Number(formData.extraBreakMinutes) || 0);
+                        const workHours = totalMinutes / 60;
+                        if (formData.autoBreak8Hours && workHours > 8) breakMinutes += 60;
+                        else if (formData.autoBreak6Hours && workHours > 6) breakMinutes += 45;
+                      }
+                      const workMinutes = Math.max(0, totalMinutes - breakMinutes);
+                      return `${t('calendar.event.workMinutes','勤務時間')}: ${Math.floor(totalMinutes / 60)}${t('calendar.event.hours','時間')}${Math.floor(totalMinutes % 60)}${t('calendar.event.minutes','分')} ／ 休憩: ${breakMinutes}分 → 実働: ${Math.floor(workMinutes / 60)}h`;
                     })()}
                   </Typography>
                 </Box>

@@ -52,6 +52,11 @@ export const useSimpleShiftStore = create<ShiftState>()(
         const newShift: Shift = {
           ...shiftData,
           id: `shift-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          // デフォルト値を設定
+          overtimeEnabled: shiftData.overtimeEnabled !== false, // デフォルト true
+          autoBreak6Hours: shiftData.autoBreak6Hours !== false, // デフォルト true
+          autoBreak8Hours: shiftData.autoBreak8Hours !== false, // デフォルト true
+          dayOfWeekSettingsEnabled: shiftData.dayOfWeekSettingsEnabled || false, // デフォルト false
         };
         
         // ローカル更新
