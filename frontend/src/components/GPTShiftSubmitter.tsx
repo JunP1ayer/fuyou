@@ -97,10 +97,8 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
           reader.readAsDataURL(imageFile);
         });
 
-        // GPT-5を使用してシフト表解析
-        const apiUrl = window.location.hostname === 'localhost' 
-          ? '/api/openai-vision' 
-          : 'https://fuyou-sigma.vercel.app/api/openai-vision';
+        // GPT-4oを使用してシフト表解析
+        const apiUrl = '/api/openai-vision'; // 常に相対パスを使用
         
         const response = await fetch(apiUrl, {
           method: 'POST',
@@ -133,13 +131,15 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
         });
 
         if (!response.ok) {
-          throw new Error(`GPT-5 API エラー: ${response.status}`);
+          const errorText = await response.text();
+          console.error('API Error:', errorText);
+          throw new Error(`GPT-4o API エラー: ${response.status} - ${errorText}`);
         }
 
         const gptResult = await response.json();
         
         if (!gptResult.success) {
-          throw new Error(`GPT-5解析に失敗しました: ${gptResult.error || 'Unknown error'}`);
+          throw new Error(`GPT-4o解析に失敗しました: ${gptResult.error || 'Unknown error'}`);
         }
 
         const shifts = gptResult.shifts || [];
