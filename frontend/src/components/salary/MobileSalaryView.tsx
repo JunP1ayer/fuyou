@@ -90,6 +90,7 @@ export const MobileSalaryView: React.FC = () => {
       
       // 目標設定
       priority: null, // 'maxIncome', 'keepDependency', 'balance'
+      autoRecommend: true,
       selectedLimit: null, // 自動計算される
     };
   });
@@ -132,8 +133,8 @@ export const MobileSalaryView: React.FC = () => {
   const calculateDependencyLimit = () => {
     const s = dependencyStatus || {};
 
-    // 手動選択がある場合は尊重
-    if (typeof s.selectedLimit === 'number') {
+    // 手動設定が有効な場合は尊重
+    if (s.autoRecommend === false && typeof s.selectedLimit === 'number') {
       return { limit: s.selectedLimit * 10000, type: `${s.selectedLimit}万円（手動）` };
     }
 
@@ -479,35 +480,6 @@ export const MobileSalaryView: React.FC = () => {
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               ¥{remainingInfo.monthlyAllowance.toLocaleString()}
-            </Typography>
-          </Box>
-
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-              3. 社会保険の加入条件（106万円の壁）
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Chip
-                label="週20時間以上"
-                color={dependencyStatus.weeklyHours20 ? 'primary' : 'default'}
-                variant={dependencyStatus.weeklyHours20 ? 'filled' : 'outlined'}
-                onClick={() => setDependencyStatus({ ...dependencyStatus, weeklyHours20: !dependencyStatus.weeklyHours20 })}
-              />
-              <Chip
-                label="雇用期間2か月超"
-                color={dependencyStatus.contractLength === 'over2m' ? 'primary' : 'default'}
-                variant={dependencyStatus.contractLength === 'over2m' ? 'filled' : 'outlined'}
-                onClick={() => setDependencyStatus({ ...dependencyStatus, contractLength: dependencyStatus.contractLength === 'over2m' ? 'under2m' : 'over2m' })}
-              />
-              <Chip
-                label="従業員51人以上"
-                color={dependencyStatus.officeSize51 === 'yes' ? 'primary' : 'default'}
-                variant={dependencyStatus.officeSize51 === 'yes' ? 'filled' : 'outlined'}
-                onClick={() => setDependencyStatus({ ...dependencyStatus, officeSize51: dependencyStatus.officeSize51 === 'yes' ? 'no' : 'yes' })}
-              />
-            </Box>
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              上記3条件がすべて当てはまると、会社の社保加入対象となる可能性が高まります
             </Typography>
           </Box>
           <Box>
@@ -876,40 +848,7 @@ export const MobileSalaryView: React.FC = () => {
             </Typography>
           </Box>
 
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-              3. 親の収入レベルは？（任意）
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Chip
-                label="〜400万円"
-                size="small"
-                color={dependencyStatus.parentIncome === 'low' ? "primary" : "default"}
-                variant={dependencyStatus.parentIncome === 'low' ? "filled" : "outlined"}
-                onClick={() => setDependencyStatus({...dependencyStatus, parentIncome: 'low'})}
-                sx={{ cursor: 'pointer' }}
-              />
-              <Chip
-                label="400〜800万円"
-                size="small"
-                color={dependencyStatus.parentIncome === 'middle' ? "primary" : "default"}
-                variant={dependencyStatus.parentIncome === 'middle' ? "filled" : "outlined"}
-                onClick={() => setDependencyStatus({...dependencyStatus, parentIncome: 'middle'})}
-                sx={{ cursor: 'pointer' }}
-              />
-              <Chip
-                label="800万円〜"
-                size="small"
-                color={dependencyStatus.parentIncome === 'high' ? "primary" : "default"}
-                variant={dependencyStatus.parentIncome === 'high' ? "filled" : "outlined"}
-                onClick={() => setDependencyStatus({...dependencyStatus, parentIncome: 'high'})}
-                sx={{ cursor: 'pointer' }}
-              />
-            </Box>
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              親の収入により扶養控除の影響が変わります
-            </Typography>
-          </Box>
+          {/* 親の収入や税知識に依存する質問は排除（ユーザーは何も知らない前提） */}
 
           <Box sx={{ p: 2, bgcolor: 'info.lighter', borderRadius: 1 }}>
             <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
@@ -921,6 +860,18 @@ export const MobileSalaryView: React.FC = () => {
             <Typography variant="caption" color="text.secondary">
               月平均: 約{Math.floor(dependencyStatus.selectedLimit * 10000 / 12).toLocaleString()}円
             </Typography>
+          </Box>
+          {/* 自動/手動 切替 */}
+          <Box sx={{ mt: 1 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={dependencyStatus.autoRecommend}
+                  onChange={(_, checked) => setDependencyStatus({ ...dependencyStatus, autoRecommend: checked })}
+                />
+              }
+              label={dependencyStatus.autoRecommend ? '自動おすすめに基づいて推奨' : '手動で上限を指定する'}
+            />
           </Box>
         </DialogContent>
         <DialogActions>
