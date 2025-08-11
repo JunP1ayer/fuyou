@@ -100,6 +100,26 @@ export const LanguageSelectionScreen: React.FC = () => {
                   />
                 </Box>
 
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    color: '#999',
+                    fontSize: '0.85rem',
+                    mb: 0.5,
+                    display: 'block',
+                  }}
+                >
+                  設定からいつでも変更できます
+                </Typography>
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    color: '#aaa',
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  You can change this anytime in settings
+                </Typography>
               </motion.div>
             </CardContent>
           </Card>
