@@ -165,12 +165,11 @@ export const AuthForm: React.FC<AuthFormProps> = ({
         sx={{
           maxWidth: 420,
           mx: 'auto',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          boxShadow: 'none',
           borderRadius: 4,
           overflow: 'hidden',
-          background: 'rgba(255,255,255,0.95)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.2)',
+          background: 'transparent',
+          border: 'none',
           maxHeight: '95vh',
           overflowY: 'auto',
         }}
