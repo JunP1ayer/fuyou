@@ -4,12 +4,19 @@
   "installCommand": "cd frontend && npm ci",
   "rewrites": [
     {
-      "source": "/react",
+      "source": "/(.*)",
       "destination": "/index.html"
-    },
+    }
+  ],
+  "headers": [
     {
-      "source": "/react/(.*)",
-      "destination": "/index.html"
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ]
     }
   ]
 }
