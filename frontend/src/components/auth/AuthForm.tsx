@@ -34,6 +34,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { LanguageDropdown } from '../common/LanguageDropdown';
 import type { LoginCredentials, SignupCredentials, AuthError } from '../../types/auth';
 
 interface AuthFormProps {
@@ -170,11 +171,16 @@ export const AuthForm: React.FC<AuthFormProps> = ({
         <Box
           sx={{
             textAlign: 'center',
-            py: 4,
+            py: 3,
             px: 3,
             position: 'relative',
           }}
         >
+          {/* 言語選択ドロップダウン */}
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+            <LanguageDropdown variant="outlined" showCurrentFlag />
+          </Box>
+          
           <Typography 
             variant="h4" 
             sx={{ 
@@ -283,7 +289,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                   <TextField
                     fullWidth
                     type="email"
-                    label="メールアドレス"
+                    label={t('auth.email', 'メールアドレス')}
                     placeholder="your@email.com"
                     value={loginForm.email}
                     onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
@@ -294,7 +300,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                   <TextField
                     fullWidth
                     type={showPassword ? 'text' : 'password'}
-                    label="パスワード"
+                    label={t('auth.password', 'パスワード')}
                     placeholder="••••••••"
                     value={loginForm.password}
                     onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
@@ -330,7 +336,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                         },
                       }}
                     >
-                      パスワードを忘れた方
+{t('auth.forgotPassword', 'パスワードを忘れた方')}
                     </Link>
                   </Box>
 
@@ -360,7 +366,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                       transition: 'all 0.2s ease',
                     }}
                   >
-                    {loading ? <CircularProgress size={24} color="inherit" /> : 'ログイン'}
+{loading ? <CircularProgress size={24} color="inherit" /> : t('auth.loginButton', 'ログイン')}
                   </Button>
                 </Box>
               </motion.div>
@@ -375,7 +381,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                 <Box component="form" onSubmit={handleSignup} sx={{ space: 2 }}>
                   <TextField
                     fullWidth
-                    label="お名前"
+                    label={t('auth.name', 'お名前')}
                     placeholder="山田 太郎"
                     value={signupForm.name}
                     onChange={(e) => setSignupForm(prev => ({ ...prev, name: e.target.value }))}
@@ -386,7 +392,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                   <TextField
                     fullWidth
                     type="email"
-                    label="メールアドレス"
+                    label={t('auth.email', 'メールアドレス')}
                     placeholder="your@email.com"
                     value={signupForm.email}
                     onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
@@ -397,7 +403,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                   <TextField
                     fullWidth
                     type={showPassword ? 'text' : 'password'}
-                    label="パスワード"
+                    label={t('auth.password', 'パスワード')}
                     value={signupForm.password}
                     onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
                     placeholder="••••••••"
@@ -414,7 +420,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                         </InputAdornment>
                       ),
                     }}
-                    helperText="8文字以上、大文字・数字を含む"
+                    helperText={t('auth.passwordHelper', '8文字以上、大文字・数字を含む')}
                     sx={{ ...textFieldSx, mb: 2 }}
                     required
                   />
@@ -422,7 +428,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                   <TextField
                     fullWidth
                     type={showConfirmPassword ? 'text' : 'password'}
-                    label="パスワード（確認）"
+                    label={t('auth.confirmPassword', 'パスワード（確認）')}
                     placeholder="••••••••"
                     value={signupForm.confirmPassword}
                     onChange={(e) => setSignupForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
@@ -469,7 +475,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                       transition: 'all 0.2s ease',
                     }}
                   >
-                    {loading ? <CircularProgress size={24} color="inherit" /> : 'アカウント作成'}
+{loading ? <CircularProgress size={24} color="inherit" /> : t('auth.createAccount', 'アカウント作成')}
                   </Button>
                 </Box>
               </motion.div>
@@ -482,8 +488,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
             textAlign="center"
             sx={{ mt: 3, fontSize: '0.8rem' }}
           >
-            {currentTab === 'login' ? 'ログイン' : 'アカウント作成'}により、
-            <br />利用規約とプライバシーポリシーに同意するものとします
+{t('auth.agreement', 'ログインにより、利用規約とプライバシーポリシーに同意するものとします')}
           </Typography>
         </CardContent>
       </Card>

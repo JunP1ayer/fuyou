@@ -9,6 +9,7 @@ import {
   format,
   isToday,
 } from 'date-fns';
+import { useI18n } from '@/hooks/useI18n';
 
 interface MonthGridProps {
   month: Date;
@@ -19,6 +20,7 @@ export const MonthGrid: React.FC<MonthGridProps> = ({
   month,
   weekStartsOnMonday,
 }) => {
+  const { t } = useI18n();
   const monthStart = startOfMonth(month);
   const monthEnd = endOfMonth(month);
   const weekStartsOn = weekStartsOnMonday ? 1 : 0;
@@ -31,9 +33,10 @@ export const MonthGrid: React.FC<MonthGridProps> = ({
     weeks.push(days.slice(i, i + 7));
   }
 
+  const weekdayKeys = [0,1,2,3,4,5,6].map((d) => t(`calendar.weekdays.${d}`, ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d]));
   const weekLabels = weekStartsOnMonday
-    ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    ? [...weekdayKeys.slice(1), weekdayKeys[0]]
+    : weekdayKeys;
 
   return (
     <Box sx={{ mb: 3 }}>

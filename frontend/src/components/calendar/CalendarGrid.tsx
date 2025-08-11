@@ -13,10 +13,11 @@ import {
   isSameMonth,
   isToday
 } from 'date-fns';
+import { useI18n } from '@/hooks/useI18n';
 import { useCalendarStore } from '../../store/calendarStore';
 import type { CalendarEvent } from '../../types/calendar';
 
-const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+const WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土'];
 
 // イベントチップコンポーネント
 const EventChip: React.FC<{ event: CalendarEvent }> = ({ event }) => {
@@ -53,6 +54,7 @@ interface CalendarGridProps {
 export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { t } = useI18n();
   const [viewMode, setViewMode] = useState<'vertical' | 'horizontal'>('vertical');
   const { 
     currentMonth, 
@@ -106,7 +108,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
       {!(isMobile && viewMode === 'vertical') && (
         <Box sx={{ height: '30px', flexShrink: 0 }}>
           <Grid container spacing={0} sx={{ height: '100%' }}>
-            {WEEKDAYS.map((day, index) => (
+            {[0,1,2,3,4,5,6].map((dow, index) => {
+              const day = t(`calendar.weekdays.${dow}`, WEEKDAYS_JA[dow]);
+              return (
               <Grid item xs key={day}>
                 <Box
                   sx={{
@@ -129,7 +133,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                   {day}
                 </Box>
               </Grid>
-            ))}
+            );})}
           </Grid>
         </Box>
       )}
@@ -182,10 +186,12 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                   {/* 曜日ヘッダー（各月ごと） */}
                   <Box sx={{ height: '40px', flexShrink: 0, backgroundColor: 'grey.50' }}>
                     <Grid container spacing={0} sx={{ height: '100%' }}>
-                      {WEEKDAYS.map((day, index) => (
-                        <Grid item xs key={day}>
-                          <Box
-                            sx={{
+                      {[0,1,2,3,4,5,6].map((dow, index) => {
+                        const day = t(`calendar.weekdays.${dow}`, WEEKDAYS_JA[dow]);
+                        return (
+                          <Grid item xs key={day}>
+                            <Box
+                              sx={{
                               height: '100%',
                               display: 'flex',
                               alignItems: 'center',
@@ -200,12 +206,13 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                                     : 'text.secondary',
                               borderBottom: '1px solid',
                               borderColor: 'divider',
-                            }}
-                          >
-                            {day}
-                          </Box>
-                        </Grid>
-                      ))}
+                              }}
+                            >
+                              {day}
+                            </Box>
+                          </Grid>
+                        );
+                      })}
                     </Grid>
                   </Box>
                 </>

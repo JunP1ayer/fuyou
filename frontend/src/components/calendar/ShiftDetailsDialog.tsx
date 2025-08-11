@@ -27,6 +27,7 @@ import {
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { useI18n } from '@/hooks/useI18n';
 
 import type { Shift } from '../../types/index';
 import { formatCurrency, formatDuration } from '../../utils/calculations';
@@ -47,6 +48,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
   onDelete,
 }) => {
   const theme = useTheme();
+  const { t } = useI18n();
 
   if (!shift) return null;
 
@@ -54,7 +56,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
   const workDuration = formatDuration(shift.actualWorkMinutes);
   const breakDuration = shift.breakMinutes
     ? formatDuration(shift.breakMinutes)
-    : 'なし';
+    : t('common.none', 'なし');
 
   return (
     <Dialog
@@ -82,7 +84,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
       >
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5 }}>
-            シフト詳細
+            {t('calendar.shift.detailsTitle', 'シフト詳細')}
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.9 }}>
             {format(shiftDate, 'yyyy年M月d日(E)', { locale: ja })}
@@ -99,14 +101,14 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
           {/* ステータスチップ */}
           <Box sx={{ mb: 3, display: 'flex', gap: 1, alignItems: 'center' }}>
             <Chip
-              label={shift.status === 'confirmed' ? '確定' : '仮'}
+              label={shift.status === 'confirmed' ? t('calendar.shift.confirmed', '確定') : t('calendar.shift.tentative', '仮')}
               color={shift.status === 'confirmed' ? 'success' : 'warning'}
               sx={{ fontWeight: 600 }}
             />
             {shift.notes && (
               <Chip
                 icon={<Notes />}
-                label="メモあり"
+                label={t('calendar.shift.hasMemo', 'メモあり')}
                 variant="outlined"
                 size="small"
               />
@@ -123,7 +125,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <Business sx={{ mr: 1, color: 'text.secondary' }} />
                 <Typography variant="subtitle2" color="text.secondary">
-                  勤務先
+                  {t('calendar.shift.workplace', '勤務先')}
                 </Typography>
               </Box>
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -144,7 +146,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <AccessTime sx={{ mr: 1, color: 'text.secondary' }} />
                 <Typography variant="subtitle2" color="text.secondary">
-                  勤務時間
+                  {t('calendar.shift.time', '勤務時間')}
                 </Typography>
               </Box>
 
@@ -157,7 +159,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
               >
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    開始時間
+                    {t('calendar.shift.start', '開始時間')}
                   </Typography>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {shift.startTime}
@@ -165,7 +167,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
                 </Box>
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    終了時間
+                    {t('calendar.shift.end', '終了時間')}
                   </Typography>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {shift.endTime}
@@ -173,7 +175,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
                 </Box>
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    労働時間
+                    {t('calendar.shift.workDuration', '労働時間')}
                   </Typography>
                   <Typography
                     variant="h6"
@@ -184,7 +186,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
                 </Box>
                 <Box>
                   <Typography variant="body2" color="text.secondary">
-                    休憩時間
+                    {t('calendar.shift.breakDuration', '休憩時間')}
                   </Typography>
                   <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     {breakDuration}
@@ -206,7 +208,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <Payment sx={{ mr: 1, color: 'text.secondary' }} />
                 <Typography variant="subtitle2" color="text.secondary">
-                  給料詳細
+                  {t('calendar.shift.payment', '給料詳細')}
                 </Typography>
               </Box>
 
@@ -234,7 +236,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
                   color="text.secondary"
                   sx={{ textAlign: 'center' }}
                 >
-                  時給 {formatCurrency(shift.hourlyRate)} × {workDuration}
+                  {t('calendar.shift.hourlyRate', '時給')} {formatCurrency(shift.hourlyRate)} × {workDuration}
                 </Typography>
               </Box>
             </Box>
@@ -249,12 +251,12 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
             >
               <Divider sx={{ my: 2 }} />
               <Box>
-                <Typography
+                  <Typography
                   variant="subtitle2"
                   color="text.secondary"
                   sx={{ mb: 1 }}
                 >
-                  メモ
+                    {t('calendar.shift.memo', 'メモ')}
                 </Typography>
                 <Box
                   sx={{
@@ -288,7 +290,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
               onClick={onEdit}
               sx={{ borderRadius: 2 }}
             >
-              編集
+              {t('common.edit', '編集')}
             </Button>
           )}
           {onDelete && (
@@ -299,7 +301,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
               onClick={onDelete}
               sx={{ borderRadius: 2 }}
             >
-              削除
+              {t('common.delete', '削除')}
             </Button>
           )}
         </Box>
@@ -313,7 +315,7 @@ export const ShiftDetailsDialog: React.FC<ShiftDetailsDialogProps> = ({
             background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
           }}
         >
-          閉じる
+          {t('common.close', '閉じる')}
         </Button>
       </DialogActions>
     </Dialog>

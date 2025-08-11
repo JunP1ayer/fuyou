@@ -673,23 +673,23 @@ export const EventDialog: React.FC<EventDialogProps> = ({
           )}
         </TabPanel>
 
-        {/* 個人タブ */}
+          {/* 個人タブ */}
         <TabPanel value={tabValue} index={1}>
           {/* タイトル入力 */}
           <TextField
             fullWidth
-            label="タイトル"
+              label={t('calendar.event.title', 'タイトル')}
             value={formData.title}
             onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-            placeholder="例: 友達と遊ぶ、英語の勉強、病院など"
+              placeholder={t('calendar.event.title.placeholder', '例: 友達と遊ぶ、英語の勉強、病院など')}
             sx={{ mb: 2 }}
           />
 
           {/* 色選択 */}
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              色を選択
-            </Typography>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                {t('calendar.event.pickColor', '色を選択')}
+              </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               {[
                 { key: 'orange', label: 'オレンジ', color: '#FFB74D' },
@@ -724,7 +724,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
           </Box>
 
           {/* iPhone風設定リスト */}
-          <List 
+            <List 
             sx={{ 
               border: '1px solid', 
               borderColor: 'divider', 
@@ -740,7 +740,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 <Notifications sx={{ fontSize: 20, color: 'text.secondary' }} />
               </ListItemIcon>
               <ListItemText 
-                primary="通知" 
+                  primary={t('calendar.event.notification', '通知')} 
                 sx={{ '& .MuiTypography-root': { fontWeight: 500 } }}
               />
               <FormControl sx={{ minWidth: 120 }}>
@@ -757,16 +757,16 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     }
                   }}
                 >
-                  <MenuItem value="none">なし</MenuItem>
-                  <MenuItem value="0">イベント開始時</MenuItem>
-                  <MenuItem value="5">5分前</MenuItem>
-                  <MenuItem value="10">10分前</MenuItem>
-                  <MenuItem value="15">15分前</MenuItem>
-                  <MenuItem value="30">30分前</MenuItem>
-                  <MenuItem value="60">1時間前</MenuItem>
-                  <MenuItem value="120">2時間前</MenuItem>
-                  <MenuItem value="1440">1日前</MenuItem>
-                  <MenuItem value="2880">2日前</MenuItem>
+                    <MenuItem value="none">{t('common.none', 'なし')}</MenuItem>
+                    <MenuItem value="0">{t('calendar.event.notify.atStart', 'イベント開始時')}</MenuItem>
+                    <MenuItem value="5">{t('calendar.event.notify.5', '5分前')}</MenuItem>
+                    <MenuItem value="10">{t('calendar.event.notify.10', '10分前')}</MenuItem>
+                    <MenuItem value="15">{t('calendar.event.notify.15', '15分前')}</MenuItem>
+                    <MenuItem value="30">{t('calendar.event.notify.30', '30分前')}</MenuItem>
+                    <MenuItem value="60">{t('calendar.event.notify.60', '1時間前')}</MenuItem>
+                    <MenuItem value="120">{t('calendar.event.notify.120', '2時間前')}</MenuItem>
+                    <MenuItem value="1440">{t('calendar.event.notify.1440', '1日前')}</MenuItem>
+                    <MenuItem value="2880">{t('calendar.event.notify.2880', '2日前')}</MenuItem>
                 </Select>
               </FormControl>
               <ChevronRight sx={{ fontSize: 16, color: 'text.disabled', ml: 1 }} />
@@ -780,7 +780,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 <Repeat sx={{ fontSize: 20, color: 'text.secondary' }} />
               </ListItemIcon>
               <ListItemText 
-                primary="繰り返し" 
+                primary={t('calendar.event.repeat', '繰り返し')} 
                 sx={{ '& .MuiTypography-root': { fontWeight: 500 } }}
               />
               <FormControl sx={{ minWidth: 120 }}>
@@ -797,11 +797,11 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     }
                   }}
                 >
-                  <MenuItem value="none">なし</MenuItem>
-                  <MenuItem value="daily">毎日</MenuItem>
-                  <MenuItem value="weekly">毎週</MenuItem>
-                  <MenuItem value="monthly">毎月</MenuItem>
-                  <MenuItem value="yearly">毎年</MenuItem>
+                  <MenuItem value="none">{t('common.none', 'なし')}</MenuItem>
+                  <MenuItem value="daily">{t('calendar.event.daily', '毎日')}</MenuItem>
+                  <MenuItem value="weekly">{t('calendar.event.weekly', '毎週')}</MenuItem>
+                  <MenuItem value="monthly">{t('calendar.event.monthly', '毎月')}</MenuItem>
+                  <MenuItem value="yearly">{t('calendar.event.yearly', '毎年')}</MenuItem>
                 </Select>
               </FormControl>
               <ChevronRight sx={{ fontSize: 16, color: 'text.disabled', ml: 1 }} />
@@ -819,7 +819,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                   onChange={(e) => setFormData(prev => ({ ...prev, isAllDay: e.target.checked }))}
                 />
               }
-              label="終日"
+              label={t('calendar.event.allDay', '終日')}
               sx={{ mb: 2 }}
             />
             
@@ -829,7 +829,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                   <TextField
                     fullWidth
                     type="time"
-                    label="開始時間"
+                    label={t('calendar.event.startTime', '開始時間')}
                     value={formData.startTime}
                     onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
                     InputLabelProps={{ shrink: true }}
@@ -840,7 +840,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                   <TextField
                     fullWidth
                     type="time"
-                    label="終了時間"
+                    label={t('calendar.event.endTime', '終了時間')}
                     value={formData.endTime}
                     onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
                     InputLabelProps={{ shrink: true }}
@@ -854,10 +854,10 @@ export const EventDialog: React.FC<EventDialogProps> = ({
               fullWidth
               multiline
               rows={2}
-              label="メモ"
+              label={t('calendar.event.memo', 'メモ')}
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="詳細をメモ"
+              placeholder={t('calendar.event.memo.placeholder', '詳細をメモ')}
             />
           </Box>
         )}
@@ -866,11 +866,11 @@ export const EventDialog: React.FC<EventDialogProps> = ({
       <DialogActions>
         {editingEvent && (
           <Button onClick={handleDelete} color="error">
-            削除
+            {t('common.delete', '削除')}
           </Button>
         )}
         <Box sx={{ flex: 1 }} />
-        <Button onClick={closeEventDialog}>キャンセル</Button>
+        <Button onClick={closeEventDialog}>{t('common.cancel', 'キャンセル')}</Button>
         <Button 
           onClick={handleSave} 
           variant="contained"
@@ -883,7 +883,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
             (eventType === 'personal' && !formData.isAllDay && formData.startTime && formData.endTime && formData.endTime <= formData.startTime)
           }
         >
-          保存
+          {t('common.save', '保存')}
         </Button>
       </DialogActions>
     </Dialog>

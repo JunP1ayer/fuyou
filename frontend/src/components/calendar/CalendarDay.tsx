@@ -4,6 +4,7 @@ import React from 'react';
 import { Box, Typography, Chip, useTheme, alpha } from '@mui/material';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
+import { useI18n } from '@/hooks/useI18n';
 
 import type { Shift } from '../../types/index';
 import { formatCurrency } from '../../utils/calculations';
@@ -28,6 +29,7 @@ export const CalendarDay: React.FC<CalendarDayProps> = ({
   onShiftClick,
 }) => {
   const theme = useTheme();
+  const { t } = useI18n();
 
   // 日の総収入を計算
   const totalEarnings = shifts.reduce(
@@ -103,20 +105,12 @@ export const CalendarDay: React.FC<CalendarDayProps> = ({
         <Typography
           variant="body2"
           sx={{
-            fontSize: { xs: '1.5rem', md: '2rem' }, // 大きくして目立たせる
-            fontWeight: 900, // 太字
+            fontSize: { xs: '0.9rem', md: '1rem' },
+            fontWeight: 700,
             lineHeight: 1,
-            textAlign: 'center',
+            textAlign: 'left',
             mb: 0.5,
-            color: '#FF0000 !important', // 強制的に赤色
-            backgroundColor: 'yellow', // 背景も黄色にして確実に見える
-            border: '3px solid blue', // 青い境界線
-            borderRadius: '50%',
-            width: '40px',
-            height: '40px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            color: 'inherit',
           }}
         >
           {format(date, 'd')}
@@ -190,7 +184,7 @@ export const CalendarDay: React.FC<CalendarDayProps> = ({
                   fontWeight: 500,
                 }}
               >
-                +{shifts.length - 2}件
+                +{shifts.length - 2}{t('calendar.items', '件')}
               </Typography>
             )}
           </Box>

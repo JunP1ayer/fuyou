@@ -35,6 +35,7 @@ import {
   isSameDay,
 } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { useI18n } from '@/hooks/useI18n';
 
 import { useShiftStore } from '../../store/shiftStore';
 import { formatCurrency } from '../../utils/calculations';
@@ -46,6 +47,7 @@ import type { Shift } from '../../types/index';
 export const CalendarView: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { t } = useI18n();
   const {
     shifts,
     selectedDate,
@@ -201,7 +203,7 @@ export const CalendarView: React.FC = () => {
     setDetailsDialogOpen(true);
   };
 
-  const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+  const weekDays = [0,1,2,3,4,5,6].map((dow) => t(`calendar.weekdays.${dow}`, ['日','月','火','水','木','金','土'][dow]));
 
   return (
     <Box sx={{ p: { xs: 1, md: 2 }, height: '100%' }}>
@@ -243,7 +245,7 @@ export const CalendarView: React.FC = () => {
                 variant="h4"
                 sx={{ fontWeight: 700, textAlign: 'center', color: 'red' }}
               >
-                🔥 テスト中 🔥 {format(currentMonth, 'yyyy年M月', { locale: ja })}
+                🔥 {t('calendar.testing', 'テスト中')} 🔥 {format(currentMonth, 'yyyy年M月', { locale: ja })}
               </Typography>
               {/* Debug: Layout info */}
               <Typography
@@ -256,7 +258,7 @@ export const CalendarView: React.FC = () => {
                   mt: 0.5 
                 }}
               >
-                {calendarLayout.weeks}週間 | {calendarLayout.isCompact ? 'コンパクト' : calendarLayout.isMedium ? '標準' : '拡張'} | 高さ: {calendarLayout.dayMinHeight}px | {calendarLayout.isOptimizedLayout ? '最適化済み' : '標準レイアウト'}
+                {calendarLayout.weeks}{t('calendar.weeks','週間')} | {calendarLayout.isCompact ? t('calendar.layout.compact','コンパクト') : calendarLayout.isMedium ? t('calendar.layout.standard','標準') : t('calendar.layout.expanded','拡張')} | {t('calendar.height','高さ')}: {calendarLayout.dayMinHeight}px | {calendarLayout.isOptimizedLayout ? t('calendar.layout.optimized','最適化済み') : t('calendar.layout.normal','標準レイアウト')}
               </Typography>
             </motion.div>
 
@@ -404,7 +406,7 @@ export const CalendarView: React.FC = () => {
       </Card>
 
       {/* FAB - シフト追加 */}
-      <Tooltip title="シフトを追加" placement="left">
+      <Tooltip title={t('calendar.addShift','シフトを追加')} placement="left">
         <Fab
           color="primary"
           onClick={() => setShiftFormOpen(true)}
@@ -428,7 +430,7 @@ export const CalendarView: React.FC = () => {
       </Tooltip>
 
       {/* 収入トレンド FAB */}
-      <Tooltip title="収入詳細" placement="left">
+      <Tooltip title={t('calendar.earningsDetail','収入詳細')} placement="left">
         <Fab
           size="medium"
           sx={{

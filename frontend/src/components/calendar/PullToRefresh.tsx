@@ -4,6 +4,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Box, Typography, CircularProgress, useTheme } from '@mui/material';
 import { motion, PanInfo, useAnimation } from 'framer-motion';
 import { Refresh } from '@mui/icons-material';
+import { useI18n } from '@/hooks/useI18n';
 
 interface PullToRefreshProps {
   onRefresh: () => Promise<void>;
@@ -19,6 +20,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
   disabled = false,
 }) => {
   const theme = useTheme();
+  const { t } = useI18n();
   const [isPulling, setIsPulling] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
@@ -139,10 +141,10 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
             }}
           >
             {isRefreshing 
-              ? '更新中...' 
+              ? t('pullToRefresh.refreshing', '更新中...') 
               : shouldTriggerRefresh 
-                ? '離して更新' 
-                : 'プルして更新'
+                ? t('pullToRefresh.releaseToRefresh', '離して更新') 
+                : t('pullToRefresh.pullToRefresh', 'プルして更新')
             }
           </Typography>
         </Box>

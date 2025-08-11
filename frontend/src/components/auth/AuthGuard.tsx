@@ -13,7 +13,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { AuthForm } from './AuthForm';
-import { LanguageSelector } from './LanguageSelector';
+import { LanguageSelectionScreen } from './LanguageSelectionScreen';
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -100,7 +100,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   requireAuth = true,
 }) => {
   const { user, loading, initialized } = useAuth();
-  const { isLanguageSelected, setLanguage, t } = useLanguage();
+  const { t, isLanguageSelected } = useLanguage();
 
   // 初期化中
   if (!initialized) {
@@ -112,25 +112,9 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     return <LoadingScreen message={t('loading.processing', '処理中です...')} />;
   }
 
-  // 言語が選択されていない場合
+  // 言語選択がまだの場合
   if (!isLanguageSelected) {
-    return (
-      <Dialog
-        open
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            overflow: 'visible',
-          },
-        }}
-      >
-        <DialogContent sx={{ p: 0 }}>
-          <LanguageSelector onLanguageSelect={setLanguage} />
-        </DialogContent>
-      </Dialog>
-    );
+    return <LanguageSelectionScreen />;
   }
 
   // 認証が必要だが未認証の場合

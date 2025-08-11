@@ -25,6 +25,7 @@ import {
   Event,
 } from '@mui/icons-material';
 import { useCalendarStore } from '../../store/calendarStore';
+import { useI18n } from '@/hooks/useI18n';
 import type { BottomNavTab, CalendarViewMode } from '../../types/calendar';
 
 interface BottomNavigationProps {
@@ -41,6 +42,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   const { selectedTab, setSelectedTab, viewMode, setViewMode, openEventDialog } = useCalendarStore();
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const { t } = useI18n();
 
   // タブ切り替え処理
   const handleTabChange = (event: React.SyntheticEvent, newValue: BottomNavTab) => {
@@ -69,7 +71,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   const speedDialActions = [
     { 
       icon: <Event />, 
-      name: '予定を追加',
+      name: t('calendar.event.newTitle', '新しい予定を追加'),
       onClick: () => {
         const today = new Date().toISOString().split('T')[0];
         openEventDialog(today);
@@ -78,7 +80,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
     },
     { 
       icon: <CalendarMonth />, 
-      name: '月表示',
+      name: t('calendar.view.month', '月表示'),
       onClick: () => {
         setViewMode('month');
         setSpeedDialOpen(false);
@@ -86,7 +88,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
     },
     { 
       icon: <ViewWeek />, 
-      name: '週表示',
+      name: t('calendar.view.week', '週表示'),
       onClick: () => {
         setViewMode('week');
         setSpeedDialOpen(false);
@@ -94,7 +96,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
     },
     { 
       icon: <ViewDay />, 
-      name: '日表示',
+      name: t('calendar.view.day', '日表示'),
       onClick: () => {
         setViewMode('day');
         setSpeedDialOpen(false);
@@ -102,7 +104,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
     },
     { 
       icon: <ViewList />, 
-      name: 'リスト表示',
+      name: t('calendar.view.list', 'リスト表示'),
       onClick: () => {
         setViewMode('list');
         setSpeedDialOpen(false);
@@ -140,17 +142,17 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           }}
         >
           <BottomNavigationAction
-            label="シフト"
+            label={t('nav.calendar', 'カレンダー')}
             value="shift"
             icon={<CalendarMonth />}
           />
           <BottomNavigationAction
-            label="給料管理"
+            label={t('nav.salary', '給料')}
             value="salary"
             icon={<AttachMoney />}
           />
           <BottomNavigationAction
-            label="バイト管理"
+            label={t('workplace.manager.title', 'バイト先管理')}
             value="workplace"
             icon={<Business />}
           />
@@ -198,7 +200,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           <ListItemIcon>
             <Event fontSize="small" />
           </ListItemIcon>
-          <ListItemText>予定を追加</ListItemText>
+          <ListItemText>{t('calendar.event.newTitle', '新しい予定を追加')}</ListItemText>
         </MenuItem>
         
         <MenuItem
@@ -211,7 +213,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           <ListItemIcon>
             <CalendarMonth fontSize="small" />
           </ListItemIcon>
-          <ListItemText>月表示</ListItemText>
+          <ListItemText>{t('calendar.view.month', '月表示')}</ListItemText>
         </MenuItem>
         
         <MenuItem
@@ -224,7 +226,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           <ListItemIcon>
             <ViewWeek fontSize="small" />
           </ListItemIcon>
-          <ListItemText>週表示</ListItemText>
+          <ListItemText>{t('calendar.view.week', '週表示')}</ListItemText>
         </MenuItem>
         
         <MenuItem
@@ -237,7 +239,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           <ListItemIcon>
             <ViewDay fontSize="small" />
           </ListItemIcon>
-          <ListItemText>日表示</ListItemText>
+          <ListItemText>{t('calendar.view.day', '日表示')}</ListItemText>
         </MenuItem>
         
         <MenuItem
@@ -250,7 +252,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
           <ListItemIcon>
             <ViewList fontSize="small" />
           </ListItemIcon>
-          <ListItemText>リスト表示</ListItemText>
+          <ListItemText>{t('calendar.view.list', 'リスト表示')}</ListItemText>
         </MenuItem>
       </Menu>
     </>

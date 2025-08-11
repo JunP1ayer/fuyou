@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import { Box, Typography, useTheme, alpha } from '@mui/material';
+import { useI18n } from '@/hooks/useI18n';
 import { motion, PanInfo, useAnimation } from 'framer-motion';
 import { CalendarGrid } from './CalendarGrid';
 import { CalendarHeader } from './CalendarHeader';
@@ -14,6 +15,7 @@ interface SwipeableCalendarProps {
 export const SwipeableCalendar: React.FC<SwipeableCalendarProps> = ({ onDateClick }) => {
   const theme = useTheme();
   const { currentMonth, navigateMonth } = useCalendarStore();
+  const { t } = useI18n();
   const [isDragging, setIsDragging] = useState(false);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -91,7 +93,7 @@ export const SwipeableCalendar: React.FC<SwipeableCalendarProps> = ({ onDateClic
           }}
         >
           <Typography variant="body2" color="text.secondary">
-            ← 前月 | 次月 →
+            ← {t('calendar.prevMonth', '前月')} | {t('calendar.nextMonth', '次月')} →
           </Typography>
         </Box>
       )}

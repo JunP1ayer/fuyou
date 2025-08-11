@@ -18,6 +18,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useCalendarStore } from '../../store/calendarStore';
+import { useI18n } from '@/hooks/useI18n';
 
 export type NewTabValue = 'shift' | 'salary' | 'workplace' | 'share';
 
@@ -35,6 +36,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { openEventDialog } = useCalendarStore();
+  const { t } = useI18n();
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: NewTabValue) => {
     onTabChange(newValue);
@@ -74,7 +76,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
         onClick={() => onTabChange('shift')}
       >
         <CalendarMonth />
-        <Box sx={{ fontSize: 12, mt: 0.5 }}>シフト</Box>
+        <Box sx={{ fontSize: 12, mt: 0.5 }}>{t('nav.calendar','カレンダー')}</Box>
       </Box>
 
       {/* 給料 */}
@@ -89,7 +91,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
         onClick={() => onTabChange('salary')}
       >
         <AttachMoney />
-        <Box sx={{ fontSize: 12, mt: 0.5 }}>給料</Box>
+        <Box sx={{ fontSize: 12, mt: 0.5 }}>{t('nav.salary','給料')}</Box>
       </Box>
 
       {/* 中央の追加ボタン */}
@@ -117,7 +119,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
         onClick={() => onTabChange('workplace')}
       >
         <Business />
-        <Box sx={{ fontSize: 12, mt: 0.5 }}>バイト先</Box>
+        <Box sx={{ fontSize: 12, mt: 0.5 }}>{t('workplace.manager.title','バイト先管理')}</Box>
       </Box>
 
       {/* 共有 */}
@@ -132,7 +134,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
         onClick={() => onTabChange('share')}
       >
         <Share />
-        <Box sx={{ fontSize: 12, mt: 0.5 }}>共有</Box>
+        <Box sx={{ fontSize: 12, mt: 0.5 }}>{t('friends.share','スケジュール共有')}</Box>
       </Box>
     </Box>
   );
