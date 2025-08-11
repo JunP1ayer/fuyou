@@ -255,8 +255,52 @@ export const WorkplaceManager: React.FC = () => {
     const actualMinutes = Math.max(0, totalMinutes - breakMinutes);
     const actualHours = actualMinutes / 60;
 
-    // 基本時給
-    const baseRate = rate;
+    // 基本時給の決定（時間帯別・曜日別時給設定を考慮）
+    let baseRate = rate;
+    
+    // 曜日別時給設定の適用
+    if (formData.weekdayRatesEnabled && formData.weekdayRates) {
+      // サンプル計算では月曜日として計算
+      const mondayRate = formData.weekdayRates.monday;
+      if (mondayRate && mondayRate > 0) {
+        baseRate = mondayRate;
+      }
+    }
+    
+    // 時間帯別時給設定の適用
+    if (formData.timeBasedRatesEnabled && formData.timeBasedRates && formData.timeBasedRates.length > 0) {
+      const [startHour, startMin] = preview.startTime.split(':').map(Number);
+      const [endHour, endMin] = preview.endTime.split(':').map(Number);
+      
+      for (const timeRate of formData.timeBasedRates) {
+        if (timeRate.startTime && timeRate.endTime && timeRate.rate > 0) {
+          const [rateStartHour, rateStartMin] = timeRate.startTime.split(':').map(Number);
+          const [rateEndHour, rateEndMin] = timeRate.endTime.split(':').map(Number);
+          
+          // 簡単な重複チェック（完全な時間帯計算は複雑なため概算）
+          let rateStartMinutes = rateStartHour * 60 + rateStartMin;
+          let rateEndMinutes = rateEndHour * 60 + rateEndMin;
+          
+          // 日跨ぎ対応
+          if (rateEndMinutes <= rateStartMinutes) {
+            rateEndMinutes += 24 * 60;
+          }
+          
+          let shiftStartMinutes = startHour * 60 + startMin;
+          let shiftEndMinutes = endHour * 60 + endMin;
+          
+          if (shiftEndMinutes <= shiftStartMinutes) {
+            shiftEndMinutes += 24 * 60;
+          }
+          
+          // 重複があれば適用（簡単な判定）
+          if (!(shiftEndMinutes <= rateStartMinutes || shiftStartMinutes >= rateEndMinutes)) {
+            baseRate = timeRate.rate;
+            break; // 最初にマッチしたものを採用
+          }
+        }
+      }
+    }
     
     // 深夜時間の判定（22:00-05:00）
     let nightHours = 0;
@@ -363,6 +407,10 @@ export const WorkplaceManager: React.FC = () => {
     formData.transportationSettings?.type,
     formData.transportationSettings?.amount,
     formData.transportationSettings?.unit,
+    formData.timeBasedRatesEnabled,
+    formData.timeBasedRates,
+    formData.weekdayRatesEnabled,
+    formData.weekdayRates,
     preview.startTime,
     preview.endTime,
   ]);
@@ -1030,10 +1078,10 @@ export const WorkplaceManager: React.FC = () => {
                 バイト先を区別するための色を選んでください
               </Typography>
               <Box sx={{ 
-                display: 'grid',
-                gridTemplateColumns: 'repeat(6, 1fr)',
+                display: 'flex',
                 gap: 1.5,
-                maxWidth: 300
+                flexWrap: 'wrap',
+                maxWidth: '100%'
               }}>
                 {defaultColors.map((color, index) => (
                   <Box
@@ -1300,7 +1348,7 @@ export const WorkplaceManager: React.FC = () => {
                         <Grid item xs={12} md={4}>
                           <TextField
                             type="number"
-                            label="自由休憩時間"
+                            label="休憩時間"
                             value={formData.freeBreakDefault}
                             onChange={e => setFormData(prev => ({ ...prev, freeBreakDefault: e.target.value ? Math.max(0, parseInt(e.target.value)) : '' as any }))}
                             size="small"
@@ -1367,6 +1415,7 @@ export const WorkplaceManager: React.FC = () => {
                             borderRadius: 2,
                             backgroundColor: formData.breakAuto4hEnabled ? 'primary.light' : 'transparent',
                             transition: 'all 0.2s',
+                            minHeight: '120px',
                           }}>
                             <FormControlLabel
                               control={
@@ -1400,11 +1449,13 @@ export const WorkplaceManager: React.FC = () => {
                         <Grid item xs={12} md={4}>
                           <Box sx={{ 
                             p: 2, 
-                            border: '1px solid',
+                            border: '2px solid',
                             borderColor: formData.breakAuto6hEnabled ? 'primary.main' : 'divider',
                             borderRadius: 2,
                             bgcolor: formData.breakAuto6hEnabled ? 'primary.lighter' : 'transparent',
-                            transition: 'all 0.3s ease'
+                            transition: 'all 0.3s ease',
+                            minHeight: '140px',
+                            transform: 'scale(1.05)',
                           }}>
                             <FormControlLabel
                               control={
@@ -1437,11 +1488,13 @@ export const WorkplaceManager: React.FC = () => {
                         <Grid item xs={12} md={4}>
                           <Box sx={{ 
                             p: 2, 
-                            border: '1px solid',
+                            border: '3px solid',
                             borderColor: formData.breakAuto8hEnabled ? 'primary.main' : 'divider',
                             borderRadius: 2,
                             bgcolor: formData.breakAuto8hEnabled ? 'primary.lighter' : 'transparent',
-                            transition: 'all 0.3s ease'
+                            transition: 'all 0.3s ease',
+                            minHeight: '160px',
+                            transform: 'scale(1.1)',
                           }}>
                             <FormControlLabel
                               control={
@@ -1473,7 +1526,7 @@ export const WorkplaceManager: React.FC = () => {
                       </Grid>
                       
                       <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'info.main' }}>
-                        ※ 長時間の休憩設定は短時間の設定を上書きします（8h {'>'} 6h {'>'} 4h）
+                        ※ 最も長い労働時間の休憩設定のみが適用されます（8時間働いた場合は8時間超の休憩時間のみ適用）
                       </Typography>
                     </Grid>
 
@@ -1590,6 +1643,16 @@ export const WorkplaceManager: React.FC = () => {
                               {formData.transportationSettings.type !== 'none' && (
                                 <Typography variant="caption" sx={{ px: 0.5, py: 0.2, bgcolor: 'success.light', borderRadius: 0.5, fontSize: '10px' }}>
                                   交通費
+                                </Typography>
+                              )}
+                              {formData.weekdayRatesEnabled && formData.weekdayRates?.monday && (
+                                <Typography variant="caption" sx={{ px: 0.5, py: 0.2, bgcolor: 'primary.light', borderRadius: 0.5, fontSize: '10px' }}>
+                                  曜日別時給(月:¥{formData.weekdayRates.monday})
+                                </Typography>
+                              )}
+                              {formData.timeBasedRatesEnabled && formData.timeBasedRates && formData.timeBasedRates.length > 0 && (
+                                <Typography variant="caption" sx={{ px: 0.5, py: 0.2, bgcolor: 'secondary.light', borderRadius: 0.5, fontSize: '10px' }}>
+                                  時間帯別時給
                                 </Typography>
                               )}
                             </Box>
