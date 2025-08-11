@@ -80,13 +80,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       console.log('🔐 Login attempt for:', credentials.email);
-      const user = await authService.login(credentials);
-      console.log('🔐 Login successful, user:', user);
+      console.log('🔐 Current user state before login:', user?.email);
+      
+      const loginUser = await authService.login(credentials);
+      console.log('🔐 Login successful, user:', loginUser);
       
       // 即座にユーザー状態を更新
-      setUser(user);
+      setUser(loginUser);
+      console.log('🔐 User state updated to:', loginUser.email);
       
-      toast.success(`お帰りなさい、${user.name}さん！`, {
+      // 少し待ってから再度確認
+      setTimeout(() => {
+        console.log('🔐 User state after timeout:', user?.email);
+      }, 1000);
+      
+      toast.success(`お帰りなさい、${loginUser.name}さん！`, {
         duration: 3000,
         icon: '👋',
       });
@@ -108,13 +116,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       console.log('🎆 Signup attempt for:', credentials.email);
-      const user = await authService.signup(credentials);
-      console.log('🎆 Signup successful, user:', user);
+      console.log('🎆 Current user state before signup:', user?.email);
+      
+      const signupUser = await authService.signup(credentials);
+      console.log('🎆 Signup successful, user:', signupUser);
       
       // 即座にユーザー状態を更新
-      setUser(user);
+      setUser(signupUser);
+      console.log('🎆 User state updated to:', signupUser.email);
       
-      toast.success(`ようこそ、${user.name}さん！\nアカウントが作成されました。`, {
+      // 少し待ってから再度確認
+      setTimeout(() => {
+        console.log('🎆 User state after timeout:', user?.email);
+      }, 1000);
+      
+      toast.success(`ようこそ、${signupUser.name}さん！\nアカウントが作成されました。`, {
         duration: 4000,
         icon: '🎉',
       });

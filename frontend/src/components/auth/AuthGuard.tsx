@@ -104,10 +104,12 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 
   console.log('🛡️ AuthGuard state:', { 
     user: user?.email, 
+    userId: user?.id,
     loading, 
     initialized, 
     isLanguageSelected, 
-    requireAuth 
+    requireAuth,
+    timestamp: new Date().toISOString()
   });
 
   // 初期化中

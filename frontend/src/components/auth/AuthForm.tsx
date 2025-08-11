@@ -109,12 +109,16 @@ export const AuthForm: React.FC<AuthFormProps> = ({
     setError(null);
 
     try {
+      console.log('📝 AuthForm: Starting login process...');
       await login(loginForm);
+      console.log('📝 AuthForm: Login completed, closing dialog...');
       // ログイン成功後、少し待ってからダイアログを閉じる
       setTimeout(() => {
+        console.log('📝 AuthForm: Calling onClose...');
         onClose?.();
       }, 100);
     } catch (error) {
+      console.error('📝 AuthForm: Login error:', error);
       const authError = error as AuthError;
       setError(authError.message);
     }
@@ -126,12 +130,16 @@ export const AuthForm: React.FC<AuthFormProps> = ({
     setError(null);
 
     try {
+      console.log('📝 AuthForm: Starting signup process...');
       await signup(signupForm);
+      console.log('📝 AuthForm: Signup completed, closing dialog...');
       // 新規登録成功後、少し待ってからダイアログを閉じる
       setTimeout(() => {
+        console.log('📝 AuthForm: Calling onClose...');
         onClose?.();
       }, 100);
     } catch (error) {
+      console.error('📝 AuthForm: Signup error:', error);
       const authError = error as AuthError;
       setError(authError.message);
     }
