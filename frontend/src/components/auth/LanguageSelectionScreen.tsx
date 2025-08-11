@@ -45,25 +45,6 @@ export const LanguageSelectionScreen: React.FC = () => {
             }}
           >
             <CardContent sx={{ px: 4, py: 5, textAlign: 'center' }}>
-              {/* アプリタイトル */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-              >
-                <Typography 
-                  variant="h3" 
-                  sx={{ 
-                    fontWeight: 600, 
-                    mb: 3,
-                    color: '#1a1a1a',
-                    letterSpacing: '-0.02em',
-                  }}
-                >
-                  扶養管理カレンダー
-                </Typography>
-              </motion.div>
-
               {/* 言語選択セクション */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
