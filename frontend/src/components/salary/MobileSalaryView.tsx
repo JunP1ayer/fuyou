@@ -81,7 +81,11 @@ export const MobileSalaryView: React.FC = () => {
       parentsDependency: null, // 'father', 'mother', 'both', 'none'
       
       // 働き方
-      workHoursPerWeek: null, // null, 'under20', '20to30', 'over30'
+      workHoursPerWeek: null, // 既存互換: 'under20' | '20to30' | 'over30'
+      weeklyHours20: null, // boolean | null （106判定用）
+      contractLength: null, // 'over2m' | 'under2m' | null
+      officeSize51: 'unknown', // 'yes' | 'no' | 'unknown'
+      studentException: 'none', // 'leave' | 'night' | 'graduate_soon' | 'none'
       employmentType: null, // 'parttime', 'arbeit', 'contract'
       
       // 目標設定
@@ -126,41 +130,48 @@ export const MobileSalaryView: React.FC = () => {
   
   // 扶養限度額の自動計算
   const calculateDependencyLimit = () => {
-    const status = dependencyStatus;
-    
-    // 質問が完了していない場合はデフォルト
-    if (!status.isStudent || !status.priority) {
-      return { limit: 1030000, type: '103万円（基本）' };
+    const s = dependencyStatus || {};
+
+    // 手動選択がある場合は尊重
+    if (typeof s.selectedLimit === 'number') {
+      return { limit: s.selectedLimit * 10000, type: `${s.selectedLimit}万円（手動）` };
     }
+
+    // 2025年12月以降は123万円が基本
+    const now = new Date();
+    const is2025Plus = now.getFullYear() > 2025 || (now.getFullYear() === 2025 && now.getMonth() >= 11);
     
-    // 学生で勤労学生控除を活用する場合
-    if (status.isStudent && status.age !== 'over23' && status.priority === 'maxIncome') {
-      return { limit: 1500000, type: '150万円（勤労学生控除）' };
+    let limit = is2025Plus ? 1_230_000 : 1_030_000;
+    let type = is2025Plus ? '123万円（2025年税制）' : '103万円（現行）';
+
+    // 106万円（社保）の可能性
+    const weekly20 = s.weeklyHours20 === true || s.workHoursPerWeek === '20to30' || s.workHoursPerWeek === 'over30';
+    const longContract = s.contractLength === 'over2m';
+    const officeBig = s.officeSize51 === 'yes';
+    if (weekly20 && longContract && officeBig) {
+      limit = 1_060_000;
+      type = '106万円（社会保険）';
     }
-    
-    // 配偶者がいる場合
-    if (status.hasSpouse) {
-      return { limit: 1300000, type: '130万円（配偶者控除）' };
+
+    // 130万円（健保の被扶養）目安／配偶者がいる場合の配偶者控除運用に合わせ推奨
+    if (s.hasSpouse) {
+      limit = 1_300_000;
+      type = '130万円（配偶者/健保）';
     }
-    
-    // 週20時間以上働く場合
-    if (status.workHoursPerWeek === '20to30' || status.workHoursPerWeek === 'over30') {
-      if (status.priority === 'keepDependency') {
-        return { limit: 1060000, type: '106万円（社会保険の壁）' };
-      }
+
+    // 150万円（学生特例）
+    if (s.isStudent === true && (s.studentException === 'none' || !s.studentException) && s.priority === 'maxIncome') {
+      limit = 1_500_000;
+      type = '150万円（学生特例）';
     }
-    
-    // 親の扶養を維持したい場合
-    if (status.priority === 'keepDependency' && status.parentsDependency !== 'none') {
-      return { limit: 1030000, type: '103万円（所得税の壁）' };
+
+    // バランス志向/扶養優先
+    if (s.priority === 'keepDependency' && s.parentsDependency && s.parentsDependency !== 'none') {
+      limit = is2025Plus ? 1_230_000 : 1_030_000;
+      type = is2025Plus ? '123万円（扶養優先）' : '103万円（扶養優先）';
     }
-    
-    // バランス重視
-    if (status.priority === 'balance') {
-      return { limit: 1030000, type: '103万円（バランス重視）' };
-    }
-    
-    return { limit: 1030000, type: '103万円（基本）' };
+
+    return { limit, type };
   };
   
   const dependencyLimit = calculateDependencyLimit();
@@ -272,6 +283,19 @@ export const MobileSalaryView: React.FC = () => {
 
   const remainingInfo = useMemo(() => calculateRemainingAllowance(), [yearEarningsJPY, dependencyLimit]);
 
+  // 扶養状況ベースの表示内容計算
+  const displayInfo = useMemo(() => {
+    const monthlyDependencyLimit = Math.floor(dependencyLimit.limit / 12);
+    const yearlyProgress = Math.min(100, Math.round((yearEarningsJPY / dependencyLimit.limit) * 100));
+    
+    return {
+      monthlyDependencyLimit,
+      yearlyProgress,
+      monthlyProgressRatio: monthEstJPY / monthlyDependencyLimit,
+      yearlyProgressRatio: yearEarningsJPY / dependencyLimit.limit
+    };
+  }, [dependencyLimit.limit, monthEstJPY, yearEarningsJPY]);
+
   const hours = Math.floor(monthHoursMin / 60);
   const mins = Math.floor(monthHoursMin % 60);
 
@@ -326,6 +350,31 @@ export const MobileSalaryView: React.FC = () => {
               <ChevronRight />
             </IconButton>
           </Box>
+
+          {dependencyStatus.isStudent && (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                1-1. 学生特例の対象外になり得る条件はありますか？
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {[
+                  { key: 'none', label: '該当なし' },
+                  { key: 'leave', label: '休学中' },
+                  { key: 'night', label: '夜間課程' },
+                  { key: 'graduate_soon', label: '卒業見込み直前' },
+                ].map(opt => (
+                  <Chip
+                    key={opt.key}
+                    label={opt.label}
+                    color={dependencyStatus.studentException === opt.key ? 'primary' : 'default'}
+                    variant={dependencyStatus.studentException === opt.key ? 'filled' : 'outlined'}
+                    onClick={() => setDependencyStatus({ ...dependencyStatus, studentException: opt.key })}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </Box>
+            </Box>
+          )}
         </Box>
       ) : (
         <Box
@@ -432,6 +481,35 @@ export const MobileSalaryView: React.FC = () => {
               ¥{remainingInfo.monthlyAllowance.toLocaleString()}
             </Typography>
           </Box>
+
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+              3. 社会保険の加入条件（106万円の壁）
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Chip
+                label="週20時間以上"
+                color={dependencyStatus.weeklyHours20 ? 'primary' : 'default'}
+                variant={dependencyStatus.weeklyHours20 ? 'filled' : 'outlined'}
+                onClick={() => setDependencyStatus({ ...dependencyStatus, weeklyHours20: !dependencyStatus.weeklyHours20 })}
+              />
+              <Chip
+                label="雇用期間2か月超"
+                color={dependencyStatus.contractLength === 'over2m' ? 'primary' : 'default'}
+                variant={dependencyStatus.contractLength === 'over2m' ? 'filled' : 'outlined'}
+                onClick={() => setDependencyStatus({ ...dependencyStatus, contractLength: dependencyStatus.contractLength === 'over2m' ? 'under2m' : 'over2m' })}
+              />
+              <Chip
+                label="従業員51人以上"
+                color={dependencyStatus.officeSize51 === 'yes' ? 'primary' : 'default'}
+                variant={dependencyStatus.officeSize51 === 'yes' ? 'filled' : 'outlined'}
+                onClick={() => setDependencyStatus({ ...dependencyStatus, officeSize51: dependencyStatus.officeSize51 === 'yes' ? 'no' : 'yes' })}
+              />
+            </Box>
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+              上記3条件がすべて当てはまると、会社の社保加入対象となる可能性が高まります
+            </Typography>
+          </Box>
           <Box>
             <Typography variant="caption" color="text.secondary">
               使用率
@@ -475,10 +553,28 @@ export const MobileSalaryView: React.FC = () => {
               color="text.secondary"
               sx={{ mb: 0.5 }}
             >
-              今月の給料
+              今月の収入 / 月間扶養目安
             </Typography>
             <Typography variant="h5" sx={{ fontWeight: 800 }}>
               ¥{monthEstJPY.toLocaleString()}
+            </Typography>
+            <Typography 
+              variant="caption" 
+              color="text.secondary"
+              sx={{ mt: 0.5 }}
+            >
+              / ¥{displayInfo.monthlyDependencyLimit.toLocaleString()}
+            </Typography>
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                mt: 1, 
+                color: displayInfo.monthlyProgressRatio > 1 ? 'error.main' : 
+                       displayInfo.monthlyProgressRatio > 0.8 ? 'warning.main' : 'success.main',
+                fontWeight: 600 
+              }}
+            >
+              月間使用率: {Math.round(displayInfo.monthlyProgressRatio * 100)}%
             </Typography>
           </Box>
         </Box>
@@ -502,20 +598,28 @@ export const MobileSalaryView: React.FC = () => {
               color="text.secondary"
               sx={{ mb: 0.5 }}
             >
-              今年の収入
+              今年の収入 / 扶養限度額
             </Typography>
             <Typography variant="h4" sx={{ fontWeight: 800 }}>
               ¥{yearEarningsJPY.toLocaleString()}
             </Typography>
             <Typography 
               variant="caption" 
+              color="text.secondary"
+              sx={{ mt: 0.5 }}
+            >
+              / ¥{(dependencyLimit.limit / 10000).toFixed(0)}万円
+            </Typography>
+            <Typography 
+              variant="caption" 
               sx={{ 
                 mt: 1, 
-                color: yearEarningsJPY > dependencyLimit.limit ? 'error.main' : 'success.main',
+                color: displayInfo.yearlyProgressRatio > 1 ? 'error.main' :
+                       displayInfo.yearlyProgressRatio > 0.9 ? 'warning.main' : 'success.main',
                 fontWeight: 600 
               }}
             >
-              扶養限度: ¥{(dependencyLimit.limit / 10000).toFixed(0)}万
+              年間使用率: {displayInfo.yearlyProgress}%
             </Typography>
           </Box>
         </Box>
@@ -754,7 +858,8 @@ export const MobileSalaryView: React.FC = () => {
                 value={dependencyStatus.selectedLimit}
                 onChange={(e) => setDependencyStatus({...dependencyStatus, selectedLimit: Number(e.target.value)})}
               >
-                <MenuItem value={103}>103万円 - 所得税の壁（基本）</MenuItem>
+                <MenuItem value={103}>103万円 - 所得税の壁（2025年11月まで）</MenuItem>
+                <MenuItem value={123}>123万円 - 所得税の壁（2025年12月以降）</MenuItem>
                 <MenuItem value={106}>106万円 - 社会保険加入の壁</MenuItem>
                 <MenuItem value={130}>130万円 - 配偶者の扶養から外れる壁</MenuItem>
                 {dependencyStatus.isStudent && (
@@ -763,10 +868,11 @@ export const MobileSalaryView: React.FC = () => {
               </Select>
             </FormControl>
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              {dependencyStatus.selectedLimit === 103 && "基本的な扶養控除の限度額です"}
+              {dependencyStatus.selectedLimit === 103 && "現行の基本的な扶養控除の限度額です（2025年11月まで）"}
+              {dependencyStatus.selectedLimit === 123 && "2025年12月から適用される新しい扶養控除の限度額です"}
               {dependencyStatus.selectedLimit === 106 && "週20時間以上働く場合の社会保険加入基準"}
               {dependencyStatus.selectedLimit === 130 && "配偶者の社会保険の扶養から外れる基準"}
-              {dependencyStatus.selectedLimit === 150 && "学生の場合、勤労学生控除で150万円まで非課税"}
+              {dependencyStatus.selectedLimit === 150 && "学生の場合、勤労学生控除で150万円まで非課税（親の扶養は別途判定）"}
             </Typography>
           </Box>
 
