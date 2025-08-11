@@ -75,7 +75,9 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // 共有オプション（Googleの哲学: デフォルトは安全・最小選択）
-  const [sharePeriod, setSharePeriod] = useState<'week' | 'month' | 'nextMonth'>('month');
+  const [sharePeriod, setSharePeriod] = useState<'custom' | 'all'>('custom');
+  const [customStart, setCustomStart] = useState<string>('');
+  const [customEnd, setCustomEnd] = useState<string>('');
   const [hideWorkplace, setHideWorkplace] = useState<boolean>(true); // プライバシーはデフォルトで守る
 
   // 色パレット
@@ -85,7 +87,10 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
   ];
 
   // 自分のシフトデータをシェアコード化（デモ用）
-  const generateShareCode = (period: 'week' | 'month' | 'nextMonth' = sharePeriod, options?: { hideWorkplace?: boolean }) => {
+  const generateShareCode = (
+    period: 'custom' | 'all' = sharePeriod,
+    options?: { hideWorkplace?: boolean; range?: { start: string; end: string } }
+  ) => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
@@ -124,6 +129,7 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
         period,
         hideWorkplace: shouldHideWorkplace,
         generatedAt: new Date().toISOString(),
+        range: period === 'custom' ? { start: options?.range?.start, end: options?.range?.end } : undefined,
       },
       days: maskedDays,
     };
@@ -266,54 +272,44 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
               </Typography>
             </Box>
 
-            {/* クイック共有（最小選択） */}
-            <Grid container spacing={1} sx={{ mb: 2 }}>
-              <Grid item xs={4}>
-                <Button
-                  variant={sharePeriod === 'week' ? 'contained' : 'outlined'}
-                  color={sharePeriod === 'week' ? 'primary' : 'inherit'}
-                  fullWidth
-                  onClick={() => setSharePeriod('week')}
-                >
-                  今週
-                </Button>
+            {/* 共有方法を2択に簡素化：全部 or 期間指定 */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>期間指定</Typography>
+              <Grid container spacing={1}>
+                <Grid item xs={6}>
+                  <TextField
+                    type="date"
+                    label="開始日"
+                    value={customStart}
+                    onChange={(e) => setCustomStart(e.target.value)}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    type="date"
+                    label="終了日"
+                    value={customEnd}
+                    onChange={(e) => setCustomEnd(e.target.value)}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={4}>
-                <Button
-                  variant={sharePeriod === 'month' ? 'contained' : 'outlined'}
-                  color={sharePeriod === 'month' ? 'primary' : 'inherit'}
-                  fullWidth
-                  onClick={() => setSharePeriod('month')}
-                >
-                  今月
-                </Button>
-              </Grid>
-              <Grid item xs={4}>
-                <Button
-                  variant={sharePeriod === 'nextMonth' ? 'contained' : 'outlined'}
-                  color={sharePeriod === 'nextMonth' ? 'primary' : 'inherit'}
-                  fullWidth
-                  onClick={() => setSharePeriod('nextMonth')}
-                >
-                  来月
-                </Button>
-              </Grid>
-            </Grid>
+            </Box>
 
-            {/* メインCTA（ワンタップ） */}
-            <Box sx={{ textAlign: 'center', mb: 2 }}>
+            {/* 2つのCTA：全部 / 期間指定 */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 2 }}>
               <Button
                 variant="contained"
                 size="large"
-                data-testid="generate-share-code-button"
                 onClick={async () => {
-                  const code = generateShareCode(sharePeriod, { hideWorkplace });
+                  const code = generateShareCode('all', { hideWorkplace });
                   try {
                     await navigator.clipboard.writeText(code);
                     setAlert({ type: 'success', message: 'シェアコードをコピーしました' });
-                  } catch {
-                    // 失敗してもダイアログからコピー可能
-                  }
+                  } catch {}
                 }}
                 sx={{
                   background: 'linear-gradient(135deg, #ffd54f 0%, #ffcc02 100%)',
@@ -327,11 +323,38 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
                   width: '100%',
                 }}
               >
-                {sharePeriod === 'week' && '今週のシフトを共有してコピー'}
-                {sharePeriod === 'month' && '今月のシフトを共有してコピー'}
-                {sharePeriod === 'nextMonth' && '来月のシフトを共有してコピー'}
+                全部のシフトを共有してコピー
               </Button>
-              <Typography variant="caption" color="text.secondary">
+              <Button
+                variant="contained"
+                size="large"
+                data-testid="generate-share-code-button"
+                onClick={async () => {
+                  if (!customStart || !customEnd) {
+                    setAlert({ type: 'error', message: '開始日と終了日を入力してください' });
+                    return;
+                  }
+                  const code = generateShareCode('custom', { hideWorkplace, range: { start: customStart, end: customEnd } });
+                  try {
+                    await navigator.clipboard.writeText(code);
+                    setAlert({ type: 'success', message: 'シェアコードをコピーしました' });
+                  } catch {}
+                }}
+                sx={{
+                  background: 'linear-gradient(135deg, #ffd54f 0%, #ffcc02 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #ffcc02 0%, #ffd54f 100%)',
+                  },
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '1.05rem',
+                  fontWeight: 700,
+                  width: '100%',
+                }}
+              >
+                指定期間のシフトを共有してコピー
+              </Button>
+              <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
                 職場名は相手に表示されません（変更可）
               </Typography>
             </Box>

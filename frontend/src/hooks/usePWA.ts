@@ -285,11 +285,16 @@ export const usePWA = () => {
       });
 
       // サーバーに登録情報を送信
-      await fetch('/api/push-subscriptions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subscription),
-      });
+      try {
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+        await fetch(`${API_BASE}/push-subscriptions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(subscription),
+        });
+      } catch (e) {
+        // 無視（ローカル/開発で未実装の可能性）
+      }
 
       console.log('Push subscription successful:', subscription);
       return subscription;

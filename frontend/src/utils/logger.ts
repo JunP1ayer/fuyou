@@ -103,7 +103,8 @@ class LogQueue {
     try {
       // 本番環境では外部ログサービスに送信
       if (process.env.NODE_ENV === 'production') {
-        await fetch('/api/logs', {
+        const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:3001/api';
+        await fetch(`${API_BASE}/logs`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ logs: logsToSend }),

@@ -117,54 +117,71 @@ export const validateRequest = (validations: Array<{
   };
 };
 
-// Demo authentication middleware for development
-export const requireAuthOrDemo = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new Error('Authentication required');
-    }
+// Determine whether demo auth is enabled
+const DEMO_AUTH_ENABLED: boolean = (() => {
+  // Default: enabled in non-production if not explicitly set
+  const env = process.env.ENABLE_DEMO_AUTH;
+  if (env === 'true') return true;
+  if (env === 'false') return false;
+  return process.env.NODE_ENV !== 'production';
+})();
 
-    const token = authHeader.substring(7);
-    
-    // Check if it's a demo token (Base64 encoded JSON)
+// Authentication middleware factory
+const makeAuthMiddleware = (allowDemo: boolean) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const decodedData = JSON.parse(Buffer.from(token, 'base64').toString());
-      if (decodedData.user && decodedData.user.id && decodedData.user.email) {
-        // It's a valid demo token (any UUID format)
-        req.user = {
-          id: decodedData.user.id,
-          email: decodedData.user.email,
-          fullName: decodedData.user.fullName,
-          isStudent: decodedData.user.isStudent,
-          createdAt: decodedData.user.createdAt,
-          updatedAt: decodedData.user.createdAt,
-        };
-        return next();
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        throw new Error('Authentication required');
       }
-    } catch (demoError) {
-      // Not a demo token, try regular auth
+
+      const token = authHeader.substring(7);
+
+      // Accept demo token only when allowed
+      if (allowDemo) {
+        try {
+          const decodedData = JSON.parse(Buffer.from(token, 'base64').toString());
+          if (decodedData.user && decodedData.user.id && decodedData.user.email) {
+            req.user = {
+              id: decodedData.user.id,
+              email: decodedData.user.email,
+              fullName: decodedData.user.fullName,
+              isStudent: decodedData.user.isStudent,
+              createdAt: decodedData.user.createdAt,
+              updatedAt: decodedData.user.createdAt,
+            };
+            return next();
+          }
+        } catch {
+          // Not a demo token; fall through to regular auth
+        }
+      }
+
+      // Regular Supabase authentication
+      const user = await authService.getCurrentUser(req);
+      req.user = user;
+      next();
+    } catch (error: unknown) {
+      const statusCode = (error as { statusCode?: number })?.statusCode ?? 401;
+      const message = (error as Error)?.message || 'Authentication failed';
+
+      return res.status(statusCode).json({
+        success: false,
+        error: { message }
+      });
     }
-    
-    // Try regular Supabase authentication
-    const user = await authService.getCurrentUser(req);
-    req.user = user;
-    next();
-  } catch (error: unknown) {
-    const statusCode = (error as { statusCode?: number })?.statusCode ?? 401;
-    const message = (error as Error)?.message || 'Authentication failed';
-    
-    return res.status(statusCode).json({
-      success: false,
-      error: { message }
-    });
-  }
+  };
 };
+
+// Demo対応可（開発時デフォルト許可／本番デフォルト禁止）
+export const requireAuthOrDemo = makeAuthMiddleware(DEMO_AUTH_ENABLED);
+
+// 本番等でデモ無効の厳格版
+export const requireAuth = makeAuthMiddleware(false);
 
 // Query validation middleware
 export const validateQuery = (schema: ZodTypeAny) => {
   return validateSchema(schema, 'query');
 };
 
-// Original authentication middleware (kept for compatibility)
-export const requireAuth = requireAuthOrDemo;
+// 互換エクスポートは廃止（上で厳格版を提供）

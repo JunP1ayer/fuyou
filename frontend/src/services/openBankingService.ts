@@ -2,6 +2,7 @@
 
 import { logger, LogCategory } from '../utils/logger';
 import { useUnifiedStore } from '../store/unifiedStore';
+import { apiService } from './apiService';
 
 // Open Banking データの型定義
 export interface BankAccount {
@@ -153,35 +154,26 @@ class OpenBankingService {
 
     try {
       // アクセストークンの取得
-      const tokenResponse = await fetch('/api/banking/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          code,
-          sessionId,
-          grant_type: 'authorization_code'
-        })
-      });
-
-      if (!tokenResponse.ok) {
+      const tokenResp = await apiService.postJson<{ access_token: string; refresh_token: string }>(
+        '/banking/token',
+        { code, sessionId, grant_type: 'authorization_code' }
+      );
+      if (!tokenResp.success || !tokenResp.data) {
         throw new Error('Token exchange failed');
       }
-
-      const { access_token, refresh_token } = await tokenResponse.json();
+      const { access_token, refresh_token } = tokenResp.data;
 
       // アカウント情報の取得
-      const accountsResponse = await fetch('/api/banking/accounts', {
+      const accountsResp = await apiService.send<any>('/banking/accounts', {
         headers: {
-          'Authorization': `Bearer ${access_token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${access_token}`,
+          'Content-Type': 'application/json',
+        },
       });
-
-      if (!accountsResponse.ok) {
+      if (!accountsResp.success || !accountsResp.data) {
         throw new Error('Failed to fetch account information');
       }
-
-      const accountsData = await accountsResponse.json();
+      const accountsData = accountsResp.data;
       
       // BankAccount形式に変換
       const newAccounts: BankAccount[] = accountsData.accounts.map((acc: any) => ({
@@ -232,24 +224,18 @@ class OpenBankingService {
       const accessToken = await this.getValidAccessToken(accountId);
       
       // 取引履歴の取得
-      const transactionsResponse = await fetch(`/api/banking/transactions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      const transactionsResp = await apiService.postJson<any>(
+        '/banking/transactions',
+        {
           account_id: accountId,
           from_date: fromDate || this.getThreeMonthsAgo(),
-          to_date: toDate || new Date().toISOString().split('T')[0]
-        })
-      });
-
-      if (!transactionsResponse.ok) {
+          to_date: toDate || new Date().toISOString().split('T')[0],
+        }
+      );
+      if (!transactionsResp.success || !transactionsResp.data) {
         throw new Error('Failed to fetch transactions');
       }
-
-      const transactionsData = await transactionsResponse.json();
+      const transactionsData = transactionsResp.data;
       
       // Transaction形式に変換
       const transactions: Transaction[] = transactionsData.transactions.map((tx: any) => ({
@@ -648,17 +634,14 @@ class OpenBankingService {
 
   private async refreshAccessToken(refreshToken: string): Promise<string> {
     // リフレッシュトークンで新しいアクセストークンを取得
-    const response = await fetch('/api/banking/token/refresh', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: this.decrypt(refreshToken) }),
-    });
-
-    if (!response.ok) {
+    const response = await apiService.postJson<{ access_token: string }>(
+      '/banking/token/refresh',
+      { refresh_token: this.decrypt(refreshToken) }
+    );
+    if (!response.success || !response.data) {
       throw new Error('Token refresh failed');
     }
-
-    const { access_token } = await response.json();
+    const { access_token } = response.data;
     
     // 新しいトークンを保存
     // ... 実装省略

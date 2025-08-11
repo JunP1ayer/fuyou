@@ -26,6 +26,7 @@ import {
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
 import useI18nStore from '../store/i18nStore';
 import { formatCurrency } from '../utils/calculations';
+import { apiService } from '../services/apiService';
 
 interface GPTShiftSubmitterProps {
   onNavigateToWorkplaces?: () => void;
@@ -81,17 +82,10 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
         if (raw) token = JSON.parse(raw)?.token;
       } catch {}
       if (!token) {
-        const loginResp = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'}/demo/login`,
-          { method: 'POST' }
-        );
-        const loginJson = await loginResp.json();
-        if (loginResp.ok && loginJson?.success) {
-          token = loginJson.data?.token;
-          localStorage.setItem(
-            'auth',
-            JSON.stringify({ user: loginJson.data?.user, token })
-          );
+        const login = await apiService.loginDemo();
+        if (login.success && login.data) {
+          token = login.data.token;
+          localStorage.setItem('auth', JSON.stringify({ user: login.data.user, token }));
         }
       }
 
@@ -102,28 +96,12 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
         formData.append('workplaceName', selectedWorkplace?.name || '');
         formData.append('autoSave', 'false');
 
-        const resp = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api'}/intelligent-ocr/upload-and-process`,
-          {
-            method: 'POST',
-            headers: {
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            body: formData,
-          }
-        );
-
-        let json: any = null;
-        try {
-          json = await resp.json();
-        } catch {}
-        if (!resp.ok || !json?.success) {
-          const detail =
-            json?.error?.message || `${resp.status} ${resp.statusText}`;
-          throw new Error(`OCR連携に失敗しました: ${detail}`);
+        const resp = await apiService.processOCR(formData);
+        if (!resp.success) {
+          throw new Error(`OCR連携に失敗しました: ${resp.error?.message || 'Unknown error'}`);
         }
 
-        const rec = json.data?.consolidatedResult?.recommendedShifts || [];
+        const rec = resp.data?.consolidatedResult?.recommendedShifts || [];
         result = {
           success: true,
           shifts: rec.map((s: any) => ({
@@ -138,7 +116,7 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
             confidence: s.confidence ?? 0.9,
             workerName: workerName.trim(),
           })),
-          warnings: json.data?.warnings || [],
+          warnings: resp.data?.warnings || [],
           totalShifts: rec.length,
           estimatedEarnings: rec.reduce(
             (sum: number, s: any) => sum + (s.calculatedEarnings || 0),

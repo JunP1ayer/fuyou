@@ -13,9 +13,25 @@ export class ShiftService {
       // Check for time conflicts with existing shifts on the same date
       await this.checkForTimeConflicts(userId, data.date, data.startTime, data.endTime);
 
-      // Calculate working hours and earnings with auto-break and overtime support
-      const workingHours = this.calculateWorkingHours(data.startTime, data.endTime, data.breakMinutes, data.autoBreak6Hours, data.autoBreak8Hours);
-      const calculatedEarnings = this.calculateEarnings(workingHours, data.hourlyRate, data.overtimeEnabled);
+      // Calculate using DB function for single source of truth (includes auto-break and overtime)
+      const rpcParams = {
+        p_start_time: data.startTime,
+        p_end_time: data.endTime,
+        p_hourly_rate: data.hourlyRate,
+        p_manual_break_minutes: data.breakMinutes ?? 0,
+        p_auto_break_4h: true, // 4h rule enabled by default if available
+        p_auto_break_6h: data.autoBreak6Hours !== false,
+        p_auto_break_8h: data.autoBreak8Hours !== false,
+        p_overtime_enabled: data.overtimeEnabled !== false,
+      } as const;
+
+      const { data: calcRows, error: calcError } = await serviceSupabase.rpc('calculate_shift_earnings', rpcParams);
+      if (calcError || !calcRows || calcRows.length === 0) {
+        throw createError(`Failed to calculate earnings: ${calcError?.message || 'no result'}`, 400);
+      }
+      const calc = Array.isArray(calcRows) ? calcRows[0] : calcRows;
+      const workingHours = Number(calc.working_hours ?? calc.workingHours ?? 0);
+      const calculatedEarnings = Number(calc.total_earnings ?? calc.totalEarnings ?? 0);
 
       const shift = {
         id: uuidv4(),
@@ -157,8 +173,23 @@ export class ShiftService {
         const overtimeEnabled = data.overtimeEnabled ?? currentShift.overtimeEnabled;
         const hourlyRate = data.hourlyRate || currentShift.hourlyRate;
 
-        const workingHours = this.calculateWorkingHours(startTime, endTime, breakMinutes, autoBreak6Hours, autoBreak8Hours);
-        const calculatedEarnings = this.calculateEarnings(workingHours, hourlyRate, overtimeEnabled);
+        // Use DB function for recalculation
+        const { data: calcRows, error: calcError } = await serviceSupabase.rpc('calculate_shift_earnings', {
+          p_start_time: startTime,
+          p_end_time: endTime,
+          p_hourly_rate: hourlyRate,
+          p_manual_break_minutes: breakMinutes ?? 0,
+          p_auto_break_4h: true,
+          p_auto_break_6h: autoBreak6Hours !== false,
+          p_auto_break_8h: autoBreak8Hours !== false,
+          p_overtime_enabled: overtimeEnabled !== false,
+        });
+        if (calcError || !calcRows || calcRows.length === 0) {
+          throw createError(`Failed to calculate earnings: ${calcError?.message || 'no result'}`, 400);
+        }
+        const calc = Array.isArray(calcRows) ? calcRows[0] : calcRows;
+        const workingHours = Number(calc.working_hours ?? calc.workingHours ?? 0);
+        const calculatedEarnings = Number(calc.total_earnings ?? calc.totalEarnings ?? 0);
 
         updateData.working_hours = workingHours.toString();
         updateData.calculated_earnings = calculatedEarnings.toString();

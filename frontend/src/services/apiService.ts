@@ -79,6 +79,23 @@ class ApiService {
     }
   }
 
+  // 公開ユーティリティ（自由に叩ける汎用エンドポイント）
+  public async send<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, options);
+  }
+
+  public async postJson<T>(endpoint: string, data: unknown): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  public async putJson<T>(endpoint: string, data: unknown): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'PUT', body: JSON.stringify(data) });
+  }
+
+  public async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+
   // 認証
   async loginDemo(): Promise<ApiResponse<{ user: any; token: string }>> {
     return this.request('/demo/login', { method: 'POST' });

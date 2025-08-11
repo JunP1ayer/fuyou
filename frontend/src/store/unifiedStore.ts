@@ -1,6 +1,7 @@
 // 🏪 統合ストア - Zustand単一ストアによる状態管理
 
 import { create } from 'zustand';
+import { apiService } from '../services/apiService';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { subscribeWithSelector } from 'zustand/middleware';
@@ -204,12 +205,7 @@ export const useUnifiedStore = create<UnifiedStore>()(
 
           // バックグラウンドでAPI同期
           try {
-            // API呼び出し（実装は後で）
-            await fetch('/api/shifts', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(newShift),
-            });
+            await apiService.postJson('/shifts', newShift);
           } catch (error) {
             console.error('Failed to sync shift to server:', error);
             get().markPendingChange();
@@ -231,11 +227,7 @@ export const useUnifiedStore = create<UnifiedStore>()(
           });
 
           try {
-            await fetch(`/api/shifts/${id}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(updates),
-            });
+            await apiService.putJson(`/shifts/${id}`, updates);
           } catch (error) {
             console.error('Failed to sync shift update:', error);
             get().markPendingChange();
@@ -250,7 +242,7 @@ export const useUnifiedStore = create<UnifiedStore>()(
           });
 
           try {
-            await fetch(`/api/shifts/${id}`, { method: 'DELETE' });
+            await apiService.delete(`/shifts/${id}`);
           } catch (error) {
             console.error('Failed to sync shift deletion:', error);
             get().markPendingChange();

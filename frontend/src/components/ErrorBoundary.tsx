@@ -56,22 +56,26 @@ export class ErrorBoundary extends React.Component<
       errorInfo,
     });
 
-    // エラー報告（プロダクションでは外部サービスに送信）
-    if (process.env.NODE_ENV === 'production') {
-      this.reportError(error, errorInfo);
-    }
+    // エラー報告（プロダクションではサーバに送信）
+    import('../utils/errorReporter').then(({ reportClientError }) => {
+      reportClientError({
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+      }, 'error');
+    });
   }
 
   private reportError = (error: Error, errorInfo: React.ErrorInfo) => {
-    // 実際のプロダクションではSentry等のエラー追跡サービスに送信
-    console.log('Error reported:', {
-      message: error.message,
-      stack: error.stack,
-      componentStack: errorInfo.componentStack,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-    });
+    // 互換のため残すが、実送信は componentDidCatch で行う
+    // 開発時のみ簡易ログ
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Error reported (dev):', {
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+      });
+    }
   };
 
   private handleReload = () => {
