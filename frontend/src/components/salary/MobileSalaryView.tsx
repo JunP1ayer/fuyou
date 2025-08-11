@@ -102,13 +102,6 @@ export const MobileSalaryView: React.FC = () => {
     };
   });
 
-  // 月間目標（sessionStorage 永続化）
-  const [monthlyTarget, setMonthlyTarget] = useState<number>(() => {
-    const raw = sessionStorage.getItem('monthlyTargetJPY');
-    return raw ? parseInt(raw, 10) : 50000;
-  });
-  const [editOpen, setEditOpen] = useState(false);
-  const [editValue, setEditValue] = useState(String(monthlyTarget));
 
   // 設定関連のstate
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -125,9 +118,6 @@ export const MobileSalaryView: React.FC = () => {
     return raw ? JSON.parse(raw) : true;
   });
 
-  useEffect(() => {
-    sessionStorage.setItem('monthlyTargetJPY', String(monthlyTarget));
-  }, [monthlyTarget]);
 
   // 扶養状況の保存
   const saveDependencyStatus = (status: any) => {
@@ -416,44 +406,15 @@ export const MobileSalaryView: React.FC = () => {
         </Box>
       )}
 
-      {/* 月間目標と扶養設定 行 */}
+      {/* 扶養設定 */}
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           mb: 2,
-          gap: 1,
-          flexWrap: 'wrap',
         }}
       >
-        <Box
-          sx={{
-            px: 2,
-            py: 1,
-            borderRadius: 999,
-            border: '1px solid',
-            borderColor: 'divider',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 1,
-          }}
-        >
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>
-            月間目標 ¥{monthlyTarget.toLocaleString()}
-          </Typography>
-          <IconButton
-            aria-label="編集"
-            size="small"
-            onClick={() => {
-              setEditValue(String(monthlyTarget));
-              setEditOpen(true);
-            }}
-          >
-            <Edit fontSize="small" />
-          </IconButton>
-        </Box>
-        
         <Button
           size="small"
           variant="outlined"
@@ -722,38 +683,6 @@ export const MobileSalaryView: React.FC = () => {
         </Typography>
       </Box>
 
-      {/* 月間目標 編集モーダル */}
-      <Dialog
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        maxWidth="xs"
-        fullWidth
-      >
-        <DialogTitle>月間目標を編集</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            type="number"
-            label="金額 (円)"
-            value={editValue}
-            onChange={e => setEditValue(e.target.value)}
-            sx={{ mt: 1 }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditOpen(false)}>キャンセル</Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              const v = Math.max(0, parseInt(editValue || '0', 10));
-              setMonthlyTarget(v);
-              setEditOpen(false);
-            }}
-          >
-            保存
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       {/* 扶養状況設定ダイアログ */}
       <Dialog
