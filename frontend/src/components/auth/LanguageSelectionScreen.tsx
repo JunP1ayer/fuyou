@@ -71,55 +71,39 @@ export const LanguageSelectionScreen: React.FC = () => {
                 transition={{ delay: 0.4, duration: 0.5 }}
               >
                 <Typography 
-                  variant="body1" 
+                  variant="h5" 
                   sx={{ 
-                    color: '#666',
+                    color: '#333',
                     mb: 1,
-                    fontSize: '1.0rem',
+                    fontSize: '1.3rem',
+                    fontWeight: 500,
                   }}
                 >
-                  使用する言語を選択してください
+                  言語を選択
                 </Typography>
                 <Typography 
-                  variant="body1" 
+                  variant="h5" 
                   sx={{ 
-                    color: '#888',
-                    mb: 3,
-                    fontSize: '1.0rem',
+                    color: '#555',
+                    mb: 4,
+                    fontSize: '1.3rem',
+                    fontWeight: 500,
                   }}
                 >
-                  Please select your preferred language
+                  Select Language
                 </Typography>
 
-                {/* 言語選択ドロップダウン */}
+                {/* 言語選択ドロップダウン（大きく） */}
                 <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-                  <LanguageDropdown 
-                    variant="outlined" 
-                    showCurrentFlag 
-                    autoAdvance
-                  />
+                  <Box sx={{ minWidth: 280 }}>
+                    <LanguageDropdown 
+                      variant="outlined" 
+                      showCurrentFlag 
+                      autoAdvance
+                      fullWidth
+                    />
+                  </Box>
                 </Box>
-
-                <Typography 
-                  variant="caption" 
-                  sx={{ 
-                    color: '#999',
-                    fontSize: '0.85rem',
-                    mb: 0.5,
-                    display: 'block',
-                  }}
-                >
-                  設定からいつでも変更できます
-                </Typography>
-                <Typography 
-                  variant="caption" 
-                  sx={{ 
-                    color: '#aaa',
-                    fontSize: '0.85rem',
-                  }}
-                >
-                  You can change this anytime in settings
-                </Typography>
               </motion.div>
             </CardContent>
           </Card>

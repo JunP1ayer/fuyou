@@ -141,7 +141,7 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
         fullWidth={fullWidth}
         startIcon={
           showCurrentFlag ? (
-            <span style={{ fontSize: '1.2rem' }}>{currentLanguage.flag}</span>
+            <span style={{ fontSize: '1.6rem' }}>{currentLanguage.flag}</span>
           ) : (
             <LanguageIcon />
           )
@@ -156,15 +156,17 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
         }
         sx={{
           borderRadius: 2,
-          px: 2,
-          py: 1,
+          px: 3,
+          py: 1.5,
           textTransform: 'none',
+          fontSize: '1.1rem',
+          minHeight: 56,
           backgroundColor: variant === 'outlined' 
             ? alpha(theme.palette.background.paper, 0.8)
             : undefined,
           backdropFilter: variant === 'outlined' ? 'blur(10px)' : undefined,
           border: variant === 'outlined' 
-            ? `1px solid ${alpha(theme.palette.divider, 0.2)}`
+            ? `2px solid ${alpha(theme.palette.divider, 0.3)}`
             : undefined,
           '&:hover': {
             backgroundColor: variant === 'outlined'
@@ -173,10 +175,13 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
             borderColor: variant === 'outlined'
               ? theme.palette.primary.main
               : undefined,
+            transform: 'translateY(-1px)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
           },
+          transition: 'all 0.2s ease',
         }}
       >
-        <Typography variant="body2" fontWeight={500}>
+        <Typography variant="body1" fontWeight={500} sx={{ fontSize: '1.1rem' }}>
           {currentLanguage.name}
         </Typography>
       </Button>
@@ -189,7 +194,7 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
         PaperProps={{
           elevation: 8,
           sx: {
-            minWidth: 250,
+            minWidth: 320,
             borderRadius: 2,
             mt: 1,
             overflow: 'visible',
@@ -229,8 +234,8 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
               onClick={() => handleLanguageSelect(lang.code)}
               selected={language === lang.code}
               sx={{
-                py: 1.5,
-                px: 2,
+                py: 2,
+                px: 3,
                 '&:hover': {
                   backgroundColor: alpha(theme.palette.primary.main, 0.08),
                 },
@@ -242,19 +247,19 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
                 },
               }}
             >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <Typography variant="h6" sx={{ lineHeight: 1 }}>
+              <ListItemIcon sx={{ minWidth: 48 }}>
+                <Typography variant="h5" sx={{ lineHeight: 1, fontSize: '1.8rem' }}>
                   {lang.flag}
                 </Typography>
               </ListItemIcon>
               <ListItemText
                 primary={
-                  <Typography variant="body1" fontWeight={500}>
+                  <Typography variant="body1" fontWeight={500} sx={{ fontSize: '1.1rem' }}>
                     {lang.name}
                   </Typography>
                 }
                 secondary={
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
                     {lang.description}
                   </Typography>
                 }
