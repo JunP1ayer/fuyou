@@ -349,7 +349,7 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('message', (event) => {
   console.log('[SW] Message received:', event.data);
   
-  const { type, _data } = event.data;
+  const { type } = event.data;
   
   switch (type) {
     case 'skip-waiting':

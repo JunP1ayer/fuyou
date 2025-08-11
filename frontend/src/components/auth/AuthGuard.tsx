@@ -111,6 +111,22 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     requireAuth,
     timestamp: new Date().toISOString()
   });
+  
+  // 強制的にアラート表示でデバッグ
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    setTimeout(() => {
+      console.log('🚨 FORCE DEBUG: AuthGuard rendering decision:', {
+        condition1: !initialized,
+        condition2: loading,
+        condition3: !isLanguageSelected,
+        condition4: requireAuth && !user,
+        finalDecision: (!initialized ? 'loading' : 
+                       loading ? 'loading' : 
+                       !isLanguageSelected ? 'language' : 
+                       requireAuth && !user ? 'auth' : 'children')
+      });
+    }, 1000);
+  }
 
   // 初期化中
   if (!initialized) {

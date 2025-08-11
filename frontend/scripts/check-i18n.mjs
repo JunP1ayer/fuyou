@@ -3,7 +3,6 @@ import fs from 'fs';
 import path from 'path';
 
 const localesDir = path.resolve(process.cwd(), 'src', 'locales');
-/* eslint-disable no-undef */
 const files = fs.readdirSync(localesDir).filter(f => f.endsWith('.json'));
 if (files.length === 0) {
   console.error('No locale files found in src/locales');

@@ -89,6 +89,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(loginUser);
       console.log('🔐 User state updated to:', loginUser.email);
       
+      // 本番環境での強制デバッグ
+      if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+        console.log('🚨 PRODUCTION DEBUG: Login completed, user set to:', loginUser.email);
+        setTimeout(() => {
+          console.log('🚨 PRODUCTION DEBUG: User state after 1s:', user?.email);
+          console.log('🚨 PRODUCTION DEBUG: Auth context user:', loginUser);
+        }, 1000);
+      }
+      
       // 少し待ってから再度確認
       setTimeout(() => {
         console.log('🔐 User state after timeout:', user?.email);

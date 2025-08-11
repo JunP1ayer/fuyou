@@ -48,8 +48,12 @@ export const usePWA = () => {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const serviceWorkerRef = useRef<ServiceWorkerRegistration | null>(null);
 
-  // Service Worker 登録
+  // Service Worker 登録 (一時的に無効化)
   useEffect(() => {
+    // Service Workerを無効化してテスト
+    console.log('🔧 Service Worker registration disabled for debugging');
+    return;
+    
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw-advanced.js')
