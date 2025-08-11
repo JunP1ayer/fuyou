@@ -22,6 +22,8 @@ import {
   Event,
   Add,
   Visibility,
+  SmartToy,
+  PhotoCamera,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -35,6 +37,7 @@ interface QuickActionMenuProps {
   onAddPersonalEvent: () => void;
   onAddShiftEvent: () => void;
   onViewDayEvents: () => void;
+  onOpenGPT5Analyzer?: () => void;
 }
 
 export const QuickActionMenu: React.FC<QuickActionMenuProps> = ({
@@ -44,6 +47,7 @@ export const QuickActionMenu: React.FC<QuickActionMenuProps> = ({
   onAddPersonalEvent,
   onAddShiftEvent,
   onViewDayEvents,
+  onOpenGPT5Analyzer,
 }) => {
   const { events } = useCalendarStore();
   const { t } = useI18n();
@@ -70,6 +74,14 @@ export const QuickActionMenu: React.FC<QuickActionMenuProps> = ({
       color: '#64B5F6',
       action: onAddPersonalEvent,
     },
+    ...(onOpenGPT5Analyzer ? [{
+      id: 'gpt5',
+      label: 'GPT-5 シフト表解析',
+      subtitle: 'シフト表の画像から自動でスケジュール作成',
+      icon: <SmartToy />,
+      color: '#AB47BC',
+      action: onOpenGPT5Analyzer,
+    }] : []),
   ];
 
   return (

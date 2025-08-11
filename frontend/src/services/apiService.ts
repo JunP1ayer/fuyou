@@ -13,6 +13,7 @@ interface ApiResponse<T = any> {
 
 class ApiService {
   private baseUrl: string;
+  private fallbackUrl: string = 'http://localhost:3001/api';
   private token: string | null = null;
 
   constructor() {
@@ -36,8 +37,6 @@ class ApiService {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
-    const url = `${this.baseUrl}${endpoint}`;
-    
     const defaultHeaders: HeadersInit = {
       'Content-Type': 'application/json',
     };
@@ -46,8 +45,11 @@ class ApiService {
       defaultHeaders.Authorization = `Bearer ${this.token}`;
     }
 
+    // メインURLで試行
+    const mainUrl = `${this.baseUrl}${endpoint}`;
+    
     try {
-      const response = await fetch(url, {
+      const response = await fetch(mainUrl, {
         ...options,
         headers: {
           ...defaultHeaders,
@@ -69,6 +71,44 @@ class ApiService {
 
       return data;
     } catch (error) {
+      // メインURLが失敗した場合、localhostで再試行
+      if (this.baseUrl !== this.fallbackUrl) {
+        console.warn(`API接続失敗 (${mainUrl}), localhostで再試行中...`);
+        
+        try {
+          const fallbackUrl = `${this.fallbackUrl}${endpoint}`;
+          const response = await fetch(fallbackUrl, {
+            ...options,
+            headers: {
+              ...defaultHeaders,
+              ...options.headers,
+            },
+          });
+
+          const data = await response.json();
+          
+          if (!response.ok) {
+            return {
+              success: false,
+              error: {
+                message: data.error?.message || `HTTP ${response.status}`,
+                code: data.error?.code || response.status.toString(),
+              },
+            };
+          }
+
+          return data;
+        } catch (fallbackError) {
+          return {
+            success: false,
+            error: {
+              message: fallbackError instanceof Error ? fallbackError.message : 'Network error',
+              code: 'NETWORK_ERROR',
+            },
+          };
+        }
+      }
+
       return {
         success: false,
         error: {

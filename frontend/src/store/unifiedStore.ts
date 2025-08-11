@@ -174,7 +174,7 @@ const initialState = {
   ui: {
     activeTab: 'calendar' as const,
     isLoading: false,
-    selectedDate: new Date().toISOString().split('T')[0],
+    selectedDate: new Date().toISOString().split('T')[0] as string,
     calendarView: 'month' as const,
     compactMode: false,
   },
@@ -218,11 +218,22 @@ export const useUnifiedStore = create<UnifiedStore>()(
           set((state) => {
             const shiftIndex = state.shifts.findIndex(s => s.id === id);
             if (shiftIndex !== -1) {
+              const current = state.shifts[shiftIndex] as Shift;
               state.shifts[shiftIndex] = {
-                ...state.shifts[shiftIndex],
-                ...updates,
+                id: current.id,
+                date: updates.date ?? current.date,
+                startTime: updates.startTime ?? current.startTime,
+                endTime: updates.endTime ?? current.endTime,
+                workplaceName: updates.workplaceName ?? current.workplaceName,
+                workplaceId: updates.workplaceId ?? current.workplaceId,
+                breakMinutes: updates.breakMinutes ?? current.breakMinutes,
+                hourlyRate: updates.hourlyRate ?? current.hourlyRate,
+                actualWorkMinutes: updates.actualWorkMinutes ?? current.actualWorkMinutes,
+                totalEarnings: updates.totalEarnings ?? current.totalEarnings,
+                notes: updates.notes ?? current.notes,
+                createdAt: current.createdAt,
                 updatedAt: new Date().toISOString(),
-              };
+              } as Shift;
             }
           });
 
@@ -271,11 +282,17 @@ export const useUnifiedStore = create<UnifiedStore>()(
           set((state) => {
             const workplaceIndex = state.workplaces.findIndex(w => w.id === id);
             if (workplaceIndex !== -1) {
+              const current = state.workplaces[workplaceIndex] as Workplace;
               state.workplaces[workplaceIndex] = {
-                ...state.workplaces[workplaceIndex],
-                ...updates,
+                id: current.id,
+                name: updates.name ?? current.name,
+                color: updates.color ?? current.color,
+                defaultHourlyRate: updates.defaultHourlyRate ?? current.defaultHourlyRate,
+                address: updates.address ?? current.address,
+                contactInfo: updates.contactInfo ?? current.contactInfo,
+                createdAt: current.createdAt,
                 updatedAt: new Date().toISOString(),
-              };
+              } as Workplace;
             }
           });
         },
@@ -331,7 +348,10 @@ export const useUnifiedStore = create<UnifiedStore>()(
           set((state) => {
             const friendIndex = state.friends.findIndex(f => f.id === friendId);
             if (friendIndex !== -1) {
-              state.friends[friendIndex].isVisible = !state.friends[friendIndex].isVisible;
+              state.friends[friendIndex] = {
+                ...state.friends[friendIndex]!,
+                isVisible: !state.friends[friendIndex]!.isVisible,
+              } as Friend;
             }
           });
         },

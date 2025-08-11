@@ -90,36 +90,81 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
       }
 
       if (imageFile) {
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        formData.append('userName', workerName.trim());
-        formData.append('workplaceName', selectedWorkplace?.name || '');
-        formData.append('autoSave', 'false');
+        // 画像をBase64に変換
+        const base64Image = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.readAsDataURL(imageFile);
+        });
 
-        const resp = await apiService.processOCR(formData);
-        if (!resp.success) {
-          throw new Error(`OCR連携に失敗しました: ${resp.error?.message || 'Unknown error'}`);
+        // GPT-5を使用してシフト表解析
+        const apiUrl = window.location.hostname === 'localhost' 
+          ? '/api/openai-vision' 
+          : 'https://fuyou-sigma.vercel.app/api/openai-vision';
+        
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: base64Image,
+            prompt: `この画像はアルバイトのシフト表です。以下の情報を抽出してください：
+
+勤務者名: ${workerName.trim()}
+勤務先: ${selectedWorkplace?.name || ''}
+
+以下のJSON形式で出力してください：
+{
+  "success": true,
+  "shifts": [
+    {
+      "date": "YYYY-MM-DD",
+      "startTime": "HH:MM",
+      "endTime": "HH:MM",
+      "workplaceName": "勤務先名",
+      "hourlyRate": 1000,
+      "confidence": 0.9
+    }
+  ],
+  "warnings": []
+}`
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`GPT-5 API エラー: ${response.status}`);
         }
 
-        const rec = resp.data?.consolidatedResult?.recommendedShifts || [];
+        const gptResult = await response.json();
+        
+        if (!gptResult.success) {
+          throw new Error(`GPT-5解析に失敗しました: ${gptResult.error || 'Unknown error'}`);
+        }
+
+        const shifts = gptResult.shifts || [];
         result = {
           success: true,
-          shifts: rec.map((s: any) => ({
-            id: s.id || `ocr-${crypto.randomUUID?.() || Date.now()}`,
+          shifts: shifts.map((s: any) => ({
+            id: `gpt5-${crypto.randomUUID?.() || Date.now()}`,
             date: s.date,
             startTime: s.startTime,
             endTime: s.endTime,
-            workplaceName: s.jobSourceName || s.workplaceName || '未設定',
-            hourlyRate: s.hourlyRate || 1000,
-            totalEarnings: s.calculatedEarnings || 0,
-            status: s.isConfirmed ? 'confirmed' : 'tentative',
-            confidence: s.confidence ?? 0.9,
+            workplaceName: s.workplaceName || selectedWorkplace?.name || '未設定',
+            hourlyRate: s.hourlyRate || selectedWorkplace?.defaultHourlyRate || 1000,
+            totalEarnings: 0, // 後で計算
+            status: 'tentative',
+            confidence: s.confidence ?? 0.85,
             workerName: workerName.trim(),
           })),
-          warnings: resp.data?.warnings || [],
-          totalShifts: rec.length,
-          estimatedEarnings: rec.reduce(
-            (sum: number, s: any) => sum + (s.calculatedEarnings || 0),
+          warnings: gptResult.warnings || [],
+          totalShifts: shifts.length,
+          estimatedEarnings: shifts.reduce(
+            (sum: number, s: any) => {
+              const hours = 8; // 概算として8時間
+              const rate = s.hourlyRate || selectedWorkplace?.defaultHourlyRate || 1000;
+              return sum + (hours * rate);
+            },
             0
           ),
         };

@@ -9,6 +9,7 @@ import { EventDialog } from './EventDialog';
 import { DayEventsView } from './DayEventsView';
 import { QuickActionMenu } from './QuickActionMenu';
 import { NewBottomNavigation, type NewTabValue } from './NewBottomNavigation';
+import { ShiftImageAnalyzer } from '../ShiftImageAnalyzer';
 import { SettingsView } from '../settings/SettingsView';
 import { useCalendarStore } from '../../store/calendarStore';
 import { useSimpleShiftStore } from '../../store/simpleShiftStore';
@@ -31,6 +32,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [gpt5AnalyzerOpen, setGpt5AnalyzerOpen] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('themeMode') as ThemeMode;
     return saved || 'light';
@@ -110,6 +112,37 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
     localStorage.setItem('themeMode', newTheme);
   };
 
+  // GPT-5 シフト解析を開く
+  const handleOpenGPT5Analyzer = () => {
+    setQuickMenuOpen(false);
+    setGpt5AnalyzerOpen(true);
+  };
+
+  // GPT-5からシフトデータを受信した時の処理
+  const handleShiftsExtracted = (shifts: any[]) => {
+    // シフトストアに追加し、カレンダーにも反映
+    shifts.forEach(shift => {
+      const event: CalendarEvent = {
+        id: `gpt5-${Date.now()}-${Math.random()}`,
+        date: shift.date,
+        startTime: shift.startTime,
+        endTime: shift.endTime,
+        title: shift.workplace || 'シフト',
+        type: 'shift',
+        description: shift.notes || '',
+        color: '#FFD54F',
+      };
+      
+      // カレンダーストアに追加
+      useCalendarStore.getState().addEvent(event);
+    });
+    
+    setGpt5AnalyzerOpen(false);
+    
+    // 成功メッセージ（必要に応じて）
+    console.log(`${shifts.length}件のシフトをカレンダーに追加しました`);
+  };
+
   return (
     <Box sx={{ 
       height: '100%', // 親コンテナのサイズをそのまま使用
@@ -158,6 +191,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
         onAddPersonalEvent={handleAddPersonalEvent}
         onAddShiftEvent={handleAddShiftEvent}
         onViewDayEvents={handleViewDayEvents}
+        onOpenGPT5Analyzer={handleOpenGPT5Analyzer}
       />
 
       {/* 日付の予定一覧ダイアログ */}
@@ -220,6 +254,30 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
           </Box>
         </Box>
       </Slide>
+
+      {/* GPT-5 シフト表解析ダイアログ */}
+      {gpt5AnalyzerOpen && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1400,
+            p: 2,
+          }}
+        >
+          <ShiftImageAnalyzer
+            onShiftsExtracted={handleShiftsExtracted}
+            onClose={() => setGpt5AnalyzerOpen(false)}
+          />
+        </Box>
+      )}
 
     </Box>
   );

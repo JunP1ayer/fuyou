@@ -803,20 +803,20 @@ export const WorkplaceManager: React.FC = () => {
                             </Box>
                           }
                           secondary={
-                            <Box sx={{ mt: 1 }}>
-                              <Box
-                                sx={{
+                            <div style={{ marginTop: 8 }}>
+                              <div
+                                style={{
                                   display: 'flex',
                                   alignItems: 'center',
-                                  gap: 2,
-                                  mb: 1,
+                                  gap: 16,
+                                  marginBottom: 8,
                                 }}
                               >
-                                <Box
-                                  sx={{
+                                <div
+                                  style={{
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: 0.5,
+                                    gap: 4,
                                   }}
                                 >
                                   <AttachMoney
@@ -828,17 +828,18 @@ export const WorkplaceManager: React.FC = () => {
                                   <Typography
                                     variant="body2"
                                     color="text.secondary"
+                                    component="span"
                                   >
                                     時給 {formatCurrency(workplace.defaultHourlyRate)}
                                   </Typography>
-                                </Box>
+                                </div>
 
                                 {stats.totalEarnings > 0 && (
-                                  <Box
-                                    sx={{
+                                  <div
+                                    style={{
                                       display: 'flex',
                                       alignItems: 'center',
-                                      gap: 0.5,
+                                      gap: 4,
                                     }}
                                   >
                                     <Schedule
@@ -849,6 +850,7 @@ export const WorkplaceManager: React.FC = () => {
                                     />
                                     <Typography
                                       variant="body2"
+                                      component="span"
                                       sx={{
                                         color: 'success.main',
                                         fontWeight: 600,
@@ -856,20 +858,21 @@ export const WorkplaceManager: React.FC = () => {
                                     >
                                       総収入 {formatCurrency(stats.totalEarnings)}
                                     </Typography>
-                                  </Box>
+                                  </div>
                                 )}
-                              </Box>
+                              </div>
 
                               {workplace.description && (
                                 <Typography
                                   variant="body2"
                                   color="text.secondary"
+                                  component="span"
                                   sx={{ fontSize: '0.8rem' }}
                                 >
                                   {workplace.description}
                                 </Typography>
                               )}
-                            </Box>
+                            </div>
                           }
                         />
 

@@ -49,6 +49,7 @@ import { MobileSalaryView } from './components/salary/MobileSalaryView';
 import { preloadCountryRules } from './lib/rules/provider';
 import { ToastDemo } from './components/Toast/ToastDemo';
 import { CalendarApp } from './components/calendar/CalendarApp';
+import { GPT5Assistant } from './components/GPT5Assistant';
 
 const theme = responsiveFontSizes(createTheme({
   palette: {
