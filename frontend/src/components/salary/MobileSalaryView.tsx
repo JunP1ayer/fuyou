@@ -355,30 +355,6 @@ export const MobileSalaryView: React.FC = () => {
             </IconButton>
           </Box>
 
-          {dependencyStatus.isStudent && (
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                1-1. 学生特例の対象外になり得る条件はありますか？
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {[
-                  { key: 'none', label: '該当なし' },
-                  { key: 'leave', label: '休学中' },
-                  { key: 'night', label: '夜間課程' },
-                  { key: 'graduate_soon', label: '卒業見込み直前' },
-                ].map(opt => (
-                  <Chip
-                    key={opt.key}
-                    label={opt.label}
-                    color={dependencyStatus.studentException === opt.key ? 'primary' : 'default'}
-                    variant={dependencyStatus.studentException === opt.key ? 'filled' : 'outlined'}
-                    onClick={() => setDependencyStatus({ ...dependencyStatus, studentException: opt.key })}
-                    sx={{ cursor: 'pointer' }}
-                  />
-                ))}
-              </Box>
-            </Box>
-          )}
         </Box>
       ) : (
         <Box
@@ -790,31 +766,100 @@ export const MobileSalaryView: React.FC = () => {
             </Box>
           </Box>
 
+          {/* 学生の場合の追加質問 */}
+          {dependencyStatus.isStudent && (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                1-1. あてはまるものがあれば教えてください
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Chip
+                  label="該当なし"
+                  color={dependencyStatus.studentException === 'none' ? 'primary' : 'default'}
+                  variant={dependencyStatus.studentException === 'none' ? 'filled' : 'outlined'}
+                  onClick={() => setDependencyStatus({ ...dependencyStatus, studentException: 'none' })}
+                  sx={{ cursor: 'pointer' }}
+                />
+                <Chip
+                  label="現在休学中"
+                  color={dependencyStatus.studentException === 'leave' ? 'primary' : 'default'}
+                  variant={dependencyStatus.studentException === 'leave' ? 'filled' : 'outlined'}
+                  onClick={() => setDependencyStatus({ ...dependencyStatus, studentException: 'leave' })}
+                  sx={{ cursor: 'pointer' }}
+                />
+                <Chip
+                  label="夜間・通信制の課程"
+                  color={dependencyStatus.studentException === 'night' ? 'primary' : 'default'}
+                  variant={dependencyStatus.studentException === 'night' ? 'filled' : 'outlined'}
+                  onClick={() => setDependencyStatus({ ...dependencyStatus, studentException: 'night' })}
+                  sx={{ cursor: 'pointer' }}
+                />
+                <Chip
+                  label="来年3月に卒業予定"
+                  color={dependencyStatus.studentException === 'graduate_soon' ? 'primary' : 'default'}
+                  variant={dependencyStatus.studentException === 'graduate_soon' ? 'filled' : 'outlined'}
+                  onClick={() => setDependencyStatus({ ...dependencyStatus, studentException: 'graduate_soon' })}
+                  sx={{ cursor: 'pointer' }}
+                />
+              </Box>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                学生でも働き方によって税の扱いが変わることがあります
+              </Typography>
+            </Box>
+          )}
+
+          {/* 2. あてはまる働き方（知識不要の行動ベース） */}
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-              2. 目標とする扶養限度額は？
+              2. あてはまる働き方があれば教えてください（わからなければ未選択でOK）
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Chip
+                label="週20時間以上で働く予定"
+                color={dependencyStatus.weeklyHours20 ? 'primary' : 'default'}
+                variant={dependencyStatus.weeklyHours20 ? 'filled' : 'outlined'}
+                onClick={() => setDependencyStatus({ ...dependencyStatus, weeklyHours20: !dependencyStatus.weeklyHours20 })}
+              />
+              <Chip
+                label="同じ勤務先で2か月を超えて働く予定"
+                color={dependencyStatus.contractLength === 'over2m' ? 'primary' : 'default'}
+                variant={dependencyStatus.contractLength === 'over2m' ? 'filled' : 'outlined'}
+                onClick={() => setDependencyStatus({ ...dependencyStatus, contractLength: dependencyStatus.contractLength === 'over2m' ? 'under2m' : 'over2m' })}
+              />
+              <Chip
+                label="勤務先の従業員は51人以上（不明なら未選択）"
+                color={dependencyStatus.officeSize51 === 'yes' ? 'primary' : 'default'}
+                variant={dependencyStatus.officeSize51 === 'yes' ? 'filled' : 'outlined'}
+                onClick={() => setDependencyStatus({ ...dependencyStatus, officeSize51: dependencyStatus.officeSize51 === 'yes' ? 'no' : 'yes' })}
+              />
+            </Box>
+          </Box>
+
+          {/* 3. 手動で上限を決めたい場合だけ選択肢を使用 */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+              3. 目標とする年間の上限（金額）
             </Typography>
             <FormControl fullWidth size="small">
               <Select
                 value={dependencyStatus.selectedLimit}
-                onChange={(e) => setDependencyStatus({...dependencyStatus, selectedLimit: Number(e.target.value)})}
+                onChange={(e) => setDependencyStatus({ ...dependencyStatus, selectedLimit: Number(e.target.value) })}
+                disabled={dependencyStatus.autoRecommend}
               >
-                <MenuItem value={103}>103万円 - 所得税の壁（2025年11月まで）</MenuItem>
-                <MenuItem value={123}>123万円 - 所得税の壁（2025年12月以降）</MenuItem>
-                <MenuItem value={106}>106万円 - 社会保険加入の壁</MenuItem>
-                <MenuItem value={130}>130万円 - 配偶者の扶養から外れる壁</MenuItem>
+                <MenuItem value={103}>103万円（2025年11月までの基本目安）</MenuItem>
+                <MenuItem value={123}>123万円（2025年12月以降の税目安）</MenuItem>
+                <MenuItem value={106}>106万円（社会保険の目安）</MenuItem>
+                <MenuItem value={130}>130万円（扶養の目安）</MenuItem>
                 {dependencyStatus.isStudent && (
-                  <MenuItem value={150}>150万円 - 学生特例（勤労学生控除）</MenuItem>
+                  <MenuItem value={150}>150万円（学生向けの目安）</MenuItem>
                 )}
               </Select>
             </FormControl>
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              {dependencyStatus.selectedLimit === 103 && "現行の基本的な扶養控除の限度額です（2025年11月まで）"}
-              {dependencyStatus.selectedLimit === 123 && "2025年12月から適用される新しい扶養控除の限度額です"}
-              {dependencyStatus.selectedLimit === 106 && "週20時間以上働く場合の社会保険加入基準"}
-              {dependencyStatus.selectedLimit === 130 && "配偶者の社会保険の扶養から外れる基準"}
-              {dependencyStatus.selectedLimit === 150 && "学生の場合、勤労学生控除で150万円まで非課税（親の扶養は別途判定）"}
-            </Typography>
+            {!dependencyStatus.autoRecommend && (
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                手動で選んだ上限が優先されます
+              </Typography>
+            )}
           </Box>
 
           {/* 親の収入や税知識に依存する質問は排除（ユーザーは何も知らない前提） */}
@@ -824,10 +869,21 @@ export const MobileSalaryView: React.FC = () => {
               あなたの推奨設定
             </Typography>
             <Typography variant="h5" color="primary.main" sx={{ fontWeight: 700 }}>
-              年間 {dependencyStatus.selectedLimit}万円まで
+              年間 {
+                dependencyStatus.autoRecommend
+                  ? Math.round(dependencyLimit.limit / 10000)
+                  : (dependencyStatus.selectedLimit ?? Math.round(dependencyLimit.limit / 10000))
+              }万円まで
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              月平均: 約{Math.floor(dependencyStatus.selectedLimit * 10000 / 12).toLocaleString()}円
+              月平均: 約{
+                Math.floor(
+                  (dependencyStatus.autoRecommend
+                    ? dependencyLimit.limit
+                    : ((dependencyStatus.selectedLimit ?? Math.round(dependencyLimit.limit / 10000)) * 10000)
+                  ) / 12
+                ).toLocaleString()
+              }円
             </Typography>
           </Box>
           {/* 自動/手動 切替 */}
@@ -893,6 +949,49 @@ export const MobileSalaryView: React.FC = () => {
               />
             </Box>
           </Box>
+
+          {/* 学生の場合の追加質問（再設定時） */}
+          {dependencyStatus.isStudent && (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                1-1. あてはまるものがあれば教えてください
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Chip
+                  label="該当なし"
+                  size="small"
+                  color={dependencyStatus.studentException === 'none' ? 'primary' : 'default'}
+                  variant={dependencyStatus.studentException === 'none' ? 'filled' : 'outlined'}
+                  onClick={() => setDependencyStatus({ ...dependencyStatus, studentException: 'none' })}
+                  sx={{ cursor: 'pointer' }}
+                />
+                <Chip
+                  label="現在休学中"
+                  size="small"
+                  color={dependencyStatus.studentException === 'leave' ? 'primary' : 'default'}
+                  variant={dependencyStatus.studentException === 'leave' ? 'filled' : 'outlined'}
+                  onClick={() => setDependencyStatus({ ...dependencyStatus, studentException: 'leave' })}
+                  sx={{ cursor: 'pointer' }}
+                />
+                <Chip
+                  label="夜間・通信制"
+                  size="small"
+                  color={dependencyStatus.studentException === 'night' ? 'primary' : 'default'}
+                  variant={dependencyStatus.studentException === 'night' ? 'filled' : 'outlined'}
+                  onClick={() => setDependencyStatus({ ...dependencyStatus, studentException: 'night' })}
+                  sx={{ cursor: 'pointer' }}
+                />
+                <Chip
+                  label="卒業予定"
+                  size="small"
+                  color={dependencyStatus.studentException === 'graduate_soon' ? 'primary' : 'default'}
+                  variant={dependencyStatus.studentException === 'graduate_soon' ? 'filled' : 'outlined'}
+                  onClick={() => setDependencyStatus({ ...dependencyStatus, studentException: 'graduate_soon' })}
+                  sx={{ cursor: 'pointer' }}
+                />
+              </Box>
+            </Box>
+          )}
 
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
