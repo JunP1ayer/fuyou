@@ -30,8 +30,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
     open
     sx={{
       zIndex: 9999,
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      color: 'white',
+      background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+      color: '#1a1a1a',
     }}
   >
     <Box
@@ -43,25 +43,54 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
       }}
     >
       <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
+        initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
       >
-        <Typography variant="h3" sx={{ fontWeight: 700, mb: 2 }}>
-          🌟 FUYOU PRO
+        <Typography 
+          variant="h2" 
+          sx={{ 
+            fontWeight: 300, 
+            mb: 1,
+            color: '#1a1a1a',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          FUYOU
         </Typography>
-        <Typography variant="h6" sx={{ mb: 4, opacity: 0.9 }}>
-          学生向け扶養管理アプリ
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            mb: 4, 
+            color: '#666',
+            fontWeight: 400,
+          }}
+        >
+          スマートな扶養管理
         </Typography>
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.4 }}
       >
-        <CircularProgress size={40} sx={{ color: 'white', mb: 2 }} />
-        <Typography variant="body1" sx={{ opacity: 0.8 }}>
+        <Box sx={{ position: 'relative', mb: 3 }}>
+          <CircularProgress 
+            size={32} 
+            sx={{ 
+              color: '#5ac8fa',
+            }} 
+          />
+        </Box>
+        <Typography 
+          variant="body1" 
+          sx={{ 
+            color: '#666',
+            fontWeight: 400,
+            fontSize: '0.9rem',
+          }}
+        >
           {message}
         </Typography>
       </motion.div>

@@ -40,6 +40,32 @@ interface AuthFormProps {
   onClose?: () => void;
 }
 
+// 共通のTextFieldスタイル
+const textFieldSx = {
+  mb: 2,
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 3,
+    backgroundColor: '#fafbfc',
+    border: 'none',
+    '& fieldset': {
+      border: '1px solid #e1e8ed',
+    },
+    '&:hover fieldset': {
+      border: '1px solid #5ac8fa',
+    },
+    '&.Mui-focused fieldset': {
+      border: '2px solid #5ac8fa',
+      boxShadow: '0 0 0 3px rgba(90, 200, 250, 0.1)',
+    },
+  },
+  '& .MuiInputLabel-root': {
+    color: '#666',
+    '&.Mui-focused': {
+      color: '#5ac8fa',
+    },
+  },
+};
+
 export const AuthForm: React.FC<AuthFormProps> = ({
   defaultTab = 'login',
   onClose
@@ -128,64 +154,97 @@ export const AuthForm: React.FC<AuthFormProps> = ({
     >
       <Card
         sx={{
-          maxWidth: 400,
+          maxWidth: 420,
           mx: 'auto',
-          boxShadow: theme.shadows[10],
-          borderRadius: 3,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          borderRadius: 4,
           overflow: 'hidden',
-          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)} 0%, ${alpha(theme.palette.secondary.main, 0.05)} 100%)`,
+          background: 'rgba(255,255,255,0.95)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.2)',
         }}
       >
         {/* ヘッダー */}
         <Box
           sx={{
-            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-            color: 'primary.contrastText',
             textAlign: 'center',
-            py: 3,
+            py: 4,
+            px: 3,
             position: 'relative',
           }}
         >
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-            🌟 FUYOU PRO
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              fontWeight: 300, 
+              mb: 1,
+              color: '#1a1a1a',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            FUYOU
           </Typography>
-          <Typography variant="body2" sx={{ opacity: 0.9 }}>
-            学生向け扶養管理アプリ
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              color: 'text.secondary',
+              fontWeight: 400,
+            }}
+          >
+            スマートな扶養管理
           </Typography>
         </Box>
 
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ px: 4, pb: 4, pt: 0 }}>
           {/* タブ */}
-          <Tabs
-            value={currentTab}
-            onChange={handleTabChange}
-            variant="fullWidth"
-            sx={{
-              mb: 3,
-              '& .MuiTab-root': {
-                fontWeight: 600,
-                textTransform: 'none',
-                minHeight: 48,
-              },
-              '& .MuiTabs-indicator': {
-                height: 3,
-                borderRadius: 1.5,
-              },
-            }}
-          >
-            <Tab 
-              value="login" 
-              label="ログイン" 
-              icon={<LoginIcon />}
-              iconPosition="start"
-            />
-            <Tab 
-              value="signup" 
-              label="新規登録" 
-              icon={<PersonAdd />}
-              iconPosition="start"
-            />
-          </Tabs>
+          <Box sx={{ mb: 3 }}>
+            <Box 
+              sx={{ 
+                display: 'flex',
+                background: '#f8f9fa',
+                borderRadius: 3,
+                p: 0.5,
+                mb: 1,
+              }}
+            >
+              <Box
+                onClick={() => handleTabChange(null, 'login')}
+                sx={{
+                  flex: 1,
+                  textAlign: 'center',
+                  py: 1.5,
+                  borderRadius: 2.5,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  background: currentTab === 'login' ? '#fff' : 'transparent',
+                  boxShadow: currentTab === 'login' ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
+                  color: currentTab === 'login' ? '#1a1a1a' : '#666',
+                  fontWeight: currentTab === 'login' ? 600 : 400,
+                  fontSize: '0.9rem',
+                }}
+              >
+                ログイン
+              </Box>
+              <Box
+                onClick={() => handleTabChange(null, 'signup')}
+                sx={{
+                  flex: 1,
+                  textAlign: 'center',
+                  py: 1.5,
+                  borderRadius: 2.5,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  background: currentTab === 'signup' ? '#fff' : 'transparent',
+                  boxShadow: currentTab === 'signup' ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
+                  color: currentTab === 'signup' ? '#1a1a1a' : '#666',
+                  fontWeight: currentTab === 'signup' ? 600 : 400,
+                  fontSize: '0.9rem',
+                }}
+              >
+                新規登録
+              </Box>
+            </Box>
+          </Box>
 
           {/* エラー表示 */}
           <AnimatePresence>
@@ -232,16 +291,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                     fullWidth
                     type="email"
                     label="メールアドレス"
+                    placeholder="your@email.com"
                     value={loginForm.email}
                     onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Email color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{ mb: 2 }}
+                    sx={textFieldSx}
                     required
                   />
 
@@ -249,26 +302,23 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                     fullWidth
                     type={showPassword ? 'text' : 'password'}
                     label="パスワード"
+                    placeholder="••••••••"
                     value={loginForm.password}
                     onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
                     InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Lock color="action" />
-                        </InputAdornment>
-                      ),
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton
                             onClick={() => setShowPassword(!showPassword)}
                             edge="end"
+                            sx={{ color: '#666' }}
                           >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
                         </InputAdornment>
                       ),
                     }}
-                    sx={{ mb: 1 }}
+                    sx={{ ...textFieldSx, mb: 1 }}
                     required
                   />
 
@@ -277,7 +327,15 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                       component="button"
                       type="button"
                       onClick={handlePasswordReset}
-                      sx={{ fontSize: '0.875rem' }}
+                      sx={{ 
+                        fontSize: '0.875rem',
+                        color: '#666',
+                        textDecoration: 'none',
+                        '&:hover': {
+                          color: '#5ac8fa',
+                          textDecoration: 'underline',
+                        },
+                      }}
                     >
                       パスワードを忘れた方
                     </Link>
@@ -290,14 +348,26 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                     size="large"
                     disabled={loading}
                     sx={{
-                      py: 1.5,
-                      borderRadius: 2,
+                      py: 1.8,
+                      borderRadius: 3,
                       fontWeight: 600,
                       fontSize: '1rem',
                       textTransform: 'none',
+                      background: 'linear-gradient(135deg, #5ac8fa 0%, #4fb3e9 100%)',
+                      boxShadow: '0 4px 16px rgba(90, 200, 250, 0.3)',
+                      border: 'none',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #4fb3e9 0%, #3ea5e0 100%)',
+                        boxShadow: '0 6px 20px rgba(90, 200, 250, 0.4)',
+                        transform: 'translateY(-1px)',
+                      },
+                      '&:active': {
+                        transform: 'translateY(0px)',
+                      },
+                      transition: 'all 0.2s ease',
                     }}
                   >
-                    {loading ? <CircularProgress size={24} /> : 'ログイン'}
+                    {loading ? <CircularProgress size={24} color="inherit" /> : 'ログイン'}
                   </Button>
                 </Box>
               </motion.div>
@@ -313,16 +383,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                   <TextField
                     fullWidth
                     label="お名前"
+                    placeholder="山田 太郎"
                     value={signupForm.name}
                     onChange={(e) => setSignupForm(prev => ({ ...prev, name: e.target.value }))}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Person color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{ mb: 2 }}
+                    sx={textFieldSx}
                     required
                   />
 
@@ -330,16 +394,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                     fullWidth
                     type="email"
                     label="メールアドレス"
+                    placeholder="your@email.com"
                     value={signupForm.email}
                     onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Email color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{ mb: 2 }}
+                    sx={textFieldSx}
                     required
                   />
 
@@ -349,17 +407,14 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                     label="パスワード"
                     value={signupForm.password}
                     onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="••••••••"
                     InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Lock color="action" />
-                        </InputAdornment>
-                      ),
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton
                             onClick={() => setShowPassword(!showPassword)}
                             edge="end"
+                            sx={{ color: '#666' }}
                           >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
@@ -367,7 +422,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                       ),
                     }}
                     helperText="8文字以上、大文字・数字を含む"
-                    sx={{ mb: 2 }}
+                    sx={{ ...textFieldSx, mb: 2 }}
                     required
                   />
 
@@ -375,26 +430,23 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                     fullWidth
                     type={showConfirmPassword ? 'text' : 'password'}
                     label="パスワード（確認）"
+                    placeholder="••••••••"
                     value={signupForm.confirmPassword}
                     onChange={(e) => setSignupForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
                     InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Lock color="action" />
-                        </InputAdornment>
-                      ),
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             edge="end"
+                            sx={{ color: '#666' }}
                           >
                             {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
                         </InputAdornment>
                       ),
                     }}
-                    sx={{ mb: 3 }}
+                    sx={{ ...textFieldSx, mb: 3 }}
                     required
                   />
 
@@ -405,59 +457,40 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                     size="large"
                     disabled={loading}
                     sx={{
-                      py: 1.5,
-                      borderRadius: 2,
+                      py: 1.8,
+                      borderRadius: 3,
                       fontWeight: 600,
                       fontSize: '1rem',
                       textTransform: 'none',
+                      background: 'linear-gradient(135deg, #5ac8fa 0%, #4fb3e9 100%)',
+                      boxShadow: '0 4px 16px rgba(90, 200, 250, 0.3)',
+                      border: 'none',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #4fb3e9 0%, #3ea5e0 100%)',
+                        boxShadow: '0 6px 20px rgba(90, 200, 250, 0.4)',
+                        transform: 'translateY(-1px)',
+                      },
+                      '&:active': {
+                        transform: 'translateY(0px)',
+                      },
+                      transition: 'all 0.2s ease',
                     }}
                   >
-                    {loading ? <CircularProgress size={24} /> : 'アカウント作成'}
+                    {loading ? <CircularProgress size={24} color="inherit" /> : 'アカウント作成'}
                   </Button>
                 </Box>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* ソーシャルログイン（将来の拡張用） */}
-          <Divider sx={{ my: 3 }}>
-            <Typography variant="body2" color="text.secondary">
-              または
-            </Typography>
-          </Divider>
-
-          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-            {[
-              { icon: Google, label: 'Google', color: '#db4437' },
-              { icon: GitHub, label: 'GitHub', color: '#333' },
-              { icon: Apple, label: 'Apple', color: '#000' },
-            ].map(({ icon: Icon, label, color }) => (
-              <IconButton
-                key={label}
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  color: color,
-                  '&:hover': {
-                    backgroundColor: alpha(color, 0.1),
-                  },
-                }}
-                disabled
-              >
-                <Icon />
-              </IconButton>
-            ))}
-          </Box>
-
           <Typography
             variant="body2"
             color="text.secondary"
             textAlign="center"
-            sx={{ mt: 2 }}
+            sx={{ mt: 3, fontSize: '0.8rem' }}
           >
-            利用規約とプライバシーポリシーに同意の上、{' '}
-            <br />
-            {currentTab === 'login' ? 'ログイン' : 'アカウント作成'}してください
+            {currentTab === 'login' ? 'ログイン' : 'アカウント作成'}により、
+            <br />利用規約とプライバシーポリシーに同意するものとします
           </Typography>
         </CardContent>
       </Card>

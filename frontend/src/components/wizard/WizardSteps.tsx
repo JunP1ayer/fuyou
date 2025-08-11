@@ -90,7 +90,7 @@ export const WizardSteps: React.FC = () => {
                   onChange={(_, v) => setUseAuto(v)}
                 />
               }
-              label={t('wizard.steps.autoEstimate', '直近のシフトから自動見積もり')} + `（約${weeklyAuto.toFixed(1)}${t('wizard.steps.hoursPerWeek','時間/週')}）`
+              label={`${t('wizard.steps.autoEstimate', '直近のシフトから自動見積もり')}（約${weeklyAuto.toFixed(1)}${t('wizard.steps.hoursPerWeek','時間/週')}）`}
             />
             {!useAuto && (
               <Box

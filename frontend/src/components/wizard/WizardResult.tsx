@@ -9,10 +9,12 @@ import {
   Chip,
 } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useI18n } from '@/hooks/useI18n';
 
 export const WizardResult: React.FC = () => {
   const navigate = useNavigate();
   const { state } = useLocation() as { state?: any };
+  const { t } = useI18n();
   const cards = state?.result?.cards as Array<{
     title: string;
     status: string;
@@ -23,7 +25,7 @@ export const WizardResult: React.FC = () => {
   return (
     <Box sx={{ maxWidth: 900, mx: 'auto', p: 2 }}>
       <Typography variant="h5" sx={{ fontWeight: 800, mb: 2 }}>
-        結果（暫定）
+        {t('wizard.result.heading', '結果（暫定）')}
       </Typography>
       <Grid container spacing={2}>
         {(cards || []).map((c, idx) => (
@@ -78,10 +80,10 @@ export const WizardResult: React.FC = () => {
       </Grid>
       <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
         <Button variant="outlined" onClick={() => navigate('/wizard')}>
-          もう一度チェック
+          {t('wizard.result.retry', 'もう一度チェック')}
         </Button>
         <Button variant="contained" onClick={() => navigate('/')}>
-          ホームへ
+          {t('wizard.result.home', 'ホームへ')}
         </Button>
       </Box>
     </Box>

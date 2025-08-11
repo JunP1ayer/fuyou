@@ -5,10 +5,9 @@ import type {
   User, 
   LoginCredentials, 
   SignupCredentials, 
-  AuthError,
-  AUTH_ERROR_MESSAGES,
-  VALIDATION_RULES 
+  AuthError
 } from '../types/auth';
+import { AUTH_ERROR_MESSAGES, VALIDATION_RULES } from '../types/auth';
 
 // Supabaseクライアント初期化
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
