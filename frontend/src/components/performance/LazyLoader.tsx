@@ -19,13 +19,13 @@ export const createLazyComponent = <P extends object>(
 ) => {
   const LazyComponent = lazy(importFunc);
   
-  return (props: P) => (
+  return React.memo((props: P) => (
     <ErrorBoundary>
       <Suspense fallback={fallback || <ComponentLoadingSkeleton />}>
-        <LazyComponent {...props} />
+        <LazyComponent {...(props as any)} />
       </Suspense>
     </ErrorBoundary>
-  );
+  ));
 };
 
 /**
@@ -120,7 +120,7 @@ export const LazyImage: React.FC<{
 
   // Intersection Observer で画面に入ったときだけ読み込み
   useEffect(() => {
-    if (!imgRef.current) return;
+    if (!imgRef.current) return undefined;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -291,7 +291,7 @@ export const InfiniteScroll: React.FC<{
   }, [loadMore, hasMore, loading, isFetching]);
 
   useEffect(() => {
-    if (!sentinelRef.current) return;
+    if (!sentinelRef.current) return undefined;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -369,6 +369,7 @@ export const useDeferredCalculation = <T,>(
         clearTimeout(timeoutRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   return result;
@@ -417,28 +418,23 @@ export const useResourcePreloader = () => {
 
 /**
  * バンドル分割された遅延コンポーネント群
+ * 実際のコンポーネントが存在する場合に使用
  */
-export const LazyComponents = {
-  // 重いコンポーネントを遅延読み込み
-  Dashboard: createLazyComponent(
-    () => import('../dashboard/EarningsDashboard'),
-    <ComponentLoadingSkeleton variant="card" />
-  ),
-  
-  Calendar: createLazyComponent(
-    () => import('../calendar/CalendarApp'),
-    <ComponentLoadingSkeleton variant="calendar" />
-  ),
-  
-  Settings: createLazyComponent(
-    () => import('../settings/SettingsView'),
-    <ComponentLoadingSkeleton variant="form" />
-  ),
-  
-  Banking: createLazyComponent(
-    () => import('../banking/BankingDashboard'),
-    <ComponentLoadingSkeleton variant="list" />
-  ),
+export const createLazyComponents = () => {
+  // 実際のコンポーネントパスに合わせて修正してください
+  return {
+    /*
+    Dashboard: createLazyComponent(
+      () => import('../dashboard/ModernDashboard').then(m => ({ default: m.ModernDashboard })),
+      <ComponentLoadingSkeleton variant="card" />
+    ),
+    
+    Calendar: createLazyComponent(
+      () => import('../calendar/CalendarApp').then(m => ({ default: m.CalendarApp })),
+      <ComponentLoadingSkeleton variant="calendar" />
+    ),
+    */
+  };
 };
 
 /**

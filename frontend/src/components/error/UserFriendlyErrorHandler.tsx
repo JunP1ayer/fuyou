@@ -107,7 +107,7 @@ const getLocalizedErrorMessage = (error: Error | string, type?: ErrorType): User
       actions: [
         {
           label: 'ログインページへ',
-          action: () => window.location.href = '/login',
+          action: () => { window.location.href = '/login'; },
           variant: 'contained',
           color: 'warning'
         }
@@ -156,7 +156,7 @@ const getLocalizedErrorMessage = (error: Error | string, type?: ErrorType): User
         },
         {
           label: 'サポートに連絡',
-          action: () => window.open('mailto:support@example.com'),
+          action: () => { window.open('mailto:support@example.com'); },
           variant: 'text',
           color: 'secondary'
         }
