@@ -20,21 +20,21 @@ import type { CalendarEvent } from '../../types/calendar';
 const WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土'];
 
 // イベントチップコンポーネント（iOSカレンダー風の丸み・小さめフォント）
-const EventChip: React.FC<{ event: CalendarEvent }> = ({ event }) => {
+const EventChip: React.FC<{ event: CalendarEvent; isPC?: boolean }> = ({ event, isPC = false }) => {
   return (
     <Box
       sx={{
         backgroundColor: event.color,
         color: '#000',
-        px: 0.75,
-        py: 0.25,
-        borderRadius: 2,
-        fontSize: '11px',
+        px: isPC ? 0.5 : 0.75,
+        py: isPC ? 0.15 : 0.25,
+        borderRadius: isPC ? 1 : 2,
+        fontSize: isPC ? '10px' : '11px',
         fontWeight: 600,
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        mb: 0.25,
+        mb: isPC ? 0.15 : 0.25,
         cursor: 'pointer',
         '&:hover': {
           opacity: 0.8,
@@ -98,6 +98,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     return months;
   };
 
+  // PC版は単月表示、モバイル版は縦スクロール
   const multipleMonths = isMobile && viewMode === 'vertical' ? generateMultipleMonths() : [currentMonth];
   
   // 初期スクロール位置を当月へ
@@ -119,12 +120,13 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
       // 端まで表示（親の余白に依存しない）
       px: 0,
     }}>
-      {/* 曜日ヘッダー（月曜始まり・iOSライク） */}
+      {/* 曜日ヘッダー - モバイル:月曜始まり、PC:日曜始まり */}
       {true && (
-        <Box sx={{ height: { xs: '34px', md: '30px' }, flexShrink: 0 }}>
+        <Box sx={{ height: { xs: '34px', md: '36px' }, flexShrink: 0 }}>
           <Grid container spacing={0} sx={{ height: '100%' }}>
-            {[1,2,3,4,5,6,0].map((dow, index) => {
+            {(isMobile ? [1,2,3,4,5,6,0] : [0,1,2,3,4,5,6]).map((dow, index) => {
               const day = t(`calendar.weekdays.${dow}`, WEEKDAYS_JA[dow]);
+              const isWeekend = dow === 0 || dow === 6;
               return (
                 <Grid item xs key={day}>
                   <Box
@@ -135,10 +137,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                       justifyContent: 'center',
                       fontWeight: 600,
                       letterSpacing: 0.2,
-                      fontSize: { xs: '12px', md: '11px' },
-                      color: index === 6 ? 'error.main' : 'text.secondary', // 末尾(日曜)を赤
+                      fontSize: { xs: '12px', md: '13px' },
+                      color: dow === 0 ? 'error.main' : dow === 6 ? 'info.main' : 'text.secondary',
                       borderBottom: '1px solid',
                       borderColor: 'divider',
+                      backgroundColor: { xs: 'transparent', md: isWeekend ? alpha(theme.palette.action.hover, 0.03) : 'transparent' },
                     }}
                   >
                     {day}
@@ -155,17 +158,23 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
         flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
         display: 'flex', 
         flexDirection: 'column',
-        height: isMobile && viewMode === 'vertical' ? 'auto' : 'calc(100% - 34px)', // 曜日ヘッダー分を差し引く
+        height: isMobile && viewMode === 'vertical' ? 'auto' : 'calc(100% - 36px)', // 曜日ヘッダー分を差し引く（PC版は36px）
         minHeight: 0,
+        px: { xs: 0, md: 2 }, // PC版には左右余白を追加
+        py: { xs: 0, md: 1 }, // PC版には上下余白も追加
       }}>
         {multipleMonths.map((month, monthIndex) => {
           const monthStart = startOfMonth(month);
           const monthEnd = endOfMonth(month);
-          // iOSの月ビューに合わせてモバイルは月曜始まり
+          // モバイル:月曜始まり、PC:日曜始まり
           const weekStartsOn = isMobile ? 1 : 0;
-          // 1週前の週始まりから、翌月1週目の週終わりまで表示
-          const calendarStart = startOfWeek(new Date(monthStart.getFullYear(), monthStart.getMonth(), 1 - 7), { weekStartsOn });
-          const calendarEnd = endOfWeek(new Date(monthEnd.getFullYear(), monthEnd.getMonth() + 1, 7), { weekStartsOn });
+          // PC版は標準的な月表示、モバイル版は前後の月も含めた表示
+          const calendarStart = isMobile 
+            ? startOfWeek(new Date(monthStart.getFullYear(), monthStart.getMonth(), 1 - 7), { weekStartsOn })
+            : startOfWeek(monthStart, { weekStartsOn });
+          const calendarEnd = isMobile
+            ? endOfWeek(new Date(monthEnd.getFullYear(), monthEnd.getMonth() + 1, 7), { weekStartsOn })
+            : endOfWeek(monthEnd, { weekStartsOn });
           const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
           
           const weeks: Date[][] = [];
@@ -216,9 +225,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                   pointerEvents: 'none',
                   userSelect: 'none',
                   fontWeight: 700,
-                  fontSize: isMobile ? '112px' : '160px',
-                  color: alpha(theme.palette.text.primary, 0.06),
+                  fontSize: isMobile ? '112px' : '200px',
+                  color: alpha(theme.palette.text.primary, isMobile ? 0.06 : 0.04),
                   lineHeight: 1,
+                  display: { xs: 'block', md: isMobile ? 'none' : 'block' }, // PC版単月表示時のみ表示
                 }}
               >
                 {format(month, 'M')}
@@ -251,9 +261,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                           sx={{
                             height: '100%',
                             width: '100%',
-                            p: isMobile && viewMode === 'vertical' ? 0.75 : 0.75,
+                            p: { xs: 0.75, md: 1 }, // PC版は余白を大きく
                             cursor: 'pointer',
-                            // 線の重なりを防ぎ、月間境界の“微妙なすきま”を解消
+                            // 線の重なりを防ぎ、月間境界の"微妙なすきま"を解消
                             border: 0,
                             borderTop: '1px solid',
                             borderLeft: dayIndex === 0 ? '1px solid' : 0,
@@ -262,7 +272,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                             borderColor: 'divider',
                             display: 'flex',
                             flexDirection: 'column',
-                            backgroundColor: !isCurrentMonth && dimOutsideMonth ? 'grey.100' : 'background.paper',
+                            backgroundColor: !isCurrentMonth && dimOutsideMonth 
+                              ? alpha(theme.palette.action.disabledBackground, 0.3)
+                              : dayOfWeek === 0 || dayOfWeek === 6
+                                ? { xs: 'background.paper', md: alpha(theme.palette.action.hover, 0.02) }
+                                : 'background.paper',
                             outline: isTodayDate ? `2px solid ${alpha(theme.palette.primary.main, 0.6)}` : 'none',
                             outlineOffset: '-1px',
                             '&:hover': {
@@ -277,14 +291,17 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                               variant="body2"
                               sx={{
                                 fontWeight: isTodayDate ? 700 : 500,
-                                fontSize: { xs: '16px', md: '13px' },
+                                fontSize: { xs: '16px', md: '14px' },
                                 color:
-                                  dayOfWeek === 0
-                                    ? 'error.main'
-                                    : !isCurrentMonth && dimOutsideMonth
-                                      ? 'text.disabled'
-                                      : 'text.primary',
+                                  !isCurrentMonth && dimOutsideMonth
+                                    ? 'text.disabled'
+                                    : dayOfWeek === 0
+                                      ? 'error.main'
+                                      : dayOfWeek === 6
+                                        ? 'info.main'
+                                        : 'text.primary',
                                 lineHeight: 1,
+                                px: { xs: 0, md: 0.5 },
                               }}
                             >
                               {format(day, 'd')}
@@ -293,13 +310,13 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
 
                           {/* イベント表示 */}
                           <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                            {/* モバイルもチップ表示に統一 */}
-                            {dayEvents.slice(0, 3).map((event) => (
-                              <EventChip key={event.id} event={event} />
+                            {/* PC版は最大5件、モバイル版は最大3件表示 */}
+                            {dayEvents.slice(0, isMobile ? 3 : 5).map((event) => (
+                              <EventChip key={event.id} event={event} isPC={!isMobile} />
                             ))}
-                            {dayEvents.length > 3 && (
-                              <Typography sx={{ fontSize: '10px', color: 'text.secondary', fontWeight: 600 }}>
-                                +{dayEvents.length - 3}
+                            {dayEvents.length > (isMobile ? 3 : 5) && (
+                              <Typography sx={{ fontSize: { xs: '10px', md: '11px' }, color: 'text.secondary', fontWeight: 600 }}>
+                                +{dayEvents.length - (isMobile ? 3 : 5)}
                               </Typography>
                             )}
                           </Box>
