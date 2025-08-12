@@ -4,6 +4,7 @@ import { Router } from 'express';
 import { asyncHandler } from '../middleware/errorHandler';
 import { z } from 'zod';
 import { validateSchema } from '../middleware/validation';
+import OpenAI from 'openai';
 
 const router = Router();
 
@@ -41,122 +42,90 @@ router.post('/', validateSchema(gpt5AnalysisSchema), asyncHandler(async (req, re
   }
 
   try {
-    // GPT-5 API呼び出し
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'gpt-5', // GPT-5を明示的に指定
-        max_completion_tokens: 1000,
-        temperature: 0.1,
-        messages: [
-          {
-            role: 'system',
-            content: `あなたはプロのシフト表解析AIです。
-画像からシフト情報を正確に抽出し、以下のJSON形式で返してください：
+    // OpenAI Responses API を使用して安定した画像解析を実行
+    const client = new OpenAI({ apiKey });
+    // 既定を gpt-5 に。必要に応じて OPENAI_GPT_MODEL で上書き可（例: gpt-5.1）
+    const model = process.env.OPENAI_GPT_MODEL || 'gpt-5';
+
+    const systemPrompt = `あなたはプロのシフト表解析AIです。画像からシフト情報を正確に抽出し、厳格に次のJSONのみを返してください（説明やコードフェンスは禁止）：
 
 {
   "success": true,
   "analysis": {
     "detectedWorkerName": "検出した作業者名",
-    "workplaceDetected": "検出した職場名", 
+    "workplaceDetected": "検出した職場名",
     "totalShiftsFound": 3
   },
   "shifts": [
-    {
-      "date": "2024-07-22",
-      "startTime": "09:00",
-      "endTime": "17:00",
-      "confidence": 0.95
-    }
+    { "date": "YYYY-MM-DD", "startTime": "HH:MM", "endTime": "HH:MM", "confidence": 0.95 }
   ],
   "warnings": ["警告メッセージがあれば"],
   "processingNotes": "解析過程の説明"
 }
 
 重要な解析ルール:
-- 日付: YYYY-MM-DD形式（2024年として処理）
-- 時間: HH:MM形式（24時間表記）
-- ${workerName ? `指定作業者「${workerName}」に関連するシフトを優先抽出` : ''}
-- ${workplaceName ? `職場「${workplaceName}」のシフトを対象` : ''}
-- 不明な情報は推測せず、confidence値を下げる
-- 複数のシフトがある場合は全て抽出`
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `この画像はシフト表です。${workerName ? `作業者名: ${workerName}` : ''}${workplaceName ? ` / 職場: ${workplaceName}` : ''}\n\nシフト情報を正確に抽出してください。`
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: image,
-                  detail: 'high'
-                }
-              }
-            ]
-          }
-        ]
-      })
+- 日付は YYYY-MM-DD 形式（年が明示されない場合は現在年）
+- 時間は 24時間表記 HH:MM
+- ${workerName ? `指定作業者「${workerName}」を優先` : '特定作業者の指定なし'}
+- ${workplaceName ? `職場「${workplaceName}」を対象` : '特定職場の指定なし'}
+- 不明な情報は推測しない（confidenceを下げる）
+- 複数のシフトはすべて抽出
+- 出力はJSONのみで、説明や追加テキストは禁止`;
+
+    const userText = `この画像はシフト表です。${workerName ? `作業者名: ${workerName}` : ''}${workplaceName ? ` / 職場: ${workplaceName}` : ''}`;
+
+    const aiResponse = await client.responses.create({
+      model,
+      input: [
+        {
+          role: 'user',
+          content: [
+            { type: 'input_text', text: systemPrompt },
+            { type: 'input_text', text: userText },
+            { type: 'input_image', image_url: image, detail: 'high' },
+          ],
+        },
+      ],
+      max_output_tokens: 1500,
+      temperature: 0.1,
     });
 
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error('GPT-5 API Error:', {
-        status: response.status,
-        error: errorData
-      });
-      
-      return res.status(response.status).json({
-        success: false,
-        error: `GPT-5 API エラー: ${response.status}`,
-        details: errorData.substring(0, 500)
-      });
+    const outputText = (aiResponse.output_text as string) || '';
+    if (!outputText) {
+      return res.status(500).json({ success: false, error: 'AI応答が空でした' });
     }
 
-    const result = await response.json();
-    const content = result.choices?.[0]?.message?.content;
-    
-    if (!content) {
-      return res.status(500).json({
-        success: false,
-        error: 'GPT-5から応答を取得できませんでした'
-      });
-    }
+    // JSON抽出（コードフェンスや余計な前後を除去）
+    const extractJson = (text: string): string | null => {
+      const fenced = text.replace(/^```[a-zA-Z]*\n|```$/g, '').trim();
+      const match = fenced.match(/\{[\s\S]*\}/);
+      return match ? match[0] : null;
+    };
 
-    // JSON解析
+    const jsonString = extractJson(outputText) || outputText;
+
     try {
-      const analysisResult = JSON.parse(content);
-      
-      // 使用状況ログ
-      console.log('GPT-5 Shift Analysis (Local):', {
+      const analysisResult = JSON.parse(jsonString);
+
+      console.log('Shift Analysis (Responses API):', {
         timestamp: new Date().toISOString(),
         workerName,
         workplaceName,
         shiftsDetected: analysisResult.shifts?.length || 0,
-        tokensUsed: result.usage?.total_tokens || 0
       });
 
       return res.status(200).json(analysisResult);
-      
     } catch (parseError) {
       console.error('JSON Parse Error:', parseError);
-      
-      // JSONパース失敗時のフォールバック
       return res.status(200).json({
         success: false,
-        error: 'GPT-5の応答をJSON形式で解析できませんでした',
-        rawResponse: content.substring(0, 1000),
+        error: 'AI応答のJSON解析に失敗しました',
+        rawResponse: outputText.substring(0, 1000),
         fallbackAnalysis: {
-          detectedContent: content.length > 0,
-          possibleShiftData: content.includes('時') || content.includes(':'),
-          needsManualReview: true
-        }
+          detectedContent: outputText.length > 0,
+          possibleShiftData: outputText.includes('時') || outputText.includes(':'),
+          needsManualReview: true,
+        },
       });
     }
 

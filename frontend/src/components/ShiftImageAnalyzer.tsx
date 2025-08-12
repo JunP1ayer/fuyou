@@ -87,40 +87,15 @@ export const ShiftImageAnalyzer: React.FC<ShiftImageAnalyzerProps> = ({
     setError('');
 
     try {
-      const response = await fetch('/api/openai-vision', {
+      // 同一バックエンドの解析APIに統一
+      const API = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3001/api/gpt5-shift-analyzer'
+        : 'https://fuyou-sigma.vercel.app/api/gpt5-shift-analyzer';
+
+      const response = await fetch(API, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          image: imagePreview,
-          prompt: `この画像はアルバイトのシフト表です。
-          
-以下の情報を正確に抽出してJSON形式で出力してください：
-
-1. 各シフトの日付（YYYY-MM-DD形式）
-2. 開始時間（HH:MM形式）
-3. 終了時間（HH:MM形式）
-4. 勤務場所（もしあれば）
-5. 特記事項（もしあれば）
-
-出力形式：
-{
-  "success": true,
-  "shifts": [
-    {
-      "date": "2025-08-15",
-      "startTime": "10:00",
-      "endTime": "18:00",
-      "workplace": "〇〇店",
-      "notes": "レジ担当"
-    }
-  ],
-  "message": "検出されたシフト情報の説明"
-}
-
-画像が不鮮明でシフト情報を読み取れない場合は、success: false を返してください。`
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: imagePreview }),
       });
 
       if (!response.ok) {
@@ -129,9 +104,17 @@ export const ShiftImageAnalyzer: React.FC<ShiftImageAnalyzerProps> = ({
 
       const data = await response.json();
 
-      if (data.success && data.shifts && Array.isArray(data.shifts)) {
-        setExtractedShifts(data.shifts);
-        setAnalysisResult(data.message || `${data.shifts.length}件のシフトを検出しました`);
+      if (data.success && Array.isArray(data.shifts)) {
+        // バックエンドの標準フォーマットをShiftDataへマップ
+        const mapped = data.shifts.map((s: any) => ({
+          date: s.date,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          workplace: s.workplace || s.jobSourceName,
+          notes: '',
+        }));
+        setExtractedShifts(mapped);
+        setAnalysisResult(data.processingNotes || `${mapped.length}件のシフトを検出しました`);
       } else {
         setError(data.error || 'シフト情報を検出できませんでした。より鮮明な画像をお試しください。');
       }
