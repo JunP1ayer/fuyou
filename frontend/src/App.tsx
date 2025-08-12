@@ -142,7 +142,8 @@ const App: React.FC = () => {
 
             <SimpleAppContent>
               <Container
-                maxWidth="lg"
+                maxWidth={false}
+                disableGutters
                 sx={{
                   py: 0, // パディングを削除
                   pt: 0, // 上部パディングを削除

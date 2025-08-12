@@ -87,17 +87,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     }
   };
 
-  // 縦スクロール用の月間データ生成（モバイル用）- より多くの月を表示
-  const generateMultipleMonths = () => {
-    const months = [];
-    for (let i = -3; i <= 6; i++) { // 前3ヶ月、後6ヶ月の計10ヶ月表示
-      const targetMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + i, 1);
-      months.push(targetMonth);
-    }
-    return months;
-  };
-
-  const multipleMonths = isMobile && viewMode === 'vertical' ? generateMultipleMonths() : [currentMonth];
+  // モバイルも1ヶ月をフルフィット表示（前後移動はヘッダーの矢印で）
+  const multipleMonths = [currentMonth];
   
   // 初期スクロール位置を当月へ
   useEffect(() => {
@@ -113,7 +104,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
       height: '100%', 
       display: 'flex', 
       flexDirection: 'column',
-      overflow: isMobile && viewMode === 'vertical' ? 'auto' : 'hidden',
+      overflow: 'hidden',
+      // 端まで表示（親の余白に依存しない）
+      px: 0,
     }}>
       {/* 曜日ヘッダー（月曜始まり・iOSライク） */}
       {true && (
@@ -148,11 +141,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
 
       {/* カレンダー本体 */}
       <Box sx={{ 
-        flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
+        flex: 1,
         display: 'flex', 
         flexDirection: 'column',
-        height: isMobile && viewMode === 'vertical' ? 'auto' : !(isMobile && viewMode === 'vertical') ? 'calc(100% - 30px)' : '100%',
-        minHeight: isMobile && viewMode === 'vertical' ? 'auto' : undefined,
+        minHeight: 0,
       }}>
         {multipleMonths.map((month, monthIndex) => {
           const monthStart = startOfMonth(month);
@@ -177,8 +169,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                 display: 'flex',
                 flexDirection: 'column',
                 mb: 0,
-                flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
-                minHeight: isMobile && viewMode === 'vertical' ? 'auto' : 'auto',
+                flex: 1,
+                minHeight: 0,
               }}
             >
               {/* 背景の薄い月数字 */}
@@ -203,9 +195,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
 
               {weeks.map((week, weekIndex) => (
                 <Box key={weekIndex} sx={{ 
-                  flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
-                  height: isMobile && viewMode === 'vertical' ? '118px' : `calc(100% / ${weeks.length})`,
-                  minHeight: isMobile && viewMode === 'vertical' ? '118px' : 'auto',
+                  flex: 1,
+                  height: `calc(100% / ${weeks.length})`,
+                  minHeight: 0,
                 }}>
                   <Grid container spacing={0} sx={{ height: '100%' }}>
                   {week.map((day, dayIndex) => {
@@ -246,7 +238,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                               variant="body2"
                               sx={{
                                 fontWeight: isTodayDate ? 700 : 500,
-                                fontSize: isMobile && viewMode === 'vertical' ? '16px' : '13px',
+                                fontSize: { xs: '16px', md: '13px' },
                                 color: !isCurrentMonth
                                   ? 'text.disabled'
                                   : dayOfWeek === 0
