@@ -87,8 +87,16 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     }
   };
 
-  // モバイルも1ヶ月をフルフィット表示（前後移動はヘッダーの矢印で）
-  const multipleMonths = [currentMonth];
+  // 縦スクロール用の月間データ生成（モバイル）
+  const generateMultipleMonths = () => {
+    const months: Date[] = [];
+    for (let i = -3; i <= 6; i++) {
+      months.push(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + i, 1));
+    }
+    return months;
+  };
+
+  const multipleMonths = isMobile && viewMode === 'vertical' ? generateMultipleMonths() : [currentMonth];
   
   // 初期スクロール位置を当月へ
   useEffect(() => {
@@ -104,7 +112,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
       height: '100%', 
       display: 'flex', 
       flexDirection: 'column',
-      overflow: 'hidden',
+      overflowY: isMobile && viewMode === 'vertical' ? 'auto' : 'hidden',
+      overflowX: 'hidden',
       // 端まで表示（親の余白に依存しない）
       px: 0,
     }}>
@@ -141,9 +150,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
 
       {/* カレンダー本体 */}
       <Box sx={{ 
-        flex: 1,
+        flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
         display: 'flex', 
         flexDirection: 'column',
+        height: isMobile && viewMode === 'vertical' ? 'auto' : '100%',
         minHeight: 0,
       }}>
         {multipleMonths.map((month, monthIndex) => {
@@ -195,9 +205,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
 
               {weeks.map((week, weekIndex) => (
                 <Box key={weekIndex} sx={{ 
-                  flex: 1,
-                  height: `calc(100% / ${weeks.length})`,
-                  minHeight: 0,
+                  flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
+                  height: isMobile && viewMode === 'vertical' ? '118px' : `calc(100% / ${weeks.length})`,
+                  minHeight: isMobile && viewMode === 'vertical' ? '118px' : 0,
                 }}>
                   <Grid container spacing={0} sx={{ height: '100%' }}>
                   {week.map((day, dayIndex) => {
@@ -206,6 +216,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                     const isCurrentMonth = isSameMonth(day, month);
                     const isTodayDate = isToday(day);
                     const dayOfWeek = day.getDay();
+                    const dimOutsideMonth = !isMobile; // スマホは当月以外も薄くしない
                     
                     return (
                       <Grid item xs key={dayIndex} sx={{ 
@@ -223,7 +234,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                             borderBottom: weekIndex === weeks.length - 1 ? '1px solid' : '0',
                             display: 'flex',
                             flexDirection: 'column',
-                            backgroundColor: !isCurrentMonth ? 'grey.100' : 'background.paper',
+                            backgroundColor: !isCurrentMonth && dimOutsideMonth ? 'grey.100' : 'background.paper',
                             outline: isTodayDate ? `2px solid ${alpha(theme.palette.primary.main, 0.6)}` : 'none',
                             outlineOffset: '-1px',
                             '&:hover': {
@@ -239,11 +250,12 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                               sx={{
                                 fontWeight: isTodayDate ? 700 : 500,
                                 fontSize: { xs: '16px', md: '13px' },
-                                color: !isCurrentMonth
-                                  ? 'text.disabled'
-                                  : dayOfWeek === 0
+                                color:
+                                  dayOfWeek === 0
                                     ? 'error.main'
-                                    : 'text.primary',
+                                    : !isCurrentMonth && dimOutsideMonth
+                                      ? 'text.disabled'
+                                      : 'text.primary',
                                 lineHeight: 1,
                               }}
                             >

@@ -12,6 +12,8 @@ import { NewBottomNavigation, type NewTabValue } from './NewBottomNavigation';
 import { ShiftImageAnalyzer } from '../ShiftImageAnalyzer';
 import { SettingsView } from '../settings/SettingsView';
 import { FriendSharingHub } from '../FriendSharingHub';
+import { MobileSalaryView } from '../salary/MobileSalaryView';
+import { JobManagementHub } from '../JobManagementHub';
 import { QuickShiftDialog } from './QuickShiftDialog';
 import { GPT5ShiftSubmissionFlow } from '../GPT5ShiftSubmissionFlow';
 import { useCalendarStore } from '../../store/calendarStore';
@@ -194,13 +196,31 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
             display: 'flex',
             flexDirection: 'column',
           }}>
-            {currentTab === 'share' ? (
-              <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
-                <FriendSharingHub onBack={() => setCurrentTab('shift')} />
-              </Box>
-            ) : (
-              <CalendarGrid onDateClick={handleDateClick} />
-            )}
+            {(() => {
+              switch (currentTab) {
+                case 'salary':
+                  return (
+                    <Box sx={{ flex: 1, overflow: 'auto' }}>
+                      <MobileSalaryView />
+                    </Box>
+                  );
+                case 'workplace':
+                  return (
+                    <Box sx={{ flex: 1, overflow: 'auto' }}>
+                      <JobManagementHub />
+                    </Box>
+                  );
+                case 'share':
+                  return (
+                    <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+                      <FriendSharingHub onBack={() => setCurrentTab('shift')} />
+                    </Box>
+                  );
+                case 'shift':
+                default:
+                  return <CalendarGrid onDateClick={handleDateClick} />;
+              }
+            })()}
           </Box>
         </Card>
       </Box>
