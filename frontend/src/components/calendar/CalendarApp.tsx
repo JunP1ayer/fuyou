@@ -183,10 +183,12 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
           flexDirection: 'column',
           overflow: 'hidden',
         }}>
-          {/* ヘッダー（超コンパクト：32px高さ） */}
-          <Box sx={{ flexShrink: 0 }}>
-            <CalendarHeader onSettingsClick={handleSettingsToggle} />
-          </Box>
+          {/* カレンダーページ以外はヘッダーを非表示 */}
+          {currentTab === 'shift' && (
+            <Box sx={{ flexShrink: 0 }}>
+              <CalendarHeader onSettingsClick={handleSettingsToggle} />
+            </Box>
+          )}
           
           {/* メインコンテンツ - タブに応じて表示を切り替え */}
           <Box sx={{ 
@@ -200,19 +202,19 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
               switch (currentTab) {
                 case 'salary':
                   return (
-                    <Box sx={{ flex: 1, overflow: 'auto' }}>
+                    <Box sx={{ flex: 1, overflow: 'auto', p: 2, pb: 10 }}>
                       <MobileSalaryView />
                     </Box>
                   );
                 case 'workplace':
                   return (
-                    <Box sx={{ flex: 1, overflow: 'auto' }}>
+                    <Box sx={{ flex: 1, overflow: 'auto', p: 2, pb: 10 }}>
                       <JobManagementHub />
                     </Box>
                   );
                 case 'share':
                   return (
-                    <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+                    <Box sx={{ flex: 1, overflow: 'auto', p: 2, pb: 10 }}>
                       <FriendSharingHub onBack={() => setCurrentTab('shift')} />
                     </Box>
                   );

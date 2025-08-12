@@ -153,7 +153,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
         flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
         display: 'flex', 
         flexDirection: 'column',
-        height: isMobile && viewMode === 'vertical' ? 'auto' : '100%',
+        height: isMobile && viewMode === 'vertical' ? 'auto' : 'calc(100% - 34px)', // 曜日ヘッダー分を差し引く
         minHeight: 0,
       }}>
         {multipleMonths.map((month, monthIndex) => {
@@ -208,6 +208,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                   flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
                   height: isMobile && viewMode === 'vertical' ? '118px' : `calc(100% / ${weeks.length})`,
                   minHeight: isMobile && viewMode === 'vertical' ? '118px' : 0,
+                  // 最下段のみ下枠線を描く（重複や隙間を防ぐ）
+                  borderBottom: weekIndex === weeks.length - 1 ? '1px solid' : 0,
+                  borderColor: 'divider'
                 }}>
                   <Grid container spacing={0} sx={{ height: '100%' }}>
                   {week.map((day, dayIndex) => {
@@ -228,10 +231,13 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                             width: '100%',
                             p: isMobile && viewMode === 'vertical' ? 0.75 : 0.75,
                             cursor: 'pointer',
-                            border: '1px solid',
+                            // 線の重なりを防ぎ、月間境界の“微妙なすきま”を解消
+                            border: 0,
+                            borderTop: '1px solid',
+                            borderLeft: dayIndex === 0 ? '1px solid' : 0,
+                            borderRight: dayIndex === 6 ? '1px solid' : 0,
+                            borderBottom: 0,
                             borderColor: 'divider',
-                            borderRight: dayIndex === 6 ? '1px solid' : '0',
-                            borderBottom: weekIndex === weeks.length - 1 ? '1px solid' : '0',
                             display: 'flex',
                             flexDirection: 'column',
                             backgroundColor: !isCurrentMonth && dimOutsideMonth ? 'grey.100' : 'background.paper',
