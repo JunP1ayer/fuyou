@@ -57,30 +57,33 @@ export const JobManagementHub: React.FC<JobManagementHubProps> = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', p: { xs: 1.5, sm: 2 }, pb: 8 }}>
+    <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', p: { xs: 0.75, sm: 1.5 }, pt: 0.25, pb: 8 }}>
       {/* ヘッダー */}
-      <Box sx={{ textAlign: 'center', mb: 2 }}>
-        <Business sx={{ color: 'primary.main', fontSize: { xs: 28, sm: 36 }, mb: 1 }} />
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+      <Box sx={{ textAlign: 'center', mb: 0.5 }}>
+        <Business sx={{ color: 'primary.main', fontSize: { xs: 18, sm: 22 }, mb: 0.25 }} />
+        <Typography variant="body2" sx={{ fontWeight: 700, mb: 0 }}>
           バイト管理
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          バイト先の管理とシフト表の提出を一画面で
         </Typography>
       </Box>
 
       {/* タブナビゲーション */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-        <Tabs value={tabValue} onChange={handleTabChange} centered variant="fullWidth">
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 0.75 }}>
+        <Tabs 
+          value={tabValue} 
+          onChange={handleTabChange} 
+          centered 
+          variant="fullWidth"
+          sx={{ minHeight: 40, '& .MuiTab-root': { minHeight: 40, fontSize: { xs: 12, sm: 13 } }, '& .MuiTab-iconWrapper': { fontSize: 16 } }}
+        >
           <Tab
             icon={<Edit />}
             label="バイト先管理"
-            sx={{ minHeight: 52, fontWeight: 600 }}
+            sx={{ minHeight: 40, fontWeight: 600 }}
           />
           <Tab
             icon={<CalendarToday />}
             label="AIシフト解析"
-            sx={{ minHeight: 52, fontWeight: 600 }}
+            sx={{ minHeight: 40, fontWeight: 600 }}
           />
         </Tabs>
       </Box>

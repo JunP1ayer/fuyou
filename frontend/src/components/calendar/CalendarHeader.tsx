@@ -1,8 +1,8 @@
 // カレンダーヘッダーコンポーネント
 
 import React from 'react';
-import { Box, IconButton, Typography, Tooltip, Switch } from '@mui/material';
-import { ChevronLeft, ChevronRight, Settings } from '@mui/icons-material';
+import { Box, IconButton, Typography, Tooltip, Switch, useMediaQuery, useTheme } from '@mui/material';
+import { ChevronLeft, ChevronRight, Settings, ViewAgenda, ViewModule } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { useI18n } from '@/hooks/useI18n';
@@ -14,8 +14,13 @@ interface CalendarHeaderProps {
 }
 
 export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { headerMonth, navigateMonth, viewMode } = useCalendarStore();
   const { t, language } = useI18n();
+  
+  // 縦スクロールモードの状態を取得（表示のみ）
+  const verticalScrollMode = localStorage.getItem('calendarViewMode') === 'vertical';
   
   // 友達表示の状態管理
   const { friends, visibleFriendIds, setVisibleFriends } = useFriendStore();
@@ -53,18 +58,22 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick 
         minHeight: { xs: 56, md: 40 }, // モバイルは大きめに
       }}
     >
-      {/* 左側：月切り替えボタン */}
-      <IconButton 
-        aria-label={t('calendar.nav.prevMonth', '前月')}
-        onClick={() => navigateMonth('prev')}
-        sx={{ 
-          color: 'text.secondary',
-          p: 0.5, // ボタンサイズ縮小
-          '& .MuiSvgIcon-root': { fontSize: 20 } // アイコンサイズ縮小
-        }}
-      >
-        <ChevronLeft />
-      </IconButton>
+      {/* 左側：月切り替えボタン（縦スクロールモード時は非表示） */}
+      {isMobile && verticalScrollMode ? (
+        <Box sx={{ width: 32 }} /> // スペーサー
+      ) : (
+        <IconButton 
+          aria-label={t('calendar.nav.prevMonth', '前月')}
+          onClick={() => navigateMonth('prev')}
+          sx={{ 
+            color: 'text.secondary',
+            p: 0.5, // ボタンサイズ縮小
+            '& .MuiSvgIcon-root': { fontSize: 20 } // アイコンサイズ縮小
+          }}
+        >
+          <ChevronLeft />
+        </IconButton>
+      )}
 
       {/* 中央：年月表示 */}
       <Typography
@@ -132,17 +141,20 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick 
         >
           <Settings />
         </IconButton>
-        <IconButton 
-          aria-label={t('calendar.nav.nextMonth', '翌月')}
-          onClick={() => navigateMonth('next')}
-          sx={{ 
-            color: 'text.secondary',
-            p: 0.5,
-            '& .MuiSvgIcon-root': { fontSize: 20 }
-          }}
-        >
-          <ChevronRight />
-        </IconButton>
+        {/* 次月ボタン（縦スクロールモード時は非表示） */}
+        {isMobile && verticalScrollMode ? null : (
+          <IconButton 
+            aria-label={t('calendar.nav.nextMonth', '翌月')}
+            onClick={() => navigateMonth('next')}
+            sx={{ 
+              color: 'text.secondary',
+              p: 0.5,
+              '& .MuiSvgIcon-root': { fontSize: 20 }
+            }}
+          >
+            <ChevronRight />
+          </IconButton>
+        )}
       </Box>
     </Box>
   );

@@ -137,7 +137,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     const newMode = calendarViewMode === 'vertical' ? 'horizontal' : 'vertical';
     setCalendarViewMode(newMode);
     localStorage.setItem('calendarViewMode', newMode);
-    toast.success(newMode === 'vertical' ? '縦スクロールに変更しました' : '横表示に変更しました');
+    toast.success(newMode === 'vertical' ? '縦スクロールに変更しました' : '月間グリッド表示に変更しました');
+    // 設定変更を即座に反映
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   // 通知設定の切り替え
