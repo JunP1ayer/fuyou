@@ -115,7 +115,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
   }, [isMobile, viewMode, currentMonth]);
 
   // スクロールイベントハンドラー（仮想スクロール用）
-  const handleScroll = useCallback(() => {
+  const handleScroll = useCallback((): void => {
     if (!containerRef.current || !isMobile || viewMode !== 'vertical') return;
     
     const container = containerRef.current;
@@ -155,10 +155,12 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
   // スクロールイベントリスナー登録
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || !isMobile || viewMode !== 'vertical') return;
+    if (!container || !isMobile || viewMode !== 'vertical') return undefined;
     
     container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
   }, [handleScroll, isMobile, viewMode]);
 
   return (
@@ -177,7 +179,6 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
           <Grid container spacing={0} sx={{ height: '100%' }}>
             {(isMobile ? [1,2,3,4,5,6,0] : [0,1,2,3,4,5,6]).map((dow, index) => {
               const day = t(`calendar.weekdays.${dow}`, WEEKDAYS_JA[dow]);
-              const isWeekend = dow === 0 || dow === 6;
               return (
                 <Grid item xs key={day}>
                   <Box
@@ -192,7 +193,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                       color: dow === 0 ? 'error.main' : dow === 6 ? 'info.main' : 'text.secondary',
                       borderBottom: '1px solid',
                       borderColor: 'divider',
-                      backgroundColor: { xs: 'transparent', md: isWeekend ? alpha(theme.palette.action.hover, 0.03) : 'transparent' },
+                      backgroundColor: 'transparent',
                     }}
                   >
                     {day}
@@ -250,9 +251,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
             <Box
               key={`month-${monthOffset}`} // ユニークなキーを使用
               ref={(node) => {
-                if (isSameMonth(month, currentMonth)) currentMonthRef.current = node as HTMLDivElement;
-                monthRef(node as HTMLDivElement);
-                if (node) monthRefs.current.set(monthOffset, node); // 月のrefを保存
+                if (node && node instanceof HTMLDivElement) {
+                  if (isSameMonth(month, currentMonth)) currentMonthRef.current = node;
+                  monthRef(node);
+                  monthRefs.current.set(monthOffset, node); // 月のrefを保存
+                }
               }}
               sx={{
                 position: 'relative',
@@ -322,10 +325,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                             display: 'flex',
                             flexDirection: 'column',
                             backgroundColor: !isCurrentMonth && dimOutsideMonth 
-                              ? { xs: 'background.paper', md: alpha(theme.palette.action.disabledBackground, 0.05) }
-                              : dayOfWeek === 0 || dayOfWeek === 6
-                                ? { xs: 'background.paper', md: alpha(theme.palette.action.hover, 0.02) }
-                                : 'background.paper',
+                              ? { xs: 'background.paper', md: alpha(theme.palette.action.disabledBackground, 0.02) }
+                              : 'background.paper',
                             outline: isTodayDate ? `2px solid ${alpha(theme.palette.primary.main, 0.6)}` : 'none',
                             outlineOffset: '-1px',
                             '&:hover': {
@@ -358,7 +359,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                                 fontSize: { xs: '16px', md: '14px' },
                                 color:
                                   !isCurrentMonth && dimOutsideMonth
-                                    ? { xs: 'text.primary', md: alpha(theme.palette.text.disabled, 0.3) }
+                                    ? { xs: 'text.primary', md: alpha(theme.palette.text.disabled, 0.2) }
                                     : dayOfWeek === 0
                                       ? 'error.main'
                                       : dayOfWeek === 6
@@ -374,7 +375,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                           </Box>
 
                           {/* イベント表示 */}
-                          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', opacity: !isCurrentMonth && dimOutsideMonth ? 0.3 : 1 }}>
+                          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', opacity: !isCurrentMonth && dimOutsideMonth ? 0.2 : 1 }}>
                             {/* PC版は最大5件、モバイル版は最大3件表示 */}
                             {dayEvents.slice(0, isMobile ? 3 : 5).map((event) => (
                               <EventChip key={event.id} event={event} isPC={!isMobile} />
