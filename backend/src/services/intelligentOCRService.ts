@@ -219,24 +219,25 @@ export class IntelligentOCRService {
     }
 
     const prompt = this.generateShiftExtractionPrompt(userName);
-    const model = process.env.OPENAI_GPT_MODEL || 'gpt-5';
+    // 画像理解は gpt-4o に固定（安定）
+    const model = process.env.OPENAI_GPT_MODEL || 'gpt-4o';
 
-    const response = await this.openaiClient.chat.completions.create({
+    const response = await this.openaiClient.responses.create({
       model,
-      messages: [
+      input: [
         {
           role: 'user',
           content: [
-            { type: 'text', text: prompt },
-            { type: 'image_url', image_url: { url: imageData } }
-          ]
-        }
+            { type: 'input_text', text: prompt },
+            { type: 'input_image', image_url: imageData, detail: 'high' },
+          ],
+        },
       ],
-      max_tokens: 1500,
+      max_output_tokens: 1500,
       temperature: 0.3,
     });
 
-    const text = response.choices[0]?.message?.content || '';
+    const text = (response.output_text as string) || '';
     
     return this.parseAIResponse(text, 'openai');
   }

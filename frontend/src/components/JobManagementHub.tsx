@@ -20,7 +20,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { WorkplaceManager } from './WorkplaceManager';
-import { GPTShiftSubmitter } from './GPTShiftSubmitter';
+import { GPT5ShiftSubmissionFlow } from './GPT5ShiftSubmissionFlow';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -79,7 +79,7 @@ export const JobManagementHub: React.FC<JobManagementHubProps> = () => {
           />
           <Tab
             icon={<CalendarToday />}
-            label="シフト表提出"
+            label="AIシフト解析"
             sx={{ minHeight: 60, fontWeight: 600 }}
           />
         </Tabs>
@@ -91,7 +91,7 @@ export const JobManagementHub: React.FC<JobManagementHubProps> = () => {
       </TabPanel>
 
       <TabPanel value={tabValue} index={1}>
-        <GPTShiftSubmitter />
+        <GPT5ShiftSubmissionFlow />
       </TabPanel>
     </Box>
   );

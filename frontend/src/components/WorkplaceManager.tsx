@@ -783,16 +783,17 @@ export const WorkplaceManager: React.FC = () => {
 
                         <ListItemText
                           primary={
-                            <Box
-                              sx={{
-                                display: 'flex',
+                            <Typography 
+                              variant="h6" 
+                              sx={{ 
+                                fontWeight: 600,
+                                display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: 1,
                               }}
+                              component="div"
                             >
-                              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                {workplace.name}
-                              </Typography>
+                              {workplace.name}
                               {stats.shiftCount > 0 && (
                                 <Chip
                                   label={`${stats.shiftCount}件`}
@@ -800,7 +801,7 @@ export const WorkplaceManager: React.FC = () => {
                                   color="primary"
                                 />
                               )}
-                            </Box>
+                            </Typography>
                           }
                           secondary={
                             <div style={{ marginTop: 8 }}>

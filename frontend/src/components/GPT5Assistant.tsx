@@ -98,48 +98,41 @@ export const GPT5Assistant: React.FC<GPT5AssistantProps> = ({ onShiftData }) => 
     setIsLoading(true);
 
     try {
-      let apiUrl = '';
-      let requestBody = {};
+      const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
+      let data: any;
       if (selectedImage) {
-        // 画像処理の場合
-        apiUrl = '/api/openai-vision';
-        requestBody = {
-          image: imagePreview,
-          prompt: inputText || 'この画像からシフト情報を抽出してください',
-        };
+        // 自前のインテリジェントOCR(JSON経路)に送信
+        const token = (() => { try { return JSON.parse(localStorage.getItem('auth')||'{}')?.token || ''; } catch { return ''; } })();
+        const response = await fetch(`${API}/intelligent-ocr/process`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({
+            image: imagePreview,
+            userName: undefined,
+            processingOptions: { aiProviders: ['openai','gemini'], enableComparison: true },
+          }),
+        });
+        data = await response.json();
       } else {
-        // テキスト処理の場合（新しいエンドポイントを作成）
-        apiUrl = '/api/gpt5-chat';
-        requestBody = {
-          message: inputText,
-          context: 'fuyou-assistant', // 扶養管理専用コンテキスト
-        };
+        // テキスト問い合わせは簡易応答（将来拡張）
+        data = { response: 'ご質問ありがとうございます。画像を送付いただければシフト解析を実施します。' };
       }
-
-      const response = await fetch(`https://fuyou-sigma.vercel.app${apiUrl}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      const data = await response.json();
 
       let assistantText = '';
       
-      if (data.success && selectedImage) {
+      if (data?.success && selectedImage) {
         // シフト表解析の場合
-        if (data.shifts && data.shifts.length > 0) {
+        const rec = data.data?.consolidatedResult?.recommendedShifts || [];
+        if (rec.length > 0) {
           assistantText = `✅ シフト表を解析しました！\n\n📅 **検出されたシフト情報:**\n`;
-          data.shifts.forEach((shift: any, index: number) => {
+          rec.forEach((shift: any, index: number) => {
             assistantText += `${index + 1}. ${shift.date} ${shift.startTime}-${shift.endTime}\n`;
           });
           assistantText += `\n💡 このデータをシフトカレンダーに追加しますか？`;
           
           // 親コンポーネントにシフトデータを渡す
-          onShiftData?.(data.shifts);
+          onShiftData?.(rec);
         } else {
           assistantText = '申し訳ありません。シフト情報を検出できませんでした。より鮮明な画像をお試しください。';
         }

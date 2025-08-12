@@ -62,12 +62,10 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
   };
 
   const handleSubmitShift = async () => {
-    if (!workerName.trim()) return;
 
-    // バイト先が選択されていない場合は警告表示
+    // バイト先未選択時は警告表示のみ（解析は続行できるようにする）
     if (!selectedWorkplaceId) {
       setShowWorkplaceWarning(true);
-      return;
     }
 
     setStep('analyzing');
@@ -90,62 +88,51 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
       }
 
       if (imageFile) {
-        // 画像をBase64に変換
-        const base64Image = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target?.result as string);
-          reader.readAsDataURL(imageFile);
-        });
+        // ファイル形式を検証（画像のみ）
+        const isImage = imageFile.type.startsWith('image/');
+        if (!isImage) {
+          throw new Error('画像ファイルを選択してください（PNG、JPG、JPEG、WebP）');
+        }
 
-        // GPT-4oを使用してシフト表解析
-        const apiUrl = '/api/openai-vision'; // 常に相対パスを使用
-        
-        const response = await fetch(apiUrl, {
+        // マルチパートで自前APIに送信
+        const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+        const form = new FormData();
+        form.append('image', imageFile);
+        form.append('userName', workerName.trim());
+        form.append('workplaceName', selectedWorkplace?.name || '');
+        form.append('autoSave', 'false');
+
+        const tokenHeader = (() => {
+          try { 
+            const raw = localStorage.getItem('auth');
+            const t = raw ? JSON.parse(raw)?.token : '';
+            return t ? { Authorization: `Bearer ${t}` } : {};
+          } catch { return {}; }
+        })();
+
+        const response = await fetch(`${API}/intelligent-ocr/upload-and-process`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            ...tokenHeader,
           },
-          body: JSON.stringify({
-            image: base64Image,
-            prompt: `この画像はアルバイトのシフト表です。以下の情報を抽出してください：
-
-勤務者名: ${workerName.trim()}
-勤務先: ${selectedWorkplace?.name || ''}
-
-以下のJSON形式で出力してください：
-{
-  "success": true,
-  "shifts": [
-    {
-      "date": "YYYY-MM-DD",
-      "startTime": "HH:MM",
-      "endTime": "HH:MM",
-      "workplaceName": "勤務先名",
-      "hourlyRate": 1000,
-      "confidence": 0.9
-    }
-  ],
-  "warnings": []
-}`
-          }),
+          body: form,
         });
 
         if (!response.ok) {
           const errorText = await response.text();
           console.error('API Error:', errorText);
-          throw new Error(`GPT-4o API エラー: ${response.status} - ${errorText}`);
+          throw new Error(`解析APIエラー: ${response.status} - ${errorText}`);
         }
 
-        const gptResult = await response.json();
-        
-        if (!gptResult.success) {
-          throw new Error(`GPT-4o解析に失敗しました: ${gptResult.error || 'Unknown error'}`);
+        const ocrResult = await response.json();
+        if (!ocrResult.success) {
+          throw new Error(`解析に失敗しました: ${ocrResult.error?.message || 'Unknown error'}`);
         }
 
-        const shifts = gptResult.shifts || [];
+        const rec = ocrResult.data?.consolidatedResult?.recommendedShifts || [];
         result = {
           success: true,
-          shifts: shifts.map((s: any) => ({
+          shifts: rec.map((s: any) => ({
             id: `gpt5-${crypto.randomUUID?.() || Date.now()}`,
             date: s.date,
             startTime: s.startTime,
@@ -157,9 +144,9 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
             confidence: s.confidence ?? 0.85,
             workerName: workerName.trim(),
           })),
-          warnings: gptResult.warnings || [],
-          totalShifts: shifts.length,
-          estimatedEarnings: shifts.reduce(
+          warnings: ocrResult.data?.warnings || [],
+          totalShifts: rec.length,
+          estimatedEarnings: rec.reduce(
             (sum: number, s: any) => {
               const hours = 8; // 概算として8時間
               const rate = s.hourlyRate || selectedWorkplace?.defaultHourlyRate || 1000;
@@ -181,8 +168,8 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
       setStep('review');
     } catch (error) {
       console.error('GPT解析エラー:', error);
-      // エラーハンドリング
-    } finally {
+      alert(error instanceof Error ? error.message : 'シフト表の解析に失敗しました。画像ファイルをご確認ください。');
+      setStep('upload'); // エラー時は最初の画面に戻る
     }
   };
 
@@ -322,7 +309,7 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
                   />
                 </Button>
                 <Typography variant="body2" color="text.secondary">
-                  PNG/JPG/webp/PDF をサポート
+                  PNG/JPG/JPEG/WebP/PDF をサポート
                 </Typography>
               </Box>
 

@@ -54,7 +54,7 @@ export default async function handler(req, res) {
           {
             role: 'system',
             content: `あなたはアルバイトのシフト表を解析する専門AIです。
-画像からシフト情報を抽出し、以下のJSON形式で出力してください：
+画像またはPDFファイルからシフト情報を抽出し、以下のJSON形式で出力してください：
 
 {
   "success": true,
@@ -83,7 +83,7 @@ export default async function handler(req, res) {
             content: [
               {
                 type: 'text',
-                text: prompt || 'この画像からシフト情報を抽出してください。'
+                text: prompt || 'この画像またはPDFからシフト情報を抽出してください。'
               },
               {
                 type: 'image_url',
