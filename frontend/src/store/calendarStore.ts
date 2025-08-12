@@ -18,6 +18,7 @@ interface CalendarStore {
   
   // 表示状態
   currentMonth: Date;
+  headerMonth: Date; // ヘッダー表示用（スクロールに追従）
   viewMode: CalendarViewMode;
   selectedDate: string | null;
   selectedTab: BottomNavTab;
@@ -39,6 +40,7 @@ interface CalendarStore {
   
   // Actions - 表示制御
   setCurrentMonth: (date: Date) => void;
+  setHeaderMonth: (date: Date) => void;
   setViewMode: (mode: CalendarViewMode) => void;
   setSelectedDate: (date: string | null) => void;
   setSelectedTab: (tab: BottomNavTab) => void;
@@ -75,6 +77,7 @@ export const useCalendarStore = create<CalendarStore>()(
       // 初期状態
       events: [],
       currentMonth: new Date(),
+      headerMonth: new Date(),
       viewMode: 'month',
       selectedDate: null,
       selectedTab: 'shift',
@@ -128,6 +131,10 @@ export const useCalendarStore = create<CalendarStore>()(
         set({ currentMonth: date });
       },
       
+      setHeaderMonth: (date) => {
+        set({ headerMonth: date });
+      },
+      
       setViewMode: (mode) => {
         set({ viewMode: mode });
       },
@@ -145,7 +152,7 @@ export const useCalendarStore = create<CalendarStore>()(
           const current = state.currentMonth;
           const newMonth = new Date(current);
           newMonth.setMonth(current.getMonth() + (direction === 'prev' ? -1 : 1));
-          return { currentMonth: newMonth };
+          return { currentMonth: newMonth, headerMonth: newMonth };
         });
       },
       

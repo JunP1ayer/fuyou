@@ -362,63 +362,28 @@ export const MobileSalaryView: React.FC = () => {
         <Tab value="year" label={t('salary.tab.year', '年')} sx={{ fontSize: { xs: 12, sm: 14 } }} />
       </Tabs>
 
-      {/* ヘッダー タイトル（タブ別） */}
+      {/* ヘッダータイトルをモバイルではコンパクト表示（大見出しは非表示） */}
       {tabValue === 'month' ? (
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mb: 1,
-            gap: 1,
-          }}
-        >
-          <IconButton
-            aria-label={t('salary.nav.prevMonth', '前月')}
-            onClick={() => setMonthOffset(o => o - 1)}
-            size="small"
-          >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 0.5 }}>
+          <IconButton aria-label={t('salary.nav.prevMonth', '前月')} onClick={() => setMonthOffset(o => o - 1)} size="small">
             <ChevronLeft />
           </IconButton>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          <Typography variant={isMobile ? 'body2' : 'subtitle1'} sx={{ fontWeight: 700 }}>
             {shownDate.getFullYear()}年{shownDate.getMonth() + 1}月
           </Typography>
-          <IconButton
-            aria-label={t('salary.nav.nextMonth', '翌月')}
-            onClick={() => setMonthOffset(o => o + 1)}
-            size="small"
-          >
+          <IconButton aria-label={t('salary.nav.nextMonth', '翌月')} onClick={() => setMonthOffset(o => o + 1)} size="small">
             <ChevronRight />
           </IconButton>
         </Box>
       ) : (
-        <Box
-          sx={{
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mb: 1,
-            gap: 1,
-          }}
-        >
-          <IconButton
-            aria-label={t('salary.nav.prevYear', '前年')}
-            onClick={() => setMonthOffset(o => o - 12)}
-            size="small"
-            sx={{ position: 'absolute', left: 0 }}
-          >
+        <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 0.5 }}>
+          <IconButton aria-label={t('salary.nav.prevYear', '前年')} onClick={() => setMonthOffset(o => o - 12)} size="small" sx={{ position: 'absolute', left: 0 }}>
             <ChevronLeft />
           </IconButton>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          <Typography variant={isMobile ? 'body2' : 'subtitle1'} sx={{ fontWeight: 700 }}>
             {shownDate.getFullYear()}年
           </Typography>
-          <IconButton
-            aria-label={t('salary.nav.nextYear', '翌年')}
-            onClick={() => setMonthOffset(o => o + 12)}
-            size="small"
-            sx={{ position: 'absolute', right: 0 }}
-          >
+          <IconButton aria-label={t('salary.nav.nextYear', '翌年')} onClick={() => setMonthOffset(o => o + 12)} size="small" sx={{ position: 'absolute', right: 0 }}>
             <ChevronRight />
           </IconButton>
         </Box>

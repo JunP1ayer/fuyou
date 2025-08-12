@@ -14,7 +14,7 @@ interface CalendarHeaderProps {
 }
 
 export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick }) => {
-  const { currentMonth, navigateMonth, viewMode } = useCalendarStore();
+  const { headerMonth, navigateMonth, viewMode } = useCalendarStore();
   const { t, language } = useI18n();
   
   // 友達表示の状態管理
@@ -79,7 +79,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick 
           lineHeight: 1.2,
         }}
       >
-        {currentMonth.toLocaleDateString(language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : language === 'da' ? 'da-DK' : language === 'fi' ? 'fi-FI' : language === 'no' ? 'nb-NO' : 'ja-JP', { year: 'numeric', month: 'numeric' })}
+        {headerMonth.toLocaleDateString(language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : language === 'da' ? 'da-DK' : language === 'fi' ? 'fi-FI' : language === 'no' ? 'nb-NO' : 'ja-JP', { year: 'numeric', month: 'numeric' })}
       </Typography>
 
       {/* 右側：友達表示切り替え・設定・次月 */}

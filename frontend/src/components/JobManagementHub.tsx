@@ -57,11 +57,11 @@ export const JobManagementHub: React.FC<JobManagementHubProps> = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', p: 2 }}>
+    <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', p: { xs: 1.5, sm: 2 }, pb: 8 }}>
       {/* ヘッダー */}
-      <Box sx={{ textAlign: 'center', mb: 3 }}>
-        <Business sx={{ color: 'primary.main', fontSize: 36, mb: 1 }} />
-        <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
+      <Box sx={{ textAlign: 'center', mb: 2 }}>
+        <Business sx={{ color: 'primary.main', fontSize: { xs: 28, sm: 36 }, mb: 1 }} />
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
           バイト管理
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -70,17 +70,17 @@ export const JobManagementHub: React.FC<JobManagementHubProps> = () => {
       </Box>
 
       {/* タブナビゲーション */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={tabValue} onChange={handleTabChange} centered>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+        <Tabs value={tabValue} onChange={handleTabChange} centered variant="fullWidth">
           <Tab
             icon={<Edit />}
             label="バイト先管理"
-            sx={{ minHeight: 60, fontWeight: 600 }}
+            sx={{ minHeight: 52, fontWeight: 600 }}
           />
           <Tab
             icon={<CalendarToday />}
             label="AIシフト解析"
-            sx={{ minHeight: 60, fontWeight: 600 }}
+            sx={{ minHeight: 52, fontWeight: 600 }}
           />
         </Tabs>
       </Box>

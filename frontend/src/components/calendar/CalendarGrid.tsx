@@ -59,7 +59,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
   const { 
     currentMonth, 
     events, 
-    openEventDialog
+    openEventDialog,
+    setHeaderMonth,
   } = useCalendarStore();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const currentMonthRef = useRef<HTMLDivElement | null>(null);
@@ -89,8 +90,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
 
   // 縦スクロール用の月間データ生成（モバイル）
   const generateMultipleMonths = () => {
+    // 現在月を中心に前後10年（±120ヶ月）を生成
     const months: Date[] = [];
-    for (let i = -3; i <= 6; i++) {
+    for (let i = -120; i <= 120; i++) {
       months.push(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + i, 1));
     }
     return months;
@@ -161,8 +163,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
           const monthEnd = endOfMonth(month);
           // iOSの月ビューに合わせてモバイルは月曜始まり
           const weekStartsOn = isMobile ? 1 : 0;
-          const calendarStart = startOfWeek(monthStart, { weekStartsOn });
-          const calendarEnd = endOfWeek(monthEnd, { weekStartsOn });
+          // 1週前の週始まりから、翌月1週目の週終わりまで表示
+          const calendarStart = startOfWeek(new Date(monthStart.getFullYear(), monthStart.getMonth(), 1 - 7), { weekStartsOn });
+          const calendarEnd = endOfWeek(new Date(monthEnd.getFullYear(), monthEnd.getMonth() + 1, 7), { weekStartsOn });
           const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
           
           const weeks: Date[][] = [];
@@ -170,10 +173,29 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
             weeks.push(calendarDays.slice(i, i + 7));
           }
           
+          // 交差監視でヘッダーの月表示を更新
+          const monthRef = (el: HTMLDivElement | null) => {
+            if (!el || !(isMobile && viewMode === 'vertical')) return;
+            const observer = new IntersectionObserver(
+              (entries) => {
+                entries.forEach((entry) => {
+                  if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+                    setHeaderMonth(month);
+                  }
+                });
+              },
+              { root: containerRef.current, threshold: [0.6] }
+            );
+            observer.observe(el);
+          };
+
           return (
             <Box
               key={monthIndex}
-              ref={isSameMonth(month, currentMonth) ? currentMonthRef : undefined}
+              ref={(node) => {
+                if (isSameMonth(month, currentMonth)) currentMonthRef.current = node as HTMLDivElement;
+                monthRef(node as HTMLDivElement);
+              }}
               sx={{
                 position: 'relative',
                 display: 'flex',
