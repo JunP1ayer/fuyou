@@ -45,12 +45,12 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        px: 0.5, // 左右パディング最小化
-        py: 0.25, // 上下パディング最小化
+        px: { xs: 1, md: 0.5 },
+        py: { xs: 0.75, md: 0.25 },
         borderBottom: '1px solid',
         borderColor: 'divider',
         backgroundColor: 'background.paper',
-        minHeight: 32, // 高さを大幅縮小 48px→32px
+        minHeight: { xs: 56, md: 40 }, // モバイルは大きめに
       }}
     >
       {/* 左側：月切り替えボタン */}
@@ -68,13 +68,15 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick 
 
       {/* 中央：年月表示 */}
       <Typography
-        variant="body1"
+        variant="h6"
         sx={{
-          fontWeight: 600,
-          fontSize: '16px', // フォントサイズ縮小
+          fontWeight: 700,
+          fontSize: { xs: '24px', md: '18px' }, // 参考画像のサイズ感
+          letterSpacing: 0.3,
           flex: 1,
           textAlign: 'center',
           color: 'text.primary',
+          lineHeight: 1.2,
         }}
       >
         {currentMonth.toLocaleDateString(language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : language === 'da' ? 'da-DK' : language === 'fi' ? 'fi-FI' : language === 'no' ? 'nb-NO' : 'ja-JP', { year: 'numeric', month: 'numeric' })}

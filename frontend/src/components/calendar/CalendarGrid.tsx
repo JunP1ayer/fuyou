@@ -1,6 +1,6 @@
 // カレンダーグリッドコンポーネント（前のロジック使用）
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Grid, Typography, alpha, useTheme, useMediaQuery } from '@mui/material';
 import { motion } from 'framer-motion';
 import { 
@@ -61,6 +61,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     events, 
     openEventDialog
   } = useCalendarStore();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const currentMonthRef = useRef<HTMLDivElement | null>(null);
 
   // 設定から表示モードを読み込み
   useEffect(() => {
@@ -96,9 +98,18 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
   };
 
   const multipleMonths = isMobile && viewMode === 'vertical' ? generateMultipleMonths() : [currentMonth];
+  
+  // 初期スクロール位置を当月へ
+  useEffect(() => {
+    if (isMobile && viewMode === 'vertical' && containerRef.current && currentMonthRef.current) {
+      const container = containerRef.current;
+      const targetTop = currentMonthRef.current.offsetTop;
+      container.scrollTop = Math.max(0, targetTop - 40);
+    }
+  }, [isMobile, viewMode, currentMonth]);
 
   return (
-    <Box sx={{ 
+    <Box ref={containerRef} sx={{ 
       height: '100%', 
       display: 'flex', 
       flexDirection: 'column',
@@ -158,13 +169,36 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
           }
           
           return (
-            <Box key={monthIndex} sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              mb: 0, // 月間のマージンを削除
-              flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
-              minHeight: isMobile && viewMode === 'vertical' ? 'auto' : 'auto', // 固定高さを削除
-            }}>
+            <Box
+              key={monthIndex}
+              ref={isSameMonth(month, currentMonth) ? currentMonthRef : undefined}
+              sx={{
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                mb: 0,
+                flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
+                minHeight: isMobile && viewMode === 'vertical' ? 'auto' : 'auto',
+              }}
+            >
+              {/* 背景の薄い月数字 */}
+              <Box
+                aria-hidden
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  pointerEvents: 'none',
+                  userSelect: 'none',
+                  fontWeight: 700,
+                  fontSize: isMobile ? '112px' : '160px',
+                  color: alpha(theme.palette.text.primary, 0.06),
+                  lineHeight: 1,
+                }}
+              >
+                {format(month, 'M')}
+              </Box>
               {/* 月表示ヘッダーを削除してシームレススクロールを実現 */}
 
               {weeks.map((week, weekIndex) => (

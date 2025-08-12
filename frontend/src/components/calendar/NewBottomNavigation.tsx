@@ -52,7 +52,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
       sx={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-around',
+        justifyContent: 'space-between',
         backgroundColor: 'background.paper',
         borderTop: '1px solid',
         borderColor: 'divider',
@@ -61,7 +61,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
         minHeight: 60,
         position: 'relative',
       }}
-    >
+      >
       {/* シフト */}
       <Box
         sx={{
@@ -70,11 +70,14 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           alignItems: 'center',
           cursor: 'pointer',
           color: currentTab === 'shift' ? 'primary.main' : 'text.secondary',
+          flex: 1,
         }}
         onClick={() => onTabChange('shift')}
       >
         <CalendarMonth />
-        <Box sx={{ fontSize: 12, mt: 0.5 }}>{t('nav.calendar','カレンダー')}</Box>
+          <Box sx={{ fontSize: 12, mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+            {t('nav.calendar','カレンダー')}
+          </Box>
       </Box>
 
       {/* 給料 */}
@@ -85,11 +88,14 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           alignItems: 'center',
           cursor: 'pointer',
           color: currentTab === 'salary' ? 'primary.main' : 'text.secondary',
+          flex: 1,
         }}
         onClick={() => onTabChange('salary')}
       >
         <AttachMoney />
-        <Box sx={{ fontSize: 12, mt: 0.5 }}>{t('nav.salary','給料')}</Box>
+          <Box sx={{ fontSize: 12, mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+            {t('nav.salary','給料')}
+          </Box>
       </Box>
 
 
@@ -101,11 +107,14 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           alignItems: 'center',
           cursor: 'pointer',
           color: currentTab === 'workplace' ? 'primary.main' : 'text.secondary',
+          flex: 1,
         }}
         onClick={() => onTabChange('workplace')}
       >
         <Business />
-        <Box sx={{ fontSize: 12, mt: 0.5 }}>{t('workplace.manager.title','バイト先管理')}</Box>
+          <Box sx={{ fontSize: 12, mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+            {t('nav.workplace','管理')}
+          </Box>
       </Box>
 
       {/* 共有 */}
@@ -116,11 +125,14 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           alignItems: 'center',
           cursor: 'pointer',
           color: currentTab === 'share' ? 'primary.main' : 'text.secondary',
+          flex: 1,
         }}
         onClick={() => onTabChange('share')}
       >
         <Share />
-        <Box sx={{ fontSize: 12, mt: 0.5 }}>{t('friends.share','スケジュール共有')}</Box>
+          <Box sx={{ fontSize: 12, mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+            {t('nav.share','共有')}
+          </Box>
       </Box>
     </Box>
   );
