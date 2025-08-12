@@ -19,18 +19,18 @@ import type { CalendarEvent } from '../../types/calendar';
 
 const WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土'];
 
-// イベントチップコンポーネント
+// イベントチップコンポーネント（iOSカレンダー風の丸み・小さめフォント）
 const EventChip: React.FC<{ event: CalendarEvent }> = ({ event }) => {
   return (
     <Box
       sx={{
         backgroundColor: event.color,
         color: '#000',
-        px: 0.5,
+        px: 0.75,
         py: 0.25,
-        borderRadius: 0.5,
-        fontSize: '10px',
-        fontWeight: 500,
+        borderRadius: 2,
+        fontSize: '11px',
+        fontWeight: 600,
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
@@ -104,36 +104,33 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
       flexDirection: 'column',
       overflow: isMobile && viewMode === 'vertical' ? 'auto' : 'hidden',
     }}>
-      {/* 曜日ヘッダー（固定高さ） - 縦スクロール時も表示 */}
+      {/* 曜日ヘッダー（月曜始まり・iOSライク） */}
       {true && (
-        <Box sx={{ height: { xs: '38px', md: '30px' }, flexShrink: 0 }}>
+        <Box sx={{ height: { xs: '34px', md: '30px' }, flexShrink: 0 }}>
           <Grid container spacing={0} sx={{ height: '100%' }}>
-            {[0,1,2,3,4,5,6].map((dow, index) => {
+            {[1,2,3,4,5,6,0].map((dow, index) => {
               const day = t(`calendar.weekdays.${dow}`, WEEKDAYS_JA[dow]);
               return (
-              <Grid item xs key={day}>
-                <Box
-                  sx={{
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 500,
-                    fontSize: { xs: '14px', md: '11px' },
-                    color:
-                      index === 0
-                        ? 'error.main'
-                        : index === 6
-                          ? 'primary.main'
-                          : 'text.secondary',
-                    borderBottom: '1px solid',
-                    borderColor: 'divider',
-                  }}
-                >
-                  {day}
-                </Box>
-              </Grid>
-            );})}
+                <Grid item xs key={day}>
+                  <Box
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 600,
+                      letterSpacing: 0.2,
+                      fontSize: { xs: '12px', md: '11px' },
+                      color: index === 6 ? 'error.main' : 'text.secondary', // 末尾(日曜)を赤
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    {day}
+                  </Box>
+                </Grid>
+              );
+            })}
           </Grid>
         </Box>
       )}
@@ -149,8 +146,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
         {multipleMonths.map((month, monthIndex) => {
           const monthStart = startOfMonth(month);
           const monthEnd = endOfMonth(month);
-          const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-          const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+          // iOSの月ビューに合わせてモバイルは月曜始まり
+          const weekStartsOn = isMobile ? 1 : 0;
+          const calendarStart = startOfWeek(monthStart, { weekStartsOn });
+          const calendarEnd = endOfWeek(monthEnd, { weekStartsOn });
           const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
           
           const weeks: Date[][] = [];
@@ -171,8 +170,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
               {weeks.map((week, weekIndex) => (
                 <Box key={weekIndex} sx={{ 
                   flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
-                  height: isMobile && viewMode === 'vertical' ? '112px' : `calc(100% / ${weeks.length})`,
-                  minHeight: isMobile && viewMode === 'vertical' ? '112px' : 'auto',
+                  height: isMobile && viewMode === 'vertical' ? '118px' : `calc(100% / ${weeks.length})`,
+                  minHeight: isMobile && viewMode === 'vertical' ? '118px' : 'auto',
                 }}>
                   <Grid container spacing={0} sx={{ height: '100%' }}>
                   {week.map((day, dayIndex) => {
@@ -190,7 +189,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                           sx={{
                             height: '100%',
                             width: '100%',
-                            p: isMobile && viewMode === 'vertical' ? 0.75 : 0.5,
+                            p: isMobile && viewMode === 'vertical' ? 0.75 : 0.75,
                             cursor: 'pointer',
                             border: '1px solid',
                             borderColor: 'divider',
@@ -198,11 +197,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                             borderBottom: weekIndex === weeks.length - 1 ? '1px solid' : '0',
                             display: 'flex',
                             flexDirection: 'column',
-                            backgroundColor: !isCurrentMonth 
-                              ? 'grey.100' 
-                              : isTodayDate 
-                                ? alpha(theme.palette.primary.main, 0.15) 
-                                : 'background.paper',
+                            backgroundColor: !isCurrentMonth ? 'grey.100' : 'background.paper',
+                            outline: isTodayDate ? `2px solid ${alpha(theme.palette.primary.main, 0.6)}` : 'none',
+                            outlineOffset: '-1px',
                             '&:hover': {
                               backgroundColor: alpha(theme.palette.primary.main, 0.08),
                             },
@@ -210,75 +207,34 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                           }}
                           onClick={() => handleDateClick(day)}
                         >
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontWeight: isTodayDate ? 700 : 500,
-                              fontSize: isMobile && viewMode === 'vertical' ? '18px' : '13px',
-                              color: !isCurrentMonth 
-                                ? 'text.disabled'
-                                : dayOfWeek === 0 
-                                  ? 'error.main' 
-                                  : dayOfWeek === 6 
-                                    ? 'primary.main'
+                          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: isTodayDate ? 700 : 500,
+                                fontSize: isMobile && viewMode === 'vertical' ? '16px' : '13px',
+                                color: !isCurrentMonth
+                                  ? 'text.disabled'
+                                  : dayOfWeek === 0
+                                    ? 'error.main'
                                     : 'text.primary',
-                              mb: 0.5,
-                              textAlign: isMobile && viewMode === 'vertical' ? 'center' : 'left',
-                              lineHeight: 1,
-                            }}
-                          >
-                            {format(day, 'd')}
-                          </Typography>
+                                lineHeight: 1,
+                              }}
+                            >
+                              {format(day, 'd')}
+                            </Typography>
+                          </Box>
 
                           {/* イベント表示 */}
-                          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: isMobile && viewMode === 'vertical' ? 'center' : 'flex-start' }}>
-                            {isMobile && viewMode === 'vertical' ? (
-                              // モバイル縦スクロールモード: ドット表示
-                              dayEvents.length > 0 && (
-                                <Box sx={{
-                                  display: 'flex',
-                                  gap: 0.5,
-                                  flexWrap: 'wrap',
-                                  justifyContent: 'center',
-                                }}>
-                                  {dayEvents.slice(0, 4).map((event, idx) => (
-                                    <Box key={idx} sx={{
-                                      width: 10,
-                                      height: 10,
-                                      borderRadius: '50%',
-                                      backgroundColor: event.color,
-                                      border: '1px solid white',
-                                    }} />
-                                  ))}
-                                  {dayEvents.length > 4 && (
-                                    <Typography sx={{
-                                      fontSize: '11px',
-                                      color: 'text.secondary',
-                                      fontWeight: 600,
-                                    }}>
-                                      +{dayEvents.length - 4}
-                                    </Typography>
-                                  )}
-                                </Box>
-                              )
-                            ) : (
-                              // PC横表示モード: チップ表示
-                              <>
-                                {dayEvents.slice(0, 2).map((event) => (
-                                  <EventChip key={event.id} event={event} />
-                                ))}
-                                {dayEvents.length > 2 && (
-                                  <Typography
-                                    sx={{
-                                      fontSize: '8px',
-                                      color: 'text.secondary',
-                                      fontWeight: 500,
-                                    }}
-                                  >
-                                    +{dayEvents.length - 2}
-                                  </Typography>
-                                )}
-                              </>
+                          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                            {/* モバイルもチップ表示に統一 */}
+                            {dayEvents.slice(0, 3).map((event) => (
+                              <EventChip key={event.id} event={event} />
+                            ))}
+                            {dayEvents.length > 3 && (
+                              <Typography sx={{ fontSize: '10px', color: 'text.secondary', fontWeight: 600 }}>
+                                +{dayEvents.length - 3}
+                              </Typography>
                             )}
                           </Box>
                         </Box>

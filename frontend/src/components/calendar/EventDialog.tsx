@@ -106,14 +106,16 @@ const HotelStyleDateRangePicker: React.FC<{
     startDate.setDate(firstDay.getDate() - dayOfWeek);
     
     // カレンダーグリッドの日付を生成（6週分 = 42日）
-    const days = [];
+    const days = [] as Array<{ date: Date; isCurrentMonth: boolean; isPast: boolean }>;
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
     for (let i = 0; i < 42; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
       days.push({
         date,
         isCurrentMonth: date.getMonth() === month,
-        isPast: date.getTime() < new Date().setHours(0, 0, 0, 0)
+        isPast: date.getTime() < todayStart.getTime()
       });
     }
     
