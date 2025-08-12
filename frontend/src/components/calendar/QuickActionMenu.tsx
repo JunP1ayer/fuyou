@@ -24,6 +24,7 @@ import {
   Visibility,
   SmartToy,
   PhotoCamera,
+  FlashOn,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -38,6 +39,7 @@ interface QuickActionMenuProps {
   onAddShiftEvent: () => void;
   onViewDayEvents: () => void;
   onOpenGPT5Analyzer?: () => void;
+  onQuickShiftRegister?: () => void;
 }
 
 export const QuickActionMenu: React.FC<QuickActionMenuProps> = ({
@@ -48,6 +50,7 @@ export const QuickActionMenu: React.FC<QuickActionMenuProps> = ({
   onAddShiftEvent,
   onViewDayEvents,
   onOpenGPT5Analyzer,
+  onQuickShiftRegister,
 }) => {
   const { events } = useCalendarStore();
   const { t } = useI18n();
@@ -58,6 +61,14 @@ export const QuickActionMenu: React.FC<QuickActionMenuProps> = ({
     : 0;
 
   const quickActions = [
+    ...(onQuickShiftRegister ? [{
+      id: 'quick-shift',
+      label: 'クイック登録',
+      subtitle: 'テンプレートを使って素早くシフト登録',
+      icon: <FlashOn />,
+      color: '#43E97B',
+      action: onQuickShiftRegister,
+    }] : []),
     {
       id: 'shift',
       label: t('calendar.quick.addShift', 'シフトを追加'),

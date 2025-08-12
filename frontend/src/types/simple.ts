@@ -26,6 +26,11 @@ export interface Workplace {
   color: string;
   defaultHourlyRate: number;
   timeZone?: string;
+  // 労働条件設定（デフォルト値）
+  overtimeEnabled?: boolean; // 残業割増25%（デフォルトtrue）
+  autoBreak6Hours?: boolean; // 6時間越えで45分休憩（デフォルトtrue）
+  autoBreak8Hours?: boolean; // 8時間越えで60分休憩（デフォルトtrue）
+  dayOfWeekSettingsEnabled?: boolean; // 曜日別設定（デフォルトfalse）
   // 追加の任意フィールド（詳細編集用）
   description?: string;
   paymentDate?: number;

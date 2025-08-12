@@ -573,7 +573,7 @@ export const MobileSalaryView: React.FC = () => {
                   </Typography>
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="caption" color="text.secondary">
-                      {t('salary.limit', '限度額')}
+                      {t('salary.limit', '扶養限度額')}
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       {formatMoney(displayInfo.monthlyDependencyLimit)}
@@ -1044,12 +1044,12 @@ export const MobileSalaryView: React.FC = () => {
             icon={<Star />}
           >
             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {t('salary.dependency.recommended', '推奨: 自動設定を選択すると、あなたの状況に最適な限度額が自動計算されます')}
+              {t('salary.dependency.recommended', '推奨: 自動設定を選択すると、あなたの状況に最適な扶養限度額が自動計算されます')}
             </Typography>
           </Alert>
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            {t('salary.dependency.select.desc', 'あなたに適した年間収入限度額を選択してください（一つだけ選択可能）')}
+            {t('salary.dependency.select.desc', 'あなたに適した年間収入の扶養限度額を選択してください（一つだけ選択可能）')}
           </Typography>
 
           {/* RadioGroupで単一選択を保証 */}
@@ -1097,7 +1097,7 @@ export const MobileSalaryView: React.FC = () => {
                           </Typography>
                         </Box>
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                          {t('salary.dependency.auto.desc', 'あなたの状況に最適な限度額を自動計算')}
+                          {t('salary.dependency.auto.desc', 'あなたの状況に最適な扶養限度額を自動計算')}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 600 }}>
                           ➤ 現在の推奨: {dependencyLimit.type}
@@ -1119,9 +1119,9 @@ export const MobileSalaryView: React.FC = () => {
                 { value: 103, label: '103万円', desc: t('salary.dependency.option.103', '所得税の基礎控除額（一般的）') },
                 { value: 106, label: '106万円', desc: t('salary.dependency.option.106', '社会保険加入の壁') },
                 { value: 123, label: '123万円', desc: t('salary.dependency.option.123', '特定親族特別控除（2025年改正後）') },
-                { value: 130, label: '130万円', desc: t('salary.dependency.option.130', '健康保険の被扶養者限度額') },
+                { value: 130, label: '130万円', desc: t('salary.dependency.option.130', '健康保険の被扶養者扶養限度額') },
                 { value: 150, label: '150万円', desc: t('salary.dependency.option.150', '19-22歳健保被扶養（2025年改正後）') },
-                { value: 160, label: '160万円', desc: t('salary.dependency.option.160', '学生特例最大限度額（2025年改正後）') }
+                { value: 160, label: '160万円', desc: t('salary.dependency.option.160', '学生特例最大扶養限度額（2025年改正後）') }
               ].map(option => (
                 <Card 
                   key={option.value}

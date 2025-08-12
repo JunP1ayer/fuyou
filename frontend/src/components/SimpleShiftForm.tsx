@@ -290,107 +290,23 @@ export const SimpleShiftForm: React.FC<SimpleShiftFormProps> = ({
 
             <Divider sx={{ my: 2 }} />
 
-            {/* 設定セクション */}
-            <Box sx={{ mb: 3 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={formData.isAllDay}
-                        onChange={e =>
-                          setFormData(prev => ({
-                            ...prev,
-                            isAllDay: e.target.checked,
-                          }))
-                        }
-                      />
+            {/* シンプル設定 */}
+            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.hasNotification}
+                    onChange={e =>
+                      setFormData(prev => ({
+                        ...prev,
+                        hasNotification: e.target.checked,
+                      }))
                     }
-                    label="終日設定"
                   />
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    display="block"
-                  >
-                    {formData.isAllDay
-                      ? 'オン（終日）'
-                      : 'オフ（特定時間のみ）'}
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={6}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={formData.isMultiDay}
-                        onChange={e =>
-                          setFormData(prev => ({
-                            ...prev,
-                            isMultiDay: e.target.checked,
-                          }))
-                        }
-                      />
-                    }
-                    label="複数日設定"
-                  />
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    display="block"
-                  >
-                    {formData.isMultiDay ? 'あり' : 'なし'}
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={6}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={formData.hasRepeat}
-                        onChange={e =>
-                          setFormData(prev => ({
-                            ...prev,
-                            hasRepeat: e.target.checked,
-                          }))
-                        }
-                      />
-                    }
-                    label="繰り返し"
-                  />
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    display="block"
-                  >
-                    {formData.hasRepeat ? 'あり' : 'なし'}
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={6}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={formData.hasNotification}
-                        onChange={e =>
-                          setFormData(prev => ({
-                            ...prev,
-                            hasNotification: e.target.checked,
-                          }))
-                        }
-                      />
-                    }
-                    label="通知"
-                  />
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    display="block"
-                  >
-                    {formData.hasNotification ? 'あり' : 'なし'}
-                  </Typography>
-                </Grid>
-              </Grid>
+                }
+                label="通知を有効にする"
+                sx={{ fontSize: '0.9rem' }}
+              />
             </Box>
 
             <Divider sx={{ my: 2 }} />

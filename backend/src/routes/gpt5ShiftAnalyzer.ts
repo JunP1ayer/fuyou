@@ -4,7 +4,6 @@ import { Router } from 'express';
 import { asyncHandler } from '../middleware/errorHandler';
 import { z } from 'zod';
 import { validateSchema } from '../middleware/validation';
-import OpenAI from 'openai';
 
 const router = Router();
 
@@ -42,7 +41,8 @@ router.post('/', validateSchema(gpt5AnalysisSchema), asyncHandler(async (req, re
   }
 
   try {
-    // OpenAI Responses API を使用して安定した画像解析を実行
+    // OpenAI Responses API を使用（dynamic importでESM互換）
+    const { default: OpenAI } = await import('openai');
     const client = new OpenAI({ apiKey });
     // 既定を gpt-5 に。必要に応じて OPENAI_GPT_MODEL で上書き可（例: gpt-5.1）
     const model = process.env.OPENAI_GPT_MODEL || 'gpt-5';

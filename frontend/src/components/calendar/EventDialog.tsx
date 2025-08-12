@@ -29,6 +29,8 @@ import {
   Divider,
   InputAdornment,
   Chip,
+  IconButton,
+  Paper,
 } from '@mui/material';
 import {
   Work,
@@ -43,14 +45,21 @@ import {
   Notifications,
   Repeat,
   ChevronRight,
+  FlashOn,
+  CalendarToday,
+  Today,
+  ArrowForward,
+  ChevronLeft,
 } from '@mui/icons-material';
 import { format, parse } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { useCalendarStore } from '../../store/calendarStore';
 import { useSimpleShiftStore } from '../../store/simpleShiftStore';
+import { QuickShiftDialog } from './QuickShiftDialog';
 import type { CalendarEvent, EventType, NotificationTime, RepeatFrequency } from '../../types/calendar';
 import { DEFAULT_EVENT_CATEGORIES } from '../../types/calendar';
 import { useI18n } from '@/hooks/useI18n';
+import { APP_COLOR_PALETTE } from '@/utils/colors';
 
 interface EventDialogProps {
   onNavigateToWorkplaceManager?: () => void;
@@ -65,8 +74,264 @@ interface TabPanelProps {
 const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => {
   return (
     <div hidden={value !== index}>
-      {value === index && <Box sx={{ py: 2 }}>{children}</Box>}
+      {value === index && <Box sx={{ py: 1 }}>{children}</Box>}
     </div>
+  );
+};
+
+// ホテル予約スタイルの日付範囲選択コンポーネント
+const HotelStyleDateRangePicker: React.FC<{
+  startDate: string;
+  endDate: string;
+  onStartDateChange: (date: string) => void;
+  onEndDateChange: (date: string) => void;
+}> = ({ startDate, endDate, onStartDateChange, onEndDateChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectionMode, setSelectionMode] = useState<'start' | 'end'>('start');
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  
+  // カレンダーの日付を生成（指定月の全日付）
+  const generateCalendarDays = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    
+    // 月の最初の日
+    const firstDay = new Date(year, month, 1);
+    // 月の最後の日
+    const lastDay = new Date(year, month + 1, 0);
+    
+    // カレンダーグリッドの最初の日（月曜日から開始）
+    const startDate = new Date(firstDay);
+    const dayOfWeek = (firstDay.getDay() + 6) % 7; // 月曜日を0とする
+    startDate.setDate(firstDay.getDate() - dayOfWeek);
+    
+    // カレンダーグリッドの日付を生成（6週分 = 42日）
+    const days = [];
+    for (let i = 0; i < 42; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      days.push({
+        date,
+        isCurrentMonth: date.getMonth() === month,
+        isPast: date.getTime() < new Date().setHours(0, 0, 0, 0)
+      });
+    }
+    
+    return days;
+  };
+  
+  const calendarDays = generateCalendarDays();
+  
+  const formatDisplayDate = (dateStr: string) => {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    
+    if (date.toDateString() === today.toDateString()) return '今日';
+    if (date.toDateString() === tomorrow.toDateString()) return '明日';
+    
+    return format(date, 'M/d(E)', { locale: ja });
+  };
+  
+  const handleDateClick = (dayInfo: { date: Date; isCurrentMonth: boolean; isPast: boolean }) => {
+    const { date, isPast } = dayInfo;
+    
+    // 過去の日付は選択できない（今日は選択可能）
+    if (isPast) return;
+    
+    const dateStr = date.toISOString().split('T')[0];
+    
+    if (selectionMode === 'start') {
+      onStartDateChange(dateStr);
+      if (endDate && dateStr > endDate) {
+        onEndDateChange(''); // 開始日が終了日より後の場合、終了日をクリア
+      }
+      setSelectionMode('end');
+    } else {
+      if (startDate && dateStr >= startDate) {
+        onEndDateChange(dateStr);
+        setIsOpen(false);
+        setSelectionMode('start');
+      } else {
+        // 開始日より前を選択した場合は開始日として設定
+        onStartDateChange(dateStr);
+        onEndDateChange('');
+        setSelectionMode('end');
+      }
+    }
+  };
+  
+  const isInRange = (date: Date) => {
+    if (!startDate || !endDate) return false;
+    const dateStr = date.toISOString().split('T')[0];
+    return dateStr >= startDate && dateStr <= endDate;
+  };
+  
+  const isStartOrEnd = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return dateStr === startDate || dateStr === endDate;
+  };
+  
+  return (
+    <Box>
+      {/* 選択された期間の表示 */}
+      <Paper
+        sx={{
+          p: 2,
+          cursor: 'pointer',
+          border: '2px solid',
+          borderColor: isOpen ? 'primary.main' : 'divider',
+          borderRadius: 2,
+          '&:hover': { borderColor: 'primary.main' }
+        }}
+        onClick={() => {
+          setIsOpen(!isOpen);
+          setSelectionMode('start');
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+          <Box sx={{ textAlign: 'center', flex: 1 }}>
+            <Typography variant="caption" color="text.secondary">開始日</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>
+              {startDate ? formatDisplayDate(startDate) : '今日'}
+            </Typography>
+          </Box>
+          
+          <ArrowForward sx={{ color: 'text.secondary' }} />
+          
+          <Box sx={{ textAlign: 'center', flex: 1 }}>
+            <Typography variant="caption" color="text.secondary">終了日</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>
+              {endDate ? formatDisplayDate(endDate) : '日付を選択'}
+            </Typography>
+          </Box>
+        </Box>
+        
+        {startDate && endDate && (
+          <Box sx={{ textAlign: 'center', mt: 1 }}>
+            <Chip
+              size="small"
+              label={`${Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1}日間`}
+              color="primary"
+              variant="outlined"
+            />
+          </Box>
+        )}
+      </Paper>
+      
+      {/* カレンダー */}
+      {isOpen && (
+        <Paper sx={{ mt: 1, p: 2, border: '1px solid', borderColor: 'divider', maxHeight: '400px', overflow: 'auto' }}>
+          {/* ヘッダー（月の表示と切り替え） */}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <IconButton
+              size="small"
+              onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+            >
+              <ChevronLeft />
+            </IconButton>
+            
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                {format(currentMonth, 'yyyy年M月', { locale: ja })}
+              </Typography>
+              <Typography variant="caption" color="primary.main">
+                {selectionMode === 'start' ? '📍 開始日を選択' : '📍 終了日を選択'}
+              </Typography>
+            </Box>
+            
+            <IconButton
+              size="small"
+              onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+            >
+              <ChevronRight />
+            </IconButton>
+          </Box>
+
+          {/* 曜日ヘッダー */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              gap: 0.5,
+              mb: 1,
+            }}
+          >
+            {['月', '火', '水', '木', '金', '土', '日'].map((day) => (
+              <Box key={day} sx={{ textAlign: 'center', py: 1 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                  {day}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+          
+          {/* カレンダーグリッド */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(7, 1fr)',
+              gap: 0.5,
+            }}
+          >
+            {calendarDays.map((dayInfo, index) => {
+              const { date, isCurrentMonth, isPast } = dayInfo;
+              const isSelected = isStartOrEnd(date);
+              const inRange = isInRange(date);
+              
+              return (
+                <Box
+                  key={index}
+                  onClick={() => handleDateClick(dayInfo)}
+                  sx={{
+                    p: 1,
+                    textAlign: 'center',
+                    cursor: isPast ? 'default' : 'pointer',
+                    borderRadius: 1,
+                    minHeight: 40,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'column',
+                    opacity: isPast ? 0.3 : isCurrentMonth ? 1 : 0.5,
+                    backgroundColor: isSelected
+                      ? 'primary.main'
+                      : inRange
+                      ? 'primary.light'
+                      : 'transparent',
+                    color: isSelected
+                      ? 'primary.contrastText'
+                      : inRange
+                      ? 'primary.contrastText'
+                      : isCurrentMonth
+                      ? 'text.primary'
+                      : 'text.secondary',
+                    '&:hover': !isPast ? {
+                      backgroundColor: isSelected
+                        ? 'primary.dark'
+                        : 'action.hover',
+                    } : {},
+                  }}
+                >
+                  <Typography variant="body2" sx={{ 
+                    fontWeight: isSelected ? 600 : 400,
+                    fontSize: isCurrentMonth ? '0.875rem' : '0.75rem'
+                  }}>
+                    {date.getDate()}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
+          
+          <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'center' }}>
+            <Button size="small" onClick={() => setIsOpen(false)}>完了</Button>
+          </Box>
+        </Paper>
+      )}
+    </Box>
   );
 };
 
@@ -90,6 +355,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
   const [tabValue, setTabValue] = useState(0);
   const [eventType, setEventType] = useState<EventType>('shift');
   const [isOneTime, setIsOneTime] = useState(false);
+  const [quickShiftDialogOpen, setQuickShiftDialogOpen] = useState(false);
   
   // フォームデータ
   const [formData, setFormData] = useState({
@@ -106,11 +372,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
     hourlyRate: 1000,
     // 単発詳細
     oneTimeCompany: '',
-    oneTimeHourlyRate: 1000,
-    oneTimeTransportFee: 0,
-    oneTimeOtherAllowances: 0,
-    oneTimeBreakMinutes: 0,
-    oneTimeMemo: '',
+    oneTimeTotalPay: 0,
     // 労働条件設定（通常シフト用）
     overtimeEnabled: true,
     dayOfWeekSettingsEnabled: false,
@@ -120,12 +382,17 @@ export const EventDialog: React.FC<EventDialogProps> = ({
     // 通知・繰り返し設定
     notification: 'none' as NotificationTime,
     repeatFrequency: 'none' as RepeatFrequency,
+    // 個人予定の複数日対応
+    endDate: '',
   });
 
   // 初期化
   useEffect(() => {
     if (selectedDate) {
       setFormData(prev => ({ ...prev, date: selectedDate }));
+    } else {
+      // selectedDateがない場合は今日の日付を設定
+      setFormData(prev => ({ ...prev, date: new Date().toISOString().split('T')[0] }));
     }
     
     // 初期タブを設定（優先度：編集モード > 初期イベントタイプ > デフォルトシフト）
@@ -146,11 +413,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         workplaceName: editingEvent.workplace?.name || '',
         hourlyRate: editingEvent.workplace?.hourlyRate || 1000,
         oneTimeCompany: editingEvent.oneTimeDetails?.companyName || '',
-        oneTimeHourlyRate: editingEvent.oneTimeDetails?.hourlyRate || 1000,
-        oneTimeTransportFee: editingEvent.oneTimeDetails?.transportFee || 0,
-        oneTimeOtherAllowances: editingEvent.oneTimeDetails?.otherAllowances || 0,
-        oneTimeBreakMinutes: editingEvent.oneTimeDetails?.breakMinutes || 0,
-        oneTimeMemo: editingEvent.oneTimeDetails?.memo || '',
+        oneTimeTotalPay: editingEvent.oneTimeDetails?.totalPay || 0,
         // 新規追加フィールド（編集時はデフォルトを付与）
         overtimeEnabled: true,
         dayOfWeekSettingsEnabled: false,
@@ -160,6 +423,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         // 通知・繰り返し設定
         notification: editingEvent.notification || 'none',
         repeatFrequency: editingEvent.repeat?.frequency || 'none',
+        // 個人予定の複数日対応
+        endDate: editingEvent.endDate || '',
       });
       setIsOneTime(editingEvent.workplace?.isOneTime || false);
     } else {
@@ -175,11 +440,20 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         setEventType('shift');
       }
       
-      // イベントタイプに応じて色を設定
+      // イベントタイプに応じて色とタイトルを設定
       if (initialEventType === 'personal') {
-        setFormData(prev => ({ ...prev, color: '#64B5F6' })); // 個人予定は青
+        setFormData(prev => ({ 
+          ...prev, 
+          color: '#64B5F6', // 個人予定は青
+          title: '', // 個人予定は空欄で開始
+          date: prev.date || new Date().toISOString().split('T')[0] // デフォルトは今日
+        })); 
       } else if (initialEventType === 'shift' || !initialEventType) {
-        setFormData(prev => ({ ...prev, color: '#FFD54F' })); // シフトは黄色
+        setFormData(prev => ({ 
+          ...prev, 
+          color: '#FFD54F', // シフトは黄色
+          date: prev.date || new Date().toISOString().split('T')[0] // デフォルトは今日
+        })); 
       }
       
       // 単発ではなく通常のシフトを初期選択
@@ -192,6 +466,11 @@ export const EventDialog: React.FC<EventDialogProps> = ({
           workplaceId: firstWorkplace.id,
           workplaceName: firstWorkplace.name,
           hourlyRate: firstWorkplace.defaultHourlyRate,
+          // バイト先の労働条件設定を自動反映
+          overtimeEnabled: firstWorkplace.overtimeEnabled ?? true,
+          autoBreak6Hours: firstWorkplace.autoBreak6Hours ?? true,
+          autoBreak8Hours: firstWorkplace.autoBreak8Hours ?? true,
+          dayOfWeekSettingsEnabled: firstWorkplace.dayOfWeekSettingsEnabled ?? false,
         }));
       }
     }
@@ -202,14 +481,18 @@ export const EventDialog: React.FC<EventDialogProps> = ({
     if (!formData.startTime || !formData.endTime) return 0;
     
     const start = parse(formData.startTime, 'HH:mm', new Date());
-    const end = parse(formData.endTime, 'HH:mm', new Date());
+    let end = parse(formData.endTime, 'HH:mm', new Date());
+    
+    // 終了時間が開始時間より早い場合、次の日とみなす（例: 23:00 - 02:00）
+    if (end.getTime() <= start.getTime()) {
+      end = new Date(end.getTime() + 24 * 60 * 60 * 1000); // 24時間追加
+    }
+    
     const totalMinutes = Math.max(0, (end.getTime() - start.getTime()) / (1000 * 60));
 
     // 休憩時間の算出
     let breakMinutes = 0;
-    if (isOneTime) {
-      breakMinutes += formData.oneTimeBreakMinutes || 0;
-    } else {
+    if (!isOneTime) {
       // 手動休憩
       if (formData.extraBreakMinutes) breakMinutes += Math.max(0, Number(formData.extraBreakMinutes) || 0);
       // 自動休憩（6h/8h）
@@ -224,19 +507,21 @@ export const EventDialog: React.FC<EventDialogProps> = ({
     const actualMinutes = Math.max(0, totalMinutes - breakMinutes);
     const actualHours = actualMinutes / 60;
 
-    const rate = isOneTime ? formData.oneTimeHourlyRate : formData.hourlyRate;
-    let earnings = Math.floor(actualHours * rate);
-
-    // 残業割増（8h超は1.25倍）
-    if (!isOneTime && formData.overtimeEnabled && actualHours > 8) {
-      const regularHours = 8;
-      const overtimeHours = actualHours - 8;
-      earnings = Math.floor(regularHours * rate + overtimeHours * rate * 1.25);
-    }
-
-    // 単発は交通費等を加算
+    let earnings = 0;
     if (isOneTime) {
-      earnings += (formData.oneTimeTransportFee || 0) + (formData.oneTimeOtherAllowances || 0);
+      // 単発バイトの場合は入力された総額をそのまま使用
+      earnings = formData.oneTimeTotalPay || 0;
+    } else {
+      // 通常のシフトの場合は時給計算
+      const rate = formData.hourlyRate;
+      earnings = Math.floor(actualHours * rate);
+
+      // 残業割増（8h超は1.25倍）
+      if (formData.overtimeEnabled && actualHours > 8) {
+        const regularHours = 8;
+        const overtimeHours = actualHours - 8;
+        earnings = Math.floor(regularHours * rate + overtimeHours * rate * 1.25);
+      }
     }
 
     return earnings;
@@ -250,13 +535,23 @@ export const EventDialog: React.FC<EventDialogProps> = ({
       workplaceName: workplace.name,
       hourlyRate: workplace.defaultHourlyRate,
       title: workplace.name,
+      // バイト先の労働条件設定を自動反映
+      overtimeEnabled: workplace.overtimeEnabled ?? true,
+      autoBreak6Hours: workplace.autoBreak6Hours ?? true,
+      autoBreak8Hours: workplace.autoBreak8Hours ?? true,
+      dayOfWeekSettingsEnabled: workplace.dayOfWeekSettingsEnabled ?? false,
     }));
     setIsOneTime(false);
   };
 
+  // クイック登録を開く
+  const handleOpenQuickShift = () => {
+    setQuickShiftDialogOpen(true);
+  };
+
   // 保存処理
   const handleSave = () => {
-    const event: Omit<CalendarEvent, 'id'> = {
+    const baseEvent: Omit<CalendarEvent, 'id'> = {
       date: formData.date,
       type: eventType,
       title: formData.title,
@@ -268,42 +563,56 @@ export const EventDialog: React.FC<EventDialogProps> = ({
       // 通知・繰り返し設定
       notification: formData.notification !== 'none' ? formData.notification : undefined,
       repeat: formData.repeatFrequency !== 'none' ? { frequency: formData.repeatFrequency } : undefined,
+      // 複数日対応
+      endDate: formData.endDate || undefined,
     };
 
     // シフトの場合
     if (eventType === 'shift') {
       if (isOneTime) {
         // 単発バイト
-        event.workplace = {
+        (baseEvent as any).workplace = {
           id: 'onetime-' + Date.now(),
           name: formData.oneTimeCompany,
-          hourlyRate: formData.oneTimeHourlyRate,
+          hourlyRate: 0, // 単発は時給ベースではない
           isOneTime: true,
         };
-        event.oneTimeDetails = {
+        (baseEvent as any).oneTimeDetails = {
           companyName: formData.oneTimeCompany,
-          hourlyRate: formData.oneTimeHourlyRate,
-          transportFee: formData.oneTimeTransportFee,
-          otherAllowances: formData.oneTimeOtherAllowances,
-          breakMinutes: formData.oneTimeBreakMinutes,
-          memo: formData.oneTimeMemo,
+          totalPay: formData.oneTimeTotalPay,
         };
       } else {
         // 登録済みバイト先
-        event.workplace = {
+        (baseEvent as any).workplace = {
           id: formData.workplaceId,
           name: formData.workplaceName,
           hourlyRate: formData.hourlyRate,
           isOneTime: false,
         };
       }
-      event.earnings = calculateEarnings();
+      (baseEvent as any).earnings = calculateEarnings();
     }
 
     if (editingEvent) {
-      updateEvent(editingEvent.id, event);
+      updateEvent(editingEvent.id, baseEvent);
     } else {
-      addEvent(event);
+      // 複数日の個人予定の場合、各日にイベントを作成
+      if (eventType === 'personal' && formData.endDate && formData.endDate > formData.date) {
+        const startDate = new Date(formData.date);
+        const endDate = new Date(formData.endDate);
+        
+        // 各日付でイベントを作成
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+          const eventForDay = {
+            ...baseEvent,
+            date: d.toISOString().split('T')[0],
+          };
+          addEvent(eventForDay);
+        }
+      } else {
+        // 通常の単日イベント
+        addEvent(baseEvent);
+      }
     }
     
     closeEventDialog();
@@ -323,7 +632,13 @@ export const EventDialog: React.FC<EventDialogProps> = ({
       onClose={closeEventDialog}
       maxWidth="sm"
       fullWidth
-      PaperProps={{ sx: { borderRadius: 2 } }}
+      PaperProps={{ 
+        sx: { 
+          borderRadius: 2,
+          maxHeight: '90vh',
+          overflow: 'hidden'
+        } 
+      }}
     >
       <DialogTitle>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -337,27 +652,20 @@ export const EventDialog: React.FC<EventDialogProps> = ({
               />
             )}
           </Box>
-          {!editingEvent && workplaces.length > 0 && (
+          {!editingEvent && (
             <Button
               size="small"
               variant="contained"
-              onClick={() => {
-                // クイックシフト登録
-                const firstWorkplace = workplaces[0];
-                setEventType('shift');
-                setTabValue(0);
-                setIsOneTime(false);
-                setFormData(prev => ({
-                  ...prev,
-                  title: `${firstWorkplace.name}でのシフト`,
-                  workplaceId: firstWorkplace.id,
-                  workplaceName: firstWorkplace.name,
-                  hourlyRate: firstWorkplace.defaultHourlyRate,
-                  startTime: '09:00',
-                  endTime: '17:00'
-                }));
+              startIcon={<FlashOn />}
+              onClick={handleOpenQuickShift}
+              sx={{
+                minWidth: 'auto',
+                px: 2,
+                background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #38f9d7 0%, #43e97b 100%)',
+                },
               }}
-              sx={{ minWidth: 'auto', px: 2 }}
             >
               {t('calendar.event.quickAdd', 'クイック登録')}
             </Button>
@@ -365,7 +673,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         </Box>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent sx={{ overflow: 'auto', px: 3, py: 2 }}>
         {/* イベントタイプ選択タブ */}
         <Tabs 
           value={tabValue} 
@@ -374,7 +682,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
             setEventType(['shift', 'personal'][v] as EventType);
           }}
           variant="fullWidth"
-          sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+          sx={{ borderBottom: 1, borderColor: 'divider', mb: 1.5 }}
         >
           <Tab label={t('calendar.event.tab.shift', 'シフト')} icon={<Work />} iconPosition="start" />
           <Tab label={t('calendar.event.tab.personal', '個人')} icon={<Person />} iconPosition="start" />
@@ -424,7 +732,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                   startIcon={<AttachMoney />}
                   onClick={() => {
                     setIsOneTime(true);
-                    setFormData(prev => ({ ...prev, title: '単発バイト', workplaceId: '', workplaceName: '' }));
+                    setFormData(prev => ({ ...prev, title: '', workplaceId: '', workplaceName: '' }));
                   }}
                   sx={{
                     borderColor: '#FFA726',
@@ -478,7 +786,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     variant={isOneTime ? 'filled' : 'outlined'}
                     onClick={() => {
                       setIsOneTime(true);
-                      setFormData(prev => ({ ...prev, title: t('calendar.event.oneTime', '単発バイト'), workplaceId: '', workplaceName: '' }));
+                      setFormData(prev => ({ ...prev, title: '', workplaceId: '', workplaceName: '' }));
                     }}
                     sx={{ fontSize: '0.8rem' }}
                   />
@@ -501,117 +809,60 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     placeholder={t('calendar.event.company.placeholder', '例: イベントスタッフ')}
                     sx={{ mb: 2 }}
                   />
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        type="number"
-                        label={t('calendar.event.hourlyRate', '時給')}
-                        value={formData.oneTimeHourlyRate}
-                        onChange={(e) => {
-                          const value = Math.max(0, parseInt(e.target.value) || 0);
-                          setFormData(prev => ({ 
-                            ...prev, 
-                            oneTimeHourlyRate: value,
-                          }));
-                        }}
-                        InputProps={{
-                          startAdornment: <InputAdornment position="start">¥</InputAdornment>,
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        type="number"
-                        label={t('calendar.event.transportFee', '交通費')}
-                        value={formData.oneTimeTransportFee}
-                        onChange={(e) => {
-                          const value = Math.max(0, parseInt(e.target.value) || 0);
-                          setFormData(prev => ({ 
-                            ...prev, 
-                            oneTimeTransportFee: value,
-                          }));
-                        }}
-                        InputProps={{
-                          startAdornment: <InputAdornment position="start">¥</InputAdornment>,
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="合計給料"
+                    value={formData.oneTimeTotalPay}
+                    onChange={(e) => {
+                      const value = Math.max(0, parseInt(e.target.value) || 0);
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        oneTimeTotalPay: value,
+                      }));
+                    }}
+                    placeholder="時給・交通費・手当などを含む総額"
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">¥</InputAdornment>,
+                    }}
+                    helperText="時給・交通費・各種手当を含めた総支給額を入力してください"
+                  />
                 </Box>
               )}
 
-              {/* 色選択 */}
+              {/* 色選択（共通パレット） */}
               <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                {t('calendar.event.pickColor', '色を選択')}
-              </Typography>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  {t('calendar.event.pickColor', '色を選択')}
+                </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  {[
-                    { key: 'yellow', label: 'イエロー', color: '#FFD54F' },
-                    { key: 'orange', label: 'オレンジ', color: '#FFB74D' },
-                    { key: 'red', label: 'レッド', color: '#E57373' },
-                    { key: 'pink', label: 'ピンク', color: '#F06292' },
-                    { key: 'purple', label: 'パープル', color: '#BA68C8' },
-                    { key: 'blue', label: 'ブルー', color: '#64B5F6' },
-                    { key: 'cyan', label: 'シアン', color: '#4FC3F7' },
-                    { key: 'green', label: 'グリーン', color: '#81C784' }
-                  ].map(colorOption => (
+                  {APP_COLOR_PALETTE.map(option => (
                     <Box
-                      key={colorOption.key}
+                      key={option.key}
                       sx={{
                         width: 32,
                         height: 32,
                         borderRadius: '50%',
-                        backgroundColor: colorOption.color,
+                        backgroundColor: option.color,
                         cursor: 'pointer',
-                        border: formData.color === colorOption.color ? '3px solid #000' : '2px solid #fff',
+                        border: formData.color === option.color ? '3px solid' : '1px solid',
+                        borderColor: formData.color === option.color ? 'primary.main' : 'divider',
                         boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                        '&:hover': {
-                          transform: 'scale(1.1)',
-                        },
+                        '&:hover': { transform: 'scale(1.1)' },
                         transition: 'all 0.2s ease',
                       }}
-                      onClick={() => setFormData(prev => ({ ...prev, color: colorOption.color }))}
-                      title={colorOption.label}
+                      onClick={() => setFormData(prev => ({ ...prev, color: option.color }))}
+                      title={option.label}
                     />
                   ))}
                 </Box>
               </Box>
 
-              {/* 時間選択（簡潔版） */}
+              {/* 時間選択（シンプル版） */}
               <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                {t('calendar.event.pickTime', '時間を選択')}
-              </Typography>
-                {/* クイック時間設定 */}
-                <Box sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {[
-                      { label: t('calendar.event.quick.morning','朝シフト'), start: '09:00', end: '13:00' },
-                      { label: t('calendar.event.quick.noon','昼シフト'), start: '13:00', end: '17:00' },
-                      { label: t('calendar.event.quick.evening','夜シフト'), start: '17:00', end: '21:00' },
-                      { label: t('calendar.event.quick.full','フルタイム'), start: '09:00', end: '17:00' }
-                    ].map((timeSet) => (
-                      <Chip
-                        key={timeSet.label}
-                        label={`${timeSet.label} (${timeSet.start}-${timeSet.end})`}
-                        size="small"
-                        clickable
-                        variant={formData.startTime === timeSet.start && formData.endTime === timeSet.end ? 'filled' : 'outlined'}
-                        color={formData.startTime === timeSet.start && formData.endTime === timeSet.end ? 'primary' : 'default'}
-                        onClick={() => setFormData(prev => ({
-                          ...prev,
-                          startTime: timeSet.start,
-                          endTime: timeSet.end
-                        }))}
-                        sx={{ fontSize: '0.7rem' }}
-                      />
-                    ))}
-                  </Box>
-                </Box>
-                
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  {t('calendar.event.pickTime', '時間を選択')}
+                </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
                     <TextField
@@ -631,92 +882,16 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       value={formData.endTime}
                       onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
                       InputLabelProps={{ shrink: true }}
-                      error={formData.startTime && formData.endTime && formData.endTime <= formData.startTime}
-                      helperText={formData.startTime && formData.endTime && formData.endTime <= formData.startTime ? t('calendar.event.timeError', '終了時間は開始時間より後にしてください') : ''}
+                      helperText={formData.startTime && formData.endTime && formData.endTime <= formData.startTime ? '夜勤など翌日にまたがる場合OK（例: 23:00-02:00）' : ''}
                     />
                   </Grid>
                 </Grid>
               </Box>
 
-              {/* 労働条件設定 */}
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  💼 労働条件設定
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={formData.overtimeEnabled}
-                          onChange={(e) => setFormData(prev => ({ ...prev, overtimeEnabled: e.target.checked }))}
-                        />
-                      }
-                      label="残業割増25%（8時間超）"
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={formData.dayOfWeekSettingsEnabled}
-                          onChange={(e) => setFormData(prev => ({ ...prev, dayOfWeekSettingsEnabled: e.target.checked }))}
-                        />
-                      }
-                      label="曜日別詳細設定"
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
 
-              {/* 曜日別設定が有効な場合の休憩設定 */}
-              {formData.dayOfWeekSettingsEnabled && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    ⏱️ 休憩時間設定
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={formData.autoBreak6Hours}
-                            onChange={(e) => setFormData(prev => ({ ...prev, autoBreak6Hours: e.target.checked }))}
-                          />
-                        }
-                        label="6時間越えで45分休憩"
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={formData.autoBreak8Hours}
-                            onChange={(e) => setFormData(prev => ({ ...prev, autoBreak8Hours: e.target.checked }))}
-                          />
-                        }
-                        label="8時間越えで60分休憩"
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        type="number"
-                        label="追加休憩時間（分）"
-                        value={formData.extraBreakMinutes}
-                        onChange={(e) => {
-                          const value = Math.max(0, parseInt(e.target.value) || 0);
-                          setFormData(prev => ({ ...prev, extraBreakMinutes: value }));
-                        }}
-                        helperText="手動で追加する休憩時間を分単位で入力"
-                      />
-                    </Grid>
-                  </Grid>
-                </Box>
-              )}
 
               {/* 予想収入表示 */}
-              {formData.startTime && formData.endTime && formData.endTime > formData.startTime && (formData.workplaceId || isOneTime) && (
+              {formData.startTime && formData.endTime && (formData.workplaceId || isOneTime) && (
                 <Box sx={{ p: 2, bgcolor: 'success.lighter', borderRadius: 1, textAlign: 'center', mb: 2 }}>
                   <Typography variant="h6" color="success.main" sx={{ fontWeight: 600 }}>
                     {t('calendar.event.estimatedIncome', '予想収入')}: ¥{calculateEarnings().toLocaleString()}
@@ -724,12 +899,16 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                   <Typography variant="caption" color="text.secondary">
                     {(() => {
                       const start = new Date(`2000-01-01T${formData.startTime}`);
-                      const end = new Date(`2000-01-01T${formData.endTime}`);
+                      let end = new Date(`2000-01-01T${formData.endTime}`);
+                      
+                      // 終了時間が開始時間より早い場合、次の日とみなす
+                      if (end.getTime() <= start.getTime()) {
+                        end = new Date(end.getTime() + 24 * 60 * 60 * 1000);
+                      }
+                      
                       const totalMinutes = Math.max(0, (end.getTime() - start.getTime()) / 60000);
                       let breakMinutes = 0;
-                      if (isOneTime) {
-                        breakMinutes += formData.oneTimeBreakMinutes || 0;
-                      } else {
+                      if (!isOneTime) {
                         if (formData.extraBreakMinutes) breakMinutes += Math.max(0, Number(formData.extraBreakMinutes) || 0);
                         const workHours = totalMinutes / 60;
                         if (formData.autoBreak8Hours && workHours > 8) breakMinutes += 60;
@@ -760,7 +939,6 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       </ListItemIcon>
                       <ListItemText 
                         primary={t('calendar.event.repeat', '繰り返し')} 
-                        secondary={t('calendar.event.repeatHint', '定期シフトの場合に便利')}
                         sx={{ '& .MuiTypography-root': { fontWeight: 500 } }}
                       />
                       <FormControl sx={{ minWidth: 120 }}>
@@ -785,6 +963,19 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       <ChevronRight sx={{ fontSize: 16, color: 'text.disabled', ml: 1 }} />
                     </ListItem>
                   </List>
+                  
+                  {/* メモ入力 */}
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={2}
+                    label={t('calendar.event.memo', 'メモ')}
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder={t('calendar.event.memo.placeholder', 'シフトに関するメモや注意事項')}
+                    sx={{ mt: 2 }}
+                    size="small"
+                  />
                 </Box>
               )}
             </>
@@ -803,133 +994,48 @@ export const EventDialog: React.FC<EventDialogProps> = ({
             sx={{ mb: 2 }}
           />
 
-          {/* 色選択 */}
-          <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                {t('calendar.event.pickColor', '色を選択')}
-              </Typography>
+          {/* 色選択（共通パレット） */}
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ mb: 0.5, fontSize: '0.9rem' }}>
+              {t('calendar.event.pickColor', '色を選択')}
+            </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {[
-                { key: 'orange', label: 'オレンジ', color: '#FFB74D' },
-                { key: 'blue', label: 'ブルー', color: '#64B5F6' },
-                { key: 'red', label: 'レッド', color: '#FF8A65' },
-                { key: 'green', label: 'グリーン', color: '#A1C181' },
-                { key: 'purple', label: 'パープル', color: '#BA68C8' },
-                { key: 'cyan', label: 'シアン', color: '#4FC3F7' },
-                { key: 'pink', label: 'ピンク', color: '#F06292' },
-                { key: 'yellow', label: 'イエロー', color: '#FFD54F' }
-              ].map(colorOption => (
+              {APP_COLOR_PALETTE.map(option => (
                 <Box
-                  key={colorOption.key}
+                  key={option.key}
                   sx={{
-                    width: 32,
-                    height: 32,
+                    width: 28,
+                    height: 28,
                     borderRadius: '50%',
-                    backgroundColor: colorOption.color,
+                    backgroundColor: option.color,
                     cursor: 'pointer',
-                    border: formData.color === colorOption.color ? '3px solid #000' : '2px solid #fff',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                    '&:hover': {
-                      transform: 'scale(1.1)',
-                    },
+                    border: formData.color === option.color ? '2px solid' : '1px solid',
+                    borderColor: formData.color === option.color ? 'primary.main' : 'divider',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                    '&:hover': { transform: 'scale(1.1)' },
                     transition: 'all 0.2s ease',
                   }}
-                  onClick={() => setFormData(prev => ({ ...prev, color: colorOption.color }))}
-                  title={colorOption.label}
+                  onClick={() => setFormData(prev => ({ ...prev, color: option.color }))}
+                  title={option.label}
                 />
               ))}
             </Box>
           </Box>
-
-          {/* iPhone風設定リスト */}
-            <List 
-            sx={{ 
-              border: '1px solid', 
-              borderColor: 'divider', 
-              borderRadius: 2, 
-              mb: 2,
-              p: 0,
-              bgcolor: 'background.paper'
-            }}
-          >
-            {/* 通知設定 */}
-            <ListItem sx={{ py: 1.5 }}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <Notifications sx={{ fontSize: 20, color: 'text.secondary' }} />
-              </ListItemIcon>
-              <ListItemText 
-                  primary={t('calendar.event.notification', '通知')} 
-                sx={{ '& .MuiTypography-root': { fontWeight: 500 } }}
-              />
-              <FormControl sx={{ minWidth: 120 }}>
-                <Select
-                  value={formData.notification}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notification: e.target.value as NotificationTime }))}
-                  variant="standard"
-                  disableUnderline
-                  sx={{ 
-                    fontSize: '0.9rem',
-                    color: 'text.secondary',
-                    '& .MuiSelect-select': {
-                      paddingRight: '24px !important'
-                    }
-                  }}
-                >
-                    <MenuItem value="none">{t('common.none', 'なし')}</MenuItem>
-                    <MenuItem value="0">{t('calendar.event.notify.atStart', 'イベント開始時')}</MenuItem>
-                    <MenuItem value="5">{t('calendar.event.notify.5', '5分前')}</MenuItem>
-                    <MenuItem value="10">{t('calendar.event.notify.10', '10分前')}</MenuItem>
-                    <MenuItem value="15">{t('calendar.event.notify.15', '15分前')}</MenuItem>
-                    <MenuItem value="30">{t('calendar.event.notify.30', '30分前')}</MenuItem>
-                    <MenuItem value="60">{t('calendar.event.notify.60', '1時間前')}</MenuItem>
-                    <MenuItem value="120">{t('calendar.event.notify.120', '2時間前')}</MenuItem>
-                    <MenuItem value="1440">{t('calendar.event.notify.1440', '1日前')}</MenuItem>
-                    <MenuItem value="2880">{t('calendar.event.notify.2880', '2日前')}</MenuItem>
-                </Select>
-              </FormControl>
-              <ChevronRight sx={{ fontSize: 16, color: 'text.disabled', ml: 1 }} />
-            </ListItem>
-
-            <Divider />
-
-            {/* 繰り返し設定 */}
-            <ListItem sx={{ py: 1.5 }}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <Repeat sx={{ fontSize: 20, color: 'text.secondary' }} />
-              </ListItemIcon>
-              <ListItemText 
-                primary={t('calendar.event.repeat', '繰り返し')} 
-                sx={{ '& .MuiTypography-root': { fontWeight: 500 } }}
-              />
-              <FormControl sx={{ minWidth: 120 }}>
-                <Select
-                  value={formData.repeatFrequency}
-                  onChange={(e) => setFormData(prev => ({ ...prev, repeatFrequency: e.target.value as RepeatFrequency }))}
-                  variant="standard"
-                  disableUnderline
-                  sx={{ 
-                    fontSize: '0.9rem',
-                    color: 'text.secondary',
-                    '& .MuiSelect-select': {
-                      paddingRight: '24px !important'
-                    }
-                  }}
-                >
-                  <MenuItem value="none">{t('common.none', 'なし')}</MenuItem>
-                  <MenuItem value="daily">{t('calendar.event.daily', '毎日')}</MenuItem>
-                  <MenuItem value="weekly">{t('calendar.event.weekly', '毎週')}</MenuItem>
-                  <MenuItem value="monthly">{t('calendar.event.monthly', '毎月')}</MenuItem>
-                  <MenuItem value="yearly">{t('calendar.event.yearly', '毎年')}</MenuItem>
-                </Select>
-              </FormControl>
-              <ChevronRight sx={{ fontSize: 16, color: 'text.disabled', ml: 1 }} />
-            </ListItem>
-          </List>
         </TabPanel>
 
         {/* 個人タブの共通項目 */}
         {tabValue === 1 && (
           <Box>
+            {/* ホテル予約スタイルの日付選択 */}
+            <Box sx={{ mb: 2 }}>
+              <HotelStyleDateRangePicker
+                startDate={formData.date}
+                endDate={formData.endDate}
+                onStartDateChange={(date) => setFormData(prev => ({ ...prev, date }))}
+                onEndDateChange={(date) => setFormData(prev => ({ ...prev, endDate: date }))}
+              />
+            </Box>
+
             <FormControlLabel
               control={
                 <Switch
@@ -938,11 +1044,11 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 />
               }
               label={t('calendar.event.allDay', '終日')}
-              sx={{ mb: 2 }}
+              sx={{ mb: 1.5 }}
             />
             
             {!formData.isAllDay && (
-              <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid container spacing={2} sx={{ mb: 1.5 }}>
                 <Grid item xs={6}>
                   <TextField
                     fullWidth
@@ -968,6 +1074,43 @@ export const EventDialog: React.FC<EventDialogProps> = ({
               </Grid>
             )}
             
+            {/* 通知・繰り返し設定（コンパクト版） */}
+            <Grid container spacing={2} sx={{ mb: 1.5 }}>
+              <Grid item xs={6}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>{t('calendar.event.notification', '通知')}</InputLabel>
+                  <Select
+                    value={formData.notification}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notification: e.target.value as NotificationTime }))}
+                    label={t('calendar.event.notification', '通知')}
+                  >
+                    <MenuItem value="none">{t('common.none', 'なし')}</MenuItem>
+                    <MenuItem value="5">5分前</MenuItem>
+                    <MenuItem value="15">15分前</MenuItem>
+                    <MenuItem value="30">30分前</MenuItem>
+                    <MenuItem value="60">1時間前</MenuItem>
+                    <MenuItem value="1440">1日前</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={6}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>{t('calendar.event.repeat', '繰り返し')}</InputLabel>
+                  <Select
+                    value={formData.repeatFrequency}
+                    onChange={(e) => setFormData(prev => ({ ...prev, repeatFrequency: e.target.value as RepeatFrequency }))}
+                    label={t('calendar.event.repeat', '繰り返し')}
+                  >
+                    <MenuItem value="none">{t('common.none', 'なし')}</MenuItem>
+                    <MenuItem value="daily">毎日</MenuItem>
+                    <MenuItem value="weekly">毎週</MenuItem>
+                    <MenuItem value="monthly">毎月</MenuItem>
+                    <MenuItem value="yearly">毎年</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+            
             <TextField
               fullWidth
               multiline
@@ -976,6 +1119,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder={t('calendar.event.memo.placeholder', '詳細をメモ')}
+              size="small"
             />
           </Box>
         )}
@@ -996,14 +1140,19 @@ export const EventDialog: React.FC<EventDialogProps> = ({
             !formData.title || 
             (eventType === 'shift' && workplaces.length > 0 && !formData.workplaceId && !isOneTime) ||
             (eventType === 'shift' && (!formData.startTime || !formData.endTime)) ||
-            (eventType === 'shift' && formData.startTime && formData.endTime && formData.endTime <= formData.startTime) ||
-            (isOneTime && !formData.oneTimeCompany) ||
-            (eventType === 'personal' && !formData.isAllDay && formData.startTime && formData.endTime && formData.endTime <= formData.startTime)
+            (isOneTime && !formData.oneTimeCompany)
           }
         >
           {t('common.save', '保存')}
         </Button>
       </DialogActions>
+
+      {/* クイックシフト登録ダイアログ */}
+      <QuickShiftDialog
+        open={quickShiftDialogOpen}
+        selectedDate={formData.date}
+        onClose={() => setQuickShiftDialogOpen(false)}
+      />
     </Dialog>
   );
 };

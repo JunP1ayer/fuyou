@@ -1,4 +1,4 @@
-// ⚙️ FUYOU PRO - 設定画面
+// ⚙️ FUYOU PRO - 設定画面（一画面対応・タブ化）
 
 import React, { useState } from 'react';
 import {
@@ -23,6 +23,11 @@ import {
   Alert,
   useTheme,
   alpha,
+  Tabs,
+  Tab,
+  FormControl,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   DarkMode,
@@ -36,23 +41,24 @@ import {
   Delete,
   Refresh,
   GetApp,
-  School,
   ViewModule,
   ViewAgenda,
   VolumeUp,
   VolumeOff,
   Vibration,
   CloudSync,
-  Backup,
   AutoAwesome,
+  Settings,
+  PhoneAndroid,
+  DataUsage,
+  SwipeVertical,
+  ViewWeek,
 } from '@mui/icons-material';
-import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 import { useShiftStore } from '@store/shiftStore';
 import useI18nStore, { SupportedLanguage, SupportedCountry } from '@/store/i18nStore';
 import { useI18n } from '@/hooks/useI18n';
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import type { ThemeMode } from '@/types/index';
 
 interface SettingsViewProps {
@@ -60,14 +66,33 @@ interface SettingsViewProps {
   onThemeToggle: () => void;
 }
 
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      {...other}
+    >
+      {value === index && <Box sx={{ py: 1 }}>{children}</Box>}
+    </div>
+  );
+}
+
 export const SettingsView: React.FC<SettingsViewProps> = ({
   themeMode,
   onThemeToggle,
 }) => {
-  const theme = useTheme();
   const { shifts, workplaces } = useShiftStore();
   const { language, country, setLanguage, setCountry } = useI18nStore();
   const { t } = useI18n();
+  const [activeTab, setActiveTab] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   
@@ -112,14 +137,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     const newMode = calendarViewMode === 'vertical' ? 'horizontal' : 'vertical';
     setCalendarViewMode(newMode);
     localStorage.setItem('calendarViewMode', newMode);
-    toast.success(
-      t(
-        newMode === 'vertical'
-          ? 'settings.calendarMode.changedToVertical'
-          : 'settings.calendarMode.changedToHorizontal',
-        newMode === 'vertical' ? '縦スクロールに変更しました' : '横表示に変更しました'
-      )
-    );
+    toast.success(newMode === 'vertical' ? '縦スクロールに変更しました' : '横表示に変更しました');
   };
 
   // 通知設定の切り替え
@@ -162,40 +180,48 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     toast.success(newValue ? 'AIアシスタントを有効にしました' : 'AIアシスタントを無効にしました');
   };
 
-  // データ削除
-  const handleDataDelete = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    toast.success(t('settings.data.deletedAll', '全データを削除しました'));
-    setDeleteDialogOpen(false);
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
-  };
-
-  // データエクスポート
+  // データのエクスポート
   const handleDataExport = () => {
-    const exportData = {
+    const data = {
+      version: '2.0.0',
+      exportDate: new Date().toISOString(),
       shifts,
       workplaces,
-      exportDate: new Date().toISOString(),
-      version: '2.0.0',
+      settings: {
+        themeMode,
+        calendarViewMode,
+        notificationsEnabled,
+        soundEnabled,
+        vibrationEnabled,
+        autoSyncEnabled,
+        aiAssistantEnabled,
+        language,
+        country,
+      },
     };
 
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `fuyou-data-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fuyou-data-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    toast.success(t('settings.data.exported', 'データをエクスポートしました'));
+    toast.success('データをエクスポートしました');
     setExportDialogOpen(false);
+  };
+
+  // 全データ削除
+  const handleDataClear = () => {
+    localStorage.clear();
+    toast.success('全データを削除しました');
+    setDeleteDialogOpen(false);
+    window.location.reload();
   };
 
   // アプリ情報
@@ -207,471 +233,288 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   return (
-    <Box sx={{ p: { xs: 1, md: 2 }, height: '100%' }}>
-      {/* ヘッダー */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          {t('settings.title', '⚙️ 設定')}
+    <Box sx={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      {/* ヘッダー（コンパクト化） */}
+      <Box sx={{ p: 2, pb: 1 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          ⚙️ 設定
         </Typography>
-        <Typography variant="body1" color="text.secondary">
-          {t('settings.subtitle', 'アプリの設定とデータ管理')}
+        <Typography variant="body2" color="text.secondary">
+          アプリの設定とデータ管理
         </Typography>
       </Box>
 
-      {/* テーマ設定 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              {t('settings.display.title', '🎨 表示設定')}
-            </Typography>
+      {/* タブナビゲーション */}
+      <Card sx={{ mx: 2, mb: 2 }}>
+        <Tabs
+          value={activeTab}
+          onChange={(_, newValue) => setActiveTab(newValue)}
+          variant="fullWidth"
+        >
+          <Tab icon={<Settings />} label="基本" />
+          <Tab icon={<PhoneAndroid />} label="通知" />
+          <Tab icon={<DataUsage />} label="データ" />
+        </Tabs>
+      </Card>
 
-            <List disablePadding>
-              <ListItem>
-                <ListItemIcon>
-                  {themeMode === 'dark' ? <DarkMode /> : <LightMode />}
-                </ListItemIcon>
-                <ListItemText
-                  primary={t('settings.display.darkMode', 'ダークモード')}
-                  secondary={t('settings.display.darkMode.desc', '暗いテーマで表示します')}
-                />
-                <ListItemSecondaryAction>
-                  <Switch
-                    edge="end"
-                    checked={themeMode === 'dark'}
-                    onChange={onThemeToggle}
-                    color="primary"
+      {/* タブコンテンツ */}
+      <Box sx={{ flex: 1, overflow: 'auto', px: 2 }}>
+        
+        {/* 基本設定タブ */}
+        <TabPanel value={activeTab} index={0}>
+          <Card>
+            <CardContent sx={{ py: 2 }}>
+              <List dense>
+                <ListItem>
+                  <ListItemIcon>
+                    {themeMode === 'dark' ? <DarkMode /> : <LightMode />}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="ダークモード"
+                    secondary="暗いテーマで表示"
                   />
-                </ListItemSecondaryAction>
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  {calendarViewMode === 'vertical' ? <ViewAgenda /> : <ViewModule />}
-                </ListItemIcon>
-                <ListItemText
-                  primary={t('settings.display.calendarMode', 'カレンダー表示モード')}
-                  secondary={
-                    calendarViewMode === 'vertical'
-                      ? t('settings.display.calendarMode.verticalDesc', 'モバイル向け縦スクロール表示')
-                      : t('settings.display.calendarMode.horizontalDesc', 'PC向け横表示モード')
-                  }
-                />
-                <ListItemSecondaryAction>
-                  <Switch
-                    edge="end"
-                    checked={calendarViewMode === 'horizontal'}
-                    onChange={handleCalendarViewModeChange}
-                    color="primary"
+                  <ListItemSecondaryAction>
+                    <Switch
+                      checked={themeMode === 'dark'}
+                      onChange={onThemeToggle}
+                      size="small"
+                    />
+                  </ListItemSecondaryAction>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    {calendarViewMode === 'vertical' ? <SwipeVertical /> : <ViewWeek />}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={t('settings.display.mobileCalendar', 'モバイル向けカレンダー')}
+                    secondary={calendarViewMode === 'vertical' 
+                      ? t('settings.display.verticalScroll', '✓ 縦スクロール可能 - 複数月を連続表示') 
+                      : t('settings.display.gridLayout', '月間グリッド表示（デスクトップ向け）')
+                    }
                   />
-                </ListItemSecondaryAction>
-              </ListItem>
-              
-              <ListItem>
-                <ListItemIcon>
-                  <Palette />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t('settings.locale.title', '言語と言語圏')}
-                  secondary={t('settings.locale.subtitle', 'アプリの表示言語と国別ルールを設定します')}
-                />
-                <ListItemSecondaryAction>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <FormControl size="small" sx={{ minWidth: 120 }}>
-                      <InputLabel>{t('settings.language', '言語')}</InputLabel>
+                  <ListItemSecondaryAction>
+                    <Switch
+                      checked={calendarViewMode === 'vertical'}
+                      onChange={handleCalendarViewModeChange}
+                      size="small"
+                      color="primary"
+                    />
+                  </ListItemSecondaryAction>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <Palette />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="言語設定"
+                    secondary="表示言語を変更"
+                  />
+                  <ListItemSecondaryAction>
+                    <FormControl size="small" sx={{ minWidth: 100 }}>
                       <Select
-                        label={t('settings.language', '言語')}
                         value={language}
                         onChange={(e) => setLanguage(e.target.value as SupportedLanguage)}
                       >
-                        <MenuItem value={'ja'}>{t('lang.ja', '日本語')}</MenuItem>
-                        <MenuItem value={'en'}>{t('lang.en', 'English')}</MenuItem>
-                        <MenuItem value={'de'}>{t('lang.de', 'Deutsch')}</MenuItem>
-                        <MenuItem value={'da'}>{t('lang.da', 'Dansk')}</MenuItem>
-                        <MenuItem value={'fi'}>{t('lang.fi', 'Suomi')}</MenuItem>
-                        <MenuItem value={'no'}>{t('lang.no', 'Norsk')}</MenuItem>
+                        <MenuItem value="ja">日本語</MenuItem>
+                        <MenuItem value="en">English</MenuItem>
                       </Select>
                     </FormControl>
-                    <FormControl size="small" sx={{ minWidth: 120 }}>
-                      <InputLabel>{t('settings.country', '国')}</InputLabel>
-                      <Select
-                        label={t('settings.country', '国')}
-                        value={country}
-                        onChange={(e) => setCountry(e.target.value as SupportedCountry)}
-                      >
-                        <MenuItem value={'JP'}>{t('country.JP', '日本')}</MenuItem>
-                        <MenuItem value={'UK'}>{t('country.UK', 'United Kingdom')}</MenuItem>
-                        <MenuItem value={'DE'}>{t('country.DE', 'Deutschland')}</MenuItem>
-                        <MenuItem value={'DK'}>{t('country.DK', 'Danmark')}</MenuItem>
-                        <MenuItem value={'FI'}>{t('country.FI', 'Suomi')}</MenuItem>
-                        <MenuItem value={'NO'}>{t('country.NO', 'Norge')}</MenuItem>
-                        <MenuItem value={'AT'}>{t('country.AT', 'Österreich')}</MenuItem>
-                        <MenuItem value={'PL'}>{t('country.PL', 'Polska')}</MenuItem>
-                        <MenuItem value={'HU'}>{t('country.HU', 'Magyarország')}</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Box>
-                </ListItemSecondaryAction>
-              </ListItem>
-            </List>
-          </CardContent>
-        </Card>
-      </motion.div>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              </List>
+            </CardContent>
+          </Card>
+        </TabPanel>
 
-      {/* 通知とシステム設定 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              {t('settings.notifications.title', '🔔 通知とシステム')}
-            </Typography>
-
-            <List disablePadding>
-              <ListItem>
-                <ListItemIcon>
-                  {notificationsEnabled ? <Notifications /> : <NotificationsOff />}
-                </ListItemIcon>
-                <ListItemText
-                  primary={t('settings.notifications.enable', 'プッシュ通知')}
-                  secondary={t('settings.notifications.enable.desc', 'シフトやリマインダーの通知を受け取る')}
-                />
-                <ListItemSecondaryAction>
-                  <Switch
-                    edge="end"
-                    checked={notificationsEnabled}
-                    onChange={handleNotificationToggle}
-                    color="primary"
+        {/* 通知設定タブ */}
+        <TabPanel value={activeTab} index={1}>
+          <Card>
+            <CardContent sx={{ py: 2 }}>
+              <List dense>
+                <ListItem>
+                  <ListItemIcon>
+                    {notificationsEnabled ? <Notifications /> : <NotificationsOff />}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="プッシュ通知"
+                    secondary="シフト通知を受け取る"
                   />
-                </ListItemSecondaryAction>
-              </ListItem>
-
-              <ListItem>
-                <ListItemIcon>
-                  {soundEnabled ? <VolumeUp /> : <VolumeOff />}
-                </ListItemIcon>
-                <ListItemText
-                  primary={t('settings.sound.enable', '通知音')}
-                  secondary={t('settings.sound.enable.desc', '通知時にサウンドを再生する')}
-                />
-                <ListItemSecondaryAction>
-                  <Switch
-                    edge="end"
-                    checked={soundEnabled}
-                    onChange={handleSoundToggle}
-                    color="primary"
+                  <ListItemSecondaryAction>
+                    <Switch
+                      checked={notificationsEnabled}
+                      onChange={handleNotificationToggle}
+                      size="small"
+                    />
+                  </ListItemSecondaryAction>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    {soundEnabled ? <VolumeUp /> : <VolumeOff />}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="音声通知"
+                    secondary="通知音を有効にする"
                   />
-                </ListItemSecondaryAction>
-              </ListItem>
-
-              <ListItem>
-                <ListItemIcon>
-                  <Vibration />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t('settings.vibration.enable', 'バイブレーション')}
-                  secondary={t('settings.vibration.enable.desc', '通知時にデバイスを振動させる')}
-                />
-                <ListItemSecondaryAction>
-                  <Switch
-                    edge="end"
-                    checked={vibrationEnabled}
-                    onChange={handleVibrationToggle}
-                    color="primary"
+                  <ListItemSecondaryAction>
+                    <Switch
+                      checked={soundEnabled}
+                      onChange={handleSoundToggle}
+                      size="small"
+                    />
+                  </ListItemSecondaryAction>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <Vibration />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="バイブレーション"
+                    secondary="通知時に振動させる"
                   />
-                </ListItemSecondaryAction>
-              </ListItem>
-
-              <Divider sx={{ my: 1 }} />
-
-              <ListItem>
-                <ListItemIcon>
-                  <CloudSync />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t('settings.autoSync.enable', '自動同期')}
-                  secondary={t('settings.autoSync.enable.desc', 'データを自動的にクラウドに同期する')}
-                />
-                <ListItemSecondaryAction>
-                  <Switch
-                    edge="end"
-                    checked={autoSyncEnabled}
-                    onChange={handleAutoSyncToggle}
-                    color="primary"
+                  <ListItemSecondaryAction>
+                    <Switch
+                      checked={vibrationEnabled}
+                      onChange={handleVibrationToggle}
+                      size="small"
+                    />
+                  </ListItemSecondaryAction>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <AutoAwesome />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="AIアシスタント"
+                    secondary="AI機能を有効にする"
                   />
-                </ListItemSecondaryAction>
-              </ListItem>
-
-              <ListItem>
-                <ListItemIcon>
-                  <AutoAwesome />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t('settings.ai.enable', 'AIアシスタント')}
-                  secondary={t('settings.ai.enable.desc', 'AI機能による自動提案と分析を有効にする')}
-                />
-                <ListItemSecondaryAction>
-                  <Switch
-                    edge="end"
-                    checked={aiAssistantEnabled}
-                    onChange={handleAiAssistantToggle}
-                    color="primary"
+                  <ListItemSecondaryAction>
+                    <Switch
+                      checked={aiAssistantEnabled}
+                      onChange={handleAiAssistantToggle}
+                      size="small"
+                    />
+                  </ListItemSecondaryAction>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <CloudSync />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="自動同期"
+                    secondary="クラウドに自動同期"
                   />
-                </ListItemSecondaryAction>
-              </ListItem>
-            </List>
-          </CardContent>
-        </Card>
-      </motion.div>
+                  <ListItemSecondaryAction>
+                    <Switch
+                      checked={autoSyncEnabled}
+                      onChange={handleAutoSyncToggle}
+                      size="small"
+                    />
+                  </ListItemSecondaryAction>
+                </ListItem>
+              </List>
+            </CardContent>
+          </Card>
+        </TabPanel>
 
-      {/* データ管理 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              {t('settings.data.title', '💾 データ管理')}
-            </Typography>
-
-            <List disablePadding>
-              <ListItem>
-                <ListItemIcon>
-                  <GetApp />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t('settings.data.export', 'データのエクスポート')}
-                  secondary={t('settings.data.export.desc', 'シフトデータをJSON形式でダウンロード')}
-                />
-                <ListItemSecondaryAction>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => setExportDialogOpen(true)}
-                    sx={{ borderRadius: 2 }}
-                  >
-                    {t('common.export', 'エクスポート')}
-                  </Button>
-                </ListItemSecondaryAction>
-              </ListItem>
-
-              <Divider sx={{ my: 1 }} />
-
-              <ListItem>
-                <ListItemIcon>
-                  <Delete color="error" />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t('settings.data.deleteAll', '全データを削除')}
-                  secondary={t('settings.data.deleteAll.desc', '保存されているすべてのデータを削除します')}
-                />
-                <ListItemSecondaryAction>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => setDeleteDialogOpen(true)}
-                    sx={{ borderRadius: 2 }}
-                  >
-                    {t('common.delete', '削除')}
-                  </Button>
-                </ListItemSecondaryAction>
-              </ListItem>
-            </List>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* アプリ情報 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <Card>
-          <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              {t('settings.appInfo.title', 'ℹ️ アプリ情報')}
-            </Typography>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  {t('settings.appInfo.version', 'バージョン')}
-                </Typography>
-                <Chip label={`v${appInfo.version}`} size="small" />
-              </Box>
-
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  {t('settings.appInfo.totalShifts', '登録シフト数')}
-                </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {appInfo.totalShifts}件
-                </Typography>
-              </Box>
-
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  {t('settings.appInfo.totalWorkplaces', '登録勤務先数')}
-                </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {appInfo.totalWorkplaces}件
-                </Typography>
-              </Box>
-
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  {t('settings.appInfo.dataSize', 'データサイズ')}
-                </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {appInfo.dataSize}
-                </Typography>
-              </Box>
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            <Alert
-              severity="info"
-              icon={<School />}
-              sx={{ mt: 2, borderRadius: 2 }}
-            >
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {t('settings.appInfo.badgeTitle', '🎓 学生向け扶養管理アプリ')}
-              </Typography>
-              <Typography variant="body2" sx={{ mt: 0.5 }}>
-                {t('settings.appInfo.badgeDesc', '2025年税制改正対応・最新の学生特例制度（150万円）に対応しています')}
-              </Typography>
-            </Alert>
-          </CardContent>
-        </Card>
-      </motion.div>
+        {/* データ管理タブ */}
+        <TabPanel value={activeTab} index={2}>
+          <Card>
+            <CardContent sx={{ py: 2 }}>
+              <List dense>
+                <ListItem>
+                  <ListItemIcon>
+                    <Info />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="アプリ情報"
+                    secondary={`v${appInfo.version} • ${appInfo.totalShifts}件のシフト • ${appInfo.dataSize}`}
+                  />
+                </ListItem>
+                <Divider sx={{ my: 1 }} />
+                <ListItem>
+                  <ListItemIcon>
+                    <GetApp />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="データエクスポート"
+                    secondary="JSON形式でダウンロード"
+                  />
+                  <ListItemSecondaryAction>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => setExportDialogOpen(true)}
+                    >
+                      エクスポート
+                    </Button>
+                  </ListItemSecondaryAction>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <Delete color="error" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="全データ削除"
+                    secondary="すべてのデータを削除"
+                  />
+                  <ListItemSecondaryAction>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color="error"
+                      onClick={() => setDeleteDialogOpen(true)}
+                    >
+                      削除
+                    </Button>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              </List>
+            </CardContent>
+          </Card>
+        </TabPanel>
+      </Box>
 
       {/* データ削除確認ダイアログ */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle sx={{ color: 'error.main', fontWeight: 600 }}>
-          {t('settings.data.deleteConfirm.title', '🗑️ データ削除の確認')}
-        </DialogTitle>
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>全データ削除</DialogTitle>
         <DialogContent>
           <Alert severity="error" sx={{ mb: 2 }}>
-            {t('settings.data.deleteConfirm.irreversible', 'この操作は取り消せません！')}
+            この操作は元に戻せません。
           </Alert>
-          <Typography variant="body1" gutterBottom>
-            {t('settings.data.deleteConfirm.willDelete', '以下のデータが完全に削除されます：')}
-          </Typography>
-          <Box component="ul" sx={{ pl: 3, mt: 1 }}>
-            <Typography component="li" variant="body2">
-              {t('settings.data.deleteConfirm.list.shifts', '全シフトデータ')}（{appInfo.totalShifts}{t('common.items', '件')}）
-            </Typography>
-            <Typography component="li" variant="body2">
-              {t('settings.data.deleteConfirm.list.workplaces', '勤務先情報')}（{appInfo.totalWorkplaces}{t('common.items', '件')}）
-            </Typography>
-            <Typography component="li" variant="body2">
-              {t('settings.data.deleteConfirm.list.appSettings', 'アプリの設定')}
-            </Typography>
-          </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            {t('settings.data.deleteConfirm.notice', 'データを復元したい場合は、事前にエクスポートしておくことをお勧めします。')}
+          <Typography>
+            すべてのシフトデータ、バイト先情報、設定が削除されます。
+            本当に削除しますか？
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => setDeleteDialogOpen(false)}
-            sx={{ borderRadius: 2 }}
-          >
-            {t('common.cancel', 'キャンセル')}
+          <Button onClick={() => setDeleteDialogOpen(false)}>
+            キャンセル
           </Button>
-          <Button
-            onClick={handleDataDelete}
-            color="error"
-            variant="contained"
-            sx={{ borderRadius: 2 }}
-          >
-            {t('settings.data.deleteConfirm.confirm', '削除する')}
+          <Button onClick={handleDataClear} color="error" variant="contained">
+            削除
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* データエクスポート確認ダイアログ */}
-      <Dialog
-        open={exportDialogOpen}
-        onClose={() => setExportDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle sx={{ fontWeight: 600 }}>
-          {t('settings.data.export.title', '📤 データのエクスポート')}
-        </DialogTitle>
+      {/* データエクスポートダイアログ */}
+      <Dialog open={exportDialogOpen} onClose={() => setExportDialogOpen(false)}>
+        <DialogTitle>データエクスポート</DialogTitle>
         <DialogContent>
-          <Typography variant="body1" gutterBottom>
-            {t('settings.data.export.message', '以下のデータをJSONファイルとしてダウンロードします：')}
+          <Typography sx={{ mb: 2 }}>
+            すべてのデータをJSON形式でエクスポートします。
           </Typography>
-          <Box component="ul" sx={{ pl: 3, mt: 1, mb: 2 }}>
-            <Typography component="li" variant="body2">
-              {t('settings.data.export.list.shifts', 'シフトデータ')}（{appInfo.totalShifts}{t('common.items', '件')}）
-            </Typography>
-            <Typography component="li" variant="body2">
-              {t('settings.data.export.list.workplaces', '勤務先情報')}（{appInfo.totalWorkplaces}{t('common.items', '件')}）
-            </Typography>
-            <Typography component="li" variant="body2">
-              {t('settings.data.export.list.meta', 'エクスポート日時・バージョン情報')}
-            </Typography>
+          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+            <Chip label={`${appInfo.totalShifts}件のシフト`} color="primary" />
+            <Chip label={`${appInfo.totalWorkplaces}件のバイト先`} color="primary" />
+            <Chip label={appInfo.dataSize} color="info" />
           </Box>
-          <Alert severity="info" sx={{ borderRadius: 2 }}>
-            {t('settings.data.export.tip', 'このファイルは他のデバイスでのデータ移行やバックアップに使用できます。')}
-          </Alert>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => setExportDialogOpen(false)}
-            sx={{ borderRadius: 2 }}
-          >
-            {t('common.cancel', 'キャンセル')}
+          <Button onClick={() => setExportDialogOpen(false)}>
+            キャンセル
           </Button>
-          <Button
-            onClick={handleDataExport}
-            variant="contained"
-            sx={{ borderRadius: 2 }}
-          >
-            {t('common.download', 'ダウンロード')}
+          <Button onClick={handleDataExport} variant="contained">
+            ダウンロード
           </Button>
         </DialogActions>
       </Dialog>

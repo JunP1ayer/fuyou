@@ -14,7 +14,7 @@ import {
   AttachMoney,
   Business,
   Share,
-  Add,
+  AutoAwesome,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useCalendarStore } from '../../store/calendarStore';
@@ -25,13 +25,13 @@ export type NewTabValue = 'shift' | 'salary' | 'workplace' | 'share';
 interface NewBottomNavigationProps {
   currentTab: NewTabValue;
   onTabChange: (tab: NewTabValue) => void;
-  onAddClick: () => void;
+  onAIClick: () => void;
 }
 
 export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
   currentTab,
   onTabChange,
-  onAddClick,
+  onAIClick,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -42,11 +42,9 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
     onTabChange(newValue);
   };
 
-  const handleAddClick = () => {
-    // 今日の日付で予定追加ダイアログを開く
-    const today = new Date().toISOString().split('T')[0];
-    openEventDialog(today);
-    onAddClick();
+  const handleAIClick = () => {
+    // シフト提出画面に遷移
+    onAIClick();
   };
 
   return (
@@ -94,18 +92,6 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
         <Box sx={{ fontSize: 12, mt: 0.5 }}>{t('nav.salary','給料')}</Box>
       </Box>
 
-      {/* 中央の追加ボタン */}
-      <Fab
-        color="primary"
-        size="medium"
-        onClick={handleAddClick}
-        sx={{
-          background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-          boxShadow: '0 4px 12px rgba(67, 233, 123, 0.4)',
-        }}
-      >
-        <Add />
-      </Fab>
 
       {/* バイト先 */}
       <Box

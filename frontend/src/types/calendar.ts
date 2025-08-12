@@ -25,6 +25,7 @@ export interface CalendarEvent {
   title: string;
   startTime?: string; // HH:MM
   endTime?: string; // HH:MM
+  endDate?: string; // 複数日イベントの終了日 YYYY-MM-DD
   color: EventColor;
   
   // シフト関連（typeがshiftの場合）
@@ -39,10 +40,11 @@ export interface CalendarEvent {
   // 日雇いバイト詳細（isOneTimeがtrueの場合）
   oneTimeDetails?: {
     companyName: string;
-    hourlyRate: number;
-    transportFee?: number;
-    otherAllowances?: number;
-    breakMinutes?: number;
+    totalPay?: number; // 総支給額
+    hourlyRate?: number; // 後方互換性のため残す
+    transportFee?: number; // 後方互換性のため残す
+    otherAllowances?: number; // 後方互換性のため残す
+    breakMinutes?: number; // 後方互換性のため残す
     memo?: string;
   };
   

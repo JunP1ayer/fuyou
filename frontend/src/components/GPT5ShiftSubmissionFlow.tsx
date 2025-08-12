@@ -45,6 +45,7 @@ import {
   Business,
   Person,
   Schedule,
+  ArrowBack,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
@@ -80,7 +81,11 @@ interface GPT5AnalysisResult {
 
 const STEPS = ['情報入力', 'AI解析', '結果確認', 'カレンダー反映'];
 
-export const GPT5ShiftSubmissionFlow: React.FC = () => {
+interface GPT5ShiftSubmissionFlowProps {
+  onClose?: () => void;
+}
+
+export const GPT5ShiftSubmissionFlow: React.FC<GPT5ShiftSubmissionFlowProps> = ({ onClose }) => {
   const { workplaces, addShift } = useSimpleShiftStore();
   const { importFromShifts } = useCalendarStore();
   
@@ -281,22 +286,32 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1000, mx: 'auto', p: 3 }}>
-      {/* ヘッダー */}
-      <Box sx={{ textAlign: 'center', mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-          <AutoAwesome sx={{ mr: 1, verticalAlign: 'bottom' }} />
-          AI シフト表提出
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          AI powered shift schedule analysis and calendar integration
-        </Typography>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 2, height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* コンパクトヘッダー */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', mb: 2 }}>
+        {onClose && (
+          <IconButton 
+            onClick={onClose}
+            sx={{ position: 'absolute', left: 0 }}
+          >
+            <ArrowBack />
+          </IconButton>
+        )}
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AutoAwesome sx={{ mr: 1 }} />
+            AI シフト表提出
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            AI powered shift schedule analysis and calendar integration
+          </Typography>
+        </Box>
       </Box>
 
-      {/* ステッパー */}
-      <Card sx={{ mb: 4 }}>
-        <CardContent>
-          <Stepper activeStep={activeStep}>
+      {/* コンパクトステッパー */}
+      <Card sx={{ mb: 2 }}>
+        <CardContent sx={{ py: 2 }}>
+          <Stepper activeStep={activeStep} sx={{ '& .MuiStepLabel-label': { fontSize: '0.875rem' } }}>
             {STEPS.map((label, index) => (
               <Step key={label}>
                 <StepLabel>{label}</StepLabel>
@@ -305,6 +320,9 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
           </Stepper>
         </CardContent>
       </Card>
+
+      {/* メインコンテンツエリア - 残りの高さを使用 */}
+      <Box sx={{ flex: 1, overflow: 'auto' }}>
 
       <AnimatePresence mode="wait">
         {/* Step 1: 情報入力 */}
@@ -316,16 +334,16 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <Card>
-              <CardContent sx={{ p: 4 }}>
-                <Typography variant="h6" sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+            <Card sx={{ height: 'fit-content' }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', fontSize: '1.1rem' }}>
                   <Info sx={{ mr: 1 }} />
                   基本情報を入力してください
                 </Typography>
 
-                <Grid container spacing={3}>
+                <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
-                    <FormControl fullWidth error={!!errors.workplace}>
+                    <FormControl fullWidth error={!!errors.workplace} size="small">
                       <InputLabel>バイト先</InputLabel>
                       <Select
                         value={selectedWorkplace}
@@ -349,6 +367,7 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
+                      size="small"
                       label="作業者名"
                       value={workerName}
                       onChange={(e) => setWorkerName(e.target.value)}
@@ -362,13 +381,12 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
                   </Grid>
 
                   <Grid item xs={12}>
-                    <Box sx={{ textAlign: 'center', py: 3 }}>
+                    <Box sx={{ textAlign: 'center', py: 2 }}>
                       <Button
                         component="label"
                         variant="contained"
-                        size="large"
                         startIcon={<Upload />}
-                        sx={{ mb: 2 }}
+                        sx={{ mb: 1 }}
                       >
                         シフト表ファイルを選択
                         <input
@@ -380,30 +398,31 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
                       </Button>
                       
                       {selectedFile && (
-                        <Box sx={{ mt: 2 }}>
+                        <Box sx={{ mt: 1 }}>
                           <Chip
                             icon={<Check />}
                             label={`選択: ${selectedFile.name}`}
                             color="success"
                             variant="outlined"
+                            size="small"
                           />
                         </Box>
                       )}
                       
                       {errors.file && (
-                        <Alert severity="error" sx={{ mt: 2 }}>
+                        <Alert severity="error" sx={{ mt: 1 }}>
                           {errors.file}
                         </Alert>
                       )}
                       
-                      <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
+                      <Typography variant="caption" display="block" sx={{ mt: 0.5, color: 'text.secondary' }}>
                         PNG, JPG, WebP, PDF対応（最大10MB）
                       </Typography>
                     </Box>
                   </Grid>
                 </Grid>
 
-                <Box sx={{ textAlign: 'center', mt: 4 }}>
+                <Box sx={{ textAlign: 'center', mt: 2 }}>
                   <Button
                     variant="contained"
                     size="large"
@@ -414,7 +433,7 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
                     }}
                     disabled={!selectedWorkplace || !workerName.trim() || !selectedFile}
                     sx={{
-                      px: 4,
+                      px: 3,
                       py: 1.5,
                       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                       '&:hover': {
@@ -439,15 +458,15 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
             transition={{ duration: 0.5 }}
           >
             <Card>
-              <CardContent sx={{ textAlign: 'center', py: 6 }}>
-                <AutoAwesome sx={{ fontSize: 80, color: 'primary.main', mb: 3 }} />
-                <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
+              <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                <AutoAwesome sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
                   AIがシフト表を解析中...
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                   最新のAI技術でシフト情報を正確に抽出しています
                 </Typography>
-                <LinearProgress sx={{ mb: 2, height: 8, borderRadius: 4 }} />
+                <LinearProgress sx={{ mb: 1, height: 6, borderRadius: 3 }} />
                 <Typography variant="caption" color="text.secondary">
                   通常15〜30秒程度で完了します
                 </Typography>
@@ -464,147 +483,154 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
-                  <Visibility sx={{ mr: 1 }} />
-                  AI 解析結果
-                </Typography>
+            <Grid container spacing={2}>
+              {/* 左側: 解析結果サマリー */}
+              <Grid item xs={12} lg={5}>
+                <Card sx={{ height: 'fit-content' }}>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', fontSize: '1.1rem' }}>
+                      <Visibility sx={{ mr: 1 }} />
+                      AI 解析結果
+                    </Typography>
 
-                {/* 解析サマリー */}
-                <Grid container spacing={2} sx={{ mb: 3 }}>
-                  <Grid item xs={12} md={4}>
-                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'info.light' }}>
-                      <Schedule sx={{ color: 'info.contrastText', mb: 1 }} />
-                      <Typography variant="h4" sx={{ fontWeight: 700, color: 'info.contrastText' }}>
-                        {analysisResult.analysis.totalShiftsFound}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: 'info.contrastText' }}>
-                        シフト検出
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.light' }}>
-                      <Person sx={{ color: 'success.contrastText', mb: 1 }} />
-                      <Typography variant="body1" sx={{ fontWeight: 600, color: 'success.contrastText' }}>
-                        {analysisResult.analysis.detectedWorkerName || '検出なし'}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: 'success.contrastText' }}>
-                        作業者名
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'warning.light' }}>
-                      <Business sx={{ color: 'warning.contrastText', mb: 1 }} />
-                      <Typography variant="body1" sx={{ fontWeight: 600, color: 'warning.contrastText' }}>
-                        {analysisResult.analysis.workplaceDetected || '検出なし'}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: 'warning.contrastText' }}>
-                        職場名
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                </Grid>
+                    {/* コンパクトサマリー */}
+                    <Grid container spacing={1} sx={{ mb: 2 }}>
+                      <Grid item xs={4}>
+                        <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: 'info.light' }}>
+                          <Schedule sx={{ color: 'info.contrastText', fontSize: '1.2rem' }} />
+                          <Typography variant="h6" sx={{ fontWeight: 700, color: 'info.contrastText', fontSize: '1.5rem' }}>
+                            {analysisResult.analysis.totalShiftsFound}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'info.contrastText' }}>
+                            シフト
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={4}>
+                        <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: 'success.light' }}>
+                          <Person sx={{ color: 'success.contrastText', fontSize: '1.2rem' }} />
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.contrastText' }}>
+                            {analysisResult.analysis.detectedWorkerName || '未検出'}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'success.contrastText' }}>
+                            作業者
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={4}>
+                        <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: 'warning.light' }}>
+                          <Business sx={{ color: 'warning.contrastText', fontSize: '1.2rem' }} />
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: 'warning.contrastText' }}>
+                            {analysisResult.analysis.workplaceDetected || '未検出'}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'warning.contrastText' }}>
+                            職場
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                    </Grid>
 
-                {/* 警告表示 */}
-                {analysisResult.warnings.length > 0 && (
-                  <Alert severity="warning" sx={{ mb: 3 }}>
-                    <Typography variant="subtitle2">注意事項:</Typography>
-                    {analysisResult.warnings.map((warning, index) => (
-                      <Typography key={index} variant="body2">• {warning}</Typography>
-                    ))}
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
+                    {/* 警告表示 */}
+                    {analysisResult.warnings.length > 0 && (
+                      <Alert severity="warning" sx={{ mt: 1 }}>
+                        <Typography variant="subtitle2" sx={{ fontSize: '0.8rem' }}>注意事項:</Typography>
+                        {analysisResult.warnings.map((warning, index) => (
+                          <Typography key={index} variant="caption" display="block">• {warning}</Typography>
+                        ))}
+                      </Alert>
+                    )}
 
-            {/* シフト一覧テーブル */}
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  抽出されたシフト一覧
-                </Typography>
-                <TableContainer component={Paper} variant="outlined">
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>日付</TableCell>
-                        <TableCell>時間</TableCell>
-                        <TableCell>信頼度</TableCell>
-                        <TableCell align="center">操作</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {extractedShifts.map((shift) => (
-                        <TableRow key={shift.id} hover>
-                          <TableCell>
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              {new Date(shift.date).toLocaleDateString('ja-JP', {
-                                month: 'short',
-                                day: 'numeric',
-                                weekday: 'short'
-                              })}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {shift.date}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {shift.startTime} - {shift.endTime}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              label={`${Math.round(shift.confidence * 100)}%`}
-                              color={getConfidenceColor(shift.confidence) as any}
-                              size="small"
-                            />
-                          </TableCell>
-                          <TableCell align="center">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleEditShift(shift)}
-                            >
-                              <Edit />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
+                    {/* アクションボタン */}
+                    <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setActiveStep(0)}
+                        sx={{ flex: 1 }}
+                      >
+                        最初に戻る
+                      </Button>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<CalendarMonth />}
+                        onClick={handleConfirmToCalendar}
+                        disabled={extractedShifts.length === 0}
+                        sx={{
+                          flex: 2,
+                          background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #38f9d7 0%, #43e97b 100%)',
+                          }
+                        }}
+                      >
+                        {extractedShifts.length}件追加
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-            {/* アクションボタン */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-              <Button
-                variant="outlined"
-                size="large"
-                onClick={() => setActiveStep(0)}
-              >
-                最初に戻る
-              </Button>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<CalendarMonth />}
-                onClick={handleConfirmToCalendar}
-                disabled={extractedShifts.length === 0}
-                sx={{
-                  px: 4,
-                  background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #38f9d7 0%, #43e97b 100%)',
-                  }
-                }}
-              >
-                {extractedShifts.length}件をカレンダーに追加
-              </Button>
-            </Box>
+              {/* 右側: シフト一覧 */}
+              <Grid item xs={12} lg={7}>
+                <Card>
+                  <CardContent sx={{ p: 2 }}>
+                    <Typography variant="h6" sx={{ mb: 1, fontSize: '1.1rem' }}>
+                      抽出されたシフト一覧
+                    </Typography>
+                    <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 350 }}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ py: 1 }}>日付</TableCell>
+                            <TableCell sx={{ py: 1 }}>時間</TableCell>
+                            <TableCell sx={{ py: 1 }}>信頼度</TableCell>
+                            <TableCell align="center" sx={{ py: 1 }}>操作</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {extractedShifts.map((shift) => (
+                            <TableRow key={shift.id} hover>
+                              <TableCell sx={{ py: 1 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>
+                                  {new Date(shift.date).toLocaleDateString('ja-JP', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    weekday: 'short'
+                                  })}
+                                </Typography>
+                              </TableCell>
+                              <TableCell sx={{ py: 1 }}>
+                                <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                                  {shift.startTime} - {shift.endTime}
+                                </Typography>
+                              </TableCell>
+                              <TableCell sx={{ py: 1 }}>
+                                <Chip
+                                  label={`${Math.round(shift.confidence * 100)}%`}
+                                  color={getConfidenceColor(shift.confidence) as any}
+                                  size="small"
+                                  sx={{ fontSize: '0.7rem', height: 20 }}
+                                />
+                              </TableCell>
+                              <TableCell align="center" sx={{ py: 1 }}>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleEditShift(shift)}
+                                  sx={{ p: 0.5 }}
+                                >
+                                  <Edit sx={{ fontSize: '1rem' }} />
+                                </IconButton>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
           </motion.div>
         )}
 
@@ -617,12 +643,12 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
             transition={{ duration: 0.5 }}
           >
             <Card>
-              <CardContent sx={{ textAlign: 'center', py: 6 }}>
-                <Check sx={{ fontSize: 80, color: 'success.main', mb: 3 }} />
-                <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
+              <CardContent sx={{ textAlign: 'center', py: 4 }}>
+                <Check sx={{ fontSize: 60, color: 'success.main', mb: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
                   カレンダーに反映完了！
                 </Typography>
-                <Typography variant="body1" color="text.secondary">
+                <Typography variant="body2" color="text.secondary">
                   AIで解析したシフトデータがカレンダーに正常に追加されました
                 </Typography>
               </CardContent>
@@ -631,19 +657,22 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
         )}
       </AnimatePresence>
 
+      </Box> {/* メインコンテンツエリア終了 */}
+
       {/* シフト編集ダイアログ */}
       <Dialog
         open={!!editingShift}
         onClose={() => setEditingShift(null)}
-        maxWidth="sm"
+        maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>シフト編集</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ py: 2 }}>シフト編集</DialogTitle>
+        <DialogContent sx={{ py: 1 }}>
           {editingShift && (
-            <Box sx={{ pt: 2 }}>
+            <Box sx={{ pt: 1 }}>
               <TextField
                 fullWidth
+                size="small"
                 label="日付"
                 type="date"
                 value={editingShift.date}
@@ -651,10 +680,11 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
                 sx={{ mb: 2 }}
                 InputLabelProps={{ shrink: true }}
               />
-              <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid container spacing={2}>
                 <Grid item xs={6}>
                   <TextField
                     fullWidth
+                    size="small"
                     label="開始時間"
                     type="time"
                     value={editingShift.startTime}
@@ -665,6 +695,7 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
                 <Grid item xs={6}>
                   <TextField
                     fullWidth
+                    size="small"
                     label="終了時間"
                     type="time"
                     value={editingShift.endTime}
@@ -676,9 +707,9 @@ export const GPT5ShiftSubmissionFlow: React.FC = () => {
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditingShift(null)}>キャンセル</Button>
-          <Button onClick={handleSaveShift} variant="contained">保存</Button>
+        <DialogActions sx={{ py: 2 }}>
+          <Button size="small" onClick={() => setEditingShift(null)}>キャンセル</Button>
+          <Button size="small" onClick={handleSaveShift} variant="contained">保存</Button>
         </DialogActions>
       </Dialog>
     </Box>

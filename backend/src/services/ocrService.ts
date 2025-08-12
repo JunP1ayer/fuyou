@@ -2,14 +2,21 @@ import { ImageAnnotatorClient } from '@google-cloud/vision';
 import { OCRResponse } from '../types/ocr';
 
 class OCRService {
-  private client: ImageAnnotatorClient;
+  private client: ImageAnnotatorClient | null = null;
   private apiCallCount = 0;
   private totalCost = 0;
 
   constructor() {
-    this.client = new ImageAnnotatorClient({
-      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-    });
+    // Google Cloud Vision クライアント初期化（環境未設定でもクラッシュさせない）
+    try {
+      const keyPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+      this.client = keyPath
+        ? new ImageAnnotatorClient({ keyFilename: keyPath })
+        : new ImageAnnotatorClient(); // ADC が無ければ後段で検出
+    } catch (err) {
+      console.warn('Google Vision client initialization skipped:', err);
+      this.client = null;
+    }
   }
 
   /**
@@ -19,6 +26,20 @@ class OCRService {
     const startTime = Date.now();
     
     try {
+      if (!this.client) {
+        return {
+          success: false,
+          error: {
+            code: 'OCR_NOT_CONFIGURED',
+            message: 'Google Cloud Vision の認証が未設定です。環境変数 GOOGLE_APPLICATION_CREDENTIALS を設定してください。',
+          },
+          metadata: {
+            processingTimeMs: Date.now() - startTime,
+            apiCallCount: this.apiCallCount,
+            estimatedCost: this.totalCost,
+          },
+        };
+      }
       // API呼び出し制限チェック
       if (this.apiCallCount >= 1000) { // 月次制限例
         throw new Error('API_LIMIT_EXCEEDED');

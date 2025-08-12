@@ -200,17 +200,28 @@ export const CSVUploadDialog: React.FC<CSVUploadDialogProps> = ({
   const totalIncome = parseResult?.incomeTransactions.reduce((sum, tx) => sum + tx.amount, 0) || 0;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-      <DialogTitle>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="md" 
+      fullWidth
+      PaperProps={{ 
+        sx: { 
+          maxHeight: '90vh',
+          overflow: 'hidden'
+        } 
+      }}
+    >
+      <DialogTitle sx={{ pb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <CloudUpload color="primary" />
-          <Typography variant="h5" sx={{ fontWeight: 600 }}>
+          <CloudUpload color="primary" sx={{ fontSize: 28 }} />
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
             💳 銀行CSV取り込み
           </Typography>
         </Box>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent sx={{ overflow: 'auto', py: 2 }}>
         {!parseResult && !uploading && (
           <Box>
             <Typography variant="body1" sx={{ mb: 2 }}>
@@ -258,28 +269,22 @@ export const CSVUploadDialog: React.FC<CSVUploadDialogProps> = ({
               onChange={handleFileSelect}
             />
 
-            {/* 対応銀行一覧 */}
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            {/* 対応銀行一覧（コンパクト版） */}
+            <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
               📋 対応銀行
             </Typography>
-            <List dense>
-              {[
-                { name: '三菱UFJ銀行', format: '取引日, 摘要, 取引金額, 残高' },
-                { name: '三井住友銀行', format: '日付, 内容, 金額, 残高' },
-                { name: 'みずほ銀行', format: '年月日, 摘要, 入金金額, 出金金額' },
-                { name: 'ゆうちょ銀行', format: '取扱日, お取扱内容, 取扱金額' },
-              ].map((bank, index) => (
-                <ListItem key={index}>
-                  <ListItemIcon>
-                    <AccountBalance />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={bank.name}
-                    secondary={bank.format}
-                  />
-                </ListItem>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+              {['三菱UFJ銀行', '三井住友銀行', 'みずほ銀行', 'ゆうちょ銀行', '楽天銀行', 'イオン銀行'].map((bank) => (
+                <Chip
+                  key={bank}
+                  label={bank}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  icon={<AccountBalance />}
+                />
               ))}
-            </List>
+            </Box>
           </Box>
         )}
 
@@ -322,34 +327,34 @@ export const CSVUploadDialog: React.FC<CSVUploadDialogProps> = ({
                     </Typography>
                   </Alert>
 
-                  {/* 統計サマリー */}
-                  <Card sx={{ mb: 3, background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)' }}>
-                    <CardContent>
-                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                  {/* 統計サマリー（コンパクト版） */}
+                  <Card sx={{ mb: 2, background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)' }}>
+                    <CardContent sx={{ py: 2 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1.5 }}>
                         📊 解析サマリー
                       </Typography>
-                      <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'space-around', textAlign: 'center' }}>
                         <Box>
-                          <Typography variant="h4" color="success.main" sx={{ fontWeight: 700 }}>
+                          <Typography variant="h6" color="success.main" sx={{ fontWeight: 700, fontSize: '1.2rem' }}>
                             ¥{totalIncome.toLocaleString()}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
                             バイト収入合計
                           </Typography>
                         </Box>
                         <Box>
-                          <Typography variant="h4" color="primary.main" sx={{ fontWeight: 700 }}>
+                          <Typography variant="h6" color="primary.main" sx={{ fontWeight: 700, fontSize: '1.2rem' }}>
                             {parseResult.incomeTransactions.length}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
                             収入取引
                           </Typography>
                         </Box>
                         <Box>
-                          <Typography variant="h4" color="info.main" sx={{ fontWeight: 700 }}>
+                          <Typography variant="h6" color="info.main" sx={{ fontWeight: 700, fontSize: '1.2rem' }}>
                             {parseResult.totalTransactions}
                           </Typography>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
                             総取引数
                           </Typography>
                         </Box>
@@ -357,28 +362,45 @@ export const CSVUploadDialog: React.FC<CSVUploadDialogProps> = ({
                     </CardContent>
                   </Card>
 
-                  {/* 収入取引一覧 */}
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                    💰 検出された収入取引
+                  {/* 収入取引一覧（コンパクト版） */}
+                  <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 600 }}>
+                    💰 検出された収入取引 ({parseResult.incomeTransactions.length}件)
                   </Typography>
-                  <TableContainer component={Paper} sx={{ mb: 3 }}>
-                    <Table>
+                  <TableContainer 
+                    component={Paper} 
+                    sx={{ 
+                      mb: 2, 
+                      maxHeight: 300,
+                      overflow: 'auto'
+                    }}
+                  >
+                    <Table size="small" stickyHeader>
                       <TableHead>
                         <TableRow>
-                          <TableCell>日付</TableCell>
-                          <TableCell>説明</TableCell>
-                          <TableCell align="right">金額</TableCell>
-                          <TableCell>推定バイト先</TableCell>
-                          <TableCell align="center">信頼度</TableCell>
+                          <TableCell sx={{ fontSize: '0.8rem' }}>日付</TableCell>
+                          <TableCell sx={{ fontSize: '0.8rem' }}>説明</TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.8rem' }}>金額</TableCell>
+                          <TableCell sx={{ fontSize: '0.8rem' }}>推定バイト先</TableCell>
+                          <TableCell align="center" sx={{ fontSize: '0.8rem' }}>信頼度</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {parseResult.incomeTransactions.map((tx, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{tx.date}</TableCell>
-                            <TableCell>{tx.description}</TableCell>
+                          <TableRow key={index} sx={{ height: 48 }}>
+                            <TableCell sx={{ fontSize: '0.75rem' }}>
+                              {new Date(tx.date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
+                            </TableCell>
+                            <TableCell sx={{ fontSize: '0.75rem', maxWidth: 120 }}>
+                              <Box sx={{ 
+                                overflow: 'hidden', 
+                                textOverflow: 'ellipsis', 
+                                whiteSpace: 'nowrap' 
+                              }}>
+                                {tx.description}
+                              </Box>
+                            </TableCell>
                             <TableCell align="right">
-                              <Typography sx={{ color: 'success.main', fontWeight: 600 }}>
+                              <Typography sx={{ color: 'success.main', fontWeight: 600, fontSize: '0.8rem' }}>
                                 ¥{tx.amount.toLocaleString()}
                               </Typography>
                             </TableCell>
@@ -386,7 +408,8 @@ export const CSVUploadDialog: React.FC<CSVUploadDialogProps> = ({
                               <Chip 
                                 label={tx.workplaceGuess || '不明'} 
                                 size="small" 
-                                color={tx.workplaceGuess ? 'primary' : 'default'} 
+                                color={tx.workplaceGuess ? 'primary' : 'default'}
+                                sx={{ fontSize: '0.7rem' }}
                               />
                             </TableCell>
                             <TableCell align="center">
@@ -397,6 +420,7 @@ export const CSVUploadDialog: React.FC<CSVUploadDialogProps> = ({
                                   tx.confidence >= 90 ? 'success' :
                                   tx.confidence >= 70 ? 'warning' : 'error'
                                 }
+                                sx={{ fontSize: '0.7rem' }}
                               />
                             </TableCell>
                           </TableRow>

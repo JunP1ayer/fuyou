@@ -54,6 +54,7 @@ import { motion } from 'framer-motion';
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
 import { formatCurrency } from '../utils/calculations';
 import useI18nStore from '../store/i18nStore';
+import { APP_COLOR_PALETTE } from '@/utils/colors';
 
 interface WorkplaceFormData {
   name: string;
@@ -138,16 +139,8 @@ interface WorkplaceFormData {
   }[];
 }
 
-// 虹色カラーパレット（七色・パステル調）
-const defaultColors = [
-  '#FFB3BA', // 薄い赤（Light Red）
-  '#FFDFBA', // 薄い橙（Light Orange）
-  '#FFFFBA', // 薄い黄（Light Yellow）
-  '#BAFFC9', // 薄い緑（Light Green）
-  '#BAE1FF', // 薄い青（Light Blue）
-  '#C9BAFF', // 薄い藍（Light Indigo）
-  '#E1BAFF', // 薄い紫（Light Violet）
-];
+// 共通パレット
+const defaultColors = APP_COLOR_PALETTE.map(c => c.color);
 
 export const WorkplaceManager: React.FC = () => {
   const { workplaces, addWorkplace, updateWorkplace, deleteWorkplace, shifts } =
@@ -1087,43 +1080,36 @@ export const WorkplaceManager: React.FC = () => {
                 flexWrap: 'wrap',
                 maxWidth: '100%'
               }}>
-                {defaultColors.map((color, index) => (
+                    {defaultColors.map((color, index) => (
                   <Box
                     key={color}
                     onClick={() => setFormData(prev => ({ ...prev, color }))}
                     sx={{
-                      width: 36,
-                      height: 36,
-                      backgroundColor: color,
-                      borderRadius: 2,
-                      cursor: 'pointer',
-                      border: formData.color === color ? '3px solid' : '2px solid',
-                      borderColor: formData.color === color ? 'primary.main' : 'rgba(255,255,255,0.3)',
-                      boxShadow: formData.color === color 
-                        ? `0 4px 12px ${color}40`
-                        : `0 2px 8px ${color}30`,
-                      position: 'relative',
-                      '&:hover': {
-                        transform: 'scale(1.1)',
-                        boxShadow: `0 6px 20px ${color}50`,
-                      },
-                      '&:active': {
-                        transform: 'scale(0.95)',
-                      },
-                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          width: 32,
+                          height: 32,
+                          backgroundColor: color,
+                          borderRadius: '50%',
+                          cursor: 'pointer',
+                          border: formData.color === color ? '3px solid' : '1px solid',
+                          borderColor: formData.color === color ? 'primary.main' : 'divider',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                          position: 'relative',
+                          '&:hover': { transform: 'scale(1.1)' },
+                          '&:active': { transform: 'scale(0.95)' },
+                          transition: 'all 0.2s ease',
                     }}
                   >
                     {formData.color === color && (
                       <Box sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 16,
-                        height: 16,
-                        borderRadius: '50%',
-                        backgroundColor: 'white',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: 12,
+                            height: 12,
+                            borderRadius: '50%',
+                            backgroundColor: 'white',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                       }} />
                     )}
                   </Box>

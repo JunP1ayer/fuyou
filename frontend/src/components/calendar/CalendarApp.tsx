@@ -11,6 +11,9 @@ import { QuickActionMenu } from './QuickActionMenu';
 import { NewBottomNavigation, type NewTabValue } from './NewBottomNavigation';
 import { ShiftImageAnalyzer } from '../ShiftImageAnalyzer';
 import { SettingsView } from '../settings/SettingsView';
+import { FriendSharingHub } from '../FriendSharingHub';
+import { QuickShiftDialog } from './QuickShiftDialog';
+import { GPT5ShiftSubmissionFlow } from '../GPT5ShiftSubmissionFlow';
 import { useCalendarStore } from '../../store/calendarStore';
 import { useSimpleShiftStore } from '../../store/simpleShiftStore';
 import type { CalendarEvent } from '../../types/calendar';
@@ -33,6 +36,8 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [gpt5AnalyzerOpen, setGpt5AnalyzerOpen] = useState(false);
+  const [quickShiftDialogOpen, setQuickShiftDialogOpen] = useState(false);
+  const [shiftSubmissionOpen, setShiftSubmissionOpen] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('themeMode') as ThemeMode;
     return saved || 'light';
@@ -58,10 +63,10 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
     console.log('Tab changed to:', tab);
   };
 
-  // 日付クリック時の処理（クイックメニューを表示）
+  // 日付クリック時の処理（直接シフト画面を開く）
   const handleDateClick = (date: string) => {
     setSelectedDate(date);
-    setQuickMenuOpen(true);
+    openEventDialog(date, 'shift');
   };
 
   // 予定追加処理
@@ -118,6 +123,17 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
     setGpt5AnalyzerOpen(true);
   };
 
+  // AIシフト提出画面を開く
+  const handleAISubmission = () => {
+    setShiftSubmissionOpen(true);
+  };
+
+  // クイックシフト登録を開く
+  const handleOpenQuickShift = () => {
+    setQuickMenuOpen(false);
+    setQuickShiftDialogOpen(true);
+  };
+
   // GPT-5からシフトデータを受信した時の処理
   const handleShiftsExtracted = (shifts: any[]) => {
     // シフトストアに追加し、カレンダーにも反映
@@ -170,15 +186,21 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
             <CalendarHeader onSettingsClick={handleSettingsToggle} />
           </Box>
           
-          {/* カレンダーグリッド（フレックス対応） */}
+          {/* メインコンテンツ - タブに応じて表示を切り替え */}
           <Box sx={{ 
             flex: 1, 
-            overflow: 'hidden', // スクロールなし
+            overflow: 'hidden',
             p: 0,
             display: 'flex',
             flexDirection: 'column',
           }}>
-            <CalendarGrid onDateClick={handleDateClick} />
+            {currentTab === 'share' ? (
+              <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+                <FriendSharingHub onBack={() => setCurrentTab('shift')} />
+              </Box>
+            ) : (
+              <CalendarGrid onDateClick={handleDateClick} />
+            )}
           </Box>
         </Card>
       </Box>
@@ -192,6 +214,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
         onAddShiftEvent={handleAddShiftEvent}
         onViewDayEvents={handleViewDayEvents}
         onOpenGPT5Analyzer={handleOpenGPT5Analyzer}
+        onQuickShiftRegister={handleOpenQuickShift}
       />
 
       {/* 日付の予定一覧ダイアログ */}
@@ -278,6 +301,49 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
           />
         </Box>
       )}
+
+      {/* クイックシフト登録ダイアログ */}
+      <QuickShiftDialog
+        open={quickShiftDialogOpen}
+        selectedDate={selectedDate}
+        onClose={() => setQuickShiftDialogOpen(false)}
+      />
+
+      {/* AIシフト提出フロー */}
+      {shiftSubmissionOpen && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'background.default',
+            zIndex: 1400,
+            overflow: 'auto',
+            p: 2,
+          }}
+        >
+          <GPT5ShiftSubmissionFlow onClose={() => setShiftSubmissionOpen(false)} />
+        </Box>
+      )}
+
+      {/* 新しいボトムナビゲーション */}
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1200,
+        }}
+      >
+        <NewBottomNavigation
+          currentTab={currentTab}
+          onTabChange={setCurrentTab}
+          onAIClick={handleAISubmission}
+        />
+      </Box>
 
     </Box>
   );
