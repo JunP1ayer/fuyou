@@ -278,23 +278,27 @@ export const MobileSalaryView: React.FC = () => {
     const currentMonth = now.getMonth() + 1; // 1-12
     const remainingMonths = 13 - currentMonth; // 来年1月まで含める
     
+    // combinedLimitJPYが設定されていればそれを使用、なければdependencyLimit.limitを使用
+    const actualLimit = dependencyStatus.combinedLimitJPY || dependencyLimit.limit;
+    
     // 個人の扶養設定に基づく動的月間目安計算
-    const remainingAmount = Math.max(0, dependencyLimit.limit - yearEarningsJPY);
+    const remainingAmount = Math.max(0, actualLimit - yearEarningsJPY);
     const monthlyDependencyLimit = remainingMonths > 0 
       ? Math.floor(remainingAmount / remainingMonths) 
-      : Math.floor(dependencyLimit.limit / 12); // フォールバック
+      : Math.floor(actualLimit / 12); // フォールバック
     
-    const yearlyProgress = Math.min(100, Math.round((yearEarningsJPY / dependencyLimit.limit) * 100));
+    const yearlyProgress = Math.min(100, Math.round((yearEarningsJPY / actualLimit) * 100));
     
     return {
       monthlyDependencyLimit,
       yearlyProgress,
       monthlyProgressRatio: monthEstJPY / monthlyDependencyLimit,
-      yearlyProgressRatio: yearEarningsJPY / dependencyLimit.limit,
+      yearlyProgressRatio: yearEarningsJPY / actualLimit,
       remainingMonths,
-      remainingAmount
+      remainingAmount,
+      actualLimit
     };
-  }, [dependencyLimit.limit, monthEstJPY, yearEarningsJPY]);
+  }, [dependencyLimit.limit, dependencyStatus.combinedLimitJPY, monthEstJPY, yearEarningsJPY]);
 
   const hours = Math.floor(monthHoursMin / 60);
   const mins = Math.floor(monthHoursMin % 60);
@@ -499,7 +503,7 @@ export const MobileSalaryView: React.FC = () => {
                   </Typography>
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="caption" color="text.secondary">
-                      {t('salary.limit', '扶養限度額')}
+                      {t('salary.limit', '月間目安')}
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       {formatMoney(displayInfo.monthlyDependencyLimit)}
@@ -514,7 +518,7 @@ export const MobileSalaryView: React.FC = () => {
             </>
           ) : (
             <>
-              {/* 年間プログレスバー */}
+              {/* プログレスバー */}
               <Box sx={{ 
                 height: 8, 
                 backgroundColor: 'grey.100',
@@ -532,16 +536,16 @@ export const MobileSalaryView: React.FC = () => {
                 }} />
               </Box>
               
-              {/* 年間メイン情報 */}
+              {/* メイン情報 */}
               <Box sx={{ p: 3, textAlign: 'center' }}>
                 <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 1 }}>
                   {t('salary.yearly.status', '年間収入状況')}
                 </Typography>
                 
-                {/* 年間円形進捗表示 */}
+                {/* 円形進捗表示 */}
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
                   <Box sx={{ position: 'relative', display: 'inline-flex', mb: 1 }}>
-                    {/* 年間SVG円グラフ */}
+                    {/* SVG円グラフ */}
                     {displayInfo.yearlyProgressRatio > 0 ? (
                       <svg width={120} height={120} style={{ transform: 'rotate(-90deg)' }}>
                         {/* 背景円 */}
@@ -638,10 +642,10 @@ export const MobileSalaryView: React.FC = () => {
                   </Typography>
                   <Box sx={{ textAlign: 'right' }}>
                     <Typography variant="caption" color="text.secondary">
-                      {t('salary.dependency.limit', '扶養限度額')}
+                      {t('salary.limit', '扶養限度額')}
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                      {formatMoney(dependencyLimit.limit)}
+                      {formatMoney(displayInfo.actualLimit)}
                     </Typography>
                   </Box>
                 </Box>
