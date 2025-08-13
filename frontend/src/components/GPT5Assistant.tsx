@@ -100,20 +100,58 @@ export const GPT5Assistant: React.FC<GPT5AssistantProps> = ({ onShiftData }) => 
     try {
       const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
+      // 利用可能プロバイダを取得（障害時のフェイルオーバー用）
+      const resolveProviders = async (): Promise<string[]> => {
+        try {
+          const token = (() => { try { return JSON.parse(localStorage.getItem('auth')||'{}')?.token || ''; } catch { return ''; } })();
+          const res = await fetch(`${API}/intelligent-ocr/status`, { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
+          const st = await res.json();
+          const order: string[] = st?.data?.recommendedOrder || ['gemini','openai','vision'];
+          const providers: string[] = order.filter((p: string) => st?.data?.providers?.[p]?.available);
+          return providers.length > 0 ? providers : ['gemini','openai'];
+        } catch {
+          return ['gemini','openai'];
+        }
+      };
+
       let data: any;
       if (selectedImage) {
-        // 自前のインテリジェントOCR(JSON経路)に送信
         const token = (() => { try { return JSON.parse(localStorage.getItem('auth')||'{}')?.token || ''; } catch { return ''; } })();
-        const response = await fetch(`${API}/intelligent-ocr/process`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-          body: JSON.stringify({
-            image: imagePreview,
-            userName: undefined,
-            processingOptions: { aiProviders: ['openai','gemini'], enableComparison: true },
-          }),
-        });
-        data = await response.json();
+        const providers = await resolveProviders();
+
+        const doRequest = async (aiProviders: string[]) => {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 20000);
+          try {
+            const response = await fetch(`${API}/intelligent-ocr/process`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+              body: JSON.stringify({
+                image: imagePreview,
+                userName: undefined,
+                processingOptions: { aiProviders, enableComparison: aiProviders.length > 1 },
+              }),
+              signal: controller.signal,
+            });
+            clearTimeout(timeout);
+            return await response.json();
+          } catch (e) {
+            clearTimeout(timeout);
+            throw e;
+          }
+        };
+
+        // 1回目（利用可能な順の複合）
+        data = await doRequest(providers);
+        // 失敗ならGemini単独→OpenAI単独の順で再試行
+        if (!data?.success) {
+          if (providers.includes('gemini')) {
+            try { data = await doRequest(['gemini']); } catch {}
+          }
+          if (!data?.success && providers.includes('openai')) {
+            try { data = await doRequest(['openai']); } catch {}
+          }
+        }
       } else {
         // テキスト問い合わせは簡易応答（将来拡張）
         data = { response: 'ご質問ありがとうございます。画像を送付いただければシフト解析を実施します。' };

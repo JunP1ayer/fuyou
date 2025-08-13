@@ -40,6 +40,10 @@ export interface Workplace {
     over6h?: number; // 6時間越えの休憩時間（分）
     over8h?: number; // 8時間越えの休憩時間（分）
   };
+  // 自由休憩設定
+  freeBreakDefault?: number; // 自由休憩時間（分）
+  freeBreakMinHoursEnabled?: boolean; // 廃止予定（常にfalse）
+  freeBreakMinHours?: number; // 廃止予定（常に0）
   // 追加の任意フィールド（詳細編集用）
   description?: string;
   paymentDate?: number;

@@ -369,7 +369,6 @@ export const useDeferredCalculation = <T,>(
         clearTimeout(timeoutRef.current);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   return result;
