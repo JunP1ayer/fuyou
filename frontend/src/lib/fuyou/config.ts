@@ -1,7 +1,7 @@
 // 年次のしきい値（JP）
 export const JP_RULES = [
   {
-    effectiveFrom: '2025-12-01',
+    effectiveFrom: '2025-01-01',
     taxAnnual: 1_230_000, // 税の目安（123万）
     healthDependentAnnual: 1_300_000, // 健保の被扶養（130万）
     socialMonthly: 88_000, // 106万の月額目安

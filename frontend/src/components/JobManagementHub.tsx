@@ -11,12 +11,14 @@ import {
   Divider,
   Tab,
   Tabs,
+  Paper,
 } from '@mui/material';
 import {
   Business,
   CalendarToday,
   Upload,
   Edit,
+  Construction,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { WorkplaceManager } from './WorkplaceManager';
@@ -56,6 +58,7 @@ export const JobManagementHub: React.FC<JobManagementHubProps> = () => {
     setTabValue(newValue);
   };
 
+
   return (
     <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto', p: { xs: 0.75, sm: 1.5 }, pt: 0.25, pb: 8 }}>
       {/* ヘッダー */}
@@ -88,14 +91,27 @@ export const JobManagementHub: React.FC<JobManagementHubProps> = () => {
         </Tabs>
       </Box>
 
+
+
       {/* タブコンテンツ */}
       <TabPanel value={tabValue} index={0}>
         <WorkplaceManager />
       </TabPanel>
 
       <TabPanel value={tabValue} index={1}>
-        <GPT5ShiftSubmissionFlow />
+        <Box sx={{ p: 3, textAlign: 'center' }}>
+          <Paper elevation={0} sx={{ p: 4, backgroundColor: 'background.default', borderRadius: 2 }}>
+            <Construction sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+              AIシフト解析機能
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              現在開発中です。順次公開予定ですのでお楽しみに！
+            </Typography>
+          </Paper>
+        </Box>
       </TabPanel>
+
     </Box>
   );
 };

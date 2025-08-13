@@ -1,7 +1,7 @@
 {
   "updatedAt": "2025-01-01T00:00:00.000Z",
   "rules": [
-    {"country": "JP", "currency": "JPY", "taxAnnual": 1230000, "healthDependentAnnual": 1300000, "socialMonthly": 1060000, "labels": {"tax": "税の目安", "hifu130": "130万（健保）", "shaho106": "106万（社保）"}, "sources": ["https://www.nta.go.jp/"]},
+    {"country": "JP", "currency": "JPY", "taxAnnual": 1230000, "healthDependentAnnual": 1300000, "socialMonthly": 88000, "labels": {"tax": "税の目安", "hifu130": "130万（健保）", "shaho106": "106万（社保）"}, "sources": ["https://www.nta.go.jp/"]},
     {"country": "UK", "currency": "GBP", "taxAnnual": 12570, "socialMonthly": 1048, "labels": {"tax": "Personal Allowance", "shaho106": "NI threshold (monthly)"}, "sources": ["https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2025-to-2026"]},
     {"country": "DE", "currency": "EUR", "taxAnnual": 556*12, "socialMonthly": 556, "labels": {"tax": "Minijob (annualised)", "shaho106": "Minijob monthly"}, "sources": ["https://www.minijob-zentrale.de/"]},
     {"country": "AT", "currency": "EUR", "taxAnnual": 518*12, "socialMonthly": 518, "labels": {"tax": "Geringfügigkeit (annualised)", "shaho106": "Geringfügigkeit (monthly)"}, "sources": ["https://www.ams.at/"]},

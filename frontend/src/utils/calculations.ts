@@ -1,6 +1,8 @@
 // 💰 扶養・給料計算ユーティリティ
 
 import type { Shift, FuyouStatus, MonthlyEarnings } from '../types/index';
+import { computeShiftEarnings } from '@/utils/calcShift';
+import { useSimpleShiftStore } from '@/store/simpleShiftStore';
 import useI18nStore from '../store/i18nStore';
 
 /**
@@ -18,12 +20,17 @@ export const FUYOU_LIMITS = {
 export const calculateShiftEarnings = (
   shift: Omit<Shift, 'totalEarnings'>
 ): number => {
-  const workMinutes = shift.actualWorkMinutes;
-  const hourlyRate = shift.hourlyRate;
-
-  // 分を時間に変換して計算
-  const workHours = workMinutes / 60;
-  return Math.floor(workHours * hourlyRate);
+  const { workplaces } = useSimpleShiftStore.getState();
+  const wp = workplaces.find(w => w.id === (shift as any).workplaceId || w.name === shift.workplaceName);
+  // actualWorkMinutesが無い場合でも、開始/終了から再計算できるように
+  const startTime = (shift as any).startTime || '00:00';
+  const endTime = (shift as any).endTime || '00:00';
+  const res = computeShiftEarnings(wp, {
+    startTime,
+    endTime,
+    manualBreakMinutes: (shift as any).breakTime || 0,
+  });
+  return res.totalEarnings;
 };
 
 /**

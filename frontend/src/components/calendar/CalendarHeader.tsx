@@ -60,7 +60,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick 
     >
       {/* 左側：月切り替えボタン（縦スクロールモード時は非表示） */}
       {isMobile && verticalScrollMode ? (
-        <Box sx={{ width: 32 }} /> // スペーサー
+        <Box sx={{ width: 40 }} /> // スペーサー（中央寄せのため少し広げる）
       ) : (
         <IconButton 
           aria-label={t('calendar.nav.prevMonth', '前月')}

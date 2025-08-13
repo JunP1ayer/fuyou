@@ -256,6 +256,7 @@ export const useCalendarStore = create<CalendarStore>()(
             isOneTime: false,
           },
           earnings: shift.totalEarnings,
+          breakTime: shift.breakTime, // 休憩時間データを含める
         }));
         
         set(state => ({

@@ -35,6 +35,7 @@ import { useSimpleShiftStore } from '../store/simpleShiftStore';
 import type { Shift } from '../types/simple';
 import { formatCurrency } from '../utils/calculations';
 import useI18nStore from '../store/i18nStore';
+import { computeShiftEarnings } from '@/utils/calcShift';
 
 interface SimpleShiftEditDialogProps {
   open: boolean;
@@ -60,7 +61,7 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
   React.useEffect(() => {
     if (!isEditing || !editData) return;
     try {
-      const next = calculateEarnings(editData);
+      const next = calculateEarningsWithWorkplace(editData);
       // 重要: 開発時のみ詳細ログ
       if (process.env.NODE_ENV !== 'production') {
         console.debug('🧮 SimpleShiftEditDialog recalculated', {
@@ -141,20 +142,20 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
       const end = new Date(`2024-01-01T${data.endTime}`);
       const totalMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
       
-      // 休憩時間を計算
+      // 休憩時間を計算（手動休憩を優先）
       let breakMinutes = 0;
       
-      // 手動入力の休憩時間
-      if (data.breakTime) {
+      // 手動入力の休憩時間が指定されている場合は、それを優先
+      if (data.breakTime && data.breakTime > 0) {
         breakMinutes = data.breakTime;
-      }
-      
-      // 自動休憩時間（6時間・8時間越え）
-      const workHours = totalMinutes / 60;
-      if (data.autoBreak8Hours && workHours > 8) {
-        breakMinutes += 60; // 8時間越えで1時間休憩
-      } else if (data.autoBreak6Hours && workHours > 6) {
-        breakMinutes += 45; // 6時間越えで45分休憩
+      } else {
+        // 手動休憩が指定されていない場合のみ自動休憩を適用
+        const workHours = totalMinutes / 60;
+        if (data.autoBreak8Hours && workHours > 8) {
+          breakMinutes = 60; // 8時間越えで1時間休憩
+        } else if (data.autoBreak6Hours && workHours > 6) {
+          breakMinutes = 45; // 6時間越えで45分休憩
+        }
       }
       
       // 実労働時間を計算
@@ -179,6 +180,22 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
       return Math.floor(earnings);
     }
     return 0;
+  };
+
+  // ワークプレース設定を考慮した収入計算
+  const calculateEarningsWithWorkplace = (data: Shift) => {
+    const wp = workplaces.find(w => w.name === data.workplaceName);
+    if (!wp) {
+      return calculateEarnings(data); // フォールバック
+    }
+    
+    const res = computeShiftEarnings(wp, {
+      startTime: data.startTime,
+      endTime: data.endTime,
+      manualBreakMinutes: data.breakTime || 0,
+      shiftDate: data.date,
+    });
+    return res.totalEarnings;
   };
 
   // 勤務先変更時の処理
@@ -223,7 +240,7 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
 
     const finalData = {
       ...editData,
-      totalEarnings: calculateEarnings(editData),
+      totalEarnings: calculateEarningsWithWorkplace(editData),
     };
 
     updateShift(editData.id, finalData);
@@ -260,13 +277,18 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
     const totalHours = totalMinutes / 60;
     
     let breakMinutes = 0;
-    if (editData.breakTime) breakMinutes += editData.breakTime;
     
-    const workHours = totalMinutes / 60;
-    if (editData.autoBreak8Hours && workHours > 8) {
-      breakMinutes += 60;
-    } else if (editData.autoBreak6Hours && workHours > 6) {
-      breakMinutes += 45;
+    // 手動休憩時間が指定されている場合は、それを優先
+    if (editData.breakTime && editData.breakTime > 0) {
+      breakMinutes = editData.breakTime;
+    } else {
+      // 手動休憩が指定されていない場合のみ自動休憩を適用
+      const workHours = totalMinutes / 60;
+      if (editData.autoBreak8Hours && workHours > 8) {
+        breakMinutes = 60;
+      } else if (editData.autoBreak6Hours && workHours > 6) {
+        breakMinutes = 45;
+      }
     }
     
     const actualMinutes = Math.max(0, totalMinutes - breakMinutes);
@@ -711,7 +733,7 @@ export const SimpleShiftEditDialog: React.FC<SimpleShiftEditDialogProps> = ({
                     更新後収入
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                    {formatCurrency(calculateEarnings(editData))}
+                    {formatCurrency(calculateEarningsWithWorkplace(editData))}
                   </Typography>
                 </Box>
               </Grid>

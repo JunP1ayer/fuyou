@@ -1,3 +1,4 @@
+import { computeShiftEarnings } from '@/utils/calcShift';
 // クイックシフト登録ダイアログ
 import React, { useState, useCallback } from 'react';
 import {
@@ -34,8 +35,7 @@ import {
   Save,
   Cancel,
 } from '@mui/icons-material';
-import { format } from 'date-fns';
-import { ja } from 'date-fns/locale';
+// 日付チップは非表示要望のため、date-fnsは未使用
 import { useSimpleShiftStore } from '../../store/simpleShiftStore';
 import { useShiftTemplateStore, type ShiftTemplate } from '../../store/shiftTemplateStore';
 import { APP_COLOR_PALETTE } from '@/utils/colors';
@@ -80,17 +80,29 @@ export const QuickShiftDialog: React.FC<QuickShiftDialogProps> = ({
   const handleSelectTemplate = useCallback((template: ShiftTemplate) => {
     if (!selectedDate) return;
     
-    const startTime = new Date(`2024-01-01T${template.startTime}`);
-    const endTime = new Date(`2024-01-01T${template.endTime}`);
-    const hours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-    const totalEarnings = Math.round(hours * template.hourlyRate);
+    const startTime = new Date(`2000-01-01T${template.startTime}`);
+    let endTime = new Date(`2000-01-01T${template.endTime}`);
+    // 翌日にまたがるケース
+    if (endTime.getTime() <= startTime.getTime()) {
+      endTime = new Date(endTime.getTime() + 24 * 60 * 60 * 1000);
+    }
+
+    const isPersonal = template.category === 'personal';
+    const wp = workplaces.find(w => w.name === (template.workplaceName || '')) || workplaces[0] || null;
+    const result = computeShiftEarnings(isPersonal ? null : wp, {
+      startTime: template.startTime,
+      endTime: template.endTime,
+      isPersonal,
+      shiftDate: selectedDate,
+    });
+    const totalEarnings = result.totalEarnings;
     
     addShift({
       date: selectedDate,
       startTime: template.startTime,
       endTime: template.endTime,
-      workplaceName: template.workplaceName || workplaces[0]?.name || 'バイト先',
-      hourlyRate: template.hourlyRate,
+      workplaceName: isPersonal ? 'プライベート' : (template.workplaceName || workplaces[0]?.name || 'バイト先'),
+      hourlyRate: result.baseRate,
       totalEarnings,
       status: 'confirmed',
     });
@@ -102,6 +114,7 @@ export const QuickShiftDialog: React.FC<QuickShiftDialogProps> = ({
   const handleCreateTemplate = useCallback(() => {
     addTemplate({
       ...formData,
+      category: ((formData as any).category || 'shift') as any,
       isDefault: false,
     });
     setStep('select');
@@ -135,7 +148,7 @@ export const QuickShiftDialog: React.FC<QuickShiftDialogProps> = ({
   const handleUpdateTemplate = useCallback(() => {
     if (!editingTemplate?.id) return;
     
-    updateTemplate(editingTemplate.id, formData);
+    updateTemplate(editingTemplate.id, { ...formData, category: ((formData as any).category || 'shift') as any });
     setStep('select');
     setEditingTemplate(null);
   }, [editingTemplate, formData, updateTemplate]);
@@ -169,13 +182,7 @@ export const QuickShiftDialog: React.FC<QuickShiftDialogProps> = ({
             {step === 'select' ? 'クイックシフト登録' : 
              step === 'create' ? '新しいテンプレート' : 'テンプレート編集'}
           </Typography>
-          {selectedDate && (
-            <Chip
-              label={format(new Date(selectedDate), 'M月d日(E)', { locale: ja })}
-              color="primary"
-              variant="outlined"
-            />
-          )}
+          {/* 右側の日付チップは非表示にしました */}
         </Box>
       </DialogTitle>
 
@@ -183,7 +190,7 @@ export const QuickShiftDialog: React.FC<QuickShiftDialogProps> = ({
         {step === 'select' && (
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              テンプレートを選択してすぐにシフトを登録できます
+              テンプレートを選択して予定をすぐに登録できます（シフト/プライベート）
             </Typography>
 
             <List sx={{ py: 0 }}>
@@ -226,7 +233,7 @@ export const QuickShiftDialog: React.FC<QuickShiftDialogProps> = ({
                     secondary={
                       <Box>
                         <Typography variant="body2" color="text.secondary">
-                          {template.startTime} - {template.endTime} | ¥{template.hourlyRate}/h
+                          {template.startTime} - {template.endTime} {template.category === 'personal' ? '' : `| ¥${template.hourlyRate}/h`}
                         </Typography>
                         {template.workplaceName && (
                           <Typography variant="caption" color="text.secondary">
@@ -294,24 +301,45 @@ export const QuickShiftDialog: React.FC<QuickShiftDialogProps> = ({
                   placeholder="例: 朝シフト、夜勤など"
                 />
               </Grid>
-              
               <Grid item xs={12}>
                 <FormControl fullWidth>
-                  <InputLabel>職場</InputLabel>
+                  <InputLabel>カテゴリー</InputLabel>
                   <Select
-                    value={formData.workplaceName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, workplaceName: e.target.value }))}
-                    label="職場"
+                    value={(formData as any).category || 'shift'}
+                    label="カテゴリー"
+                    onChange={(e) =>
+                      setFormData(prev => ({
+                        ...(prev as any),
+                        category: e.target.value as any,
+                        ...(e.target.value === 'personal' ? { workplaceName: '' } : {}),
+                      }))
+                    }
                   >
-                    <MenuItem value="">全ての職場で使用</MenuItem>
-                    {workplaces.map((workplace) => (
-                      <MenuItem key={workplace.id} value={workplace.name}>
-                        {workplace.name}
-                      </MenuItem>
-                    ))}
+                    <MenuItem value="shift">シフト</MenuItem>
+                    <MenuItem value="personal">プライベート</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
+              
+              {((formData as any).category || 'shift') === 'shift' && (
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel>職場</InputLabel>
+                    <Select
+                      value={formData.workplaceName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, workplaceName: e.target.value }))}
+                      label="職場"
+                    >
+                      <MenuItem value="">全ての職場で使用</MenuItem>
+                      {workplaces.map((workplace) => (
+                        <MenuItem key={workplace.id} value={workplace.name}>
+                          {workplace.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              )}
 
               <Grid item xs={6}>
                 <TextField
@@ -335,15 +363,17 @@ export const QuickShiftDialog: React.FC<QuickShiftDialogProps> = ({
                 />
               </Grid>
 
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="時給（円）"
-                  type="number"
-                  value={formData.hourlyRate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: Number(e.target.value) }))}
-                />
-              </Grid>
+              {((formData as any).category || 'shift') === 'shift' ? (
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="時給（円）"
+                    type="number"
+                    value={formData.hourlyRate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: Number(e.target.value) }))}
+                  />
+                </Grid>
+              ) : null}
 
               <Grid item xs={12}>
                 <TextField

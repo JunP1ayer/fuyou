@@ -51,9 +51,9 @@ export const CountrySpecificHelp: React.FC<CountrySpecificHelpProps> = ({
       currency: 'JPY',
       taxYear: '1月〜12月',
       mainLimits: [
-        { type: '扶養控除限度額', amount: 1230000, description: '年間123万円まで扶養控除対象' },
-        { type: '学生特例（19-22歳）', amount: 1500000, description: '年間150万円まで（2025年税制改正）' },
-        { type: '親の税負担増加', amount: 1030000, description: '年間103万円超過で配偶者控除減額' },
+        { type: '扶養控除限度額', amount: 1230000, description: '2025年以降：年間123万円まで（基礎控除58万 + 給与所得控除65万の目安）' },
+        { type: '学生特例（19-22歳）', amount: 1500000, description: '2025年改正：150万円までは満額、150万〜188万円で段階的減額' },
+        { type: '住民税の非課税目安', amount: 1100000, description: '2026年から年110万円（2025年は年100万円）' },
       ],
       helpSections: [
         {
@@ -61,9 +61,10 @@ export const CountrySpecificHelp: React.FC<CountrySpecificHelpProps> = ({
           icon: <AttachMoney />,
           content: `
             日本では学生アルバイトに以下の制度があります：
-            • 年間収入103万円以下：所得税・住民税なし
-            • 年間収入130万円以下：社会保険扶養対象
-            • 2025年改正：19-22歳学生は150万円まで扶養控除
+            • 2025年以降：所得税は年123万円まで非課税目安
+            • 住民税の非課税：2025年は年100万円、2026年から年110万円
+            • 130万円未満：健康保険の被扶養に概ね留まる（要件あり）
+            • 2025年改正：19-22歳の学生は150万円まで満額、150万〜188万円は段階的減額
           `,
         },
         {
@@ -71,9 +72,9 @@ export const CountrySpecificHelp: React.FC<CountrySpecificHelpProps> = ({
           icon: <School />,
           content: `
             2025年税制改正による新制度：
-            • 19歳〜22歳の学生：年間150万円まで扶養控除対象
-            • 通常学生：年間123万円まで
-            • 勤労学生控除：年間130万円まで適用可能
+            • 19〜22歳の学生：150万円まで満額控除、150万〜188万円で段階的減額
+            • それ以外：年123万円が基本の目安
+            • 勤労学生控除：別制度（要件により併用可否を確認）
           `,
         },
         {
@@ -81,9 +82,9 @@ export const CountrySpecificHelp: React.FC<CountrySpecificHelpProps> = ({
           icon: <Family />,
           content: `
             学生収入が以下を超えると親の税負担が増加：
-            • 103万円超：配偶者控除段階的減額
-            • 130万円超：社会保険扶養除外
-            • 扶養控除額：最大38万円（所得税）+ 33万円（住民税）
+            • 123万円超：扶養の適用外または控除縮小の可能性（世帯状況に依存）
+            • 130万円超：健康保険の被扶養から外れる可能性
+            • 所得税の扶養控除枠：一般38万／特定63万／老人58万 等
           `,
         },
       ],

@@ -32,6 +32,7 @@ import { motion } from 'framer-motion';
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
 import useI18nStore from '../store/i18nStore';
 import { formatCurrency } from '../utils/calculations';
+import { computeShiftEarnings } from '@/utils/calcShift';
 import type { Shift } from '../types/simple';
 
 interface SimpleShiftFormProps {
@@ -118,13 +119,14 @@ export const SimpleShiftForm: React.FC<SimpleShiftFormProps> = ({
 
   // 収入計算
   const calculateEarnings = () => {
-    if (formData.startTime && formData.endTime && formData.hourlyRate) {
-      const start = new Date(`2024-01-01T${formData.startTime}`);
-      const end = new Date(`2024-01-01T${formData.endTime}`);
-      const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-      return Math.floor(hours * formData.hourlyRate);
-    }
-    return 0;
+    const wp = workplaces.find(w => w.id === formData.workplaceId || w.name === formData.workplaceName);
+    const res = computeShiftEarnings(wp, {
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      manualBreakMinutes: 0,
+      shiftDate: formData.date,
+    });
+    return res.totalEarnings;
   };
 
   // フォーム送信

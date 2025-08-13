@@ -5,6 +5,7 @@ import { persist } from 'zustand/middleware';
 export interface ShiftTemplate {
   id: string;
   name: string;
+  category?: 'shift' | 'personal';
   workplaceName: string;
   startTime: string;
   endTime: string;
@@ -30,7 +31,7 @@ interface ShiftTemplateState {
   getTemplatesByWorkplace: (workplaceName: string) => ShiftTemplate[];
 }
 
-// デフォルトテンプレート（空配列 - ユーザーが自分で作成）
+// デフォルトテンプレートは表示不要のため空配列のまま
 const DEFAULT_TEMPLATES: Omit<ShiftTemplate, 'id' | 'createdAt'>[] = [];
 
 export const useShiftTemplateStore = create<ShiftTemplateState>()(

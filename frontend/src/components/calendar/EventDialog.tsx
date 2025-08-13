@@ -58,6 +58,7 @@ import { useSimpleShiftStore } from '../../store/simpleShiftStore';
 import { QuickShiftDialog } from './QuickShiftDialog';
 import type { CalendarEvent, EventType, NotificationTime, RepeatFrequency } from '../../types/calendar';
 import { DEFAULT_EVENT_CATEGORIES } from '../../types/calendar';
+import { computeShiftEarnings } from '@/utils/calcShift';
 import { useI18n } from '@/hooks/useI18n';
 import { APP_COLOR_PALETTE } from '@/utils/colors';
 
@@ -421,7 +422,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         dayOfWeekSettingsEnabled: false,
         autoBreak6Hours: true,
         autoBreak8Hours: true,
-        extraBreakMinutes: 0,
+        extraBreakMinutes: editingEvent.breakTime || 0,
         // 通知・繰り返し設定
         notification: editingEvent.notification || 'none',
         repeatFrequency: editingEvent.repeat?.frequency || 'none',
@@ -492,17 +493,49 @@ export const EventDialog: React.FC<EventDialogProps> = ({
     
     const totalMinutes = Math.max(0, (end.getTime() - start.getTime()) / (1000 * 60));
 
-    // 休憩時間の算出
+    // 休憩時間の算出（手動休憩を優先）
     let breakMinutes = 0;
     if (!isOneTime) {
-      // 手動休憩
-      if (formData.extraBreakMinutes) breakMinutes += Math.max(0, Number(formData.extraBreakMinutes) || 0);
-      // 自動休憩（6h/8h）
-      const workHours = totalMinutes / 60;
-      if (formData.autoBreak8Hours && workHours > 8) {
-        breakMinutes += 60;
-      } else if (formData.autoBreak6Hours && workHours > 6) {
-        breakMinutes += 45;
+      // 手動休憩時間が指定されている場合は、それを優先
+      // 編集時は既存のbreakTime、新規作成時はextraBreakMinutesを使用
+      if (editingEvent?.breakTime !== undefined && editingEvent.breakTime > 0) {
+        breakMinutes = editingEvent.breakTime;
+      } else if (formData.extraBreakMinutes > 0) {
+        breakMinutes = formData.extraBreakMinutes;
+      } else {
+        // 手動休憩が指定されていない場合のみ自動休憩を適用
+        const workHours = totalMinutes / 60;
+        const wp = workplaces.find(w => w.id === formData.workplaceId || w.name === formData.workplaceName);
+        
+        // バイト先の休憩設定を使用（calcShift.tsと同じロジック）
+        // 自由休憩（常に適用）
+        let freeBreak = 0;
+        if (wp?.freeBreakDefault && wp.freeBreakDefault > 0) {
+          freeBreak = Math.max(0, wp.freeBreakDefault);
+        }
+
+        // 自動休憩（最も長いルールのみ適用）
+        let autoBreak = 0;
+        if (workHours > 8) {
+          if (wp?.breakAuto8hEnabled && wp?.breakRules?.over8h) {
+            autoBreak = wp.breakRules.over8h;
+          } else if (wp?.autoBreak8Hours) {
+            autoBreak = 60; // 旧フィールドのフォールバック
+          }
+        } else if (workHours > 6) {
+          if (wp?.breakAuto6hEnabled && wp?.breakRules?.over6h) {
+            autoBreak = wp.breakRules.over6h;
+          } else if (wp?.autoBreak6Hours) {
+            autoBreak = 45; // 旧フィールドのフォールバック
+          }
+        } else if (workHours > 4) {
+          if (wp?.breakAuto4hEnabled && wp?.breakRules?.over4h) {
+            autoBreak = wp.breakRules.over4h;
+          }
+        }
+
+        // 自由休憩と自動休憩は「大きい方のみ」を採用（重複控除）
+        breakMinutes = Math.max(freeBreak, autoBreak);
       }
     }
 
@@ -511,19 +544,18 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
     let earnings = 0;
     if (isOneTime) {
-      // 単発バイトの場合は入力された総額をそのまま使用
       earnings = formData.oneTimeTotalPay || 0;
     } else {
-      // 通常のシフトの場合は時給計算
-      const rate = formData.hourlyRate;
-      earnings = Math.floor(actualHours * rate);
-
-      // 残業割増（8h超は1.25倍）
-      if (formData.overtimeEnabled && actualHours > 8) {
-        const regularHours = 8;
-        const overtimeHours = actualHours - 8;
-        earnings = Math.floor(regularHours * rate + overtimeHours * rate * 1.25);
-      }
+      const wp = workplaces.find(w => w.id === formData.workplaceId || w.name === formData.workplaceName);
+      const res = computeShiftEarnings(wp, {
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        manualBreakMinutes: editingEvent?.breakTime !== undefined && editingEvent.breakTime > 0 
+          ? editingEvent.breakTime 
+          : (formData.extraBreakMinutes > 0 ? formData.extraBreakMinutes : 0),
+        shiftDate: selectedDate,
+      });
+      earnings = res.totalEarnings;
     }
 
     return earnings;
@@ -553,10 +585,15 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
   // 保存処理
   const handleSave = () => {
+    // タイトルは種類に応じて自動決定（シフト=職場名/単発会社名、プライベート=入力値）
+    const computedShiftTitle = isOneTime
+      ? (formData.oneTimeCompany || formData.title)
+      : (formData.workplaceName || formData.title);
+
     const baseEvent: Omit<CalendarEvent, 'id'> = {
       date: formData.date,
       type: eventType,
-      title: formData.title,
+      title: eventType === 'shift' ? (computedShiftTitle || '') : formData.title,
       startTime: formData.isAllDay ? undefined : formData.startTime,
       endTime: formData.isAllDay ? undefined : formData.endTime,
       color: formData.color,
@@ -583,6 +620,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
           companyName: formData.oneTimeCompany,
           totalPay: formData.oneTimeTotalPay,
         };
+        // タイトルを会社名で上書き（念のため）
+        (baseEvent as any).title = formData.oneTimeCompany || baseEvent.title;
       } else {
         // 登録済みバイト先
         (baseEvent as any).workplace = {
@@ -591,23 +630,32 @@ export const EventDialog: React.FC<EventDialogProps> = ({
           hourlyRate: formData.hourlyRate,
           isOneTime: false,
         };
+        // タイトルを職場名で上書き（念のため）
+        (baseEvent as any).title = formData.workplaceName || baseEvent.title;
       }
       (baseEvent as any).earnings = calculateEarnings();
+      // 休憩時間を保存（編集時は既存のbreakTime、新規作成時はextraBreakMinutesを使用）
+      const breakTimeValue = editingEvent?.breakTime || (formData.extraBreakMinutes > 0 ? formData.extraBreakMinutes : undefined);
+      if (breakTimeValue !== undefined) {
+        (baseEvent as any).breakTime = breakTimeValue;
+      }
     }
 
     if (editingEvent) {
       updateEvent(editingEvent.id, baseEvent);
     } else {
-      // 複数日の個人予定の場合、各日にイベントを作成
-      if (eventType === 'personal' && formData.endDate && formData.endDate > formData.date) {
+      // 複数日イベント（個人 or シフト）は帯表示用に分割保存
+      if ((eventType === 'personal' || eventType === 'shift') && formData.endDate && formData.endDate > formData.date) {
         const startDate = new Date(formData.date);
         const endDate = new Date(formData.endDate);
+        const spanParentId = `span-${Date.now()}`;
         
         // 各日付でイベントを作成
         for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
           const eventForDay = {
             ...baseEvent,
             date: d.toISOString().split('T')[0],
+            parentId: spanParentId,
           };
           addEvent(eventForDay);
         }
@@ -860,13 +908,25 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 </Box>
               </Box>
 
-              {/* 時間選択（シンプル版） */}
+              {/* 日付・時間（iOS風：All-day/Starts/Ends） */}
               <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  {t('calendar.event.pickTime', '時間を選択')}
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
+                <FormControlLabel
+                  control={<Switch checked={formData.isAllDay} onChange={(e) => setFormData(prev => ({ ...prev, isAllDay: e.target.checked }))} />}
+                  label={t('calendar.event.allDay', '終日')}
+                  sx={{ mb: 1 }}
+                />
+                <Grid container spacing={1} sx={{ mb: 1 }}>
+                  <Grid item xs={7}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label={t('calendar.event.startDate', '開始日')}
+                      value={formData.date}
+                      onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={5}>
                     <TextField
                       fullWidth
                       type="time"
@@ -874,9 +934,22 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       value={formData.startTime}
                       onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
                       InputLabelProps={{ shrink: true }}
+                      disabled={formData.isAllDay}
                     />
                   </Grid>
-                  <Grid item xs={6}>
+                </Grid>
+                <Grid container spacing={1}>
+                  <Grid item xs={7}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label={t('calendar.event.endDate', '終了日')}
+                      value={formData.endDate || formData.date}
+                      onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={5}>
                     <TextField
                       fullWidth
                       type="time"
@@ -884,7 +957,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       value={formData.endTime}
                       onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
                       InputLabelProps={{ shrink: true }}
-                      helperText={formData.startTime && formData.endTime && formData.endTime <= formData.startTime ? '夜勤など翌日にまたがる場合OK（例: 23:00-02:00）' : ''}
+                      disabled={formData.isAllDay}
+                      helperText={!formData.isAllDay && formData.startTime && formData.endTime && (!formData.endDate || formData.endDate === formData.date) && formData.endTime <= formData.startTime ? '翌日にまたがる場合は終了日を翌日に変更してください' : ''}
                     />
                   </Grid>
                 </Grid>
@@ -909,15 +983,56 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       }
                       
                       const totalMinutes = Math.max(0, (end.getTime() - start.getTime()) / 60000);
+                      // 休憩は手動優先（入力があればそれを採用）。無ければ自動（6h/8h）
                       let breakMinutes = 0;
                       if (!isOneTime) {
-                        if (formData.extraBreakMinutes) breakMinutes += Math.max(0, Number(formData.extraBreakMinutes) || 0);
-                        const workHours = totalMinutes / 60;
-                        if (formData.autoBreak8Hours && workHours > 8) breakMinutes += 60;
-                        else if (formData.autoBreak6Hours && workHours > 6) breakMinutes += 45;
+                        // 編集時は既存のbreakTime、新規作成時はextraBreakMinutesを使用
+                        if (editingEvent?.breakTime !== undefined && editingEvent.breakTime > 0) {
+                          breakMinutes = editingEvent.breakTime;
+                        } else if (formData.extraBreakMinutes > 0) {
+                          breakMinutes = formData.extraBreakMinutes;
+                        } else {
+                          const workHours = totalMinutes / 60;
+                          const wp = workplaces.find(w => w.id === formData.workplaceId || w.name === formData.workplaceName);
+                          
+                          // バイト先の休憩設定を使用（calcShift.tsと同じロジック）
+                          
+                          // 自由休憩（常に適用）
+                          let freeBreak = 0;
+                          if (wp?.freeBreakDefault && wp.freeBreakDefault > 0) {
+                            freeBreak = Math.max(0, wp.freeBreakDefault);
+                          }
+
+                          // 自動休憩（最も長いルールのみ適用）
+                          let autoBreak = 0;
+                          if (workHours > 8) {
+                            if (wp?.breakAuto8hEnabled && wp?.breakRules?.over8h) {
+                              autoBreak = wp.breakRules.over8h;
+                            } else if (wp?.autoBreak8Hours) {
+                              autoBreak = 60; // 旧フィールドのフォールバック
+                            }
+                          } else if (workHours > 6) {
+                            if (wp?.breakAuto6hEnabled && wp?.breakRules?.over6h) {
+                              autoBreak = wp.breakRules.over6h;
+                            } else if (wp?.autoBreak6Hours) {
+                              autoBreak = 45; // 旧フィールドのフォールバック
+                            }
+                          } else if (workHours > 4) {
+                            if (wp?.breakAuto4hEnabled && wp?.breakRules?.over4h) {
+                              autoBreak = wp.breakRules.over4h;
+                            }
+                          }
+
+                          // 自由休憩と自動休憩は「大きい方のみ」を採用（重複控除）
+                          breakMinutes = Math.max(freeBreak, autoBreak);
+                        }
                       }
                       const workMinutes = Math.max(0, totalMinutes - breakMinutes);
-                      return `${t('calendar.event.workMinutes','勤務時間')}: ${Math.floor(totalMinutes / 60)}${t('calendar.event.hours','時間')}${Math.floor(totalMinutes % 60)}${t('calendar.event.minutes','分')} ／ 休憩: ${breakMinutes}分 → 実働: ${Math.floor(workMinutes / 60)}h`;
+                      const actualHours = workMinutes / 60;
+                      const formatHours = (hours: number) => {
+                        return hours % 1 === 0 ? hours.toString() : hours.toFixed(2).replace(/\.?0+$/, '');
+                      };
+                      return `${t('calendar.event.workMinutes','勤務時間')}: ${Math.floor(totalMinutes / 60)}${t('calendar.event.hours','時間')}${Math.floor(totalMinutes % 60)}${t('calendar.event.minutes','分')} ／ 休憩: ${breakMinutes}分 → 実働: ${formatHours(actualHours)}h`;
                     })()}
                   </Typography>
                 </Box>
@@ -1028,16 +1143,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         {/* 個人タブの共通項目 */}
         {tabValue === 1 && (
           <Box>
-            {/* ホテル予約スタイルの日付選択 */}
-            <Box sx={{ mb: 2 }}>
-              <HotelStyleDateRangePicker
-                startDate={formData.date}
-                endDate={formData.endDate}
-                onStartDateChange={(date) => setFormData(prev => ({ ...prev, date }))}
-                onEndDateChange={(date) => setFormData(prev => ({ ...prev, endDate: date }))}
-              />
-            </Box>
-
+            {/* 日付・時間（iOS風：All-day/Starts/Ends） */}
             <FormControlLabel
               control={
                 <Switch
@@ -1048,34 +1154,59 @@ export const EventDialog: React.FC<EventDialogProps> = ({
               label={t('calendar.event.allDay', '終日')}
               sx={{ mb: 1.5 }}
             />
-            
-            {!formData.isAllDay && (
-              <Grid container spacing={2} sx={{ mb: 1.5 }}>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    type="time"
-                    label={t('calendar.event.startTime', '開始時間')}
-                    value={formData.startTime}
-                    onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                    InputLabelProps={{ shrink: true }}
-                    size="small"
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    type="time"
-                    label={t('calendar.event.endTime', '終了時間')}
-                    value={formData.endTime}
-                    onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                    InputLabelProps={{ shrink: true }}
-                    size="small"
-                  />
-                </Grid>
+
+            <Grid container spacing={1} sx={{ mb: 1 }}>
+              <Grid item xs={7}>
+                <TextField
+                  fullWidth
+                  type="date"
+                  label={t('calendar.event.startDate', '開始日')}
+                  value={formData.date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                />
               </Grid>
-            )}
-            
+              <Grid item xs={5}>
+                <TextField
+                  fullWidth
+                  type="time"
+                  label={t('calendar.event.startTime', '開始時間')}
+                  value={formData.startTime}
+                  onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                  disabled={formData.isAllDay}
+                />
+              </Grid>
+            </Grid>
+            <Grid container spacing={1} sx={{ mb: 1.5 }}>
+              <Grid item xs={7}>
+                <TextField
+                  fullWidth
+                  type="date"
+                  label={t('calendar.event.endDate', '終了日')}
+                  value={formData.endDate || formData.date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={5}>
+                <TextField
+                  fullWidth
+                  type="time"
+                  label={t('calendar.event.endTime', '終了時間')}
+                  value={formData.endTime}
+                  onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                  disabled={formData.isAllDay}
+                  helperText={!formData.isAllDay && formData.startTime && formData.endTime && (!formData.endDate || formData.endDate === formData.date) && formData.endTime <= formData.startTime ? '翌日にまたがる場合は終了日を翌日に変更してください' : ''}
+                />
+              </Grid>
+            </Grid>
+
             {/* 通知・繰り返し設定（コンパクト版） */}
             <Grid container spacing={2} sx={{ mb: 1.5 }}>
               <Grid item xs={6}>
@@ -1138,12 +1269,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         <Button 
           onClick={handleSave} 
           variant="contained"
-          disabled={
-            !formData.title || 
-            (eventType === 'shift' && workplaces.length > 0 && !formData.workplaceId && !isOneTime) ||
-            (eventType === 'shift' && (!formData.startTime || !formData.endTime)) ||
-            (isOneTime && !formData.oneTimeCompany)
-          }
+          disabled={false}
         >
           {t('common.save', '保存')}
         </Button>

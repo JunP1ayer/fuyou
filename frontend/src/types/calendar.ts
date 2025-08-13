@@ -36,6 +36,7 @@ export interface CalendarEvent {
     isOneTime: boolean; // 日雇いフラグ
   };
   earnings?: number;
+  breakTime?: number; // 分単位の休憩時間（手動入力）
   
   // 日雇いバイト詳細（isOneTimeがtrueの場合）
   oneTimeDetails?: {

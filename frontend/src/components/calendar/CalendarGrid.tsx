@@ -11,7 +11,8 @@ import {
   endOfWeek,
   eachDayOfInterval,
   isSameMonth,
-  isToday
+  isToday,
+  isSameDay
 } from 'date-fns';
 import { useI18n } from '@/hooks/useI18n';
 import { useCalendarStore } from '../../store/calendarStore';
@@ -19,33 +20,194 @@ import type { CalendarEvent } from '../../types/calendar';
 
 const WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土'];
 
-// イベントチップコンポーネント（iOSカレンダー風の丸み・小さめフォント）
-const EventChip: React.FC<{ event: CalendarEvent; isPC?: boolean }> = ({ event, isPC = false }) => {
+// イベントチップ（単日）- メモ化でレンダリング最適化
+const EventChip = React.memo<{ event: CalendarEvent; isPC?: boolean }>(
+  ({ event, isPC = false }) => {
+    const displayTitle = event.type === 'shift'
+      ? (event.workplace?.name || event.title || '')
+      : (event.title || '');
+    return (
+      <Box
+        sx={{
+          backgroundColor: event.color,
+          color: '#fff',
+          px: isPC ? 0.5 : 0.75,
+          py: isPC ? 0.15 : 0.25,
+          borderRadius: isPC ? 1 : 2,
+          fontSize: isPC ? '10px' : '11px',
+          fontWeight: 600,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          mb: isPC ? 0.15 : 0.25,
+          cursor: 'pointer',
+          width: '100%',
+          display: 'block',
+          textAlign: 'left',
+          textShadow: '0 1px 1px rgba(0,0,0,0.35)',
+          '&:hover': { opacity: 0.8 },
+        }}
+      >
+        {displayTitle}
+      </Box>
+    );
+  }
+);
+
+// 連続イベント帯（同一parentIdを連結）- メモ化でレンダリング最適化
+const SpanBand = React.memo<{ color: string; title: string; left: boolean; right: boolean; isPC?: boolean }>(
+  ({ color, title, left, right, isPC = false }) => (
+  <Box
+    sx={{
+      backgroundColor: color,
+      color: '#fff',
+      px: isPC ? 0.5 : 0.75,
+      py: isPC ? 0.15 : 0.25,
+      borderRadius: isPC ? 1 : 2,
+      borderTopLeftRadius: left ? (isPC ? 1 : 2) : 0,
+      borderBottomLeftRadius: left ? (isPC ? 1 : 2) : 0,
+      borderTopRightRadius: right ? (isPC ? 1 : 2) : 0,
+      borderBottomRightRadius: right ? (isPC ? 1 : 2) : 0,
+      fontSize: isPC ? '10px' : '11px',
+      fontWeight: 700,
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      mb: isPC ? 0.15 : 0.25,
+      width: '100%',
+      display: 'block',
+      textShadow: '0 1px 1px rgba(0,0,0,0.35)',
+    }}
+  >
+    {title}
+  </Box>
+  )
+);
+
+// 日付セルコンポーネント - レンダリング最適化のためのメモ化
+const DateCell = React.memo<{
+  day: Date;
+  events: CalendarEvent[];
+  isCurrentMonth: boolean;
+  isTodayDate: boolean;
+  isMobile: boolean;
+  onDateClick: (date: Date) => void;
+}>(({ day, events, isCurrentMonth, isTodayDate, isMobile, onDateClick }) => {
+  const theme = useTheme();
+  const dateStr = format(day, 'yyyy-MM-dd');
+  const dayEvents = events.filter(e => e.date === dateStr);
+  
+  // 連続帯イベントの連結情報（同一parentIdで端を判定）
+  const spanBands = dayEvents
+    .filter(e => e.parentId)
+    .map(e => {
+      const sameParent = events.filter(ev => ev.parentId === e.parentId);
+      const hasLeft = sameParent.some(ev => new Date(ev.date) < new Date(e.date));
+      const hasRight = sameParent.some(ev => new Date(ev.date) > new Date(e.date));
+      const title = e.type === 'shift' ? (e.workplace?.name || e.title) : e.title;
+      return { key: `${e.parentId}-${e.date}`, color: e.color, title, left: !hasLeft, right: !hasRight };
+    });
+  
+  const dayOfWeek = day.getDay();
+  const dimOutsideMonth = !isMobile; // スマホは当月以外も薄くしない
+  const showMonth = false; // モバイルのセル左上の月テキストを非表示
+
   return (
     <Box
       sx={{
-        backgroundColor: event.color,
-        color: '#000',
-        px: isPC ? 0.5 : 0.75,
-        py: isPC ? 0.15 : 0.25,
-        borderRadius: isPC ? 1 : 2,
-        fontSize: isPC ? '10px' : '11px',
-        fontWeight: 600,
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        mb: isPC ? 0.15 : 0.25,
+        height: '100%',
         cursor: 'pointer',
+        p: { xs: 0.25, md: 0.5 },
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRight: '1px solid',
+        borderBottom: '1px solid',
+        backgroundColor: isTodayDate 
+          ? alpha(theme.palette.primary.main, 0.1)
+          : dayOfWeek === 0 || dayOfWeek === 6 
+            ? alpha(theme.palette.action.hover, 0.3)
+            : 'background.paper',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
         '&:hover': {
-          opacity: 0.8,
+          backgroundColor: alpha(theme.palette.primary.main, 0.08),
         },
+        transition: 'background-color 0.2s ease',
       }}
+      onClick={() => onDateClick(day)}
     >
-      {event.startTime && `${event.startTime.substring(0, 5)} `}
-      {event.title}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+        {/* 日付数字を左側に表示 */}
+        <Box sx={{ mr: 'auto' }}>
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: isTodayDate ? 700 : 500,
+              color: !isCurrentMonth && dimOutsideMonth
+                ? 'text.disabled'
+                : isTodayDate
+                  ? 'primary.main'
+                  : dayOfWeek === 0
+                    ? 'error.main'
+                    : dayOfWeek === 6
+                      ? 'info.main'
+                      : 'text.primary',
+              fontSize: { xs: '13px', md: '14px' },
+              transition: 'color 0.2s ease',
+            }}
+          >
+            {format(day, 'd')}
+          </Typography>
+        </Box>
+        {/* モバイル版で月の1日目に月表示（右側に移動） */}
+        {showMonth && (
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ fontSize: '9px', lineHeight: 1 }}
+          >
+            {format(day, 'M')}
+          </Typography>
+        )}
+      </Box>
+
+      {/* イベント表示 */}
+      <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'stretch', opacity: !isCurrentMonth && dimOutsideMonth ? 0.2 : 1 }}>
+        {/* PC版は最大5件、モバイル版は最大3件表示 */}
+        {/* まず連続帯を表示（1つだけ代表表示）*/}
+        {spanBands.length > 0 && (
+          <SpanBand
+            key={spanBands[0].key}
+            color={spanBands[0].color}
+            title={spanBands[0].title}
+            left={spanBands[0].left}
+            right={spanBands[0].right}
+            isPC={!isMobile}
+          />
+        )}
+        {/* 単日イベント */}
+        {dayEvents
+          .filter(e => !e.parentId)
+          .slice(0, isMobile ? 2 : 4)
+          .map((event, idx) => (
+            <EventChip key={`${event.id}-${idx}`} event={event} isPC={!isMobile} />
+          ))}
+        
+        {/* 残りイベント数 */}
+        {dayEvents.length > (isMobile ? 3 : 5) && (
+          <Typography 
+            variant="caption" 
+            color="text.secondary"
+            sx={{ fontSize: isMobile ? '9px' : '10px', mt: 0.25 }}
+          >
+            +{dayEvents.length - (isMobile ? 3 : 5)}件
+          </Typography>
+        )}
+      </Box>
     </Box>
   );
-};
+});
 
 interface CalendarGridProps {
   onDateClick?: (date: string) => void;
@@ -114,8 +276,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     }
   }, [isMobile, viewMode, currentMonth]);
 
-  // スクロールイベントハンドラー（仮想スクロール用）
-  const handleScroll = useCallback((): void => {
+  // Throttling用のref
+  const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // スクロールイベントハンドラー（仮想スクロール用・throttling付き）
+  const handleScrollCore = useCallback((): void => {
     if (!containerRef.current || !isMobile || viewMode !== 'vertical') return;
     
     const container = containerRef.current;
@@ -152,6 +317,16 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     }
   }, [isMobile, viewMode, visibleRange]);
 
+  // Throttled scroll handler
+  const handleScroll = useCallback((): void => {
+    if (throttleTimeoutRef.current) return; // 既にスケジュール済みなら実行しない
+    
+    throttleTimeoutRef.current = setTimeout(() => {
+      handleScrollCore();
+      throttleTimeoutRef.current = null;
+    }, 16); // 60FPS相当の16ms間隔でthrottle
+  }, [handleScrollCore]);
+
   // スクロールイベントリスナー登録
   useEffect(() => {
     const container = containerRef.current;
@@ -160,6 +335,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       container.removeEventListener('scroll', handleScroll);
+      // クリーンアップ時にタイマーもクリア
+      if (throttleTimeoutRef.current) {
+        clearTimeout(throttleTimeoutRef.current);
+        throttleTimeoutRef.current = null;
+      }
     };
   }, [handleScroll, isMobile, viewMode]);
 
@@ -291,19 +471,30 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                   flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
                   height: isMobile && viewMode === 'vertical' ? '118px' : `calc(100% / ${weeks.length})`,
                   minHeight: isMobile && viewMode === 'vertical' ? '118px' : 0,
-                  // モバイル版は月の境界線なし、PC版のみ最下段に線
-                  borderBottom: !isMobile && weekIndex === weeks.length - 1 ? '1px solid' : 0,
+                  // 月の境目の視認性向上: 月最終週の下に太線（黒）
+                  borderBottom: weekIndex === weeks.length - 1 ? (isMobile ? '2px solid' : '2px solid') : 0,
+                  borderBottomColor: 'common.black',
                   borderColor: 'divider'
                 }}>
                   <Grid container spacing={0} sx={{ height: '100%' }}>
                   {week.map((day, dayIndex) => {
                     const dateStr = format(day, 'yyyy-MM-dd');
                     const dayEvents = events.filter(e => e.date === dateStr);
+                    // 連続帯イベントの連結情報（同一parentIdで端を判定）
+                    const spanBands = dayEvents
+                      .filter(e => e.parentId)
+                      .map(e => {
+                        const sameParent = events.filter(ev => ev.parentId === e.parentId);
+                        const hasLeft = sameParent.some(ev => new Date(ev.date) < new Date(e.date));
+                        const hasRight = sameParent.some(ev => new Date(ev.date) > new Date(e.date));
+                        const title = e.type === 'shift' ? (e.workplace?.name || e.title) : e.title;
+                        return { key: `${e.parentId}-${e.date}`, color: e.color, title, left: !hasLeft, right: !hasRight };
+                      });
                     const isCurrentMonth = isSameMonth(day, month);
                     const isTodayDate = isToday(day);
                     const dayOfWeek = day.getDay();
                     const dimOutsideMonth = !isMobile; // スマホは当月以外も薄くしない
-                    const showMonth = isMobile && day.getDate() === 1; // モバイル版で月の1日目に月を表示
+                    const showMonth = false; // モバイルのセル左上の月テキストを非表示
                     
                     return (
                       <Grid item xs key={dayIndex} sx={{ 
@@ -336,22 +527,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                           }}
                           onClick={() => handleDateClick(day)}
                         >
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            {/* モバイル版で月の1日目に月表示 */}
-                            {showMonth && (
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  fontSize: '10px',
-                                  fontWeight: 700,
-                                  color: 'primary.main',
-                                  lineHeight: 1,
-                                  mr: 0.5,
-                                }}
-                              >
-                                {format(day, 'M')}月
-                              </Typography>
-                            )}
+                          <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                            {/* 日付数字を左側に表示 */}
                             <Typography
                               variant="body2"
                               sx={{
@@ -367,19 +544,49 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                                         : 'text.primary',
                                 lineHeight: 1,
                                 px: { xs: 0, md: 0.5 },
-                                ml: 'auto',
+                                mr: 'auto',
                               }}
                             >
                               {format(day, 'd')}
                             </Typography>
+                            {/* モバイル版で月の1日目に月表示（右側に移動） */}
+                            {showMonth && (
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontSize: '10px',
+                                  fontWeight: 700,
+                                  color: 'primary.main',
+                                  lineHeight: 1,
+                                  ml: 0.5,
+                                }}
+                              >
+                                {format(day, 'M')}月
+                              </Typography>
+                            )}
                           </Box>
 
                           {/* イベント表示 */}
-                          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', opacity: !isCurrentMonth && dimOutsideMonth ? 0.2 : 1 }}>
+                          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'stretch', opacity: !isCurrentMonth && dimOutsideMonth ? 0.2 : 1 }}>
                             {/* PC版は最大5件、モバイル版は最大3件表示 */}
-                            {dayEvents.slice(0, isMobile ? 3 : 5).map((event) => (
-                              <EventChip key={event.id} event={event} isPC={!isMobile} />
-                            ))}
+                            {/* まず連続帯を表示（1つだけ代表表示）*/}
+                            {spanBands.length > 0 && (
+                              <SpanBand
+                                key={spanBands[0].key}
+                                color={spanBands[0].color}
+                                title={spanBands[0].title}
+                                left={spanBands[0].left}
+                                right={spanBands[0].right}
+                                isPC={!isMobile}
+                              />
+                            )}
+                            {/* 単日イベント */}
+                            {dayEvents
+                              .filter(e => !e.parentId)
+                              .slice(0, isMobile ? 3 : 5)
+                              .map((event) => (
+                                <EventChip key={event.id} event={event} isPC={!isMobile} />
+                              ))}
                             {dayEvents.length > (isMobile ? 3 : 5) && (
                               <Typography sx={{ fontSize: { xs: '10px', md: '11px' }, color: 'text.secondary', fontWeight: 600 }}>
                                 +{dayEvents.length - (isMobile ? 3 : 5)}

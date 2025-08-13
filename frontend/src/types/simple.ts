@@ -31,6 +31,15 @@ export interface Workplace {
   autoBreak6Hours?: boolean; // 6時間越えで45分休憩（デフォルトtrue）
   autoBreak8Hours?: boolean; // 8時間越えで60分休憩（デフォルトtrue）
   dayOfWeekSettingsEnabled?: boolean; // 曜日別設定（デフォルトfalse）
+  // 詳細休憩設定
+  breakAuto4hEnabled?: boolean; // 4時間越えで休憩
+  breakAuto6hEnabled?: boolean; // 6時間越えで休憩
+  breakAuto8hEnabled?: boolean; // 8時間越えで休憩
+  breakRules?: {
+    over4h?: number; // 4時間越えの休憩時間（分）
+    over6h?: number; // 6時間越えの休憩時間（分）
+    over8h?: number; // 8時間越えの休憩時間（分）
+  };
   // 追加の任意フィールド（詳細編集用）
   description?: string;
   paymentDate?: number;
