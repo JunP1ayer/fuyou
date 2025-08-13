@@ -105,6 +105,12 @@ interface UnifiedStore {
   addWorkplace: (workplace: Omit<Workplace, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateWorkplace: (id: string, updates: Partial<Workplace>) => void;
   deleteWorkplace: (id: string) => void;
+  
+  // === Earnings Calculations ===
+  getShiftsByDate: (date: string) => Shift[];
+  getShiftsByMonth: (year: number, month: number) => Shift[];
+  getTotalEarningsForMonth: (year: number, month: number) => number;
+  getTotalEarningsForYear: (year: number) => number;
 
   // === Friends State ===
   friends: Friend[];
@@ -303,6 +309,31 @@ export const useUnifiedStore = create<UnifiedStore>()(
             // 関連するシフトも削除または更新
             state.shifts = state.shifts.filter(s => s.workplaceId !== id);
           });
+        },
+
+        // === Earnings Calculation Methods ===
+        getShiftsByDate: (date) => {
+          return get().shifts.filter(shift => shift.date === date);
+        },
+
+        getShiftsByMonth: (year, month) => {
+          return get().shifts.filter(shift => {
+            const shiftDate = new Date(shift.date);
+            return shiftDate.getFullYear() === year && shiftDate.getMonth() === month - 1;
+          });
+        },
+
+        getTotalEarningsForMonth: (year, month) => {
+          const monthShifts = get().getShiftsByMonth(year, month);
+          return monthShifts.reduce((total, shift) => total + (shift.totalEarnings || 0), 0);
+        },
+
+        getTotalEarningsForYear: (year) => {
+          const yearShifts = get().shifts.filter(shift => {
+            const shiftDate = new Date(shift.date);
+            return shiftDate.getFullYear() === year;
+          });
+          return yearShifts.reduce((total, shift) => total + (shift.totalEarnings || 0), 0);
         },
 
         // === Friends Actions ===

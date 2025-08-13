@@ -17,7 +17,7 @@ import { JobManagementHub } from '../JobManagementHub';
 import { QuickShiftDialog } from './QuickShiftDialog';
 import { GPT5ShiftSubmissionFlow } from '../GPT5ShiftSubmissionFlow';
 import { useCalendarStore } from '../../store/calendarStore';
-import { useSimpleShiftStore } from '../../store/simpleShiftStore';
+import { useUnifiedStore } from '../../store/unifiedStore';
 import type { CalendarEvent } from '../../types/calendar';
 import type { ThemeMode } from '../../types';
 
@@ -30,7 +30,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
 }) => {
   const theme = useTheme();
   const { importFromShifts, openEventDialog, openEditDialog } = useCalendarStore();
-  const { shifts } = useSimpleShiftStore();
+  const { shifts } = useUnifiedStore();
   
   const [currentTab, setCurrentTab] = useState<NewTabValue>('shift');
   const [dayEventsOpen, setDayEventsOpen] = useState(false);

@@ -15,7 +15,7 @@ import {
   isSameDay
 } from 'date-fns';
 import { useI18n } from '@/hooks/useI18n';
-import { useCalendarStore } from '../../store/calendarStore';
+import { useUnifiedCalendar } from '../../hooks/useUnifiedCalendar';
 import type { CalendarEvent } from '../../types/calendar';
 
 const WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土'];
@@ -223,7 +223,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     events, 
     openEventDialog,
     setHeaderMonth,
-  } = useCalendarStore();
+  } = useUnifiedCalendar();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const currentMonthRef = useRef<HTMLDivElement | null>(null);
 
@@ -250,13 +250,18 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     }
   };
 
-  // 仮想スクロール用の設定
-  const [visibleRange, setVisibleRange] = useState({ start: -2, end: 2 }); // 表示する月の範囲
+  // 仮想スクロール用の設定（さらに最適化）
+  const [visibleRange, setVisibleRange] = useState({ start: -2, end: 2 }); // より少ない初期表示でさらに高速化
   const [scrollOffset, setScrollOffset] = useState(0);
   const monthRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const isLoadingRef = useRef(false); // ローディング中フラグ
+  const lastScrollTime = useRef(0); // 最終スクロール時刻
+  const intersectionObserverRef = useRef<IntersectionObserver | null>(null); // Intersection Observer
+  const [isUserScrolling, setIsUserScrolling] = useState(false); // ユーザースクロール検出
 
-  // 縦スクロール用の月間データ生成（動的に生成）
-  const generateVisibleMonths = useCallback(() => {
+
+  // 縦スクロール用の月間データ生成（メモ化で最適化）
+  const generateVisibleMonths = useMemo(() => {
     const months: Date[] = [];
     for (let i = visibleRange.start; i <= visibleRange.end; i++) {
       months.push(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + i, 1));
@@ -265,7 +270,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
   }, [currentMonth, visibleRange]);
 
   // PC版は単月表示、モバイル版は仮想スクロール
-  const multipleMonths = isMobile && viewMode === 'vertical' ? generateVisibleMonths() : [currentMonth];
+  const multipleMonths = isMobile && viewMode === 'vertical' ? generateVisibleMonths : [currentMonth];
+  
   
   // 初期スクロール位置を当月へ
   useEffect(() => {
@@ -276,68 +282,92 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     }
   }, [isMobile, viewMode, currentMonth]);
 
-  // Throttling用のref
-  const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // requestAnimationFrame用のref
+  const throttleTimeoutRef = useRef<number | null>(null);
 
-  // スクロールイベントハンドラー（仮想スクロール用・throttling付き）
+  // 超高性能スクロールハンドラー（Intersection Observer + 最適化）
   const handleScrollCore = useCallback((): void => {
-    if (!containerRef.current || !isMobile || viewMode !== 'vertical') return;
+    if (!containerRef.current || !isMobile || viewMode !== 'vertical' || isLoadingRef.current) return;
     
+    const now = Date.now();
     const container = containerRef.current;
     const scrollTop = container.scrollTop;
     const scrollHeight = container.scrollHeight;
     const clientHeight = container.clientHeight;
     
-    // 上端に近づいたら前の月を追加
-    if (scrollTop < 800 && visibleRange.start > -120) {
-      setVisibleRange(prev => ({ start: Math.max(prev.start - 2, -120), end: prev.end }));
-      // スクロール位置を調整して飛びを防ぐ
+    // 超高速スクロール検出（処理を大幅にスキップ）
+    const scrollSpeed = Math.abs(scrollTop - (scrollOffset || 0));
+    if (scrollSpeed > 2000 || now - lastScrollTime.current < 150) {
+      setScrollOffset(scrollTop);
+      return;
+    }
+    lastScrollTime.current = now;
+    setScrollOffset(scrollTop);
+    
+    // ユーザースクロール中フラグを設定
+    setIsUserScrolling(true);
+    const scrollEndTimer = setTimeout(() => setIsUserScrolling(false), 150);
+    
+    // より効率的な境界検出
+    const topThreshold = clientHeight;
+    const bottomThreshold = clientHeight;
+    
+    // 上端近づき検出（より少ない追加で効率化）
+    if (scrollTop < topThreshold && visibleRange.start > -48) {
+      isLoadingRef.current = true;
+      setVisibleRange(prev => ({ start: Math.max(prev.start - 1, -48), end: prev.end }));
+      
       requestAnimationFrame(() => {
-        const newNode = monthRefs.current.get(visibleRange.start - 2);
-        if (newNode && container) {
-          container.scrollTop = scrollTop + newNode.offsetHeight;
-        }
+        isLoadingRef.current = false;
       });
     }
     
-    // 下端に近づいたら次の月を追加
-    if (scrollTop + clientHeight > scrollHeight - 800 && visibleRange.end < 120) {
-      setVisibleRange(prev => ({ start: prev.start, end: Math.min(prev.end + 2, 120) }));
+    // 下端近づき検出
+    if (scrollTop + clientHeight > scrollHeight - bottomThreshold && visibleRange.end < 48) {
+      isLoadingRef.current = true;
+      setVisibleRange(prev => ({ start: prev.start, end: Math.min(prev.end + 1, 48) }));
+      
+      requestAnimationFrame(() => {
+        isLoadingRef.current = false;
+      });
     }
     
-    // 古い月を削除してメモリを節約
-    if (visibleRange.end - visibleRange.start > 10) {
-      if (scrollTop > scrollHeight * 0.7) {
-        // 下の方にスクロールしている場合、上の月を削除
-        setVisibleRange(prev => ({ start: prev.start + 2, end: prev.end }));
-      } else if (scrollTop < scrollHeight * 0.3) {
-        // 上の方にスクロールしている場合、下の月を削除
-        setVisibleRange(prev => ({ start: prev.start, end: prev.end - 2 }));
+    // 積極的メモリ管理（範囲をより厳格に制限）
+    const currentRange = visibleRange.end - visibleRange.start;
+    if (currentRange > 6) {
+      const scrollRatio = scrollTop / Math.max(scrollHeight, 1);
+      if (scrollRatio > 0.6) {
+        setVisibleRange(prev => ({ start: prev.start + 1, end: prev.end }));
+      } else if (scrollRatio < 0.4) {
+        setVisibleRange(prev => ({ start: prev.start, end: prev.end - 1 }));
       }
     }
-  }, [isMobile, viewMode, visibleRange]);
-
-  // Throttled scroll handler
-  const handleScroll = useCallback((): void => {
-    if (throttleTimeoutRef.current) return; // 既にスケジュール済みなら実行しない
     
-    throttleTimeoutRef.current = setTimeout(() => {
+    clearTimeout(scrollEndTimer);
+  }, [isMobile, viewMode, visibleRange, scrollOffset]);
+
+  // 最適化されたスクロールハンドラー（requestAnimationFrameベース）
+  const handleScroll = useCallback((): void => {
+    if (throttleTimeoutRef.current) return;
+    
+    throttleTimeoutRef.current = requestAnimationFrame(() => {
       handleScrollCore();
       throttleTimeoutRef.current = null;
-    }, 16); // 60FPS相当の16ms間隔でthrottle
+    });
   }, [handleScrollCore]);
 
-  // スクロールイベントリスナー登録
+  // スクロールイベントリスナー登録（最適化）
   useEffect(() => {
     const container = containerRef.current;
     if (!container || !isMobile || viewMode !== 'vertical') return undefined;
     
+    // パッシブリスナーで性能向上
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       container.removeEventListener('scroll', handleScroll);
-      // クリーンアップ時にタイマーもクリア
+      // requestAnimationFrameのクリーンアップ
       if (throttleTimeoutRef.current) {
-        clearTimeout(throttleTimeoutRef.current);
+        cancelAnimationFrame(throttleTimeoutRef.current);
         throttleTimeoutRef.current = null;
       }
     };
@@ -353,37 +383,45 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
       // 端まで表示（親の余白に依存しない）
       px: 0,
     }}>
-      {/* 曜日ヘッダー - モバイル:月曜始まり、PC:日曜始まり */}
-      {true && (
-        <Box sx={{ height: { xs: '34px', md: '36px' }, flexShrink: 0 }}>
-          <Grid container spacing={0} sx={{ height: '100%' }}>
-            {(isMobile ? [1,2,3,4,5,6,0] : [0,1,2,3,4,5,6]).map((dow, index) => {
-              const day = t(`calendar.weekdays.${dow}`, WEEKDAYS_JA[dow]);
-              return (
-                <Grid item xs key={day}>
-                  <Box
-                    sx={{
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 600,
-                      letterSpacing: 0.2,
-                      fontSize: { xs: '12px', md: '13px' },
-                      color: dow === 0 ? 'error.main' : dow === 6 ? 'info.main' : 'text.secondary',
-                      borderBottom: '1px solid',
-                      borderColor: 'divider',
-                      backgroundColor: 'transparent',
-                    }}
-                  >
-                    {day}
-                  </Box>
-                </Grid>
-              );
-            })}
-          </Grid>
-        </Box>
-      )}
+      {/* 曜日ヘッダー - 固定表示（モバイル:月曜始まり、PC:日曜始まり） */}
+      <Box sx={{ 
+        height: { xs: '34px', md: '36px' }, 
+        flexShrink: 0,
+        position: 'sticky',
+        top: 0,
+        zIndex: 100, // 月境界線より確実に上に表示
+        backgroundColor: 'background.paper',
+        borderBottom: '2px solid',
+        borderColor: 'divider',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)', // 影を追加して浮いて見えるように
+      }}>
+        <Grid container spacing={0} sx={{ height: '100%' }}>
+          {(isMobile ? [1,2,3,4,5,6,0] : [0,1,2,3,4,5,6]).map((dow, index) => {
+            const day = t(`calendar.weekdays.${dow}`, WEEKDAYS_JA[dow]);
+            return (
+              <Grid item xs key={day}>
+                <Box
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 600,
+                    letterSpacing: 0.2,
+                    fontSize: { xs: '12px', md: '13px' },
+                    color: dow === 0 ? 'error.main' : dow === 6 ? 'info.main' : 'text.secondary',
+                    backgroundColor: 'background.paper',
+                    position: 'relative',
+                    zIndex: 1, // 親のz-indexを継承して確実に表示
+                  }}
+                >
+                  {day}
+                </Box>
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Box>
 
       {/* カレンダー本体 */}
       <Box sx={{ 
@@ -392,8 +430,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
         flexDirection: 'column',
         height: isMobile && viewMode === 'vertical' ? 'auto' : 'calc(100% - 36px)', // 曜日ヘッダー分を差し引く（PC版は36px）
         minHeight: 0,
-        px: { xs: 0, md: 0 }, // PC版の左右余白を削除してフル幅に
-        py: { xs: 0, md: 0 }, // PC版の上下余白も削除
+        px: 0, // 全ての余白を削除
+        py: 0, // 全ての余白を削除
+        m: 0,  // 全てのマージンを削除
+        gap: 0, // フレックスアイテム間のギャップを削除
       }}>
         {multipleMonths.map((month, monthIndex) => {
           const monthOffset = visibleRange.start + monthIndex; // 実際の月のオフセット
@@ -401,30 +441,65 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
           const monthEnd = endOfMonth(month);
           // モバイル:月曜始まり、PC:日曜始まり
           const weekStartsOn = isMobile ? 1 : 0;
-          // モバイル版はシームレスに月をつなげる（前後の週も含めない）
+          // 週の重複を避けるため、当月の日付を含む週のみを表示
           const calendarStart = startOfWeek(monthStart, { weekStartsOn });
           const calendarEnd = endOfWeek(monthEnd, { weekStartsOn });
           const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
           
           const weeks: Date[][] = [];
           for (let i = 0; i < calendarDays.length; i += 7) {
-            weeks.push(calendarDays.slice(i, i + 7));
+            const week = calendarDays.slice(i, i + 7);
+            
+            if (isMobile && viewMode === 'vertical') {
+              // 月をまたぐ週の重複を防ぐ：厳格なルール適用
+              const currentMonthDays = week.filter(day => isSameMonth(day, month)).length;
+              
+              
+              // 厳格な条件：当月の日数が4日以上の場合のみ表示
+              if (currentMonthDays >= 4) {
+                weeks.push(week);
+              }
+              // 例外：当月日数が3日でも月初週（1日含む）で、かつ前月が週の大部分を占めない場合のみ表示
+              else if (currentMonthDays === 3) {
+                const hasFirstDay = week.some(day => 
+                  isSameMonth(day, month) && day.getDate() === 1
+                );
+                // 前月が4日以上ある場合は表示しない（前月側で既に表示済み）
+                const prevMonth = new Date(month.getFullYear(), month.getMonth() - 1, 1);
+                const prevMonthDays = week.filter(day => isSameMonth(day, prevMonth)).length;
+                
+                if (hasFirstDay && prevMonthDays < 4) {
+                  weeks.push(week);
+                }
+              }
+              // 当月日数が1-2日の場合は表示しない（重複回避）
+            } else {
+              // PC版は従来通り
+              weeks.push(week);
+            }
           }
           
           // 交差監視でヘッダーの月表示を更新
-          const monthRef = (el: HTMLDivElement | null) => {
-            if (!el || !(isMobile && viewMode === 'vertical')) return;
+          const monthRef = (el: HTMLDivElement | null): (() => void) | undefined => {
+            if (!el || !(isMobile && viewMode === 'vertical')) return undefined;
             const observer = new IntersectionObserver(
               (entries) => {
                 entries.forEach((entry) => {
-                  if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+                  if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
                     setHeaderMonth(month);
                   }
                 });
               },
-              { root: containerRef.current, threshold: [0.6] }
+              { 
+                root: containerRef.current, 
+                threshold: [0.2, 0.3, 0.5, 0.8], 
+                rootMargin: '-10% 0px -10% 0px' // より敏感に反応
+              }
             );
             observer.observe(el);
+            
+            // クリーンアップ関数を返す
+            return () => observer.disconnect();
           };
 
           return (
@@ -433,7 +508,12 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
               ref={(node) => {
                 if (node && node instanceof HTMLDivElement) {
                   if (isSameMonth(month, currentMonth)) currentMonthRef.current = node;
-                  monthRef(node);
+                  
+                  // 交差監視の設定
+                  if (isMobile && viewMode === 'vertical') {
+                    monthRef(node);
+                  }
+                  
                   monthRefs.current.set(monthOffset, node); // 月のrefを保存
                 }
               }}
@@ -441,9 +521,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
-                mb: 0,
-                flex: 1,
+                mb: 0, // 月間の余白を完全削除
+                pb: 0, // 月の下パディングを削除
+                flex: (isMobile && viewMode === 'vertical') ? 'none' : 1,
                 minHeight: 0,
+                // 月境界線は削除（日付セル間で処理）
               }}
             >
               {/* 背景の薄い月数字 */}
@@ -457,9 +539,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                   pointerEvents: 'none',
                   userSelect: 'none',
                   fontWeight: 700,
-                  fontSize: { xs: '112px', md: '200px' },
-                  color: alpha(theme.palette.text.primary, 0.04), // モバイル版もPC版も薄く
+                  fontSize: { xs: '120px', md: '200px' },
+                  color: alpha(theme.palette.text.primary, 0.08), // もう少し濃くして見やすく
                   lineHeight: 1,
+                  zIndex: 1, // 日付セルの上に配置
                 }}
               >
                 {format(month, 'M')}
@@ -471,12 +554,15 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                   flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
                   height: isMobile && viewMode === 'vertical' ? '118px' : `calc(100% / ${weeks.length})`,
                   minHeight: isMobile && viewMode === 'vertical' ? '118px' : 0,
-                  // 月の境目の視認性向上: 月最終週の下に太線（黒）
-                  borderBottom: weekIndex === weeks.length - 1 ? (isMobile ? '2px solid' : '2px solid') : 0,
-                  borderBottomColor: 'common.black',
-                  borderColor: 'divider'
+                  m: 0, // 週の余白を削除
+                  p: 0, // 週のパディングを削除
+                  // 月境界線を削除してシームレスに
+                  border: 'none',
                 }}>
-                  <Grid container spacing={0} sx={{ height: '100%' }}>
+                  <Grid container spacing={0} sx={{ 
+                    height: '100%',
+                    // 週境界線は削除（月境界のみ黒線）
+                  }}>
                   {week.map((day, dayIndex) => {
                     const dateStr = format(day, 'yyyy-MM-dd');
                     const dayEvents = events.filter(e => e.date === dateStr);
@@ -506,24 +592,82 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                             width: '100%',
                             p: { xs: 0.75, md: 1.2 }, // PC版は余白をもう少し大きく
                             cursor: 'pointer',
-                            // 線の重なりを防ぎ、月間境界の"微妙なすきま"を解消
-                            border: 0,
-                            borderTop: '1px solid',
-                            borderLeft: dayIndex === 0 ? '1px solid' : 0,
-                            borderRight: dayIndex === 6 ? '1px solid' : 0,
-                            borderBottom: 0,
-                            borderColor: 'divider',
+                            // 日付間の通常区切り線
+                            borderTop: '0.5px solid rgba(0, 0, 0, 0.08)',
+                            borderLeft: '0.5px solid rgba(0, 0, 0, 0.08)', 
+                            borderBottom: (() => {
+                              // 月境界の場合は疑似要素で処理するため、borderBottomは無効化
+                              const nextDay = new Date(day);
+                              nextDay.setDate(day.getDate() + 1);
+                              const isMonthBoundary = nextDay.getDate() === 1;
+                              const isFirstDay = day.getDate() === 1;
+                              
+                              if (isMonthBoundary || isFirstDay) {
+                                return '0'; // 疑似要素で処理するため無効化
+                              }
+                              return '0.5px solid rgba(0, 0, 0, 0.08)';
+                            })(),
+                            // 月境界の判定：この日が月末で右隣が翌月1日なら右側に太い境界線
+                            borderRight: (() => {
+                              // 週の最後（日曜日）は通常の境界線
+                              if (dayIndex === 6) return '0.5px solid rgba(0, 0, 0, 0.08)';
+                              
+                              // この日の翌日が翌月1日かチェック
+                              const nextDay = new Date(day);
+                              nextDay.setDate(day.getDate() + 1);
+                              const isMonthBoundary = nextDay.getDate() === 1;
+                              
+                              return isMonthBoundary ? '2px solid #333' : '0.5px solid rgba(0, 0, 0, 0.08)';
+                            })(),
                             display: 'flex',
                             flexDirection: 'column',
                             backgroundColor: !isCurrentMonth && dimOutsideMonth 
-                              ? { xs: 'background.paper', md: alpha(theme.palette.action.disabledBackground, 0.02) }
-                              : 'background.paper',
+                              ? { xs: alpha(theme.palette.background.paper, 0.8), md: alpha(theme.palette.action.disabledBackground, 0.02) }
+                              : alpha(theme.palette.background.paper, 0.8), // 半透明にして背景月数字が見えるように
                             outline: isTodayDate ? `2px solid ${alpha(theme.palette.primary.main, 0.6)}` : 'none',
                             outlineOffset: '-1px',
                             '&:hover': {
                               backgroundColor: alpha(theme.palette.primary.main, 0.08),
                             },
                             transition: 'background-color 0.2s ease',
+                            // 月境界の横線延長（疑似要素）
+                            position: 'relative',
+                            '&::before': (() => {
+                              // 月最終日：左端まで延長する下線（border-bottomを無効化して疑似要素で一本化）
+                              const nextDay = new Date(day);
+                              nextDay.setDate(day.getDate() + 1);
+                              const isLastDayOfMonth = nextDay.getDate() === 1;
+                              
+                              if (isLastDayOfMonth) {
+                                return {
+                                  content: '""',
+                                  position: 'absolute',
+                                  bottom: '-1px', // 完全に同じ位置に配置
+                                  left: `-${dayIndex * 100 + 10}%`, // 左端まで確実に延長（10%の大きな余裕）
+                                  width: `${(dayIndex + 1) * 100 + 11.5}%`, // 現在のセルより右に延長（11.5%の余裕）
+                                  height: '2px',
+                                  backgroundColor: '#333',
+                                  zIndex: 5, // 曜日ヘッダーより下に配置
+                                };
+                              }
+                              return {};
+                            })(),
+                            '&::after': (() => {
+                              // 月1日：右端まで延長する上線（borderは薄いまま、延長のみ太い線）
+                              if (day.getDate() === 1) {
+                                return {
+                                  content: '""',
+                                  position: 'absolute',
+                                  top: '0px', // 月末日の下線と全く同じ横位置になるよう調整
+                                  left: '-1%', // 左に1%延長
+                                  width: `${(7 - dayIndex) * 100 + 11}%`, // 右端まで適切に延長（11%の余裕）
+                                  height: '2px',
+                                  backgroundColor: '#333',
+                                  zIndex: 5, // 曜日ヘッダーより下に配置
+                                };
+                              }
+                              return {};
+                            })(),
                           }}
                           onClick={() => handleDateClick(day)}
                         >

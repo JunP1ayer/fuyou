@@ -31,7 +31,7 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
-import { useShiftStore } from '@store/shiftStore';
+import { useUnifiedStore } from '../../store/unifiedStore';
 import { formatCurrency } from '@/utils/calculations';
 
 // 2025年扶養限度額
@@ -45,7 +45,7 @@ type RiskLevel = 'safe' | 'warning' | 'danger';
 
 export const EarningsDashboard: React.FC = () => {
   const theme = useTheme();
-  const { shifts, getTotalEarningsForMonth } = useShiftStore();
+  const { shifts, getTotalEarningsForMonth, getTotalEarningsForYear } = useUnifiedStore();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // 年間収入を計算
