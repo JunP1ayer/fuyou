@@ -14,9 +14,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### フロントエンド
 - **React 18** + **TypeScript** + **Material-UI v5**
-- **Vite 5.4.11** (開発・ビルド、WSL2対応)
-- **PWA機能**: Service Worker対応
-- **認証**: Supabase Auth + Demo認証システム
+- **Vite 6.0.1** (最新版、開発・ビルド)
+- **Zustand**: 状態管理（Immer + Persist）
+- **PWA機能**: Service Worker対応、オフライン機能
+- **多言語対応**: 6言語（日/英/独/仏/伊/西）
+- **認証**: 複数システム対応（SimpleAuth + Supabase + Demo）
 
 ### バックエンド  
 - **Node.js** + **Express** + **TypeScript**
@@ -41,23 +43,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 開発サーバー起動
 ```bash
-# フロントエンド (http://localhost:3000)
-npm run dev:frontend
+# フロントエンド (http://localhost:4001)
+cd frontend && npm run dev
 
 # バックエンド (http://localhost:3001)  
-npm run dev:backend
+cd backend && npm run dev
+
+# Vercel サーバーレス版
+vercel dev
 ```
 
 ### ビルド・品質チェック
 ```bash
 # フロントエンド
-npm run build:frontend
-npm run typecheck:frontend
-npm run lint:frontend
+cd frontend && npm run build
+cd frontend && npm run typecheck
+cd frontend && npm run lint
 
 # バックエンド
-npm run build:backend
+cd backend && npm run build
 cd backend && npm run lint
+
+# サーバーレス版
+npm run build
 ```
 
 ### テスト
@@ -104,23 +112,29 @@ vercel --prod
 - **エラーハンドリング**: `asyncHandler` + `createError`
 
 ### フロントエンド状態管理
-- **認証**: React Context (`AuthContext`) + Custom Hook (`useAuth`)
+- **統合ストア**: Zustand + Immer + Persist（`unifiedStore.ts`）
+- **カレンダー統合**: `useUnifiedCalendar` フックでシフト・カレンダーデータ統合
+- **認証**: 複数認証システム（SimpleAuth + Supabase + Demo認証）
 - **API通信**: 集約サービス (`apiService`) + TypeScript型定義
-- **UI状態**: ローカルstate + useCallback パフォーマンス最適化
+- **UI状態**: Zustand による集中管理 + useCallback パフォーマンス最適化
 
 ## 📂 重要なファイル構成
 
 ### プロジェクト全体構成
 ```
 fuyou/
-├── 📁 静的HTML版
-│   ├── fuyou-interactive-v6.html      # シフトボード風UX版
-│   ├── fuyou-serverless-v5.html       # AI搭載サーバーレス版
-│   └── calendar-main.html             # メインランディングページ
-├── 📁 サーバーレスAPI (api/)
-│   ├── openai-vision.js               # OpenAI Vision API統合
-│   └── gemini-vision.js               # Google Gemini API統合
+├── 📁 サーバーレス版（メイン）
+│   ├── package.json                   # サーバーレス版設定
+│   ├── vercel.json                    # Vercel デプロイ設定
+│   └── api/                           # Vercel Functions
+│       ├── openai-vision.js           # OpenAI Vision API統合
+│       └── demo/login.js              # Demo認証API
 ├── 📁 React フロントエンド (frontend/)
+│   ├── package.json                   # フロントエンド依存関係 (Vite 6.0)
+│   └── src/
+│       ├── store/unifiedStore.ts      # Zustand統合ストア
+│       ├── hooks/useUnifiedCalendar.ts # カレンダー統合フック
+│       └── components/calendar/       # 統合カレンダーUI
 ├── 📁 Node.js バックエンド (backend/)
 ├── 📁 Python最適化サービス (optimization_service/)
 └── 📁 データベース (database/)
@@ -156,28 +170,33 @@ backend/src/
 ### フロントエンド主要ファイル
 ```
 frontend/src/
+├── store/
+│   ├── unifiedStore.ts             # Zustand統合ストア（メイン状態管理）
+│   ├── calendarStore.ts            # カレンダー専用ストア
+│   └── i18nStore.ts                # 国際化ストア
+├── hooks/
+│   ├── useUnifiedCalendar.ts       # 統合カレンダーフック
+│   ├── useI18n.ts                  # 国際化フック
+│   └── usePWA.ts                   # PWA機能フック
 ├── components/
-│   ├── shifts/                      # シフト管理UI (Phase 1完成)
-│   │   ├── ShiftCalendar.tsx       # メインカレンダー表示
-│   │   ├── ShiftFormDialog.tsx     # シフト新規登録
-│   │   ├── ShiftEditDialog.tsx     # シフト編集
-│   │   └── EarningsProjectionCard.tsx # 収入予測表示
-│   ├── CSVUpload.tsx               # CSV アップロード
-│   ├── Dashboard.tsx               # メインダッシュボード
-│   ├── FuyouStatusCard.tsx         # 扶養ステータス表示
-│   ├── AlertsPanel.tsx             # アラート表示
-│   ├── IncomeHistoryCard.tsx       # 収入履歴表示
-│   ├── OCRUpload.tsx               # OCR画像アップロード (Phase 3完成)
-│   ├── OCRProcessor.tsx            # OCR処理UI (Phase 3完成)
-│   ├── OCRResultEditor.tsx         # OCR結果編集 (Phase 3完成)
-│   └── OCRShiftManager.tsx         # OCR統合管理 (Phase 3完成)
-├── types/
-│   ├── shift.ts                    # シフト関連型定義
-│   ├── fuyou.ts                    # 扶養管理型定義
-│   └── ocr.ts                      # OCR型定義 (Phase 3完成)
+│   ├── calendar/                   # 統合カレンダーUI (最新)
+│   │   ├── CalendarApp.tsx         # メインカレンダーアプリ
+│   │   ├── CalendarGrid.tsx        # グリッド表示
+│   │   ├── MonthCalendar.tsx       # 月間カレンダー
+│   │   └── NewBottomNavigation.tsx # タブナビゲーション
+│   ├── auth/                       # 認証UI
+│   │   ├── SimpleAuthForm.tsx      # シンプル認証フォーム
+│   │   └── LanguageSelectionScreen.tsx # 言語選択
+│   ├── salary/
+│   │   └── MobileSalaryView.tsx    # 給与計算ビュー
+│   ├── FriendSharingHub.tsx        # 友達共有機能
+│   ├── GPT5ShiftSubmissionFlow.tsx # AI統合シフト登録
+│   └── ShiftImageAnalyzer.tsx      # AI画像解析
+├── utils/
+│   └── shiftToCalendarConverter.ts # シフト⇔カレンダー変換
 ├── services/api.ts                 # API通信サービス（全エンドポイント対応）
-├── contexts/AuthContext.tsx        # 認証管理
-└── utils/                          # ユーティリティ関数
+├── contexts/                       # React Context
+└── locales/                        # 多言語ファイル (6言語対応)
 ```
 
 ### Python最適化サービス構成
@@ -232,32 +251,47 @@ optimization_service/
 
 ## 🎯 現在の実装状況
 
-### ✅ 完了済み (Phase 1-3完成)
+### ✅ 完了済み (Phase 1-4完成)
 - CSV入力による収入データ取得・分析
 - 2025年制度対応扶養計算エンジン
 - デモ認証システム（UUID対応、WSL2最適化）
 - Material-UI ダッシュボード（タブ式ナビゲーション）
-- **シフト管理機能** (手動シフト登録・編集・削除)
-- **シフトカレンダー表示** (月間ビュー、日別詳細表示)
-- **収入予測機能** (年収予測、扶養限度額警告、リスク評価)
+- **統合シフト管理** (Zustand統合ストア、リアルタイム同期)
+- **統合カレンダーシステム** (シフトデータ自動統合、月間・年間ビュー)
+- **収入予測・分析機能** (年収予測、扶養限度額警告、リスク評価)
 - **OCR機能** (Google Cloud Vision API統合、レート制限付き)
-- **WSL2開発環境** (Vite 7.x対応、複数回避策実装)
+- **友達共有機能** (シェアコード、スケジュール共有)
+- **多言語対応** (日本語・英語・ドイツ語など6言語)
+- **PWA対応** (オフライン機能、プッシュ通知)
+- **Vite 6.0対応開発環境** (最新版アップデート完了)
 - **包括的API設計** (Shifts, Projections, Stats, OCR全対応)
-- **フロントエンドOCR UI** (画像アップロード、処理UI、結果編集、シフト統合)
+- **AI統合** (GPT-5シフト分析、OpenAI Vision API統合)
 
 ### 📋 今後の計画  
-- **Phase 4**: 最適化アルゴリズム（基本線形計画法は完成、遺伝的アルゴリズム・多目的最適化は開発中）
-- **Phase 5**: 銀行API連携・ML基盤制約学習
-- **Phase 6**: モバイルアプリ化・リアルタイム最適化
+- **Phase 5**: 最適化アルゴリズムの高度化（遺伝的アルゴリズム・多目的最適化）
+- **Phase 6**: 銀行API連携・ML基盤制約学習
+- **Phase 7**: ネイティブモバイルアプリ化・リアルタイム最適化
+
+## 🎯 重要な開発原則
+
+### 状態管理アーキテクチャ
+- **Single Source of Truth**: `unifiedStore.ts`による集中状態管理
+- **Optimistic Updates**: ローカル更新優先 + バックグラウンド同期
+- **型安全性**: 全ストア・API・コンポーネントでTypeScript strict mode
+- **パフォーマンス**: Zustand subscribeWithSelector による選択的再レンダリング
+
+### API設計思想
+- **Graceful Degradation**: オフライン時も基本機能継続
+- **エラーハンドリング**: 全API呼び出しでtry-catch + ユーザーフィードバック
+- **レート制限**: OCR機能等で適切な制限実装
+- **バージョニング**: `/api/v1/`形式での将来対応
 
 ## 🛠️ WSL2開発環境対応
 
-### Vite開発サーバー問題
-- **問題**: Vite 7.0.4がWSL2で正常にバインドされない
-- **対策**: 複数の回避策スクリプトを実装
-  - `workaround-dev.cjs` - プロキシ経由でのサーバー起動
-  - `fix-vite-wsl.cjs` - Express プロキシサーバー
-  - `downgrade-vite.cjs` - Vite 5.xへのダウングレード
+### Vite開発サーバー問題（解決済み）
+- **現状**: Vite 6.0.1で安定動作確認済み
+- **設定**: `--host 0.0.0.0 --port 4001`でWSL2内部アクセス対応
+- **過去の対策**: バージョンアップにより回避策スクリプト不要に
 
 ### npm権限問題
 - **問題**: WSL2でnpm installに管理者権限が必要
@@ -300,6 +334,13 @@ optimization_service/
 - **色彩設計**: 緑(安全)、黄(警告)、赤(危険) の直感的な色分け
 
 ## 🔧 アーキテクチャパターン
+
+### 統合カレンダーアーキテクチャ
+- **統合ストア**: Zustand + Immer + Persistによる単一状態管理
+- **useUnifiedCalendar**: シフトデータとカレンダーイベントの自動統合
+- **自動変換**: `shiftToCalendarConverter`でシフト↔カレンダーイベント変換
+- **リアルタイム同期**: ローカル優先 + バックグラウンドAPI同期
+- **オフライン対応**: localStorage永続化 + オンライン復帰時同期
 
 ### 多版本展開戦略
 - **静的HTML版** (v5/v6): 軽量・高速・API設定不要
