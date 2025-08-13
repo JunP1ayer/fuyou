@@ -60,9 +60,6 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   // タブ切り替え処理（シンプル版）
   const handleTabChange = (tab: NewTabValue) => {
     setCurrentTab(tab);
-    
-    // シンプルなタブ切り替えのみ
-    console.log('Tab changed to:', tab);
   };
 
   // 日付クリック時の処理（直接シフト画面を開く）
@@ -357,12 +354,13 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
           bottom: 0,
           left: 0,
           right: 0,
-          zIndex: 1200,
+          zIndex: 1300,
+          pointerEvents: 'auto',
         }}
       >
         <NewBottomNavigation
           currentTab={currentTab}
-          onTabChange={setCurrentTab}
+          onTabChange={handleTabChange}
           onAIClick={handleAISubmission}
         />
       </Box>

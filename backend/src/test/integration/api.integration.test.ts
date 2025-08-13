@@ -3,7 +3,7 @@
  */
 
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import app from '../../app';
 import { supabase } from '../../utils/supabase';
 import { Server } from 'http';

@@ -14,6 +14,7 @@ import {
   isToday,
   isSameDay
 } from 'date-fns';
+import { ja } from 'date-fns/locale';
 import { useI18n } from '@/hooks/useI18n';
 import { useUnifiedCalendar } from '../../hooks/useUnifiedCalendar';
 import type { CalendarEvent } from '../../types/calendar';
@@ -21,20 +22,25 @@ import type { CalendarEvent } from '../../types/calendar';
 const WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土'];
 
 // イベントチップ（単日）- メモ化でレンダリング最適化
-const EventChip = React.memo<{ event: CalendarEvent; isPC?: boolean }>(
-  ({ event, isPC = false }) => {
+const EventChip = React.memo<{ event: CalendarEvent; isPC?: boolean; onClick?: () => void }>(
+  ({ event, isPC = false, onClick }) => {
     const displayTitle = event.type === 'shift'
       ? (event.workplace?.name || event.title || '')
       : (event.title || '');
+      
+    const earnings = event.type === 'shift' ? event.earnings || 0 : 0;
+    const displayEarnings = earnings > 0 ? `¥${earnings.toLocaleString()}` : '';
+    
     return (
       <Box
+        onClick={onClick}
         sx={{
-          backgroundColor: event.color,
+          backgroundColor: event.color || (event.type === 'shift' ? '#1976d2' : '#666'),
           color: '#fff',
           px: isPC ? 0.5 : 0.75,
           py: isPC ? 0.15 : 0.25,
           borderRadius: isPC ? 1 : 2,
-          fontSize: isPC ? '10px' : '11px',
+          fontSize: isPC ? '9px' : '10px',
           fontWeight: 600,
           whiteSpace: 'nowrap',
           overflow: 'hidden',
@@ -44,11 +50,34 @@ const EventChip = React.memo<{ event: CalendarEvent; isPC?: boolean }>(
           width: '100%',
           display: 'block',
           textAlign: 'left',
-          textShadow: '0 1px 1px rgba(0,0,0,0.35)',
-          '&:hover': { opacity: 0.8 },
+          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+          transition: 'all 0.2s ease',
+          '&:hover': { 
+            opacity: 0.85,
+            transform: 'scale(1.02)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          },
         }}
       >
-        {displayTitle}
+        <Typography variant="caption" sx={{ 
+          display: 'block', 
+          fontSize: 'inherit',
+          fontWeight: 'inherit',
+          lineHeight: 1.2,
+        }}>
+          {displayTitle}
+        </Typography>
+        {displayEarnings && (
+          <Typography variant="caption" sx={{ 
+            display: 'block', 
+            fontSize: isPC ? '8px' : '9px',
+            opacity: 0.9,
+            fontWeight: 500,
+            lineHeight: 1.1,
+          }}>
+            {displayEarnings}
+          </Typography>
+        )}
       </Box>
     );
   }
@@ -84,7 +113,7 @@ const SpanBand = React.memo<{ color: string; title: string; left: boolean; right
   )
 );
 
-// 日付セルコンポーネント - レンダリング最適化のためのメモ化
+// 日付セルコンポーネント - 高度にメモ化（props変更時のみ再レンダリング）
 const DateCell = React.memo<{
   day: Date;
   events: CalendarEvent[];
@@ -137,13 +166,22 @@ const DateCell = React.memo<{
       }}
       onClick={() => onDateClick(day)}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
-        {/* 日付数字を左側に表示 */}
-        <Box sx={{ mr: 'auto' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-start',
+        mb: 0.5,
+      }}>
+        {/* 日付数字 */}
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          minHeight: '20px',
+        }}>
           <Typography
             variant="body2"
             sx={{
-              fontWeight: isTodayDate ? 700 : 500,
+              fontWeight: isTodayDate ? 700 : 600,
               color: !isCurrentMonth && dimOutsideMonth
                 ? 'text.disabled'
                 : isTodayDate
@@ -153,23 +191,52 @@ const DateCell = React.memo<{
                     : dayOfWeek === 6
                       ? 'info.main'
                       : 'text.primary',
-              fontSize: { xs: '13px', md: '14px' },
+              fontSize: { xs: '14px', md: '15px' },
               transition: 'color 0.2s ease',
+              lineHeight: 1,
             }}
           >
             {format(day, 'd')}
           </Typography>
+          {isTodayDate && (
+            <Box
+              sx={{
+                width: 4,
+                height: 4,
+                backgroundColor: 'primary.main',
+                borderRadius: '50%',
+                ml: 0.5,
+              }}
+            />
+          )}
         </Box>
-        {/* モバイル版で月の1日目に月表示（右側に移動） */}
-        {showMonth && (
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ fontSize: '9px', lineHeight: 1 }}
-          >
-            {format(day, 'M')}
-          </Typography>
-        )}
+        {/* 月表示と収益サマリー */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+          {showMonth && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontSize: '10px', lineHeight: 1 }}
+            >
+              {format(day, 'MMM', { locale: ja })}
+            </Typography>
+          )}
+          {/* 日別収益合計表示 */}
+          {dayEvents.length > 0 && dayEvents.some(e => e.type === 'shift') && (
+            <Typography
+              variant="caption"
+              sx={{ 
+                fontSize: '8px', 
+                color: 'success.main',
+                fontWeight: 600,
+                lineHeight: 1,
+                mt: showMonth ? 0.25 : 0,
+              }}
+            >
+              ¥{dayEvents.filter(e => e.type === 'shift').reduce((sum, e) => sum + (e.earnings || 0), 0).toLocaleString()}
+            </Typography>
+          )}
+        </Box>
       </Box>
 
       {/* イベント表示 */}
@@ -250,14 +317,13 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     }
   };
 
-  // 仮想スクロール用の設定（さらに最適化）
-  const [visibleRange, setVisibleRange] = useState({ start: -2, end: 2 }); // より少ない初期表示でさらに高速化
+  // 超軽量仮想スクロール設定
+  const [visibleRange, setVisibleRange] = useState({ start: -1, end: 1 }); // 最小範囲で高速化
   const [scrollOffset, setScrollOffset] = useState(0);
   const monthRefs = useRef<Map<number, HTMLDivElement>>(new Map());
-  const isLoadingRef = useRef(false); // ローディング中フラグ
-  const lastScrollTime = useRef(0); // 最終スクロール時刻
-  const intersectionObserverRef = useRef<IntersectionObserver | null>(null); // Intersection Observer
-  const [isUserScrolling, setIsUserScrolling] = useState(false); // ユーザースクロール検出
+  const isLoadingRef = useRef(false);
+  const lastScrollTime = useRef(0);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
 
 
   // 縦スクロール用の月間データ生成（メモ化で最適化）
@@ -285,7 +351,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
   // requestAnimationFrame用のref
   const throttleTimeoutRef = useRef<number | null>(null);
 
-  // 超高性能スクロールハンドラー（Intersection Observer + 最適化）
+  // 高速スクロールハンドラー（ヘッダー月表示の即座更新を追加）
   const handleScrollCore = useCallback((): void => {
     if (!containerRef.current || !isMobile || viewMode !== 'vertical' || isLoadingRef.current) return;
     
@@ -295,66 +361,106 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
     const scrollHeight = container.scrollHeight;
     const clientHeight = container.clientHeight;
     
-    // 超高速スクロール検出（処理を大幅にスキップ）
+    // ヘッダー月表示の即座更新（最優先処理）
+    const centerY = scrollTop + clientHeight / 2;
+    let closestMonth: Date | null = null;
+    let minDistance = Infinity;
+    
+    // 各月の要素を確認してスクロール中央に最も近い月を特定
+    monthRefs.current.forEach((monthElement, monthOffset) => {
+      if (!monthElement) return;
+      
+      const elementTop = monthElement.offsetTop;
+      const elementBottom = elementTop + monthElement.offsetHeight;
+      const elementCenter = elementTop + monthElement.offsetHeight / 2;
+      
+      // 要素の中央がスクロール中央に最も近い月を計算
+      const distance = Math.abs(elementCenter - centerY);
+      if (distance < minDistance && elementBottom > scrollTop && elementTop < scrollTop + clientHeight) {
+        minDistance = distance;
+        closestMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + monthOffset, 1);
+      }
+    });
+    
+    // 最も近い月が見つかった場合、即座にヘッダーを更新
+    if (closestMonth) {
+      setHeaderMonth(closestMonth);
+    }
+    
+    // 超軽量スクロール処理（最小限の仮想スクロール）
     const scrollSpeed = Math.abs(scrollTop - (scrollOffset || 0));
-    if (scrollSpeed > 2000 || now - lastScrollTime.current < 150) {
+    if (scrollSpeed > 1000 || now - lastScrollTime.current < 150) {
       setScrollOffset(scrollTop);
       return;
     }
     lastScrollTime.current = now;
     setScrollOffset(scrollTop);
     
-    // ユーザースクロール中フラグを設定
-    setIsUserScrolling(true);
-    const scrollEndTimer = setTimeout(() => setIsUserScrolling(false), 150);
+    // 最小限の境界検出（3ヶ月表示に制限）
+    const threshold = clientHeight * 1.5;
     
-    // より効率的な境界検出
-    const topThreshold = clientHeight;
-    const bottomThreshold = clientHeight;
-    
-    // 上端近づき検出（より少ない追加で効率化）
-    if (scrollTop < topThreshold && visibleRange.start > -48) {
+    // 上端検出（最小限の追加）
+    if (scrollTop < threshold && visibleRange.start > -6) {
       isLoadingRef.current = true;
-      setVisibleRange(prev => ({ start: Math.max(prev.start - 1, -48), end: prev.end }));
-      
-      requestAnimationFrame(() => {
-        isLoadingRef.current = false;
-      });
+      setVisibleRange(prev => ({ start: prev.start - 1, end: prev.end }));
+      setTimeout(() => { isLoadingRef.current = false; }, 50);
     }
     
-    // 下端近づき検出
-    if (scrollTop + clientHeight > scrollHeight - bottomThreshold && visibleRange.end < 48) {
+    // 下端検出（最小限の追加）
+    if (scrollTop + clientHeight > scrollHeight - threshold && visibleRange.end < 6) {
       isLoadingRef.current = true;
-      setVisibleRange(prev => ({ start: prev.start, end: Math.min(prev.end + 1, 48) }));
-      
-      requestAnimationFrame(() => {
-        isLoadingRef.current = false;
-      });
+      setVisibleRange(prev => ({ start: prev.start, end: prev.end + 1 }));
+      setTimeout(() => { isLoadingRef.current = false; }, 50);
     }
     
-    // 積極的メモリ管理（範囲をより厳格に制限）
+    // 積極的範囲制限（3ヶ月まで）
     const currentRange = visibleRange.end - visibleRange.start;
-    if (currentRange > 6) {
+    if (currentRange > 3) {
       const scrollRatio = scrollTop / Math.max(scrollHeight, 1);
-      if (scrollRatio > 0.6) {
+      if (scrollRatio > 0.7) {
         setVisibleRange(prev => ({ start: prev.start + 1, end: prev.end }));
-      } else if (scrollRatio < 0.4) {
+      } else if (scrollRatio < 0.3) {
         setVisibleRange(prev => ({ start: prev.start, end: prev.end - 1 }));
       }
     }
     
-    clearTimeout(scrollEndTimer);
-  }, [isMobile, viewMode, visibleRange, scrollOffset]);
+  }, [isMobile, viewMode, currentMonth, setHeaderMonth]);
 
-  // 最適化されたスクロールハンドラー（requestAnimationFrameベース）
+  // 高速スクロールハンドラー（より軽量化）
   const handleScroll = useCallback((): void => {
-    if (throttleTimeoutRef.current) return;
+    // ヘッダー更新は毎回実行、重い処理のみフレーム制限
+    if (!containerRef.current || !isMobile || viewMode !== 'vertical') return;
     
+    const container = containerRef.current;
+    const scrollTop = container.scrollTop;
+    const clientHeight = container.clientHeight;
+    const centerY = scrollTop + clientHeight / 2;
+    
+    // ヘッダー月表示の高速更新（フレーム制限なし）
+    let closestMonth: Date | null = null;
+    let minDistance = Infinity;
+    
+    monthRefs.current.forEach((monthElement, monthOffset) => {
+      if (!monthElement) return;
+      const elementCenter = monthElement.offsetTop + monthElement.offsetHeight / 2;
+      const distance = Math.abs(elementCenter - centerY);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + monthOffset, 1);
+      }
+    });
+    
+    if (closestMonth) {
+      setHeaderMonth(closestMonth);
+    }
+    
+    // 重い仮想スクロール処理のみフレーム制限
+    if (throttleTimeoutRef.current) return;
     throttleTimeoutRef.current = requestAnimationFrame(() => {
       handleScrollCore();
       throttleTimeoutRef.current = null;
     });
-  }, [handleScrollCore]);
+  }, [handleScrollCore, isMobile, viewMode, currentMonth, setHeaderMonth]);
 
   // スクロールイベントリスナー登録（最適化）
   useEffect(() => {
@@ -479,28 +585,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
             }
           }
           
-          // 交差監視でヘッダーの月表示を更新
-          const monthRef = (el: HTMLDivElement | null): (() => void) | undefined => {
-            if (!el || !(isMobile && viewMode === 'vertical')) return undefined;
-            const observer = new IntersectionObserver(
-              (entries) => {
-                entries.forEach((entry) => {
-                  if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
-                    setHeaderMonth(month);
-                  }
-                });
-              },
-              { 
-                root: containerRef.current, 
-                threshold: [0.2, 0.3, 0.5, 0.8], 
-                rootMargin: '-10% 0px -10% 0px' // より敏感に反応
-              }
-            );
-            observer.observe(el);
-            
-            // クリーンアップ関数を返す
-            return () => observer.disconnect();
-          };
+          // 月refの管理（スクロールハンドラーで使用）
 
           return (
             <Box
@@ -508,13 +593,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
               ref={(node) => {
                 if (node && node instanceof HTMLDivElement) {
                   if (isSameMonth(month, currentMonth)) currentMonthRef.current = node;
-                  
-                  // 交差監視の設定
-                  if (isMobile && viewMode === 'vertical') {
-                    monthRef(node);
-                  }
-                  
-                  monthRefs.current.set(monthOffset, node); // 月のrefを保存
+                  monthRefs.current.set(monthOffset, node); // 月のrefを保存（スクロールハンドラーで使用）
                 }
               }}
               sx={{
@@ -552,8 +631,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
               {weeks.map((week, weekIndex) => (
                 <Box key={weekIndex} sx={{ 
                   flex: isMobile && viewMode === 'vertical' ? 'none' : 1,
-                  height: isMobile && viewMode === 'vertical' ? '118px' : `calc(100% / ${weeks.length})`,
-                  minHeight: isMobile && viewMode === 'vertical' ? '118px' : 0,
+                  height: isMobile && viewMode === 'vertical' ? '125px' : `calc(100% / ${weeks.length})`,
+                  minHeight: isMobile && viewMode === 'vertical' ? '125px' : 0,
                   m: 0, // 週の余白を削除
                   p: 0, // 週のパディングを削除
                   // 月境界線を削除してシームレスに

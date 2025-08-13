@@ -3,6 +3,22 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useUnifiedStore } from '../store/unifiedStore';
 
+// APIモック
+vi.mock('../services/apiService', () => ({
+  apiService: {
+    postJson: vi.fn().mockResolvedValue({ success: true }),
+    putJson: vi.fn().mockResolvedValue({ success: true }),
+    delete: vi.fn().mockResolvedValue({ success: true }),
+  }
+}));
+
+// crypto.randomUUID モック
+Object.defineProperty(global, 'crypto', {
+  value: {
+    randomUUID: vi.fn(() => `mock-uuid-${Math.random().toString(36).substr(2, 9)}`)
+  }
+});
+
 // テスト用のストア状態リセット
 beforeEach(() => {
   useUnifiedStore.getState().reset();

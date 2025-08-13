@@ -75,12 +75,12 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick 
         </IconButton>
       )}
 
-      {/* 中央：年月表示 */}
+      {/* 中央：年月表示（背景の月数字と連動） */}
       <Typography
         variant="h6"
         sx={{
           fontWeight: 700,
-          fontSize: { xs: '24px', md: '18px' }, // 参考画像のサイズ感
+          fontSize: { xs: '24px', md: '18px' },
           letterSpacing: 0.3,
           flex: 1,
           textAlign: 'center',

@@ -60,10 +60,15 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
         px: 2,
         minHeight: 60,
         position: 'relative',
+        pointerEvents: 'auto',
+        touchAction: 'manipulation',
       }}
       >
       {/* シフト */}
       <Box
+        component={motion.div}
+        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.05 }}
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -71,8 +76,22 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           cursor: 'pointer',
           color: currentTab === 'shift' ? 'primary.main' : 'text.secondary',
           flex: 1,
+          borderRadius: 2,
+          py: 0.5,
+          transition: 'all 0.2s ease',
+          pointerEvents: 'auto',
+          touchAction: 'manipulation',
+          WebkitTapHighlightColor: 'transparent',
+          minHeight: 44,
+          '&:active': {
+            backgroundColor: 'action.selected',
+          },
+          '&:hover': {
+            backgroundColor: 'action.hover',
+          },
         }}
         onClick={() => onTabChange('shift')}
+        onTouchStart={() => {}}
       >
         <CalendarMonth />
           <Box sx={{ fontSize: 12, mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
@@ -82,6 +101,9 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
 
       {/* 給料 */}
       <Box
+        component={motion.div}
+        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.05 }}
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -89,8 +111,22 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           cursor: 'pointer',
           color: currentTab === 'salary' ? 'primary.main' : 'text.secondary',
           flex: 1,
+          borderRadius: 2,
+          py: 0.5,
+          transition: 'all 0.2s ease',
+          pointerEvents: 'auto',
+          touchAction: 'manipulation',
+          WebkitTapHighlightColor: 'transparent',
+          minHeight: 44,
+          '&:active': {
+            backgroundColor: 'action.selected',
+          },
+          '&:hover': {
+            backgroundColor: 'action.hover',
+          },
         }}
         onClick={() => onTabChange('salary')}
+        onTouchStart={() => {}}
       >
         <AttachMoney />
           <Box sx={{ fontSize: 12, mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
@@ -101,6 +137,9 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
 
       {/* バイト先 */}
       <Box
+        component={motion.div}
+        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.05 }}
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -108,8 +147,22 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           cursor: 'pointer',
           color: currentTab === 'workplace' ? 'primary.main' : 'text.secondary',
           flex: 1,
+          borderRadius: 2,
+          py: 0.5,
+          transition: 'all 0.2s ease',
+          pointerEvents: 'auto',
+          touchAction: 'manipulation',
+          WebkitTapHighlightColor: 'transparent',
+          minHeight: 44,
+          '&:active': {
+            backgroundColor: 'action.selected',
+          },
+          '&:hover': {
+            backgroundColor: 'action.hover',
+          },
         }}
         onClick={() => onTabChange('workplace')}
+        onTouchStart={() => {}}
       >
         <Business />
           <Box sx={{ fontSize: 12, mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
@@ -119,6 +172,9 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
 
       {/* 共有 */}
       <Box
+        component={motion.div}
+        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.05 }}
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -126,8 +182,22 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           cursor: 'pointer',
           color: currentTab === 'share' ? 'primary.main' : 'text.secondary',
           flex: 1,
+          borderRadius: 2,
+          py: 0.5,
+          transition: 'all 0.2s ease',
+          pointerEvents: 'auto',
+          touchAction: 'manipulation',
+          WebkitTapHighlightColor: 'transparent',
+          minHeight: 44,
+          '&:active': {
+            backgroundColor: 'action.selected',
+          },
+          '&:hover': {
+            backgroundColor: 'action.hover',
+          },
         }}
         onClick={() => onTabChange('share')}
+        onTouchStart={() => {}}
       >
         <Share />
           <Box sx={{ fontSize: 12, mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>

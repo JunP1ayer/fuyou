@@ -24,7 +24,7 @@ import ocrRoutes from './routes/ocr'; // Re-enabled for OpenAI integration
 import fileOcrRoutes from './routes/fileOcr'; // AI-powered file analysis
 // import intelligentOCRRoutes from './routes/intelligentOCR'; // Intelligent multi-AI OCR integration - temporarily disabled
 import userProfileRoutes from './routes/userProfile'; // User profile and name settings
-import rulesRoutes, { startRulesAutoRefresh, warmUpRulesCache } from './routes/rules';
+import rulesRoutes from './routes/rules';
 import logsRoutes from './routes/logs';
 import jobSourcesRouter from './routes/jobSources'; // Job sources management
 // import designTokenRoutes from './routes/designTokens'; // Transparent Figma integration
