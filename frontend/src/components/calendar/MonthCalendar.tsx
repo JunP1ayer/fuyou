@@ -78,6 +78,9 @@ export default function MonthCalendar({
 
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
   const weeks = chunk(days, 7);
+  
+  // PC版はそのまま、モバイルのみ5週間表示に制限（35マス）
+  const limitedWeeks = weeks;
 
   // 週ごとのイベントセグメントを作成
   const weekSegments = useMemo(() => {
