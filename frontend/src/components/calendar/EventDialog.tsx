@@ -1212,8 +1212,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
 
 
-              {/* 予想収入表示（コンパクト版） */}
-              {formData.startTime && formData.endTime && (formData.workplaceId || isOneTime) && (
+              {/* 予想収入表示（コンパクト版） - 単発バイト以外のみ */}
+              {formData.startTime && formData.endTime && formData.workplaceId && !isOneTime && (
                 <Box sx={{ p: 1, bgcolor: '#bae6fd', borderRadius: 1, textAlign: 'center', mb: 1 }}>
                   <Typography variant="body1" color="#0c4a6e" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
                     {t('calendar.event.estimatedIncome', '予想収入')}: ¥{calculateEarnings().toLocaleString()}
@@ -1503,7 +1503,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         pt: 2.5,
         pb: 'calc(20px + env(safe-area-inset-bottom, 0px))',
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: editingEvent ? 'space-between' : 'center',
         alignItems: 'center',
         gap: 2,
         minHeight: '80px',
@@ -1513,55 +1513,75 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         zIndex: 1000
       }}>
         {editingEvent ? (
-          <Button 
-            onClick={handleDelete} 
-            color="error"
-            variant="outlined"
-            sx={{ 
-              minWidth: 80,
-              borderRadius: 2,
-              fontWeight: 600
-            }}
-          >
-            {t('common.delete', '削除')}
-          </Button>
-        ) : (
-          <Box sx={{ minWidth: 80 }} />
-        )}
-        
-        <Box sx={{ display: 'flex', gap: 1.5 }}>
-          <Button 
-            onClick={closeEventDialog}
-            variant="outlined"
-            sx={{ 
-              minWidth: 100,
-              borderRadius: 2,
-              fontWeight: 600,
-              borderColor: 'grey.400',
-              color: 'text.secondary',
-              '&:hover': {
-                borderColor: 'grey.600',
-                backgroundColor: 'grey.50'
-              }
-            }}
-          >
-            {t('common.cancel', 'キャンセル')}
-          </Button>
-          {canSave() && (
+          // 編集モード: 削除と保存のみ
+          <>
             <Button 
-              onClick={handleSave} 
-              variant="contained"
+              onClick={handleDelete} 
+              color="error"
+              variant="outlined"
               sx={{ 
-                minWidth: 100,
+                flex: 1,
                 borderRadius: 2,
                 fontWeight: 600,
                 py: 1
               }}
             >
-              {t('common.save', '保存')}
+              {t('common.delete', '削除')}
             </Button>
-          )}
-        </Box>
+            
+            {canSave() && (
+              <Button 
+                onClick={handleSave} 
+                variant="contained"
+                sx={{ 
+                  flex: 1,
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  py: 1
+                }}
+              >
+                {t('common.save', '保存')}
+              </Button>
+            )}
+          </>
+        ) : (
+          // 新規作成モード: キャンセルと保存のみ
+          <>
+            <Button 
+              onClick={closeEventDialog}
+              variant="outlined"
+              sx={{ 
+                flex: 1,
+                borderRadius: 2,
+                fontWeight: 600,
+                borderColor: 'grey.400',
+                color: 'text.secondary',
+                py: 1,
+                '&:hover': {
+                  borderColor: 'grey.600',
+                  backgroundColor: 'grey.50'
+                }
+              }}
+            >
+              {t('common.cancel', 'キャンセル')}
+            </Button>
+            
+            {canSave() && (
+              <Button 
+                onClick={handleSave} 
+                variant="contained"
+                sx={{ 
+                  flex: 1,
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  py: 1
+                }}
+              >
+                {t('common.save', '保存')}
+              </Button>
+            )}
+          </>
+        )}
       </DialogActions>
 
       {/* クイックシフト登録ダイアログ */}

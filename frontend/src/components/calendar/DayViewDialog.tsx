@@ -87,6 +87,14 @@ export const DayViewDialog: React.FC<DayViewDialogProps> = ({
     return event.title || '予定';
   };
 
+  // イベントの金額を取得
+  const getEventEarnings = (event: CalendarEvent) => {
+    if (event.type === 'shift' && event.earnings && event.earnings > 0) {
+      return `¥${event.earnings.toLocaleString()}`;
+    }
+    return '';
+  };
+
   return (
     <Dialog
       open={open}
@@ -227,16 +235,30 @@ export const DayViewDialog: React.FC<DayViewDialogProps> = ({
                     {/* イベント詳細 */}
                     <ListItemText
                       primary={
-                        <Typography 
-                          variant="body1" 
-                          sx={{ 
-                            fontWeight: 500,
-                            fontSize: '1rem',
-                            lineHeight: 1.3,
-                          }}
-                        >
-                          {getEventDisplayName(event)}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography 
+                            variant="body1" 
+                            sx={{ 
+                              fontWeight: 500,
+                              fontSize: '1rem',
+                              lineHeight: 1.3,
+                            }}
+                          >
+                            {getEventDisplayName(event)}
+                          </Typography>
+                          {getEventEarnings(event) && (
+                            <Typography 
+                              variant="body2" 
+                              sx={{ 
+                                color: 'success.main',
+                                fontWeight: 600,
+                                fontSize: '0.875rem',
+                              }}
+                            >
+                              {getEventEarnings(event)}
+                            </Typography>
+                          )}
+                        </Box>
                       }
                       secondary={
                         event.description && (

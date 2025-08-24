@@ -27,9 +27,6 @@ const EventChip = React.memo<{ event: CalendarEvent; isPC?: boolean; onClick?: (
     const displayTitle = event.type === 'shift'
       ? (event.workplace?.name || event.title || '')
       : (event.title || '');
-      
-    const earnings = event.type === 'shift' ? event.earnings || 0 : 0;
-    const displayEarnings = earnings > 0 ? `¥${earnings.toLocaleString()}` : '';
     
     return (
       <Box
@@ -37,15 +34,15 @@ const EventChip = React.memo<{ event: CalendarEvent; isPC?: boolean; onClick?: (
         sx={{
           backgroundColor: event.color || (event.type === 'shift' ? '#1976d2' : '#666'),
           color: '#fff',
-          px: isPC ? 0.5 : 0.75,
-          py: isPC ? 0.15 : 0.25,
+          px: isPC ? 0.25 : 0.5,
+          py: isPC ? 0.1 : 0.2,
           borderRadius: 0,
           fontSize: isPC ? '9px' : '10px',
           fontWeight: 600,
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          mb: isPC ? 0.15 : 0.25,
+          mb: isPC ? 0.05 : 0.1,
           cursor: 'pointer',
           width: '100%',
           display: 'block',
@@ -67,17 +64,6 @@ const EventChip = React.memo<{ event: CalendarEvent; isPC?: boolean; onClick?: (
         }}>
           {displayTitle}
         </Typography>
-        {displayEarnings && (
-          <Typography variant="caption" sx={{ 
-            display: 'block', 
-            fontSize: isPC ? '8px' : '9px',
-            opacity: 0.9,
-            fontWeight: 500,
-            lineHeight: 1.1,
-          }}>
-            {displayEarnings}
-          </Typography>
-        )}
       </Box>
     );
   }
@@ -90,8 +76,8 @@ const SpanBand = React.memo<{ color: string; title: string; left: boolean; right
     sx={{
       backgroundColor: color,
       color: '#fff',
-      px: isPC ? 0.5 : 0.75,
-      py: isPC ? 0.15 : 0.25,
+      px: isPC ? 0.25 : 0.5,
+      py: isPC ? 0.1 : 0.2,
       borderRadius: 0,
       borderTopLeftRadius: 0,
       borderBottomLeftRadius: 0,
@@ -102,7 +88,7 @@ const SpanBand = React.memo<{ color: string; title: string; left: boolean; right
       whiteSpace: 'nowrap',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
-      mb: isPC ? 0.15 : 0.25,
+      mb: isPC ? 0.05 : 0.1,
       width: '100%',
       display: 'block',
       textShadow: '0 1px 1px rgba(0,0,0,0.35)',
@@ -210,7 +196,7 @@ const DateCell = React.memo<{
             />
           )}
         </Box>
-        {/* 月表示と収益サマリー */}
+        {/* 月表示 */}
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
           {showMonth && (
             <Typography
@@ -219,21 +205,6 @@ const DateCell = React.memo<{
               sx={{ fontSize: '10px', lineHeight: 1 }}
             >
               {format(day, 'MMM', { locale: ja })}
-            </Typography>
-          )}
-          {/* 日別収益合計表示 */}
-          {dayEvents.length > 0 && dayEvents.some(e => e.type === 'shift') && (
-            <Typography
-              variant="caption"
-              sx={{ 
-                fontSize: '8px', 
-                color: 'success.main',
-                fontWeight: 600,
-                lineHeight: 1,
-                mt: showMonth ? 0.25 : 0,
-              }}
-            >
-              ¥{dayEvents.filter(e => e.type === 'shift').reduce((sum, e) => sum + (e.earnings || 0), 0).toLocaleString()}
             </Typography>
           )}
         </Box>
@@ -768,7 +739,6 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                           sx={{
                             height: '100%',
                             width: '100%',
-                            p: { xs: 0.5, md: 1.2 }, // モバイル版のパディングを小さく
                             cursor: 'pointer',
                             // 境界線は絶対配置の擬似要素で描画
                             display: 'flex',
@@ -889,7 +859,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                             </>
                           )}
                           
-                          <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', position: 'relative', zIndex: 3 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', position: 'relative', zIndex: 3, px: { xs: 0.5, md: 0.75 }, pt: { xs: 0.25, md: 0.5 } }}>
                             {/* 日付数字を左側に表示 */}
                             <Typography
                               variant="body2"
@@ -905,7 +875,6 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                                         ? 'info.main'
                                         : 'text.primary',
                                 lineHeight: 1,
-                                px: { xs: 0, md: 0.5 },
                                 mr: 'auto',
                               }}
                             >
@@ -929,7 +898,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                           </Box>
 
                           {/* イベント表示 */}
-                          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'stretch', opacity: !isCurrentMonth && dimOutsideMonth ? 0.2 : 1 }}>
+                          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'stretch', opacity: !isCurrentMonth && dimOutsideMonth ? 0.2 : 1, px: 0 }}>
                             {/* PC版は最大5件、モバイル版は最大3件表示 */}
                             {/* まず連続帯を表示（1つだけ代表表示）*/}
                             {spanBands.length > 0 && (

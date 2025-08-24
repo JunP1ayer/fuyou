@@ -295,7 +295,22 @@ export const WorkplaceManager: React.FC = () => {
     };
   };
 
-  const previewResult = useMemo(() => computePreviewEarnings(), [
+  const previewResult = useMemo(() => {
+    // 時給制以外は計算しない
+    if (formData.paymentType !== 'hourly') {
+      return { 
+        earnings: 0, 
+        totalMinutes: 0, 
+        breakMinutes: 0, 
+        actualMinutes: 0,
+        baseEarnings: 0,
+        transportationFee: 0,
+        nightHours: 0,
+        overtimeHours: 0
+      };
+    }
+    return computePreviewEarnings();
+  }, [
     formData.paymentType,
     formData.defaultHourlyRate,
     formData.freeBreakDefault,
@@ -1077,27 +1092,28 @@ export const WorkplaceManager: React.FC = () => {
               <AccordionDetails sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                     
-                  {/* 時間帯別時給設定 */}
-                  <Box sx={{ mb: 0.5 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                        🕒 時間帯別時給設定
-                      </Typography>
-                      <FormControlLabel
-                        control={
-                          <Switch 
-                            checked={!!formData.timeBasedRatesEnabled} 
-                            onChange={(e) => setFormData(prev => ({ ...prev, timeBasedRatesEnabled: e.target.checked, timeBasedRates: e.target.checked ? prev.timeBasedRates : [] }))}
-                            color="primary"
-                          />
-                        }
-                        label={
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: formData.timeBasedRatesEnabled ? 'primary.main' : 'text.secondary' }}>
-                            {formData.timeBasedRatesEnabled ? 'ON' : 'OFF'}
-                          </Typography>
-                        }
-                      />
-                    </Box>
+                  {/* 時間帯別時給設定 - 時給制のみ表示 */}
+                  {formData.paymentType === 'hourly' && (
+                    <Box sx={{ mb: 0.5 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                          🕒 時間帯別時給設定
+                        </Typography>
+                        <FormControlLabel
+                          control={
+                            <Switch 
+                              checked={!!formData.timeBasedRatesEnabled} 
+                              onChange={(e) => setFormData(prev => ({ ...prev, timeBasedRatesEnabled: e.target.checked, timeBasedRates: e.target.checked ? prev.timeBasedRates : [] }))}
+                              color="primary"
+                            />
+                          }
+                          label={
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: formData.timeBasedRatesEnabled ? 'primary.main' : 'text.secondary' }}>
+                              {formData.timeBasedRatesEnabled ? 'ON' : 'OFF'}
+                            </Typography>
+                          }
+                        />
+                      </Box>
                     {formData.timeBasedRatesEnabled && (
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                         {formData.timeBasedRates?.map((rate, index) => (
@@ -1206,10 +1222,12 @@ export const WorkplaceManager: React.FC = () => {
                         </Button>
                       </Box>
                     )}
-                  </Box>
+                    </Box>
+                  )}
 
-                  {/* 曜日別時給設定 */}
-                  <Box sx={{ mb: 1.5 }}>
+                  {/* 曜日別時給設定 - 時給制のみ表示 */}
+                  {formData.paymentType === 'hourly' && (
+                    <Box sx={{ mb: 1.5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
                         📅 曜日別時給設定
@@ -1261,8 +1279,8 @@ export const WorkplaceManager: React.FC = () => {
                         ))}
                       </Box>
                     )}
-                  </Box>
-                    
+                    </Box>
+                  )}
 
                   {/* 休憩時間設定 - 新仕様 */}
                   <Box sx={{ mb: 2 }}>
@@ -1456,71 +1474,73 @@ export const WorkplaceManager: React.FC = () => {
                       )}
                   </Box>
 
-                  {/* 収入シミュレーション */}
-                  <Box sx={{ mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                        💰 収入シミュレーション（時給制）
-                      </Typography>
-                      <FormControlLabel
-                        control={
-                          <Switch 
-                            checked={!!formData.incomePreviewEnabled} 
-                            onChange={(e) => setFormData(prev => ({ 
-                              ...prev, 
-                              incomePreviewEnabled: e.target.checked
-                            }))}
-                            color="primary"
-                          />
-                        }
-                        label={
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: formData.incomePreviewEnabled ? 'primary.main' : 'text.secondary' }}>
-                            {formData.incomePreviewEnabled ? 'ON' : 'OFF'}
-                          </Typography>
-                        }
-                      />
-                    </Box>
-                    {formData.incomePreviewEnabled && (
-                      <Box>
-                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 1 }}>
-                          <TextField
-                            type="time"
-                            label="開始時間"
-                            value={preview.startTime}
-                            onChange={(e) => setPreview(prev => ({ ...prev, startTime: e.target.value }))}
-                            size="small"
-                          />
-                          <TextField
-                            type="time"
-                            label="終了時間"
-                            value={preview.endTime}
-                            onChange={(e) => setPreview(prev => ({ ...prev, endTime: e.target.value }))}
-                            size="small"
-                          />
-                        </Box>
-                        <Box sx={{ p: 3, bgcolor: 'success.lighter', borderRadius: 2, border: '1px solid', borderColor: 'success.main' }}>
-                          <Typography variant="h5" sx={{ fontWeight: 700, color: 'success.main', mb: 1 }}>
-                            💵 試算結果: ¥{previewResult.earnings.toLocaleString()}
-                          </Typography>
-                          <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
-                            総勤務 {(previewResult.totalMinutes/60).toFixed(1)}h → 
-                            休憩 {previewResult.breakMinutes}分除く → 
-                            実働 {(previewResult.actualMinutes/60).toFixed(1)}h
-                          </Typography>
-                          {previewResult.nightHours > 0 && (
-                            <Typography variant="body2" color="info.main" sx={{ display: 'block', fontWeight: 600 }}>
-                              🌙 深夜勤務 {previewResult.nightHours.toFixed(1)}h含む
+                  {/* 収入シミュレーション - 時給制のみ表示 */}
+                  {formData.paymentType === 'hourly' && (
+                    <Box sx={{ mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                          💰 収入シミュレーション（時給制）
+                        </Typography>
+                        <FormControlLabel
+                          control={
+                            <Switch 
+                              checked={!!formData.incomePreviewEnabled} 
+                              onChange={(e) => setFormData(prev => ({ 
+                                ...prev, 
+                                incomePreviewEnabled: e.target.checked
+                              }))}
+                              color="primary"
+                            />
+                          }
+                          label={
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: formData.incomePreviewEnabled ? 'primary.main' : 'text.secondary' }}>
+                              {formData.incomePreviewEnabled ? 'ON' : 'OFF'}
                             </Typography>
-                          )}
-                          {previewResult.overtimeHours > 0 && (
-                            <Typography variant="body2" color="warning.main" sx={{ display: 'block', fontWeight: 600 }}>
-                              ⚡ 残業時間 {previewResult.overtimeHours.toFixed(1)}h含む
-                            </Typography>
-                          )}
-                        </Box>
+                          }
+                        />
                       </Box>
-                    )}
-                  </Box>
+                      {formData.incomePreviewEnabled && (
+                        <Box>
+                          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 1 }}>
+                            <TextField
+                              type="time"
+                              label="開始時間"
+                              value={preview.startTime}
+                              onChange={(e) => setPreview(prev => ({ ...prev, startTime: e.target.value }))}
+                              size="small"
+                            />
+                            <TextField
+                              type="time"
+                              label="終了時間"
+                              value={preview.endTime}
+                              onChange={(e) => setPreview(prev => ({ ...prev, endTime: e.target.value }))}
+                              size="small"
+                            />
+                          </Box>
+                          <Box sx={{ p: 3, bgcolor: 'success.lighter', borderRadius: 2, border: '1px solid', borderColor: 'success.main' }}>
+                            <Typography variant="h5" sx={{ fontWeight: 700, color: 'success.main', mb: 1 }}>
+                              💵 試算結果: ¥{previewResult.earnings.toLocaleString()}
+                            </Typography>
+                            <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+                              総勤務 {(previewResult.totalMinutes/60).toFixed(1)}h → 
+                              休憩 {previewResult.breakMinutes}分除く → 
+                              実働 {(previewResult.actualMinutes/60).toFixed(1)}h
+                            </Typography>
+                            {previewResult.nightHours > 0 && (
+                              <Typography variant="body2" color="info.main" sx={{ display: 'block', fontWeight: 600 }}>
+                                🌙 深夜勤務 {previewResult.nightHours.toFixed(1)}h含む
+                              </Typography>
+                            )}
+                            {previewResult.overtimeHours > 0 && (
+                              <Typography variant="body2" color="warning.main" sx={{ display: 'block', fontWeight: 600 }}>
+                                ⚡ 残業時間 {previewResult.overtimeHours.toFixed(1)}h含む
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      )}
+                    </Box>
+                  )}
                 </Box>
               </AccordionDetails>
             </Accordion>
