@@ -234,7 +234,7 @@ export default function MonthCalendar({
                 const r = weeks.findIndex(w => w.includes(day)); // 行（週）インデックス
                 const c = dayIndex; // 列（日）インデックス
                 
-                // 境界線判定（当月セルのみを囲む）
+                // 境界線判定（月の外周のみを囲む）
                 const monthBorders = {
                   top: false,
                   bottom: false,
@@ -242,7 +242,7 @@ export default function MonthCalendar({
                   right: false,
                 };
                 
-                // 当月セルのみ処理
+                // 当月セルのみ処理（月境界線は前月・翌月セルにも表示）
                 if (sameMonth(day, activeMonth)) {
                   // 隣接セルの存在チェック
                   const hasUp = r > 0;
@@ -256,11 +256,49 @@ export default function MonthCalendar({
                   const leftIsCurrent = hasLeft ? sameMonth(weeks[r][c - 1], activeMonth) : false;
                   const rightIsCurrent = hasRight ? sameMonth(weeks[r][c + 1], activeMonth) : false;
                   
-                  // 当月セルで、隣接セルが当月でない場合にのみ線を引く
-                  monthBorders.top = !upIsCurrent;
-                  monthBorders.bottom = !downIsCurrent;
-                  monthBorders.left = !leftIsCurrent;
-                  monthBorders.right = !rightIsCurrent;
+                  // 月の範囲を特定
+                  const currentDate = day.getDate();
+                  const isFirstDayOfMonth = currentDate === 1;
+                  const isLastDayOfMonth = currentDate === new Date(activeMonth.getFullYear(), activeMonth.getMonth() + 1, 0).getDate();
+                  
+                  // 月の境界線を正しく描く
+                  // 上線: 月初め（1日）の行全体に引く
+                  const currentWeek = weeks[r];
+                  const weekHasFirstDay = currentWeek.some(d => sameMonth(d, activeMonth) && d.getDate() === 1);
+                  const weekHasLastDay = currentWeek.some(d => sameMonth(d, activeMonth) && d.getDate() === new Date(activeMonth.getFullYear(), activeMonth.getMonth() + 1, 0).getDate());
+                  
+                  monthBorders.top = weekHasFirstDay;
+                  // 下線: 月末（最終日）の行全体に引く
+                  monthBorders.bottom = weekHasLastDay;
+                  
+                  // 左右の線: 隣接セルが当月でない場合のみ、かつカレンダーの端（列0、6）ではない場合
+                  monthBorders.left = !leftIsCurrent && c > 0;   // 左に当月セルがなく、かつカレンダーの左端ではない
+                  monthBorders.right = !rightIsCurrent && c < 6; // 右に当月セルがなく、かつカレンダーの右端ではない
+                }
+                
+                // 月境界線は前月・翌月セルにも表示する
+                if (!sameMonth(day, activeMonth)) {
+                  const currentWeek = weeks[r];
+                  const weekHasFirstDay = currentWeek.some(d => sameMonth(d, activeMonth) && d.getDate() === 1);
+                  const weekHasLastDay = currentWeek.some(d => sameMonth(d, activeMonth) && d.getDate() === new Date(activeMonth.getFullYear(), activeMonth.getMonth() + 1, 0).getDate());
+                  
+                  // 前月セル（例：30日）は下線のみ、翌月セル（例：1,2,3日）は上線のみ
+                  const isPreviousMonth = day < activeMonth;
+                  const isNextMonth = day > activeMonth;
+                  
+                  if (isPreviousMonth) {
+                    // 前月セルは下線のみ
+                    monthBorders.top = false;
+                    monthBorders.bottom = weekHasFirstDay; // 1日を含む週のみ
+                  } else if (isNextMonth) {
+                    // 翌月セルは上線のみ
+                    monthBorders.top = weekHasLastDay; // 最終日を含む週のみ
+                    monthBorders.bottom = false;
+                  }
+                  
+                  // 前月・翌月セルには左右の縦線は引かない
+                  monthBorders.left = false;
+                  monthBorders.right = false;
                 }
                 
                 return (
@@ -295,8 +333,8 @@ export default function MonthCalendar({
                       transition: 'background-color 0.2s ease',
                     }}
                   >
-                    {/* 細いグリッド線（従来のグリッド線）- 当月セルのみ */}
-                    {sameMonth(day, activeMonth) && (
+                    {/* 細いグリッド線（従来のグリッド線）- 全セル */}
+                    {(
                       <>
                         <Box sx={{
                           position: 'absolute',
@@ -341,7 +379,7 @@ export default function MonthCalendar({
                       </>
                     )}
                     
-                    {/* 月境界線：当月セルのみを1pxの黒線で囲む */}
+                    {/* 月境界線：全セルに1pxの黒線で月を囲む */}
                     {monthBorders.top && (
                       <Box sx={{
                         position: 'absolute',
