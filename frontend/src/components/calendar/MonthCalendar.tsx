@@ -190,10 +190,15 @@ export default function MonthCalendar({
         <Box sx={{
           display: 'grid',
           gridTemplateRows: 'repeat(6, 1fr)',
-          gap: '1px',
           borderRadius: 2,
           overflow: 'hidden',
-          backgroundColor: 'divider',
+          // すべてのボーダーを無効化（セル個別の絶対配置のみ使用）
+          border: 'none',
+          '& > *': {
+            border: 'none !important',
+            borderTop: 'none !important', 
+            borderBottom: 'none !important',
+          },
         }}>
           {weeks.map((week, wi) => (
             <Box
@@ -204,27 +209,74 @@ export default function MonthCalendar({
                 backgroundColor: alpha(theme.palette.background.paper, 0.8), // 半透明にして背景月数字が見えるように
                 position: 'relative',
                 minHeight: '84px',
+                // すべてのボーダーを無効化
+                border: 'none',
+                '& > *': {
+                  border: 'none !important',
+                  borderTop: 'none !important',
+                  borderBottom: 'none !important', 
+                  borderLeft: 'none !important',
+                  borderRight: 'none !important',
+                },
               }}
             >
               {/* 日付セル */}
-              {week.map((day) => {
+              {week.map((day, dayIndex) => {
                 const inMonth = isSameMonth(day, activeMonth);
                 const isTodayDate = isToday(day);
                 const dayOfWeek = day.getDay();
+                
+                // 2次元配列での月境界線判定
+                const sameMonth = (a: Date, b: Date) =>
+                  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+                
+                // 現在の週と日のインデックス（2次元配列での位置）
+                const r = weeks.findIndex(w => w.includes(day)); // 行（週）インデックス
+                const c = dayIndex; // 列（日）インデックス
+                
+                // 境界線判定（当月セルのみを囲む）
+                const monthBorders = {
+                  top: false,
+                  bottom: false,
+                  left: false,
+                  right: false,
+                };
+                
+                // 当月セルのみ処理
+                if (sameMonth(day, activeMonth)) {
+                  // 隣接セルの存在チェック
+                  const hasUp = r > 0;
+                  const hasDown = r < weeks.length - 1;
+                  const hasLeft = c > 0;
+                  const hasRight = c < 6;
+                  
+                  // 隣接セルが当月かどうかチェック
+                  const upIsCurrent = hasUp ? sameMonth(weeks[r - 1][c], activeMonth) : false;
+                  const downIsCurrent = hasDown ? sameMonth(weeks[r + 1][c], activeMonth) : false;
+                  const leftIsCurrent = hasLeft ? sameMonth(weeks[r][c - 1], activeMonth) : false;
+                  const rightIsCurrent = hasRight ? sameMonth(weeks[r][c + 1], activeMonth) : false;
+                  
+                  // 当月セルで、隣接セルが当月でない場合にのみ線を引く
+                  monthBorders.top = !upIsCurrent;
+                  monthBorders.bottom = !downIsCurrent;
+                  monthBorders.left = !leftIsCurrent;
+                  monthBorders.right = !rightIsCurrent;
+                }
                 
                 return (
                   <Box
                     key={format(day, "yyyy-MM-dd")}
                     onClick={() => handleDateClick(day)}
                     sx={{
-                      borderTop: '0.5px solid',
-                      borderColor: alpha(theme.palette.divider, 0.5),
+                      // 境界線は絶対配置の要素で描画
                       p: 2,
                       position: 'relative',
                       textAlign: 'right',
                       verticalAlign: 'top',
                       cursor: 'pointer',
                       zIndex: 1,
+                      border: 'none', // CSS Gridの境界線を無効化
+                      overflow: 'visible', // はみ出しを許可
                       color: !inMonth && !showOutsideDays
                         ? 'transparent'
                         : !inMonth && showOutsideDays
@@ -243,10 +295,112 @@ export default function MonthCalendar({
                       transition: 'background-color 0.2s ease',
                     }}
                   >
+                    {/* 細いグリッド線（従来のグリッド線）- 当月セルのみ */}
+                    {sameMonth(day, activeMonth) && (
+                      <>
+                        <Box sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: '0.5px',
+                          backgroundColor: alpha(theme.palette.divider, 0.5),
+                          zIndex: 1,
+                          transform: 'translateY(-0.25px)',
+                        }} />
+                        <Box sx={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          height: '0.5px',
+                          backgroundColor: alpha(theme.palette.divider, 0.5),
+                          zIndex: 1,
+                          transform: 'translateY(0.25px)',
+                        }} />
+                        <Box sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          bottom: 0,
+                          width: '0.5px',
+                          backgroundColor: alpha(theme.palette.divider, 0.5),
+                          zIndex: 1,
+                          transform: 'translateX(-0.25px)',
+                        }} />
+                        <Box sx={{
+                          position: 'absolute',
+                          top: 0,
+                          right: 0,
+                          bottom: 0,
+                          width: '0.5px',
+                          backgroundColor: alpha(theme.palette.divider, 0.5),
+                          zIndex: 1,
+                          transform: 'translateX(0.25px)',
+                        }} />
+                      </>
+                    )}
+                    
+                    {/* 月境界線：当月セルのみを1pxの黒線で囲む */}
+                    {monthBorders.top && (
+                      <Box sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: '1px',
+                        backgroundColor: '#000000',
+                        zIndex: 10,
+                        pointerEvents: 'none',
+                        transform: 'translateY(-0.5px)',
+                      }} />
+                    )}
+                    {monthBorders.bottom && (
+                      <Box sx={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: '1px',
+                        backgroundColor: '#000000',
+                        zIndex: 10,
+                        pointerEvents: 'none',
+                        transform: 'translateY(0.5px)',
+                      }} />
+                    )}
+                    {monthBorders.left && (
+                      <Box sx={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: '1px',
+                        backgroundColor: '#000000',
+                        zIndex: 10,
+                        pointerEvents: 'none',
+                        transform: 'translateX(-0.5px)',
+                      }} />
+                    )}
+                    {monthBorders.right && (
+                      <Box sx={{
+                        position: 'absolute',
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: '1px',
+                        backgroundColor: '#000000',
+                        zIndex: 10,
+                        pointerEvents: 'none',
+                        transform: 'translateX(0.5px)',
+                      }} />
+                    )}
+                    
                     {(inMonth || showOutsideDays) && (
                       <Typography variant="body2" sx={{ 
                         fontSize: '14px',
                         fontWeight: isTodayDate ? 700 : 400,
+                        position: 'relative',
+                        zIndex: 3,
                       }}>
                         {format(day, "d")}
                       </Typography>

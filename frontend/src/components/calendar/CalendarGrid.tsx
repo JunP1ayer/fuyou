@@ -649,11 +649,20 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                   // 月境界線を削除してシームレスに
                   border: 'none',
                 }}>
-                  <Grid container spacing={0} sx={{ 
+                  <Box sx={{ 
                     height: '100%',
                     width: '100%',
-                    m: 0,
-                    // 週境界線は削除（月境界のみ黒線）
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(7, 1fr)',
+                    // すべてのボーダーを無効化（セル個別の絶対配置のみ使用）
+                    border: 'none',
+                    '& > *': {
+                      border: 'none !important',
+                      borderTop: 'none !important',
+                      borderBottom: 'none !important',
+                      borderLeft: 'none !important',
+                      borderRight: 'none !important',
+                    },
                   }}>
                   {week.map((day, dayIndex) => {
                     const dateStr = format(day, 'yyyy-MM-dd');
@@ -674,11 +683,49 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                     const dimOutsideMonth = !isMobile; // スマホは当月以外も薄くしない
                     const showMonth = false; // モバイルのセル左上の月テキストを非表示
                     
+                    // 2次元配列での月境界線判定
+                    const sameMonth = (a: Date, b: Date) =>
+                      a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+                    
+                    // 現在の週と日のインデックス（2次元配列での位置）
+                    const r = limitedWeeks.indexOf(week); // 行（週）インデックス
+                    const c = dayIndex; // 列（日）インデックス
+                    
+                    // 境界線判定（当月セルのみを囲む）
+                    const monthBorders = {
+                      top: false,
+                      bottom: false,  
+                      left: false,
+                      right: false,
+                    };
+                    
+                    // 当月セルのみ処理
+                    if (sameMonth(day, month)) {
+                      // 隣接セルの存在チェック
+                      const hasUp = r > 0;
+                      const hasDown = r < limitedWeeks.length - 1;
+                      const hasLeft = c > 0;
+                      const hasRight = c < 6;
+                      
+                      // 隣接セルが当月かどうかチェック
+                      const upIsCurrent = hasUp ? sameMonth(limitedWeeks[r - 1][c], month) : false;
+                      const downIsCurrent = hasDown ? sameMonth(limitedWeeks[r + 1][c], month) : false;
+                      const leftIsCurrent = hasLeft ? sameMonth(limitedWeeks[r][c - 1], month) : false;
+                      const rightIsCurrent = hasRight ? sameMonth(limitedWeeks[r][c + 1], month) : false;
+                      
+                      // 当月セルで、隣接セルが当月でない場合にのみ線を引く
+                      monthBorders.top = !upIsCurrent;
+                      monthBorders.bottom = !downIsCurrent;
+                      monthBorders.left = !leftIsCurrent;
+                      monthBorders.right = !rightIsCurrent;
+                    }
+                    
                     return (
-                      <Grid item xs key={dayIndex} sx={{ 
+                      <Box key={dayIndex} sx={{ 
                         height: '100%',
                         minWidth: 0,
-                        flex: '1 1 auto',
+                        position: 'relative',
+                        overflow: 'visible', // はみ出しを許可
                       }}>
                         <Box
                           sx={{
@@ -686,35 +733,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                             width: '100%',
                             p: { xs: 0.5, md: 1.2 }, // モバイル版のパディングを小さく
                             cursor: 'pointer',
-                            // 日付間の通常区切り線
-                            borderTop: '0.5px solid rgba(0, 0, 0, 0.08)',
-                            borderLeft: '0.5px solid rgba(0, 0, 0, 0.08)', 
-                            borderBottom: (() => {
-                              // 月境界の場合は疑似要素で処理するため、borderBottomは無効化
-                              const nextDay = new Date(day);
-                              nextDay.setDate(day.getDate() + 1);
-                              const isMonthBoundary = nextDay.getDate() === 1;
-                              const isFirstDay = day.getDate() === 1;
-                              
-                              if (isMonthBoundary || isFirstDay) {
-                                return '0'; // 疑似要素で処理するため無効化
-                              }
-                              return '0.5px solid rgba(0, 0, 0, 0.08)';
-                            })(),
-                            // 月境界の判定：この日が月末で右隣が翌月1日なら右側に太い境界線
-                            borderRight: (() => {
-                              // 週の最後（日曜日）は通常の境界線
-                              if (dayIndex === 6) return '0.5px solid rgba(0, 0, 0, 0.08)';
-                              
-                              // この日の翌日が翌月1日かチェック
-                              const nextDay = new Date(day);
-                              nextDay.setDate(day.getDate() + 1);
-                              const isMonthBoundary = nextDay.getDate() === 1;
-                              
-                              return isMonthBoundary ? '2px solid #333' : '0.5px solid rgba(0, 0, 0, 0.08)';
-                            })(),
+                            // 境界線は絶対配置の擬似要素で描画
                             display: 'flex',
                             flexDirection: 'column',
+                            border: 'none', // CSS Gridの境界線を無効化
+                            overflow: 'visible', // はみ出しを許可
                             backgroundColor: !isCurrentMonth && dimOutsideMonth 
                               ? { xs: alpha(theme.palette.background.paper, 0.8), md: alpha(theme.palette.action.disabledBackground, 0.02) }
                               : alpha(theme.palette.background.paper, 0.8), // 半透明にして背景月数字が見えるように
@@ -726,46 +749,110 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                             transition: 'background-color 0.2s ease',
                             // 月境界の横線延長（疑似要素）
                             position: 'relative',
-                            '&::before': (() => {
-                              // 月最終日：左端まで延長する下線（border-bottomを無効化して疑似要素で一本化）
-                              const nextDay = new Date(day);
-                              nextDay.setDate(day.getDate() + 1);
-                              const isLastDayOfMonth = nextDay.getDate() === 1;
-                              
-                              if (isLastDayOfMonth) {
-                                return {
-                                  content: '""',
-                                  position: 'absolute',
-                                  bottom: '-1px', // 完全に同じ位置に配置
-                                  left: `-${dayIndex * 100 + 10}%`, // 左端まで確実に延長（10%の大きな余裕）
-                                  width: `${(dayIndex + 1) * 100 + 11.5}%`, // 現在のセルより右に延長（11.5%の余裕）
-                                  height: '2px',
-                                  backgroundColor: '#333',
-                                  zIndex: 5, // 曜日ヘッダーより下に配置
-                                };
-                              }
-                              return {};
-                            })(),
-                            '&::after': (() => {
-                              // 月1日：右端まで延長する上線（borderは薄いまま、延長のみ太い線）
-                              if (day.getDate() === 1) {
-                                return {
-                                  content: '""',
-                                  position: 'absolute',
-                                  top: '0px', // 月末日の下線と全く同じ横位置になるよう調整
-                                  left: '-1%', // 左に1%延長
-                                  width: `${(7 - dayIndex) * 100 + 11}%`, // 右端まで適切に延長（11%の余裕）
-                                  height: '2px',
-                                  backgroundColor: '#333',
-                                  zIndex: 5, // 曜日ヘッダーより下に配置
-                                };
-                              }
-                              return {};
-                            })(),
                           }}
                           onClick={() => handleDateClick(day)}
                         >
-                          <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+                          {/* 月境界線：当月セルのみを1pxの黒線で囲む */}
+                          {monthBorders.top && (
+                            <Box sx={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              height: '1px',
+                              backgroundColor: '#000000',
+                              zIndex: 10,
+                              pointerEvents: 'none',
+                              transform: 'translateY(-0.5px)',
+                            }} />
+                          )}
+                          {monthBorders.bottom && (
+                            <Box sx={{
+                              position: 'absolute',
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              height: '1px',
+                              backgroundColor: '#000000',
+                              zIndex: 10,
+                              pointerEvents: 'none',
+                              transform: 'translateY(0.5px)',
+                            }} />
+                          )}
+                          {monthBorders.left && (
+                            <Box sx={{
+                              position: 'absolute',
+                              left: 0,
+                              top: 0,
+                              bottom: 0,
+                              width: '1px',
+                              backgroundColor: '#000000',
+                              zIndex: 10,
+                              pointerEvents: 'none',
+                              transform: 'translateX(-0.5px)',
+                            }} />
+                          )}
+                          {monthBorders.right && (
+                            <Box sx={{
+                              position: 'absolute',
+                              right: 0,
+                              top: 0,
+                              bottom: 0,
+                              width: '1px',
+                              backgroundColor: '#000000',
+                              zIndex: 10,
+                              pointerEvents: 'none',
+                              transform: 'translateX(0.5px)',
+                            }} />
+                          )}
+                          
+                          {/* 細いグリッド線（従来のグリッド線）- 当月セルのみ */}
+                          {sameMonth(day, month) && (
+                            <>
+                              <Box sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                height: '0.5px',
+                                backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                                zIndex: 1,
+                                transform: 'translateY(-0.25px)',
+                              }} />
+                              <Box sx={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                height: '0.5px',
+                                backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                                zIndex: 1,
+                                transform: 'translateY(0.25px)',
+                              }} />
+                              <Box sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                bottom: 0,
+                                width: '0.5px',
+                                backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                                zIndex: 1,
+                                transform: 'translateX(-0.25px)',
+                              }} />
+                              <Box sx={{
+                                position: 'absolute',
+                                top: 0,
+                                right: 0,
+                                bottom: 0,
+                                width: '0.5px',
+                                backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                                zIndex: 1,
+                                transform: 'translateX(0.25px)',
+                              }} />
+                            </>
+                          )}
+                          
+                          <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', position: 'relative', zIndex: 3 }}>
                             {/* 日付数字を左側に表示 */}
                             <Typography
                               variant="body2"
@@ -832,10 +919,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                             )}
                           </Box>
                         </Box>
-                      </Grid>
+                      </Box>
                     );
                   })}
-                  </Grid>
+                  </Box>
                 </Box>
               ))}
             </Box>
