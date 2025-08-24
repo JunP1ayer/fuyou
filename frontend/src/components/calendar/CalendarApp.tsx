@@ -7,6 +7,7 @@ import { CalendarHeader } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
 import { EventDialog } from './EventDialog';
 import { DayEventsView } from './DayEventsView';
+import { DayViewDialog } from './DayViewDialog';
 import { QuickActionMenu } from './QuickActionMenu';
 import { NewBottomNavigation, type NewTabValue } from './NewBottomNavigation';
 import { ShiftImageAnalyzer } from '../ShiftImageAnalyzer';
@@ -34,6 +35,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   
   const [currentTab, setCurrentTab] = useState<NewTabValue>('shift');
   const [dayEventsOpen, setDayEventsOpen] = useState(false);
+  const [dayViewOpen, setDayViewOpen] = useState(false);
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -62,13 +64,27 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
     setCurrentTab(tab);
   };
 
-  // 日付クリック時の処理（直接シフト画面を開く）
+  // 日付クリック時の処理（日別予定画面を開く）
   const handleDateClick = (date: string) => {
     setSelectedDate(date);
-    openEventDialog(date, 'shift');
+    setDayViewOpen(true);
   };
 
-  // 予定追加処理
+  // 予定追加処理（DayViewから）
+  const handleAddEventFromDayView = () => {
+    setDayViewOpen(false);
+    if (selectedDate) {
+      openEventDialog(selectedDate, 'shift');
+    }
+  };
+
+  // 予定編集処理（DayViewから）
+  const handleEditEventFromDayView = (event: CalendarEvent) => {
+    setDayViewOpen(false);
+    openEditDialog(event);
+  };
+
+  // 予定追加処理（旧）
   const handleAddEvent = () => {
     setDayEventsOpen(false);
     if (selectedDate) {
@@ -76,7 +92,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
     }
   };
 
-  // 予定編集処理
+  // 予定編集処理（旧）
   const handleEditEvent = (event: CalendarEvent) => {
     setDayEventsOpen(false);
     openEditDialog(event);
@@ -320,6 +336,15 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
           />
         </Box>
       )}
+
+      {/* 日別予定表示ダイアログ */}
+      <DayViewDialog
+        open={dayViewOpen}
+        selectedDate={selectedDate}
+        onClose={() => setDayViewOpen(false)}
+        onEditEvent={handleEditEventFromDayView}
+        onCreateEvent={handleAddEventFromDayView}
+      />
 
       {/* クイックシフト登録ダイアログ */}
       <QuickShiftDialog
