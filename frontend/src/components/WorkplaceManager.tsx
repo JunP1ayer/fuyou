@@ -55,6 +55,7 @@ import { useSimpleShiftStore } from '../store/simpleShiftStore';
 import { formatCurrency } from '../utils/calculations';
 import useI18nStore from '../store/i18nStore';
 import { APP_COLOR_PALETTE } from '@/utils/colors';
+import { computeShiftEarnings } from '@/utils/calcShift';
 
 interface WorkplaceFormData {
   name: string;
@@ -233,28 +234,65 @@ export const WorkplaceManager: React.FC = () => {
     // 休憩（自動）
     const workHours = totalMinutes / 60;
     
-    // 自由休憩（最小時間チェック付き）
-    let breakMinutes = 0;
+    // 休憩時間の計算（calcShift.tsと一致させる）
+    // 自由休憩（常に適用）
+    let freeBreak = 0;
     if (formData.freeBreakDefault && Number(formData.freeBreakDefault) > 0) {
-      // 最小時間チェックが有効で、勤務時間が最小時間に満たない場合は適用しない
-      // 自由休憩は常に適用（最小時間制限なし）
-      breakMinutes = Math.max(0, Number(formData.freeBreakDefault) || 0);
+      freeBreak = Math.max(0, Number(formData.freeBreakDefault) || 0);
     }
-    
-    // 自動休憩の適用（階層的に適用）
-    if (formData.breakAuto8hEnabled && formData.breakRules.over8h && workHours > 8) {
-      breakMinutes += formData.breakRules.over8h;
-    } else if (formData.breakAuto6hEnabled && formData.breakRules.over6h && workHours > 6) {
-      breakMinutes += formData.breakRules.over6h;
-    } else if (formData.breakAuto4hEnabled && formData.breakRules.over4h && workHours > 4) {
-      breakMinutes += formData.breakRules.over4h;
+
+    // 自動休憩（最も長いルールのみ適用）
+    let autoBreak = 0;
+    if (workHours > 8) {
+      if (formData.breakAuto8hEnabled && formData.breakRules.over8h) {
+        autoBreak = formData.breakRules.over8h;
+      }
+    } else if (workHours > 6) {
+      if (formData.breakAuto6hEnabled && formData.breakRules.over6h) {
+        autoBreak = formData.breakRules.over6h;
+      }
+    } else if (workHours > 4) {
+      if (formData.breakAuto4hEnabled && formData.breakRules.over4h) {
+        autoBreak = formData.breakRules.over4h;
+      }
     }
+
+    // 自由休憩と自動休憩は「大きい方のみ」を採用（重複控除防止）
+    const breakMinutes = Math.max(freeBreak, autoBreak);
 
     const actualMinutes = Math.max(0, totalMinutes - breakMinutes);
     const actualHours = actualMinutes / 60;
 
-    // 基本時給の決定（時間帯別・曜日別時給設定を考慮）
-    let baseRate = rate;
+    // computeShiftEarnings関数を使用して一貫性を保つ
+    const mockWorkplace = {
+      defaultHourlyRate: rate,
+      freeBreakDefault: Number(formData.freeBreakDefault) || 0,
+      breakRules: formData.breakRules,
+      breakAuto4hEnabled: formData.breakAuto4hEnabled,
+      breakAuto6hEnabled: formData.breakAuto6hEnabled,
+      breakAuto8hEnabled: formData.breakAuto8hEnabled,
+      overtimeSettings: formData.overtimeSettings,
+      timeBasedRates: formData.timeBasedRatesEnabled ? formData.timeBasedRates : undefined,
+      weekdayRates: formData.weekdayRatesEnabled ? formData.weekdayRates : undefined,
+    };
+
+    const result = computeShiftEarnings(mockWorkplace, {
+      startTime: preview.startTime,
+      endTime: preview.endTime,
+      shiftDate: '2024-01-01' // 月曜日（サンプル計算用）
+    });
+
+    // computeShiftEarningsの結果を使用
+    return { 
+      earnings: result.totalEarnings, 
+      totalMinutes, 
+      breakMinutes: result.breakMinutes, 
+      actualMinutes: result.actualMinutes,
+      baseEarnings: result.totalEarnings,
+      transportationFee: 0, // 交通費は別途計算が必要
+      nightHours: 0, // 詳細計算は複雑なため簡略化
+      overtimeHours: Math.max(0, (result.actualMinutes - 8*60) / 60)
+    };
     
     // 曜日別時給設定の適用
     if (formData.weekdayRatesEnabled && formData.weekdayRates) {
@@ -673,9 +711,6 @@ export const WorkplaceManager: React.FC = () => {
             <Business sx={{ color: 'primary.main', fontSize: 40, mb: 1 }} />
             <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
               バイト先管理
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              働いているバイト先を登録・管理できます
             </Typography>
           </Box>
 
@@ -1402,6 +1437,97 @@ export const WorkplaceManager: React.FC = () => {
                             endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
                           }}
                         />
+
+                        {/* 自動休憩ルール設定 */}
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                            自動休憩ルール
+                          </Typography>
+                          
+                          {/* 4時間超 */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Switch 
+                              checked={formData.breakAuto4hEnabled}
+                              onChange={(e) => setFormData(prev => ({ ...prev, breakAuto4hEnabled: e.target.checked }))}
+                              size="small"
+                            />
+                            <TextField
+                              type="number"
+                              label="4時間超"
+                              value={formData.breakRules.over4h || ''}
+                              onChange={e => setFormData(prev => ({ 
+                                ...prev, 
+                                breakRules: { 
+                                  ...prev.breakRules, 
+                                  over4h: e.target.value ? parseInt(e.target.value) : 0 
+                                }
+                              }))}
+                              size="small"
+                              disabled={!formData.breakAuto4hEnabled}
+                              inputProps={{ min: 0, step: 5 }}
+                              InputProps={{
+                                endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
+                              }}
+                              sx={{ minWidth: 100 }}
+                            />
+                          </Box>
+
+                          {/* 6時間超 */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Switch 
+                              checked={formData.breakAuto6hEnabled}
+                              onChange={(e) => setFormData(prev => ({ ...prev, breakAuto6hEnabled: e.target.checked }))}
+                              size="small"
+                            />
+                            <TextField
+                              type="number"
+                              label="6時間超"
+                              value={formData.breakRules.over6h || ''}
+                              onChange={e => setFormData(prev => ({ 
+                                ...prev, 
+                                breakRules: { 
+                                  ...prev.breakRules, 
+                                  over6h: e.target.value ? parseInt(e.target.value) : 0 
+                                }
+                              }))}
+                              size="small"
+                              disabled={!formData.breakAuto6hEnabled}
+                              inputProps={{ min: 0, step: 5 }}
+                              InputProps={{
+                                endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
+                              }}
+                              sx={{ minWidth: 100 }}
+                            />
+                          </Box>
+
+                          {/* 8時間超 */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Switch 
+                              checked={formData.breakAuto8hEnabled}
+                              onChange={(e) => setFormData(prev => ({ ...prev, breakAuto8hEnabled: e.target.checked }))}
+                              size="small"
+                            />
+                            <TextField
+                              type="number"
+                              label="8時間超"
+                              value={formData.breakRules.over8h || ''}
+                              onChange={e => setFormData(prev => ({ 
+                                ...prev, 
+                                breakRules: { 
+                                  ...prev.breakRules, 
+                                  over8h: e.target.value ? parseInt(e.target.value) : 0 
+                                }
+                              }))}
+                              size="small"
+                              disabled={!formData.breakAuto8hEnabled}
+                              inputProps={{ min: 0, step: 5 }}
+                              InputProps={{
+                                endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
+                              }}
+                              sx={{ minWidth: 100 }}
+                            />
+                          </Box>
+                        </Box>
                         
                         {/* ルール追加ボタン */}
                         <Button
@@ -1538,9 +1664,7 @@ export const WorkplaceManager: React.FC = () => {
             variant="contained"
             disabled={
               !formData.name.trim() ||
-              (formData.paymentType === 'hourly' && (!formData.defaultHourlyRate || formData.defaultHourlyRate <= 0)) ||
-              !formData.cutoffDay ||
-              !formData.paymentDay
+              (formData.paymentType === 'hourly' && (!formData.defaultHourlyRate || formData.defaultHourlyRate <= 0))
             }
             sx={{
               background: 'linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%)',

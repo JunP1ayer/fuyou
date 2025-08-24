@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, ExpandLess, ExpandMore, AccountBalance, Star
 // import { InfiniteCalendar } from '../calendar/InfiniteCalendar';
 // import { useNavigate } from 'react-router-dom';
 import { useSimpleShiftStore } from '../../store/simpleShiftStore';
+import { useCalendarStore } from '../../store/calendarStore';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import useI18nStore from '../../store/i18nStore';
@@ -16,6 +17,7 @@ export const MobileSalaryView: React.FC = () => {
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
   // const navigate = useNavigate();
   const { shifts } = useSimpleShiftStore();
+  const { events } = useCalendarStore();
   const { language, country } = useI18nStore();
   const { t } = useI18n();
   const currency = ((): string => {
@@ -226,6 +228,7 @@ export const MobileSalaryView: React.FC = () => {
     let yEarnings = 0;
     const monthAgg: Record<string, { earnings: number; minutes: number }> = {};
 
+    // 既存のシフトデータを処理
     shifts.forEach(s => {
       const d = new Date(s.date);
       const mKey = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
@@ -259,13 +262,58 @@ export const MobileSalaryView: React.FC = () => {
       }
     });
 
+    // カレンダーのシフトイベントも処理
+    events
+      .filter(event => event.type === 'shift' && event.startTime && event.endTime)
+      .forEach(event => {
+        const d = new Date(event.date);
+        const mKey = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+        const start = new Date(`2000-01-01T${event.startTime}`);
+        let end = new Date(`2000-01-01T${event.endTime}`);
+        
+        // 終了時間が開始時間より早い場合は翌日とみなす
+        if (end.getTime() <= start.getTime()) {
+          end = new Date(end.getTime() + 24 * 60 * 60 * 1000);
+        }
+        
+        const diffMin = Math.max(0, (end.getTime() - start.getTime()) / 60000);
+        const earnings = event.earnings || 0;
+        const workplaceName = event.workplace?.name || event.title || '不明';
+
+        if (mKey === ymKey) {
+          minutes += diffMin;
+          est += earnings;
+          const row = (perWorkplace[workplaceName] ||= { hoursMin: 0, est: 0 });
+          row.hoursMin += diffMin;
+          row.est += earnings;
+        }
+        
+        // 当月までの合計
+        const isSameMonth =
+          d.getFullYear() === shownDate.getFullYear() &&
+          d.getMonth() === shownDate.getMonth();
+        if (isSameMonth && d <= now) {
+          ytdMonth += earnings;
+        }
+
+        // 年集計
+        if (d.getFullYear() === shownDate.getFullYear()) {
+          yMinutes += diffMin;
+          yEarnings += earnings;
+          const key = (d.getMonth() + 1).toString().padStart(2, '0');
+          if (!monthAgg[key]) monthAgg[key] = { earnings: 0, minutes: 0 };
+          monthAgg[key].earnings += earnings;
+          monthAgg[key].minutes += diffMin;
+        }
+      });
+
     return {
       monthHoursMin: minutes,
       monthEstJPY: est,
       yearHoursMin: yMinutes,
       yearEarningsJPY: yEarnings,
     };
-  }, [shifts]);
+  }, [shifts, events]);
 
   // 残り許容量の詳細（必要時に使用）
   // 削除: 未使用の詳細計算
