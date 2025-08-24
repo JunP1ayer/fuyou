@@ -103,8 +103,8 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   const handleAddEventFromDayView = () => {
     setDayViewOpen(false);
     if (selectedDate) {
-      // DayViewからの追加時もタイプ選択ダイアログを表示
-      setEventTypeSelectorOpen(true);
+      // 直接EventDialogを開く（シフトタブを選択）
+      openEventDialog(selectedDate, 'shift');
     }
   };
 
