@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Typography, IconButton, Card, CardContent, Button, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Tabs, Tab, Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, RadioGroup, Radio, Alert, Tooltip, TextField, InputAdornment, Snackbar } from '@mui/material';
-import { ChevronLeft, ChevronRight, AccountBalance, Star, Info } from '@mui/icons-material';
+import { ChevronLeft, ChevronRight, ExpandLess, ExpandMore, AccountBalance, Star, Info } from '@mui/icons-material';
 // import { InfiniteCalendar } from '../calendar/InfiniteCalendar';
 // import { useNavigate } from 'react-router-dom';
 import { useSimpleShiftStore } from '../../store/simpleShiftStore';
@@ -41,14 +41,14 @@ export const MobileSalaryView: React.FC = () => {
   const [tabValue, setTabValue] = useState<'month' | 'year'>('month');
   const [monthOffset, setMonthOffset] = useState(0);
   
-  // 扶養状況の初回設定チェック（給料管理画面初回アクセス時に表示）
+  // 扶養状況の初回設定チェック（給料管理画面アクセス時に表示）
   const [dependencySetupOpen, setDependencySetupOpen] = useState(() => {
     const hasDependencyStatus = localStorage.getItem('dependencyStatus');
-    const hasVisitedSalaryView = localStorage.getItem('hasVisitedSalaryView');
     const isDeferred = localStorage.getItem('dependencySetupDeferred'); // 「あとで」を押したかどうか
     
-    // 扶養設定が未設定 かつ (初回アクセス または 以前「あとで」を押した) 場合に表示
-    return !hasDependencyStatus && (!hasVisitedSalaryView || isDeferred === 'true');
+    // 扶養設定が未設定で、「あとで」を押した場合は給料タブを押すたびに表示
+    // 一度設定を完了したらもう表示しない
+    return !hasDependencyStatus && isDeferred === 'true';
   });
   
   // 扶養再設定用の状態
@@ -81,14 +81,24 @@ export const MobileSalaryView: React.FC = () => {
       hasDependent: null, // boolean (家族の被扶養に入る予定があるか)
       meets106: null, // boolean (106万の全条件を満たしそうか)
       prefecture: 'default', // string (居住地、将来の自治体差対応用)
-      manualLimit: null, // number (手動設定した上限: 106, 123, 130, 150)
-      combinedLimitJPY: null, // number | null: 税金0&社保0の同時上限の保存値
+      manualLimit: 130, // number (手動設定した上限: 106, 123, 130, 150) - デフォルトを130万円に
+      combinedLimitJPY: 1300000, // number | null: デフォルトを130万円に設定
       streakRuleEnabled: false, // 連続Nヶ月判定を使うか
       streakMonths: 3, // Nヶ月
       streakMonthlyThresholdJPY: 108334, // 月額基準（例：130万/12）
     };
   });
 
+  // ステップ1の選択インデックス
+  const [step1SelectedIndex, setStep1SelectedIndex] = useState(
+    dependencyStatus.age ? [18, 21, 24, 26].indexOf(dependencyStatus.age) : 0
+  );
+  
+  // ステップ2の選択インデックス
+  const [step2SelectedIndex, setStep2SelectedIndex] = useState(
+    dependencyStatus.occupation ? 
+    ['university', 'highschool', 'worker', 'freeter'].indexOf(dependencyStatus.occupation) : 0
+  );
 
   // 設定関連のstate
   // 削除: 未使用の設定ダイアログフラグ
@@ -672,46 +682,23 @@ export const MobileSalaryView: React.FC = () => {
         税金上限を再設定
       </Button>
 
-      {/* 銀行連携UI */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'center' }}>
-            <AccountBalance sx={{ mr: 1, color: 'primary.main' }} />
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {t('bank.link.title', '銀行連携')}
+      {/* 銀行連携（今後のアップデート） */}
+      <Card sx={{ mb: 3, bgcolor: 'grey.50' }}>
+        <CardContent sx={{ textAlign: 'center', py: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+            <AccountBalance sx={{ mr: 1, color: 'text.secondary' }} />
+            <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+              銀行連携
             </Typography>
           </Box>
           
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
-            {t('bank.link.desc', '銀行口座と連携して、自動で収入データを取得・分析できます')}
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            自動でデータ取得・分析
           </Typography>
           
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button 
-              variant="contained"
-              fullWidth
-              onClick={() => {
-                setSnackMessage('銀行連携機能は現在開発中です。順次公開予定ですのでお楽しみに！');
-                setSnackOpen(true);
-              }}
-              sx={{ 
-                backgroundColor: 'primary.main',
-                '&:hover': { backgroundColor: 'primary.dark' }
-              }}
-            >
-              {t('bank.link.start', '銀行連携を開始')}
-            </Button>
-            <Button 
-              variant="outlined"
-              onClick={() => {
-                setSnackMessage('銀行連携機能は現在開発中です。順次公開予定ですのでお楽しみに！');
-                setSnackOpen(true);
-              }}
-              sx={{ minWidth: 120 }}
-            >
-              {t('common.details', '詳細を見る')}
-            </Button>
-          </Box>
+          <Typography variant="caption" color="text.disabled">
+            今後のアップデートでお楽しみに！
+          </Typography>
         </CardContent>
       </Card>
 
@@ -720,18 +707,33 @@ export const MobileSalaryView: React.FC = () => {
       <Dialog
         open={dependencySetupOpen}
         onClose={() => setDependencySetupOpen(false)}
-        maxWidth="sm"
-        fullWidth
+        fullScreen
+        PaperProps={{
+          sx: {
+            bgcolor: 'background.paper',
+            backgroundImage: 'none',
+          }
+        }}
       >
-        <DialogTitle>
-          <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+        <DialogTitle sx={{ 
+          textAlign: 'center', 
+          py: 3,
+          borderBottom: '1px solid',
+          borderColor: 'divider'
+        }}>
+          <Typography variant="h5" component="div" sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
             税金0 & 社保0 上限チェック
           </Typography>
-          <Typography variant="caption" component="p" color="text.secondary">
+          <Typography variant="body2" component="p" color="text.secondary" sx={{ mt: 1 }}>
             2025年法令準拠 / 簡易判定
           </Typography>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ 
+          p: { xs: 2, sm: 4 },
+          maxWidth: '600px',
+          mx: 'auto',
+          width: '100%'
+        }}>
           {/* 進捗ドット */}
           <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center', gap: 1 }}>
             {Array.from({ length: getTotalSteps() }, (_, i) => (
@@ -750,115 +752,234 @@ export const MobileSalaryView: React.FC = () => {
 
           {/* ステップ 0: 開始ページ */}
           {currentStep === 0 && (
-            <Box sx={{ textAlign: 'center', py: 3 }}>
-              <Typography variant="h5" sx={{ mb: 3, fontWeight: 700 }}>
-                税金も社会保険も払わずに済む<br />上限額をチェックしましょう
-              </Typography>
-              <Button
-                variant="contained"
-                size="large"
-                onClick={() => setCurrentStep(1)}
-                sx={{ py: 2, px: 4, fontSize: '1.1rem', fontWeight: 600, mb: 3 }}
-              >
-                チェックスタート
-              </Button>
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
-                <Tooltip 
-                  title={
-                    <Box sx={{ p: 1 }}>
-                      <Typography variant="caption" sx={{ display: 'block', mb: 1, fontWeight: 600 }}>
-                        注意事項
-                      </Typography>
-                      <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
-                        • 2025年法令を反映した簡易版です
-                      </Typography>
-                      <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
-                        • 本人が支払う税金（所得税・住民税）のみ対象
-                      </Typography>
-                      <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
-                        • 社会保険は含みません
-                      </Typography>
-                      <Typography variant="caption" sx={{ display: 'block' }}>
-                        • 住民税は翌年度課税、自治体により僅差あり
-                      </Typography>
-                    </Box>
-                  }
-                  arrow
-                  placement="top"
-                >
-                  <IconButton size="small" sx={{ color: 'text.secondary' }}>
-                    <Info fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-                <Typography variant="caption" color="text.secondary">
-                  注意事項
+            <Box sx={{ 
+              textAlign: 'center', 
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '65vh',
+              py: 3
+            }}>
+              <Box>
+                <Typography variant="h4" sx={{ mb: 4, fontWeight: 700, fontSize: { xs: '1.8rem', sm: '2.5rem' } }}>
+                  税金も社会保険も<br />払わずに済む<br />上限額をチェック
                 </Typography>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={() => setCurrentStep(1)}
+                  sx={{ 
+                    py: 2.5, 
+                    px: 6, 
+                    fontSize: '1.3rem', 
+                    fontWeight: 700, 
+                    mb: 4,
+                    borderRadius: 3,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    '&:hover': {
+                      transform: 'scale(1.02)',
+                      boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
+                    },
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  チェックスタート
+                </Button>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1 }}>
+                  <Tooltip 
+                    title={
+                      <Box sx={{ p: 1 }}>
+                        <Typography variant="caption" sx={{ display: 'block', mb: 1, fontWeight: 600 }}>
+                          注意事項
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                          • 2025年法令を反映した簡易版です
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                          • 本人が支払う税金（所得税・住民税）のみ対象
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                          • 社会保険は含みません
+                        </Typography>
+                        <Typography variant="caption" sx={{ display: 'block' }}>
+                          • 住民税は翌年度課税、自治体により僅差あり
+                        </Typography>
+                      </Box>
+                    }
+                    arrow
+                    placement="top"
+                  >
+                    <IconButton size="small" sx={{ color: 'text.secondary' }}>
+                      <Info fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Typography variant="caption" color="text.secondary">
+                    注意事項
+                  </Typography>
+                </Box>
               </Box>
             </Box>
           )}
 
           {/* ステップ 1: 年齢選択 */}
-          {currentStep === 1 && (
-            <Box sx={{ py: 2 }}>
-              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, textAlign: 'center' }}>
-                あなたの年齢を選択してください
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {[
-                  { key: 'under20', label: '19歳以下', value: 18 },
-                  { key: '20to22', label: '20〜22歳', value: 21 },
-                  { key: '23to25', label: '23〜25歳', value: 24 },
-                  { key: 'over26', label: '26歳以上', value: 26 }
-                ].map(option => (
-                  <Button
-                    key={option.key}
-                    variant={dependencyStatus.age === option.value ? "contained" : "outlined"}
-                    onClick={() => {
-                      setDependencyStatus({ ...dependencyStatus, age: option.value });
-                      setTimeout(() => setCurrentStep(2), 300);
+          {currentStep === 1 && (() => {
+            const options = [
+              { key: 'under20', label: '19歳以下', value: 18 },
+              { key: '20to22', label: '20〜22歳', value: 21 },
+              { key: '23to25', label: '23〜25歳', value: 24 },
+              { key: 'over26', label: '26歳以上', value: 26 }
+            ];
+            
+            return (
+              <Box sx={{ py: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '50vh', justifyContent: 'center' }}>
+                <Typography variant="h6" sx={{ mb: 4, fontWeight: 600, textAlign: 'center' }}>
+                  あなたの年齢を選択してください
+                </Typography>
+                
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <IconButton 
+                    onClick={() => setStep2SelectedIndex(prev => Math.max(0, prev - 1))}
+                    disabled={step1SelectedIndex === 0}
+                    sx={{ 
+                      bgcolor: step1SelectedIndex === 0 ? 'grey.100' : 'primary.main',
+                      color: step1SelectedIndex === 0 ? 'grey.400' : 'white',
+                      '&:hover': { bgcolor: step1SelectedIndex === 0 ? 'grey.100' : 'primary.dark' },
+                      width: 48,
+                      height: 48
                     }}
-                    sx={{ py: 2, justifyContent: 'flex-start' }}
                   >
-                    {option.label}
-                  </Button>
-                ))}
+                    <ExpandLess />
+                  </IconButton>
+                  
+                  <Box sx={{ 
+                    minHeight: '120px', 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    px: 4,
+                    py: 2,
+                    bgcolor: 'primary.lighter',
+                    borderRadius: 3,
+                    border: '2px solid',
+                    borderColor: 'primary.main',
+                    minWidth: '280px'
+                  }}>
+                    <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', textAlign: 'center' }}>
+                      {options[step1SelectedIndex].label}
+                    </Typography>
+                  </Box>
+                  
+                  <IconButton 
+                    onClick={() => setStep2SelectedIndex(prev => Math.min(options.length - 1, prev + 1))}
+                    disabled={step1SelectedIndex === options.length - 1}
+                    sx={{ 
+                      bgcolor: step1SelectedIndex === options.length - 1 ? 'grey.100' : 'primary.main',
+                      color: step1SelectedIndex === options.length - 1 ? 'grey.400' : 'white',
+                      '&:hover': { bgcolor: step1SelectedIndex === options.length - 1 ? 'grey.100' : 'primary.dark' },
+                      width: 48,
+                      height: 48
+                    }}
+                  >
+                    <ExpandMore />
+                  </IconButton>
+                </Box>
+                
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    setDependencyStatus({ ...dependencyStatus, age: options[step1SelectedIndex].value });
+                    setTimeout(() => setCurrentStep(2), 300);
+                  }}
+                  sx={{ mt: 4, py: 1.5, px: 4, fontSize: '1.1rem' }}
+                >
+                  次へ
+                </Button>
               </Box>
-            </Box>
-          )}
+            );
+          })()}
 
           {/* ステップ 2: 職業セレクト */}
-          {currentStep === 2 && (
-            <Box sx={{ py: 2 }}>
-              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, textAlign: 'center' }}>
-                あなたの職業を選択してください
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {[
-                  { key: 'university', label: '大学生・大学院生', isStudent: true },
-                  { key: 'highschool', label: '高校生', isStudent: true },
-                  { key: 'worker', label: '社会人（正社員・契約社員）', isStudent: false },
-                  { key: 'freeter', label: 'フリーター・パート', isStudent: false }
-                ].map(option => (
-                  <Button
-                    key={option.key}
-                    variant={dependencyStatus.occupation === option.key ? "contained" : "outlined"}
-                    onClick={() => {
-                      setDependencyStatus({
-                        ...dependencyStatus,
-                        occupation: option.key,
-                        isStudent: option.isStudent
-                      });
-                      // 学生を選んだ場合でも、学生例外の個別質問はスキップし、次の収入区分へ進む
-                      setTimeout(() => setCurrentStep(4), 300);
+          {currentStep === 2 && (() => {
+            const options = [
+              { key: 'university', label: '大学生・大学院生', isStudent: true },
+              { key: 'highschool', label: '高校生', isStudent: true },
+              { key: 'worker', label: '社会人（正社員・契約社員）', isStudent: false },
+              { key: 'freeter', label: 'フリーター・パート', isStudent: false }
+            ];
+            
+            return (
+              <Box sx={{ py: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '50vh', justifyContent: 'center' }}>
+                <Typography variant="h6" sx={{ mb: 4, fontWeight: 600, textAlign: 'center' }}>
+                  あなたの職業を選択してください
+                </Typography>
+                
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <IconButton 
+                    onClick={() => setStep2SelectedIndex(prev => Math.max(0, prev - 1))}
+                    disabled={step1SelectedIndex === 0}
+                    sx={{ 
+                      bgcolor: step1SelectedIndex === 0 ? 'grey.100' : 'primary.main',
+                      color: step1SelectedIndex === 0 ? 'grey.400' : 'white',
+                      '&:hover': { bgcolor: step1SelectedIndex === 0 ? 'grey.100' : 'primary.dark' },
+                      width: 48,
+                      height: 48
                     }}
-                    sx={{ py: 2, justifyContent: 'flex-start' }}
                   >
-                    {option.label}
-                  </Button>
-                ))}
+                    <ExpandLess />
+                  </IconButton>
+                  
+                  <Box sx={{ 
+                    minHeight: '120px', 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    px: 4,
+                    py: 2,
+                    bgcolor: 'primary.lighter',
+                    borderRadius: 3,
+                    border: '2px solid',
+                    borderColor: 'primary.main',
+                    minWidth: '280px'
+                  }}>
+                    <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main', textAlign: 'center' }}>
+                      {options[step1SelectedIndex].label}
+                    </Typography>
+                  </Box>
+                  
+                  <IconButton 
+                    onClick={() => setStep2SelectedIndex(prev => Math.min(options.length - 1, prev + 1))}
+                    disabled={step1SelectedIndex === options.length - 1}
+                    sx={{ 
+                      bgcolor: step1SelectedIndex === options.length - 1 ? 'grey.100' : 'primary.main',
+                      color: step1SelectedIndex === options.length - 1 ? 'grey.400' : 'white',
+                      '&:hover': { bgcolor: step1SelectedIndex === options.length - 1 ? 'grey.100' : 'primary.dark' },
+                      width: 48,
+                      height: 48
+                    }}
+                  >
+                    <ExpandMore />
+                  </IconButton>
+                </Box>
+                
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    setDependencyStatus({
+                      ...dependencyStatus,
+                      occupation: options[step1SelectedIndex].key,
+                      isStudent: options[step1SelectedIndex].isStudent
+                    });
+                    // 学生を選んだ場合でも、学生例外の個別質問はスキップし、次の収入区分へ進む
+                    setTimeout(() => setCurrentStep(4), 300);
+                  }}
+                  sx={{ mt: 4, py: 1.5, px: 4, fontSize: '1.1rem' }}
+                >
+                  次へ
+                </Button>
               </Box>
-            </Box>
-          )}
+            );
+          })()}
 
           {/* ステップ 3: 勤労学生該当チェック（学生時のみ） - 今回はスキップ */}
           {false && currentStep === 3 && dependencyStatus.isStudent && (
@@ -1100,18 +1221,33 @@ export const MobileSalaryView: React.FC = () => {
       <Dialog
         open={dependencyRecheckOpen}
         onClose={() => setDependencyRecheckOpen(false)}
-        maxWidth="sm"
-        fullWidth
+        fullScreen
+        PaperProps={{
+          sx: {
+            bgcolor: 'background.paper',
+            backgroundImage: 'none',
+          }
+        }}
       >
-        <DialogTitle>
-          <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+        <DialogTitle sx={{ 
+          textAlign: 'center', 
+          py: 3,
+          borderBottom: '1px solid',
+          borderColor: 'divider'
+        }}>
+          <Typography variant="h5" component="div" sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
             ゼロ負担上限を変更
           </Typography>
-          <Typography variant="caption" component="p" color="text.secondary">
+          <Typography variant="body2" component="p" color="text.secondary" sx={{ mt: 1 }}>
             現在の設定: {dependencyStatus.combinedLimitJPY ? `¥${Number(dependencyStatus.combinedLimitJPY).toLocaleString()}` : dependencyLimit.type}
           </Typography>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ 
+          p: { xs: 2, sm: 4 },
+          maxWidth: '600px',
+          mx: 'auto',
+          width: '100%'
+        }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             「税金0 & 社保0」の同時上限をもう一度チェックするか、税金のみの上限を手動で選べます。
           </Typography>

@@ -75,7 +75,7 @@ interface TabPanelProps {
 const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => {
   return (
     <div hidden={value !== index}>
-      {value === index && <Box sx={{ py: 1 }}>{children}</Box>}
+      {value === index && <Box sx={{ py: 0.5 }}>{children}</Box>}
     </div>
   );
 };
@@ -680,28 +680,31 @@ export const EventDialog: React.FC<EventDialogProps> = ({
     <Dialog
       open={isEventDialogOpen}
       onClose={closeEventDialog}
-      maxWidth="sm"
-      fullWidth
+      fullScreen
       PaperProps={{ 
         sx: { 
-          borderRadius: 2,
-          maxHeight: '90vh',
+          borderRadius: 0,
+          maxHeight: '100vh',
           overflow: 'hidden'
         } 
       }}
     >
-      <DialogTitle>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {editingEvent ? t('calendar.event.editTitle', '予定を編集') : t('calendar.event.newTitle', '新しい予定を追加')}
-            {formData.date && (
+      <DialogTitle sx={{ pb: 0.5, pt: 2, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 600 }}>
+            {editingEvent ? '予定編集' : '新しい予定'}
+          </Typography>
+          {formData.date && (
+            <Box sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
               <Chip
-                label={format(new Date(formData.date), 'M月d日(E)', { locale: ja })}
+                label={format(new Date(formData.date), 'M/d', { locale: ja })}
                 size="small"
                 color="primary"
+                variant="outlined"
+                sx={{ fontSize: '0.7rem', height: '18px' }}
               />
-            )}
-          </Box>
+            </Box>
+          )}
           {!editingEvent && (
             <Button
               size="small"
@@ -710,50 +713,100 @@ export const EventDialog: React.FC<EventDialogProps> = ({
               onClick={handleOpenQuickShift}
               sx={{
                 minWidth: 'auto',
-                px: 2,
+                px: 1,
+                py: 0.25,
+                fontSize: '0.7rem',
+                height: '24px',
                 background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #38f9d7 0%, #43e97b 100%)',
                 },
               }}
             >
-              {t('calendar.event.quickAdd', 'クイック登録')}
+              クイック
             </Button>
           )}
         </Box>
       </DialogTitle>
 
-      <DialogContent sx={{ overflow: 'auto', px: 3, py: 2 }}>
-        {/* イベントタイプ選択タブ */}
-        <Tabs 
-          value={tabValue} 
-          onChange={(_, v) => {
-            setTabValue(v);
-            setEventType(['shift', 'personal'][v] as EventType);
-          }}
-          variant="fullWidth"
-          sx={{ borderBottom: 1, borderColor: 'divider', mb: 1.5 }}
-        >
-          <Tab label={t('calendar.event.tab.shift', 'シフト')} icon={<Work />} iconPosition="start" />
-          <Tab label={t('calendar.event.tab.personal', '個人')} icon={<Person />} iconPosition="start" />
-        </Tabs>
+      <DialogContent sx={{ overflow: 'auto', px: 3, py: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* コンパクトタブ */}
+        <Box sx={{ display: 'flex', mb: 1, borderRadius: 1, bgcolor: 'rgba(0, 188, 212, 0.1)', p: 0.25 }}>
+          <Button
+            onClick={() => { setTabValue(0); setEventType('shift'); }}
+            variant="text"
+            size="small"
+            sx={{
+              flex: 1,
+              py: 0.5,
+              fontSize: '0.8rem',
+              minHeight: '32px',
+              borderRadius: 1,
+              ...(tabValue === 0 ? {
+                bgcolor: 'white',
+                color: '#00838F',
+                fontWeight: 600,
+              } : {
+                color: 'text.secondary',
+                bgcolor: 'transparent',
+                '&:hover': {
+                  bgcolor: 'rgba(0, 0, 0, 0.04)',
+                }
+              })
+            }}
+          >
+            <Work sx={{ mr: 0.5, fontSize: '16px' }} />
+            シフト
+          </Button>
+          <Button
+            onClick={() => { setTabValue(1); setEventType('personal'); }}
+            variant="text"
+            size="small"
+            sx={{
+              flex: 1,
+              py: 0.5,
+              fontSize: '0.8rem',
+              minHeight: '32px',
+              borderRadius: 1,
+              ...(tabValue === 1 ? {
+                bgcolor: 'white',
+                color: '#00838F',
+                fontWeight: 600,
+              } : {
+                color: 'text.secondary',
+                bgcolor: 'transparent',
+                '&:hover': {
+                  bgcolor: 'rgba(0, 0, 0, 0.04)',
+                }
+              })
+            }}
+          >
+            <Person sx={{ mr: 0.5, fontSize: '16px' }} />
+            個人
+          </Button>
+        </Box>
 
         {/* シフトタブ */}
         <TabPanel value={tabValue} index={0}>
-          {/* バイト先未登録の場合の誘導 */}
-          {workplaces.length === 0 ? (
-            <Box sx={{ p: 3, textAlign: 'center', border: '2px dashed', borderColor: 'divider', borderRadius: 2, mb: 2 }}>
-              <Business sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
-              <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                {t('calendar.event.howToRegisterShift', 'シフトを登録する方法')}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                {t('calendar.event.registerWorkplaceHint', '定期的にバイトをする場合は先にバイト先を登録しましょう')}
+          {/* シンプルなシフト登録選択 */}
+          {workplaces.length === 0 && !isOneTime && (
+            <Box sx={{ 
+              flex: 1, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              px: 2,
+              py: 4
+            }}>
+              <Typography variant="h6" sx={{ mb: 4, fontWeight: 600, textAlign: 'center' }}>
+                シフトの種類を選択
               </Typography>
               
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%', maxWidth: 400 }}>
                 <Button 
-                  variant="contained" 
+                  variant="outlined" 
+                  size="large"
                   startIcon={<Business />}
                   onClick={() => {
                     if (onNavigateToWorkplaceManager) {
@@ -764,99 +817,205 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     }
                   }}
                   sx={{
-                    background: 'linear-gradient(135deg, #64B5F6 0%, #42A5F5 100%)',
+                    py: 3,
+                    fontSize: '1.2rem',
+                    borderColor: '#00BCD4',
+                    color: '#00BCD4',
+                    borderWidth: 2,
+                    borderRadius: 2,
+                    minHeight: 64,
                     '&:hover': {
-                      background: 'linear-gradient(135deg, #42A5F5 0%, #64B5F6 100%)',
+                      borderColor: '#0097A7',
+                      backgroundColor: 'rgba(0, 188, 212, 0.08)',
+                      borderWidth: 2,
                     }
                   }}
                 >
-                  {t('calendar.event.registerWorkplace', 'バイト先を登録する')}
+                  バイト先を登録
                 </Button>
-                
-                <Typography variant="body2" color="text.secondary" sx={{ my: 1 }}>
-                  {t('common.or', 'または')}
-                </Typography>
                 
                 <Button 
                   variant="outlined" 
+                  size="large"
                   startIcon={<AttachMoney />}
                   onClick={() => {
                     setIsOneTime(true);
                     setFormData(prev => ({ ...prev, title: '', workplaceId: '', workplaceName: '' }));
                   }}
                   sx={{
-                    borderColor: '#FFA726',
-                    color: '#FFA726',
+                    py: 3,
+                    fontSize: '1.2rem',
+                    borderColor: '#FF9800',
+                    color: '#FF9800',
+                    borderWidth: 2,
+                    borderRadius: 2,
+                    minHeight: 64,
                     '&:hover': {
-                      borderColor: '#FF9800',
-                      backgroundColor: 'rgba(255, 167, 38, 0.1)'
+                      borderColor: '#F57C00',
+                      backgroundColor: 'rgba(255, 152, 0, 0.08)',
+                      borderWidth: 2,
                     }
                   }}
                 >
-                  {t('calendar.event.registerOneTime', '単発バイトとして登録')}
+                  単発バイト
                 </Button>
               </Box>
               
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-                {t('calendar.event.oneTimeDesc', '単発バイト：一回限りのバイトやイベントスタッフなど')}
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 3, fontSize: '0.9rem', lineHeight: 1.4, textAlign: 'center' }}>
+                定期：毎回同じ職場でのシフト<br />
+                単発：一度きりのお仕事
               </Typography>
             </Box>
-          ) : null}
+          )}
+
+          {/* 単発バイト選択時のフォーム */}
+          {workplaces.length === 0 && isOneTime && (
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                  単発バイト情報
+                </Typography>
+                <Button 
+                  size="small" 
+                  variant="text" 
+                  onClick={() => setIsOneTime(false)}
+                  sx={{ fontSize: '0.8rem', color: 'text.secondary' }}
+                >
+                  選択に戻る
+                </Button>
+              </Box>
+              
+              <TextField
+                fullWidth
+                label="バイト先名"
+                value={formData.oneTimeCompany}
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  oneTimeCompany: e.target.value,
+                  title: e.target.value,
+                }))}
+                placeholder="例: イベントスタッフ"
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                fullWidth
+                type="number"
+                label="合計給料"
+                value={formData.oneTimeTotalPay}
+                onChange={(e) => {
+                  const value = Math.max(0, parseInt(e.target.value) || 0);
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    oneTimeTotalPay: value,
+                  }));
+                }}
+                placeholder="時給・交通費・手当などを含む総額"
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">¥</InputAdornment>,
+                }}
+                helperText="時給・交通費・各種手当を含めた総支給額を入力してください"
+              />
+            </Box>
+          )}
           
           {/* バイト先登録済み または 単発バイト選択時のフォーム */}
           {(workplaces.length > 0 || isOneTime) && (
             <>
               {/* バイト先選択（登録済みバイト先がある場合のみ表示） */}
-              {workplaces.length > 0 && (
+              {workplaces.length > 0 && !isOneTime && (
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    {t('calendar.event.pickWorkplace', 'バイト先を選択')}
+                  <Typography variant="body1" sx={{ mb: 1, fontWeight: 600, textAlign: 'center' }}>
+                    バイト先を選択
                   </Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1.5 }}>
                   {workplaces.map((workplace) => (
-                    <Chip
+                    <Button
                       key={workplace.id}
-                      label={workplace.name}
-                      clickable
-                      color={formData.workplaceId === workplace.id && !isOneTime ? 'primary' : 'default'}
-                      variant={formData.workplaceId === workplace.id && !isOneTime ? 'filled' : 'outlined'}
+                      variant={formData.workplaceId === workplace.id && !isOneTime ? 'contained' : 'outlined'}
                       onClick={() => handleWorkplaceSelect(workplace)}
                       sx={{ 
-                        fontSize: '0.8rem',
-                        '& .MuiChip-label': {
-                          px: 2
-                        }
+                        py: 1.5,
+                        fontSize: '1rem',
+                        justifyContent: 'flex-start',
+                        textAlign: 'left',
+                        borderRadius: 2,
+                        ...(formData.workplaceId === workplace.id && !isOneTime ? {
+                          background: 'linear-gradient(135deg, #4CAF50 0%, #45A049 100%)',
+                          boxShadow: '0 3px 10px rgba(76, 175, 80, 0.3)',
+                        } : {
+                          borderColor: '#E0E0E0',
+                          color: '#424242',
+                          '&:hover': {
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.04)',
+                          }
+                        })
                       }}
-                    />
+                    >
+                      <Work sx={{ mr: 1 }} />
+                      {workplace.name}
+                    </Button>
                   ))}
-                  <Chip
-                    label={t('calendar.event.oneTime', '単発バイト')}
-                    clickable
-                    color={isOneTime ? 'secondary' : 'default'}
-                    variant={isOneTime ? 'filled' : 'outlined'}
+                  <Button
+                    variant={isOneTime ? 'contained' : 'outlined'}
                     onClick={() => {
                       setIsOneTime(true);
                       setFormData(prev => ({ ...prev, title: '', workplaceId: '', workplaceName: '' }));
                     }}
-                    sx={{ fontSize: '0.8rem' }}
-                  />
+                    sx={{ 
+                      py: 1.5,
+                      fontSize: '1rem',
+                      justifyContent: 'flex-start',
+                      textAlign: 'left',
+                      borderRadius: 2,
+                      ...(isOneTime ? {
+                        background: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
+                        color: 'white',
+                        boxShadow: '0 3px 10px rgba(255, 152, 0, 0.3)',
+                      } : {
+                        borderColor: '#E0E0E0',
+                        color: '#424242',
+                        '&:hover': {
+                          borderColor: '#FF9800',
+                          backgroundColor: 'rgba(255, 152, 0, 0.04)',
+                        }
+                      })
+                    }}
+                  >
+                    <AttachMoney sx={{ mr: 1 }} />
+                    単発バイト
+                  </Button>
                 </Box>
                 </Box>
               )}
 
-              {/* 単発バイト詳細入力（簡潔版） */}
-              {isOneTime && (
+              {/* 単発バイト詳細入力（workplacesがある場合の単発選択時） */}
+              {workplaces.length > 0 && isOneTime && (
                 <Box sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      単発バイト情報
+                    </Typography>
+                    <Button 
+                      size="small" 
+                      variant="text" 
+                      onClick={() => setIsOneTime(false)}
+                      sx={{ fontSize: '0.8rem', color: 'text.secondary' }}
+                    >
+                      選択に戻る
+                    </Button>
+                  </Box>
+                  
                   <TextField
                     fullWidth
-                    label={t('calendar.event.company', 'バイト先名')}
+                    label="バイト先名"
                     value={formData.oneTimeCompany}
                     onChange={(e) => setFormData(prev => ({ 
                       ...prev, 
                       oneTimeCompany: e.target.value,
                       title: e.target.value,
                     }))}
-                    placeholder={t('calendar.event.company.placeholder', '例: イベントスタッフ')}
+                    placeholder="例: イベントスタッフ"
                     sx={{ mb: 2 }}
                   />
                   <TextField
@@ -880,26 +1039,27 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 </Box>
               )}
 
-              {/* 色選択（共通パレット） */}
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              {/* 色選択（コンパクト版） */}
+              <Box sx={{ mb: 1.5 }}>
+                <Typography variant="subtitle2" sx={{ mb: 0.5, fontSize: '0.85rem' }}>
                   {t('calendar.event.pickColor', '色を選択')}
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'space-between', maxWidth: '100%', overflowX: 'auto' }}>
                   {APP_COLOR_PALETTE.map(option => (
                     <Box
                       key={option.key}
                       sx={{
-                        width: 32,
-                        height: 32,
+                        width: 24,
+                        height: 24,
                         borderRadius: '50%',
                         backgroundColor: option.color,
                         cursor: 'pointer',
-                        border: formData.color === option.color ? '3px solid' : '1px solid',
+                        border: formData.color === option.color ? '2px solid' : '1px solid',
                         borderColor: formData.color === option.color ? 'primary.main' : 'divider',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                         '&:hover': { transform: 'scale(1.1)' },
                         transition: 'all 0.2s ease',
+                        flexShrink: 0,
                       }}
                       onClick={() => setFormData(prev => ({ ...prev, color: option.color }))}
                       title={option.label}
@@ -908,14 +1068,14 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 </Box>
               </Box>
 
-              {/* 日付・時間（iOS風：All-day/Starts/Ends） */}
-              <Box sx={{ mb: 2 }}>
+              {/* 日付・時間（コンパクト版） */}
+              <Box sx={{ mb: 1 }}>
                 <FormControlLabel
-                  control={<Switch checked={formData.isAllDay} onChange={(e) => setFormData(prev => ({ ...prev, isAllDay: e.target.checked }))} />}
-                  label={t('calendar.event.allDay', '終日')}
-                  sx={{ mb: 1 }}
+                  control={<Switch checked={formData.isAllDay} onChange={(e) => setFormData(prev => ({ ...prev, isAllDay: e.target.checked }))} size="small" />}
+                  label={<Typography variant="body2">{t('calendar.event.allDay', '終日')}</Typography>}
+                  sx={{ mb: 0.25 }}
                 />
-                <Grid container spacing={1} sx={{ mb: 1 }}>
+                <Grid container spacing={1} sx={{ mb: 0.5 }}>
                   <Grid item xs={7}>
                     <TextField
                       fullWidth
@@ -924,6 +1084,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       value={formData.date}
                       onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
                       InputLabelProps={{ shrink: true }}
+                      size="small"
                     />
                   </Grid>
                   <Grid item xs={5}>
@@ -934,6 +1095,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       value={formData.startTime}
                       onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
                       InputLabelProps={{ shrink: true }}
+                      size="small"
                       disabled={formData.isAllDay}
                     />
                   </Grid>
@@ -947,6 +1109,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       value={formData.endDate || formData.date}
                       onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
                       InputLabelProps={{ shrink: true }}
+                      size="small"
                     />
                   </Grid>
                   <Grid item xs={5}>
@@ -957,8 +1120,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       value={formData.endTime}
                       onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
                       InputLabelProps={{ shrink: true }}
+                      size="small"
                       disabled={formData.isAllDay}
-                      helperText={!formData.isAllDay && formData.startTime && formData.endTime && (!formData.endDate || formData.endDate === formData.date) && formData.endTime <= formData.startTime ? '翌日にまたがる場合は終了日を翌日に変更してください' : ''}
                     />
                   </Grid>
                 </Grid>
@@ -966,10 +1129,10 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
 
 
-              {/* 予想収入表示 */}
+              {/* 予想収入表示（コンパクト版） */}
               {formData.startTime && formData.endTime && (formData.workplaceId || isOneTime) && (
-                <Box sx={{ p: 2, bgcolor: 'success.lighter', borderRadius: 1, textAlign: 'center', mb: 2 }}>
-                  <Typography variant="h6" color="success.main" sx={{ fontWeight: 600 }}>
+                <Box sx={{ p: 1, bgcolor: 'success.lighter', borderRadius: 1, textAlign: 'center', mb: 1 }}>
+                  <Typography variant="body1" color="success.main" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
                     {t('calendar.event.estimatedIncome', '予想収入')}: ¥{calculateEarnings().toLocaleString()}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -1038,59 +1201,38 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 </Box>
               )}
 
-              {/* シフト用繰り返し設定 */}
+              {/* シフト用繰り返し設定（コンパクト版） */}
               {(formData.workplaceId || isOneTime) && !isOneTime && (
-                <Box sx={{ mb: 2 }}>
-                  <List 
-                    sx={{ 
-                      border: '1px solid', 
-                      borderColor: 'divider', 
-                      borderRadius: 2, 
-                      p: 0,
-                      bgcolor: 'background.paper'
-                    }}
-                  >
-                    <ListItem sx={{ py: 1.5 }}>
-                      <ListItemIcon sx={{ minWidth: 40 }}>
-                        <Repeat sx={{ fontSize: 20, color: 'text.secondary' }} />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={t('calendar.event.repeat', '繰り返し')} 
-                        sx={{ '& .MuiTypography-root': { fontWeight: 500 } }}
-                      />
-                      <FormControl sx={{ minWidth: 120 }}>
+                <Box sx={{ mb: 1 }}>
+                  <Grid container spacing={1} alignItems="center">
+                    <Grid item xs={6}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>{t('calendar.event.repeat', '繰り返し')}</InputLabel>
                         <Select
                           value={formData.repeatFrequency}
                           onChange={(e) => setFormData(prev => ({ ...prev, repeatFrequency: e.target.value as RepeatFrequency }))}
-                          variant="standard"
-                          disableUnderline
-                          sx={{ 
-                            fontSize: '0.9rem',
-                            color: 'text.secondary',
-                            '& .MuiSelect-select': {
-                              paddingRight: '24px !important'
-                            }
-                          }}
+                          label={t('calendar.event.repeat', '繰り返し')}
+                          size="small"
                         >
                           <MenuItem value="none">{t('common.none', 'なし')}</MenuItem>
                           <MenuItem value="weekly">{t('calendar.event.weekly', '毎週')}</MenuItem>
                           <MenuItem value="monthly">{t('calendar.event.monthly', '毎月')}</MenuItem>
                         </Select>
                       </FormControl>
-                      <ChevronRight sx={{ fontSize: 16, color: 'text.disabled', ml: 1 }} />
-                    </ListItem>
-                  </List>
+                    </Grid>
+                    <Grid item xs={6}></Grid>
+                  </Grid>
                   
                   {/* メモ入力 */}
                   <TextField
                     fullWidth
                     multiline
-                    rows={2}
+                    rows={1}
                     label={t('calendar.event.memo', 'メモ')}
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     placeholder={t('calendar.event.memo.placeholder', 'シフトに関するメモや注意事項')}
-                    sx={{ mt: 2 }}
+                    sx={{ mt: 0.5 }}
                     size="small"
                   />
                 </Box>
@@ -1101,61 +1243,74 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
           {/* 個人タブ */}
         <TabPanel value={tabValue} index={1}>
-          {/* タイトル入力 */}
-          <TextField
-            fullWidth
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            justifyContent: 'flex-start',
+            height: '100%',
+            gap: 2
+          }}>
+            {/* タイトル入力 */}
+            <TextField
+              fullWidth
               label={t('calendar.event.title', 'タイトル')}
-            value={formData.title}
-            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               placeholder={t('calendar.event.title.placeholder', '例: 友達と遊ぶ、英語の勉強、病院など')}
-            sx={{ mb: 2 }}
-          />
+            />
 
-          {/* 色選択（共通パレット） */}
-          <Box sx={{ mb: 1.5 }}>
-            <Typography variant="subtitle2" sx={{ mb: 0.5, fontSize: '0.9rem' }}>
-              {t('calendar.event.pickColor', '色を選択')}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {APP_COLOR_PALETTE.map(option => (
-                <Box
-                  key={option.key}
-                  sx={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: '50%',
-                    backgroundColor: option.color,
-                    cursor: 'pointer',
-                    border: formData.color === option.color ? '2px solid' : '1px solid',
-                    borderColor: formData.color === option.color ? 'primary.main' : 'divider',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                    '&:hover': { transform: 'scale(1.1)' },
-                    transition: 'all 0.2s ease',
-                  }}
-                  onClick={() => setFormData(prev => ({ ...prev, color: option.color }))}
-                  title={option.label}
-                />
-              ))}
+            {/* 色選択（コンパクト版） */}
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontSize: '0.85rem' }}>
+                {t('calendar.event.pickColor', '色を選択')}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'space-between', maxWidth: '100%', overflowX: 'auto' }}>
+                {APP_COLOR_PALETTE.map(option => (
+                  <Box
+                    key={option.key}
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      backgroundColor: option.color,
+                      cursor: 'pointer',
+                      border: formData.color === option.color ? '2px solid' : '1px solid',
+                      borderColor: formData.color === option.color ? 'primary.main' : 'divider',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                      '&:hover': { transform: 'scale(1.1)' },
+                      transition: 'all 0.2s ease',
+                      flexShrink: 0,
+                    }}
+                    onClick={() => setFormData(prev => ({ ...prev, color: option.color }))}
+                    title={option.label}
+                  />
+                ))}
+              </Box>
             </Box>
           </Box>
         </TabPanel>
 
         {/* 個人タブの共通項目 */}
         {tabValue === 1 && (
-          <Box>
-            {/* 日付・時間（iOS風：All-day/Starts/Ends） */}
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: 1.5,
+            mt: 2
+          }}>
+            {/* 日付・時間（コンパクト版） */}
             <FormControlLabel
               control={
                 <Switch
                   checked={formData.isAllDay}
                   onChange={(e) => setFormData(prev => ({ ...prev, isAllDay: e.target.checked }))}
+                  size="small"
                 />
               }
-              label={t('calendar.event.allDay', '終日')}
-              sx={{ mb: 1.5 }}
+              label={<Typography variant="body2">{t('calendar.event.allDay', '終日')}</Typography>}
             />
 
-            <Grid container spacing={1} sx={{ mb: 1 }}>
+            <Grid container spacing={1}>
               <Grid item xs={7}>
                 <TextField
                   fullWidth
@@ -1180,7 +1335,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 />
               </Grid>
             </Grid>
-            <Grid container spacing={1} sx={{ mb: 1.5 }}>
+            
+            <Grid container spacing={1}>
               <Grid item xs={7}>
                 <TextField
                   fullWidth
@@ -1202,13 +1358,12 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                   InputLabelProps={{ shrink: true }}
                   size="small"
                   disabled={formData.isAllDay}
-                  helperText={!formData.isAllDay && formData.startTime && formData.endTime && (!formData.endDate || formData.endDate === formData.date) && formData.endTime <= formData.startTime ? '翌日にまたがる場合は終了日を翌日に変更してください' : ''}
                 />
               </Grid>
             </Grid>
 
             {/* 通知・繰り返し設定（コンパクト版） */}
-            <Grid container spacing={2} sx={{ mb: 1.5 }}>
+            <Grid container spacing={1}>
               <Grid item xs={6}>
                 <FormControl fullWidth size="small">
                   <InputLabel>{t('calendar.event.notification', '通知')}</InputLabel>
@@ -1258,21 +1413,65 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         )}
       </DialogContent>
 
-      <DialogActions>
-        {editingEvent && (
-          <Button onClick={handleDelete} color="error">
+      <DialogActions sx={{ 
+        borderTop: '1px solid', 
+        borderColor: 'divider', 
+        px: 3, 
+        py: 2.5,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: 2
+      }}>
+        {editingEvent ? (
+          <Button 
+            onClick={handleDelete} 
+            color="error"
+            variant="outlined"
+            sx={{ 
+              minWidth: 80,
+              borderRadius: 2,
+              fontWeight: 600
+            }}
+          >
             {t('common.delete', '削除')}
           </Button>
+        ) : (
+          <Box sx={{ minWidth: 80 }} />
         )}
-        <Box sx={{ flex: 1 }} />
-        <Button onClick={closeEventDialog}>{t('common.cancel', 'キャンセル')}</Button>
-        <Button 
-          onClick={handleSave} 
-          variant="contained"
-          disabled={false}
-        >
-          {t('common.save', '保存')}
-        </Button>
+        
+        <Box sx={{ display: 'flex', gap: 1.5 }}>
+          <Button 
+            onClick={closeEventDialog}
+            variant="outlined"
+            sx={{ 
+              minWidth: 100,
+              borderRadius: 2,
+              fontWeight: 600,
+              borderColor: 'grey.400',
+              color: 'text.secondary',
+              '&:hover': {
+                borderColor: 'grey.600',
+                backgroundColor: 'grey.50'
+              }
+            }}
+          >
+            {t('common.cancel', 'キャンセル')}
+          </Button>
+          <Button 
+            onClick={handleSave} 
+            variant="contained"
+            disabled={false}
+            sx={{ 
+              minWidth: 100,
+              borderRadius: 2,
+              fontWeight: 600,
+              py: 1
+            }}
+          >
+            {t('common.save', '保存')}
+          </Button>
+        </Box>
       </DialogActions>
 
       {/* クイックシフト登録ダイアログ */}
