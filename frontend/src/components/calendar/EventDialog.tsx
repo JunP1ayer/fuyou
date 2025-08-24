@@ -358,6 +358,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
   const [tabValue, setTabValue] = useState(0);
   const [eventType, setEventType] = useState<EventType>('shift');
   const [isOneTime, setIsOneTime] = useState(false);
+  const [shiftSelectionStep, setShiftSelectionStep] = useState(1); // 1: workplace selection, 2: shift details
   const [quickShiftDialogOpen, setQuickShiftDialogOpen] = useState(false);
   
   // フォームデータ
@@ -918,93 +919,128 @@ export const EventDialog: React.FC<EventDialogProps> = ({
             </Box>
           )}
           
-          {/* バイト先登録済み または 単発バイト選択時のフォーム */}
-          {(workplaces.length > 0 || isOneTime) && (
-            <>
-              {/* バイト先選択（登録済みバイト先がある場合のみ表示） */}
-              {workplaces.length > 0 && !isOneTime && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body1" sx={{ mb: 1, fontWeight: 600, textAlign: 'center' }}>
-                    バイト先を選択
-                  </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1.5 }}>
-                  {workplaces.map((workplace) => (
-                    <Button
-                      key={workplace.id}
-                      variant={formData.workplaceId === workplace.id && !isOneTime ? 'contained' : 'outlined'}
-                      onClick={() => handleWorkplaceSelect(workplace)}
-                      sx={{ 
-                        py: 1.5,
-                        fontSize: '1rem',
-                        justifyContent: 'flex-start',
-                        textAlign: 'left',
-                        borderRadius: 2,
-                        ...(formData.workplaceId === workplace.id && !isOneTime ? {
-                          background: 'linear-gradient(135deg, #4CAF50 0%, #45A049 100%)',
-                          boxShadow: '0 3px 10px rgba(76, 175, 80, 0.3)',
-                        } : {
-                          borderColor: '#E0E0E0',
-                          color: '#424242',
-                          '&:hover': {
-                            borderColor: '#4CAF50',
-                            backgroundColor: 'rgba(76, 175, 80, 0.04)',
-                          }
-                        })
-                      }}
-                    >
-                      <Work sx={{ mr: 1 }} />
-                      {workplace.name}
-                    </Button>
-                  ))}
+          {/* ステップ1: バイト先または単発選択 */}
+          {shiftSelectionStep === 1 && (workplaces.length > 0 || isOneTime) && (
+            <Box sx={{ 
+              flex: 1, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              px: 2,
+              py: 2
+            }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
+                バイト先を選択
+              </Typography>
+              
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%', maxWidth: 400 }}>
+                {/* 登録済みバイト先ボタン */}
+                {workplaces.map((workplace) => (
                   <Button
-                    variant={isOneTime ? 'contained' : 'outlined'}
+                    key={workplace.id}
+                    variant="outlined"
+                    size="large"
                     onClick={() => {
-                      setIsOneTime(true);
-                      setFormData(prev => ({ ...prev, title: '', workplaceId: '', workplaceName: '' }));
+                      handleWorkplaceSelect(workplace);
+                      setShiftSelectionStep(2);
                     }}
-                    sx={{ 
-                      py: 1.5,
-                      fontSize: '1rem',
+                    sx={{
+                      py: 2,
+                      fontSize: '1.1rem',
                       justifyContent: 'flex-start',
                       textAlign: 'left',
                       borderRadius: 2,
-                      ...(isOneTime ? {
-                        background: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
-                        color: 'white',
-                        boxShadow: '0 3px 10px rgba(255, 152, 0, 0.3)',
-                      } : {
-                        borderColor: '#E0E0E0',
-                        color: '#424242',
-                        '&:hover': {
-                          borderColor: '#FF9800',
-                          backgroundColor: 'rgba(255, 152, 0, 0.04)',
-                        }
-                      })
+                      borderColor: '#81d4fa',
+                      color: '#01579b',
+                      borderWidth: 2,
+                      '&:hover': {
+                        borderColor: '#4fc3f7',
+                        backgroundColor: 'rgba(129, 212, 250, 0.08)',
+                        borderWidth: 2,
+                      }
                     }}
                   >
-                    <AttachMoney sx={{ mr: 1 }} />
-                    単発バイト
+                    <Business sx={{ mr: 1 }} />
+                    {workplace.name}
                   </Button>
-                </Box>
+                ))}
+                
+                {/* 単発バイトボタン */}
+                <Button 
+                  variant="outlined" 
+                  size="large"
+                  startIcon={<AttachMoney />}
+                  onClick={() => {
+                    setIsOneTime(true);
+                    setFormData(prev => ({ ...prev, title: '', workplaceId: '', workplaceName: '' }));
+                    setShiftSelectionStep(2);
+                  }}
+                  sx={{
+                    py: 2,
+                    fontSize: '1.1rem',
+                    borderColor: '#FF9800',
+                    color: '#FF9800',
+                    borderWidth: 2,
+                    borderRadius: 2,
+                    '&:hover': {
+                      borderColor: '#F57C00',
+                      backgroundColor: 'rgba(255, 152, 0, 0.08)',
+                      borderWidth: 2,
+                    }
+                  }}
+                >
+                  単発バイト
+                </Button>
+              </Box>
+              
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontSize: '0.9rem', lineHeight: 1.4, textAlign: 'center' }}>
+                定期：毎回同じ職場でのシフト<br />
+                単発：一度きりのお仕事
+              </Typography>
+            </Box>
+          )}
+
+          {/* ステップ2: シフト詳細入力 */}
+          {shiftSelectionStep === 2 && (workplaces.length > 0 || isOneTime) && (
+            <>
+              {/* 戻るボタン */}
+              <Box sx={{ mb: 1 }}>
+                <Button 
+                  size="small" 
+                  variant="text" 
+                  startIcon={<ChevronLeft />}
+                  onClick={() => {
+                    setShiftSelectionStep(1);
+                    if (isOneTime) {
+                      setIsOneTime(false);
+                      setFormData(prev => ({ ...prev, workplaceId: '', workplaceName: '', oneTimeCompany: '', oneTimeTotalPay: 0 }));
+                    }
+                  }}
+                  sx={{ fontSize: '0.8rem', color: 'text.secondary' }}
+                >
+                  選択に戻る
+                </Button>
+              </Box>
+
+              {/* 選択されたバイト先表示 */}
+              {!isOneTime && formData.workplaceName && (
+                <Box sx={{ p: 1.5, bgcolor: 'rgba(129, 212, 250, 0.1)', borderRadius: 1, mb: 2, textAlign: 'center' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#01579b' }}>
+                    {formData.workplaceName}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    時給: ¥{formData.hourlyRate?.toLocaleString()}
+                  </Typography>
                 </Box>
               )}
 
-              {/* 単発バイト詳細入力（workplacesがある場合の単発選択時） */}
-              {workplaces.length > 0 && isOneTime && (
+              {/* 単発バイト詳細入力 */}
+              {isOneTime && (
                 <Box sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                      単発バイト情報
-                    </Typography>
-                    <Button 
-                      size="small" 
-                      variant="text" 
-                      onClick={() => setIsOneTime(false)}
-                      sx={{ fontSize: '0.8rem', color: 'text.secondary' }}
-                    >
-                      選択に戻る
-                    </Button>
-                  </Box>
+                  <Typography variant="body1" sx={{ mb: 1, fontWeight: 600 }}>
+                    単発バイト情報
+                  </Typography>
                   
                   <TextField
                     fullWidth
@@ -1035,9 +1071,11 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       startAdornment: <InputAdornment position="start">¥</InputAdornment>,
                     }}
                     helperText="時給・交通費・各種手当を含めた総支給額を入力してください"
+                    sx={{ mb: 2 }}
                   />
                 </Box>
               )}
+
 
               {/* 色選択（コンパクト版） */}
               <Box sx={{ mb: 1.5 }}>
@@ -1131,8 +1169,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
               {/* 予想収入表示（コンパクト版） */}
               {formData.startTime && formData.endTime && (formData.workplaceId || isOneTime) && (
-                <Box sx={{ p: 1, bgcolor: 'success.lighter', borderRadius: 1, textAlign: 'center', mb: 1 }}>
-                  <Typography variant="body1" color="success.main" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
+                <Box sx={{ p: 1, bgcolor: '#bae6fd', borderRadius: 1, textAlign: 'center', mb: 1 }}>
+                  <Typography variant="body1" color="#0c4a6e" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
                     {t('calendar.event.estimatedIncome', '予想収入')}: ¥{calculateEarnings().toLocaleString()}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">

@@ -151,7 +151,7 @@ export const WorkplaceSelector: React.FC<WorkplaceSelectorProps> = ({
               sx={{
                 mt: 3,
                 p: 2,
-                backgroundColor: 'success.light',
+                backgroundColor: '#bae6fd',
                 borderRadius: 2,
                 display: 'flex',
                 alignItems: 'center',
@@ -169,13 +169,13 @@ export const WorkplaceSelector: React.FC<WorkplaceSelectorProps> = ({
               <Box>
                 <Typography
                   variant="subtitle1"
-                  sx={{ fontWeight: 600, color: 'success.contrastText' }}
+                  sx={{ fontWeight: 600, color: '#0c4a6e' }}
                 >
                   {selectedWorkplace.name} を選択しました
                 </Typography>
                 <Typography
                   variant="body2"
-                  sx={{ color: 'success.contrastText' }}
+                  sx={{ color: '#0c4a6e' }}
                 >
                   時給: {formatCurrency(selectedWorkplace.defaultHourlyRate)}{' '}
                   でシフト解析を行います

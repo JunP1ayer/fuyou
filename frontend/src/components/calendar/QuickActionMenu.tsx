@@ -66,7 +66,7 @@ export const QuickActionMenu: React.FC<QuickActionMenuProps> = ({
       label: 'クイック登録',
       subtitle: 'テンプレートを使って素早くシフト登録',
       icon: <FlashOn />,
-      color: '#43E97B',
+      color: '#4fc3f7',
       action: onQuickShiftRegister,
     }] : []),
     {
