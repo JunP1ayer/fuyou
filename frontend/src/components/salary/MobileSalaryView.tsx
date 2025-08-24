@@ -11,12 +11,13 @@ import useI18nStore from '../../store/i18nStore';
 import { useI18n } from '@/hooks/useI18n';
 import { BankingDashboard } from '../banking/BankingDashboard';
 import { taxAndInsuranceZeroCap, Answers as ComboAnswers } from '@/lib/taxInsuranceZero';
+import { getPaymentMonth, DEFAULT_PAYMENT_SCHEDULE } from '@/utils/salaryCalculation';
 
 export const MobileSalaryView: React.FC = () => {
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
   // const navigate = useNavigate();
-  const { shifts } = useSimpleShiftStore();
+  const { shifts, workplaces } = useSimpleShiftStore();
   const { events } = useCalendarStore();
   const { language, country } = useI18nStore();
   const { t } = useI18n();
@@ -228,46 +229,70 @@ export const MobileSalaryView: React.FC = () => {
     let yEarnings = 0;
     const monthAgg: Record<string, { earnings: number; minutes: number }> = {};
 
-    // 既存のシフトデータを処理
+    // 職場の締日・支給日情報を取得する関数
+    const getWorkplaceSchedule = (workplaceName: string) => {
+      const workplace = workplaces.find(w => w.name === workplaceName);
+      if (workplace && 
+          typeof (workplace as any).cutoffDay === 'number' && 
+          typeof (workplace as any).paymentDay === 'number' && 
+          typeof (workplace as any).paymentTiming === 'string') {
+        return {
+          cutoffDay: (workplace as any).cutoffDay,
+          paymentDay: (workplace as any).paymentDay,
+          paymentTiming: (workplace as any).paymentTiming as 'nextMonth' | 'sameMonth'
+        };
+      }
+      return DEFAULT_PAYMENT_SCHEDULE;
+    };
+
+    // 既存のシフトデータを処理（締日・支給日考慮）
     shifts.forEach(s => {
       const d = new Date(s.date);
-      const mKey = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+      const schedule = getWorkplaceSchedule(s.workplaceName);
+      const paymentMonth = getPaymentMonth(s.date, schedule);
+      
       const start = new Date(`2000-01-01T${s.startTime}`);
       const end = new Date(`2000-01-01T${s.endTime}`);
       const diffMin = Math.max(0, (end.getTime() - start.getTime()) / 60000);
 
-      if (mKey === ymKey) {
+      // 表示中の月の支給分かチェック
+      if (paymentMonth === ymKey) {
         minutes += diffMin;
         est += s.totalEarnings;
         const row = (perWorkplace[s.workplaceName] ||= { hoursMin: 0, est: 0 });
         row.hoursMin += diffMin;
         row.est += s.totalEarnings;
       }
-      // 当月までの合計（円形カードの「今日まで」想定）
-      const isSameMonth =
-        d.getFullYear() === shownDate.getFullYear() &&
-        d.getMonth() === shownDate.getMonth();
-      if (isSameMonth && d <= now) {
+      
+      // 当月までの合計（支給月ベース）
+      const paymentDate = new Date(paymentMonth + '-01');
+      const shownMonthDate = new Date(ymKey + '-01');
+      // 支給月が表示月以前で、かつシフト実働日が今日以前の場合のみ集計
+      if (paymentDate.getTime() <= shownMonthDate.getTime() && d <= now) {
         ytdMonth += s.totalEarnings;
       }
 
-      // 年集計
-      if (d.getFullYear() === shownDate.getFullYear()) {
+      // 年集計（支給年ベース）
+      const paymentYear = parseInt(paymentMonth.split('-')[0]);
+      if (paymentYear === shownDate.getFullYear()) {
         yMinutes += diffMin;
         yEarnings += s.totalEarnings;
-        const key = (d.getMonth() + 1).toString().padStart(2, '0');
+        const key = paymentMonth.split('-')[1];
         if (!monthAgg[key]) monthAgg[key] = { earnings: 0, minutes: 0 };
         monthAgg[key].earnings += s.totalEarnings;
         monthAgg[key].minutes += diffMin;
       }
     });
 
-    // カレンダーのシフトイベントも処理
+    // カレンダーのシフトイベントも処理（締日・支給日考慮）
     events
       .filter(event => event.type === 'shift' && event.startTime && event.endTime)
       .forEach(event => {
         const d = new Date(event.date);
-        const mKey = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+        const workplaceName = event.workplace?.name || event.title || '不明';
+        const schedule = getWorkplaceSchedule(workplaceName);
+        const paymentMonth = getPaymentMonth(event.date, schedule);
+        
         const start = new Date(`2000-01-01T${event.startTime}`);
         let end = new Date(`2000-01-01T${event.endTime}`);
         
@@ -278,9 +303,9 @@ export const MobileSalaryView: React.FC = () => {
         
         const diffMin = Math.max(0, (end.getTime() - start.getTime()) / 60000);
         const earnings = event.earnings || 0;
-        const workplaceName = event.workplace?.name || event.title || '不明';
 
-        if (mKey === ymKey) {
+        // 表示中の月の支給分かチェック
+        if (paymentMonth === ymKey) {
           minutes += diffMin;
           est += earnings;
           const row = (perWorkplace[workplaceName] ||= { hoursMin: 0, est: 0 });
@@ -288,19 +313,20 @@ export const MobileSalaryView: React.FC = () => {
           row.est += earnings;
         }
         
-        // 当月までの合計
-        const isSameMonth =
-          d.getFullYear() === shownDate.getFullYear() &&
-          d.getMonth() === shownDate.getMonth();
-        if (isSameMonth && d <= now) {
+        // 当月までの合計（支給月ベース）
+        const paymentDate = new Date(paymentMonth + '-01');
+        const shownMonthDate = new Date(ymKey + '-01');
+        // 支給月が表示月以前で、かつシフト実働日が今日以前の場合のみ集計
+        if (paymentDate.getTime() <= shownMonthDate.getTime() && d <= now) {
           ytdMonth += earnings;
         }
 
-        // 年集計
-        if (d.getFullYear() === shownDate.getFullYear()) {
+        // 年集計（支給年ベース）
+        const paymentYear = parseInt(paymentMonth.split('-')[0]);
+        if (paymentYear === shownDate.getFullYear()) {
           yMinutes += diffMin;
           yEarnings += earnings;
-          const key = (d.getMonth() + 1).toString().padStart(2, '0');
+          const key = paymentMonth.split('-')[1];
           if (!monthAgg[key]) monthAgg[key] = { earnings: 0, minutes: 0 };
           monthAgg[key].earnings += earnings;
           monthAgg[key].minutes += diffMin;
@@ -313,7 +339,7 @@ export const MobileSalaryView: React.FC = () => {
       yearHoursMin: yMinutes,
       yearEarningsJPY: yEarnings,
     };
-  }, [shifts, events]);
+  }, [shifts, events, workplaces, shownDate, now, ymKey]);
 
   // 残り許容量の詳細（必要時に使用）
   // 削除: 未使用の詳細計算
@@ -330,19 +356,47 @@ export const MobileSalaryView: React.FC = () => {
     };
   }, [dependencyLimit.limit, yearEarningsJPY]); */
 
-  // 扶養状況ベースの表示内容計算
+  // 扶養状況ベースの表示内容計算（支給月ベース）
   const displayInfo = useMemo(() => {
     const now = new Date();
+    const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1; // 1-12
-    const remainingMonths = 13 - currentMonth; // 来年1月まで含める
+    
+    // 実際の支給月を考慮した残り支給回数を計算
+    // 月末締め・翌月25日支給の場合を想定
+    let remainingPaymentMonths = 0;
+    
+    // 現在の日付で、今月に支給される分があるかチェック
+    const today = now.getDate();
+    const defaultSchedule = DEFAULT_PAYMENT_SCHEDULE;
+    
+    // 今月の支給日が過ぎているかチェック
+    const thisMonthPaymentPassed = today > defaultSchedule.paymentDay;
+    
+    if (thisMonthPaymentPassed) {
+      // 今月の支給日が過ぎている場合、来月から12月まで
+      for (let month = currentMonth + 1; month <= 12; month++) {
+        remainingPaymentMonths++;
+      }
+    } else {
+      // 今月の支給日がまだの場合、今月から12月まで
+      for (let month = currentMonth; month <= 12; month++) {
+        remainingPaymentMonths++;
+      }
+    }
+    
+    // 最低でも1ヶ月は残っているとする（12月の場合のフォールバック）
+    if (remainingPaymentMonths === 0) {
+      remainingPaymentMonths = 1;
+    }
     
     // combinedLimitJPYが設定されていればそれを使用、なければdependencyLimit.limitを使用
     const actualLimit = dependencyStatus.combinedLimitJPY || dependencyLimit.limit;
     
-    // 個人の扶養設定に基づく動的月間目安計算
+    // 支給月ベースでの残額計算
     const remainingAmount = Math.max(0, actualLimit - yearEarningsJPY);
-    const monthlyDependencyLimit = remainingMonths > 0 
-      ? Math.floor(remainingAmount / remainingMonths) 
+    const monthlyDependencyLimit = remainingPaymentMonths > 0 
+      ? Math.floor(remainingAmount / remainingPaymentMonths) 
       : Math.floor(actualLimit / 12); // フォールバック
     
     const yearlyProgress = Math.min(100, Math.round((yearEarningsJPY / actualLimit) * 100));
@@ -352,7 +406,7 @@ export const MobileSalaryView: React.FC = () => {
       yearlyProgress,
       monthlyProgressRatio: monthEstJPY / monthlyDependencyLimit,
       yearlyProgressRatio: yearEarningsJPY / actualLimit,
-      remainingMonths,
+      remainingMonths: remainingPaymentMonths,
       remainingAmount,
       actualLimit
     };
