@@ -376,7 +376,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
     hourlyRate: 1000,
     // 単発詳細
     oneTimeCompany: '',
-    oneTimeTotalPay: 0,
+    oneTimeTotalPay: '',
     // 労働条件設定（通常シフト用）
     overtimeEnabled: true,
     dayOfWeekSettingsEnabled: false,
@@ -417,7 +417,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         workplaceName: editingEvent.workplace?.name || '',
         hourlyRate: editingEvent.workplace?.hourlyRate || 1000,
         oneTimeCompany: editingEvent.oneTimeDetails?.companyName || '',
-        oneTimeTotalPay: editingEvent.oneTimeDetails?.totalPay || 0,
+        oneTimeTotalPay: editingEvent.oneTimeDetails?.totalPay || '',
         // 新規追加フィールド（編集時はデフォルトを付与）
         overtimeEnabled: true,
         dayOfWeekSettingsEnabled: false,
@@ -545,7 +545,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
     let earnings = 0;
     if (isOneTime) {
-      earnings = formData.oneTimeTotalPay || 0;
+      earnings = formData.oneTimeTotalPay === '' ? 0 : Number(formData.oneTimeTotalPay) || 0;
     } else {
       const wp = workplaces.find(w => w.id === formData.workplaceId || w.name === formData.workplaceName);
       const res = computeShiftEarnings(wp, {
@@ -584,8 +584,36 @@ export const EventDialog: React.FC<EventDialogProps> = ({
     setQuickShiftDialogOpen(true);
   };
 
+  // 保存可能かどうかの判定
+  const canSave = () => {
+    if (eventType === 'shift') {
+      if (isOneTime) {
+        // 単発バイト: 会社名、給料、時間（終日でない場合）が必要
+        const hasBasicInfo = formData.oneTimeCompany.trim() !== '' && (formData.oneTimeTotalPay === '' ? false : Number(formData.oneTimeTotalPay) > 0);
+        const hasTimeInfo = formData.isAllDay || (formData.startTime !== '' && formData.endTime !== '');
+        return hasBasicInfo && hasTimeInfo;
+      } else {
+        // 登録済みバイト先: バイト先選択、時間（終日でない場合）が必要
+        const hasWorkplace = formData.workplaceId !== '';
+        const hasTimeInfo = formData.isAllDay || (formData.startTime !== '' && formData.endTime !== '');
+        return hasWorkplace && hasTimeInfo;
+      }
+    } else {
+      // 個人予定: タイトル、時間（終日でない場合）が必要
+      const hasTitle = formData.title.trim() !== '';
+      const hasTimeInfo = formData.isAllDay || (formData.startTime !== '' && formData.endTime !== '');
+      return hasTitle && hasTimeInfo;
+    }
+  };
+
   // 保存処理
   const handleSave = () => {
+    // バリデーションチェック
+    if (!canSave()) {
+      alert('必要な項目を入力してください');
+      return;
+    }
+
     // タイトルは種類に応じて自動決定（シフト=職場名/単発会社名、プライベート=入力値）
     const computedShiftTitle = isOneTime
       ? (formData.oneTimeCompany || formData.title)
@@ -619,7 +647,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         };
         (baseEvent as any).oneTimeDetails = {
           companyName: formData.oneTimeCompany,
-          totalPay: formData.oneTimeTotalPay,
+          totalPay: formData.oneTimeTotalPay === '' ? 0 : Number(formData.oneTimeTotalPay) || 0,
         };
         // タイトルを会社名で上書き（念のため）
         (baseEvent as any).title = formData.oneTimeCompany || baseEvent.title;
@@ -718,9 +746,9 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 py: 0.25,
                 fontSize: '0.7rem',
                 height: '24px',
-                background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                background: 'linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%)',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #38f9d7 0%, #43e97b 100%)',
+                  background: 'linear-gradient(135deg, #29b6f6 0%, #4fc3f7 100%)',
                 },
               }}
             >
@@ -842,6 +870,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                   onClick={() => {
                     setIsOneTime(true);
                     setFormData(prev => ({ ...prev, title: '', workplaceId: '', workplaceName: '' }));
+                    setShiftSelectionStep(2);
                   }}
                   sx={{
                     py: 3,
@@ -869,8 +898,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
             </Box>
           )}
 
-          {/* 単発バイト選択時のフォーム */}
-          {workplaces.length === 0 && isOneTime && (
+          {/* 単発バイト選択時のフォーム（バイト先が0件でステップ1の場合のみ） */}
+          {workplaces.length === 0 && isOneTime && shiftSelectionStep === 1 && (
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
@@ -902,13 +931,21 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 fullWidth
                 type="number"
                 label="合計給料"
-                value={formData.oneTimeTotalPay}
+                value={formData.oneTimeTotalPay === '' ? '' : formData.oneTimeTotalPay}
                 onChange={(e) => {
-                  const value = Math.max(0, parseInt(e.target.value) || 0);
-                  setFormData(prev => ({ 
-                    ...prev, 
-                    oneTimeTotalPay: value,
-                  }));
+                  const inputValue = e.target.value;
+                  if (inputValue === '') {
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      oneTimeTotalPay: '',
+                    }));
+                  } else {
+                    const value = Math.max(0, parseInt(inputValue) || 0);
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      oneTimeTotalPay: value,
+                    }));
+                  }
                 }}
                 placeholder="時給・交通費・手当などを含む総額"
                 InputProps={{
@@ -920,7 +957,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
           )}
           
           {/* ステップ1: バイト先または単発選択 */}
-          {shiftSelectionStep === 1 && (workplaces.length > 0 || isOneTime) && (
+          {shiftSelectionStep === 1 && (workplaces.length > 0 || isOneTime) && !isOneTime && (
             <Box sx={{ 
               flex: 1, 
               display: 'flex', 
@@ -1014,7 +1051,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     setShiftSelectionStep(1);
                     if (isOneTime) {
                       setIsOneTime(false);
-                      setFormData(prev => ({ ...prev, workplaceId: '', workplaceName: '', oneTimeCompany: '', oneTimeTotalPay: 0 }));
+                      setFormData(prev => ({ ...prev, workplaceId: '', workplaceName: '', oneTimeCompany: '', oneTimeTotalPay: '' }));
                     }
                   }}
                   sx={{ fontSize: '0.8rem', color: 'text.secondary' }}
@@ -1058,13 +1095,21 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     fullWidth
                     type="number"
                     label="合計給料"
-                    value={formData.oneTimeTotalPay}
+                    value={formData.oneTimeTotalPay === '' ? '' : formData.oneTimeTotalPay}
                     onChange={(e) => {
-                      const value = Math.max(0, parseInt(e.target.value) || 0);
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        oneTimeTotalPay: value,
-                      }));
+                      const inputValue = e.target.value;
+                      if (inputValue === '') {
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          oneTimeTotalPay: '',
+                        }));
+                      } else {
+                        const value = Math.max(0, parseInt(inputValue) || 0);
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          oneTimeTotalPay: value,
+                        }));
+                      }
                     }}
                     placeholder="時給・交通費・手当などを含む総額"
                     InputProps={{
@@ -1455,11 +1500,17 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         borderTop: '1px solid', 
         borderColor: 'divider', 
         px: 3, 
-        py: 2.5,
+        pt: 2.5,
+        pb: 'calc(20px + env(safe-area-inset-bottom, 0px))',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        gap: 2
+        gap: 2,
+        minHeight: '80px',
+        position: 'sticky',
+        bottom: 0,
+        backgroundColor: 'background.paper',
+        zIndex: 1000
       }}>
         {editingEvent ? (
           <Button 
@@ -1496,19 +1547,20 @@ export const EventDialog: React.FC<EventDialogProps> = ({
           >
             {t('common.cancel', 'キャンセル')}
           </Button>
-          <Button 
-            onClick={handleSave} 
-            variant="contained"
-            disabled={false}
-            sx={{ 
-              minWidth: 100,
-              borderRadius: 2,
-              fontWeight: 600,
-              py: 1
-            }}
-          >
-            {t('common.save', '保存')}
-          </Button>
+          {canSave() && (
+            <Button 
+              onClick={handleSave} 
+              variant="contained"
+              sx={{ 
+                minWidth: 100,
+                borderRadius: 2,
+                fontWeight: 600,
+                py: 1
+              }}
+            >
+              {t('common.save', '保存')}
+            </Button>
+          )}
         </Box>
       </DialogActions>
 

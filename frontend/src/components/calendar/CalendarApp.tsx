@@ -64,10 +64,21 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
     setCurrentTab(tab);
   };
 
-  // 日付クリック時の処理（日別予定画面を開く）
+  // 日付クリック時の処理（予定がある場合は日別予定画面、ない場合はシフト登録画面）
   const handleDateClick = (date: string) => {
     setSelectedDate(date);
-    setDayViewOpen(true);
+    
+    // その日の予定を確認
+    const { events } = useCalendarStore.getState();
+    const dayEvents = events.filter(event => event.date === date);
+    
+    if (dayEvents.length > 0) {
+      // 予定がある場合は日別予定画面を開く
+      setDayViewOpen(true);
+    } else {
+      // 予定がない場合は従来どおりシフト登録画面を開く
+      openEventDialog(date, 'shift');
+    }
   };
 
   // 予定追加処理（DayViewから）
