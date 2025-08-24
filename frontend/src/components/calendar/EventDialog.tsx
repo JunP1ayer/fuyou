@@ -376,7 +376,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
     hourlyRate: 1000,
     // 単発詳細
     oneTimeCompany: '',
-    oneTimeTotalPay: '',
+    oneTimeTotalPay: '' as string | number,
     // 労働条件設定（通常シフト用）
     overtimeEnabled: true,
     dayOfWeekSettingsEnabled: false,
@@ -417,7 +417,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         workplaceName: editingEvent.workplace?.name || '',
         hourlyRate: editingEvent.workplace?.hourlyRate || 1000,
         oneTimeCompany: editingEvent.oneTimeDetails?.companyName || '',
-        oneTimeTotalPay: editingEvent.oneTimeDetails?.totalPay || '',
+        oneTimeTotalPay: (editingEvent.oneTimeDetails?.totalPay || '') as string | number,
         // 新規追加フィールド（編集時はデフォルトを付与）
         overtimeEnabled: true,
         dayOfWeekSettingsEnabled: false,
@@ -937,13 +937,13 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                   if (inputValue === '') {
                     setFormData(prev => ({ 
                       ...prev, 
-                      oneTimeTotalPay: '',
+                      oneTimeTotalPay: '' as string | number,
                     }));
                   } else {
                     const value = Math.max(0, parseInt(inputValue) || 0);
                     setFormData(prev => ({ 
                       ...prev, 
-                      oneTimeTotalPay: value,
+                      oneTimeTotalPay: value as string | number,
                     }));
                   }
                 }}
@@ -1051,7 +1051,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     setShiftSelectionStep(1);
                     if (isOneTime) {
                       setIsOneTime(false);
-                      setFormData(prev => ({ ...prev, workplaceId: '', workplaceName: '', oneTimeCompany: '', oneTimeTotalPay: '' }));
+                      setFormData(prev => ({ ...prev, workplaceId: '', workplaceName: '', oneTimeCompany: '', oneTimeTotalPay: '' as string | number }));
                     }
                   }}
                   sx={{ fontSize: '0.8rem', color: 'text.secondary' }}
@@ -1101,13 +1101,13 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       if (inputValue === '') {
                         setFormData(prev => ({ 
                           ...prev, 
-                          oneTimeTotalPay: '',
+                          oneTimeTotalPay: '' as string | number,
                         }));
                       } else {
                         const value = Math.max(0, parseInt(inputValue) || 0);
                         setFormData(prev => ({ 
                           ...prev, 
-                          oneTimeTotalPay: value,
+                          oneTimeTotalPay: value as string | number,
                         }));
                       }
                     }}
