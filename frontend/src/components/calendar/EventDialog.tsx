@@ -586,6 +586,11 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
   // 保存可能かどうかの判定
   const canSave = () => {
+    // シフトタブで選択段階（ステップ1）では保存不可
+    if (eventType === 'shift' && shiftSelectionStep === 1) {
+      return false;
+    }
+    
     if (eventType === 'shift') {
       if (isOneTime) {
         // 単発バイト: 会社名、給料、時間（終日でない場合）が必要
@@ -758,61 +763,67 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         </Box>
       </DialogTitle>
 
-      <DialogContent sx={{ overflow: 'auto', px: 3, py: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* コンパクトタブ */}
-        <Box sx={{ display: 'flex', mb: 1, borderRadius: 1, bgcolor: 'rgba(0, 188, 212, 0.1)', p: 0.25 }}>
-          <Button
+      <DialogContent sx={{ overflow: 'auto', px: 3, py: 1.5, flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* タブセレクション */}
+        <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5 }}>
+          <Box
             onClick={() => { setTabValue(0); setEventType('shift'); }}
-            variant="text"
-            size="small"
             sx={{
               flex: 1,
-              py: 0.5,
-              fontSize: '0.8rem',
-              minHeight: '32px',
-              borderRadius: 1,
-              ...(tabValue === 0 ? {
-                bgcolor: 'white',
-                color: '#00838F',
-                fontWeight: 600,
-              } : {
-                color: 'text.secondary',
-                bgcolor: 'transparent',
-                '&:hover': {
-                  bgcolor: 'rgba(0, 0, 0, 0.04)',
-                }
-              })
+              py: 1,
+              px: 1,
+              borderBottom: tabValue === 0 ? '3px solid #38bdf8' : '3px solid transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              '&:hover': {
+                bgcolor: 'rgba(56, 189, 248, 0.05)',
+              }
             }}
           >
-            <Work sx={{ mr: 0.5, fontSize: '16px' }} />
-            シフト
-          </Button>
-          <Button
+            <Work sx={{ fontSize: 20, color: tabValue === 0 ? '#38bdf8' : '#94a3b8', mb: 0.5 }} />
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                fontWeight: tabValue === 0 ? 600 : 400,
+                color: tabValue === 0 ? '#0c4a6e' : '#64748b',
+                fontSize: '0.9rem',
+              }}
+            >
+              シフト
+            </Typography>
+          </Box>
+          <Box
             onClick={() => { setTabValue(1); setEventType('personal'); }}
-            variant="text"
-            size="small"
             sx={{
               flex: 1,
-              py: 0.5,
-              fontSize: '0.8rem',
-              minHeight: '32px',
-              borderRadius: 1,
-              ...(tabValue === 1 ? {
-                bgcolor: 'white',
-                color: '#00838F',
-                fontWeight: 600,
-              } : {
-                color: 'text.secondary',
-                bgcolor: 'transparent',
-                '&:hover': {
-                  bgcolor: 'rgba(0, 0, 0, 0.04)',
-                }
-              })
+              py: 1,
+              px: 1,
+              borderBottom: tabValue === 1 ? '3px solid #38bdf8' : '3px solid transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              '&:hover': {
+                bgcolor: 'rgba(56, 189, 248, 0.05)',
+              }
             }}
           >
-            <Person sx={{ mr: 0.5, fontSize: '16px' }} />
-            個人
-          </Button>
+            <CalendarToday sx={{ fontSize: 20, color: tabValue === 1 ? '#38bdf8' : '#94a3b8', mb: 0.5 }} />
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                fontWeight: tabValue === 1 ? 600 : 400,
+                color: tabValue === 1 ? '#0c4a6e' : '#64748b',
+                fontSize: '0.9rem',
+              }}
+            >
+              個人予定
+            </Typography>
+          </Box>
         </Box>
 
         {/* シフトタブ */}
@@ -965,7 +976,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
               justifyContent: 'center', 
               alignItems: 'center',
               px: 2,
-              py: 2
+              py: 2,
+              minHeight: '60vh'
             }}>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, textAlign: 'center' }}>
                 バイト先を選択
@@ -1062,11 +1074,18 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
               {/* 選択されたバイト先表示 */}
               {!isOneTime && formData.workplaceName && (
-                <Box sx={{ p: 1.5, bgcolor: 'rgba(129, 212, 250, 0.1)', borderRadius: 1, mb: 2, textAlign: 'center' }}>
+                <Box sx={{ 
+                  px: 1, 
+                  py: 0.5, 
+                  bgcolor: 'rgba(129, 212, 250, 0.15)', 
+                  borderRadius: 1,
+                  textAlign: 'center', 
+                  mb: 2 
+                }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#01579b' }}>
                     {formData.workplaceName}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                     時給: ¥{formData.hourlyRate?.toLocaleString()}
                   </Typography>
                 </Box>
@@ -1074,8 +1093,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
               {/* 単発バイト詳細入力 */}
               {isOneTime && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body1" sx={{ mb: 1, fontWeight: 600 }}>
+                <Box sx={{ mb: 1.5 }}>
+                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, fontSize: '0.95rem' }}>
                     単発バイト情報
                   </Typography>
                   
@@ -1089,8 +1108,10 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       title: e.target.value,
                     }))}
                     placeholder="例: イベントスタッフ"
-                    sx={{ mb: 2 }}
+                    size="small"
+                    sx={{ mb: 1 }}
                   />
+                  
                   <TextField
                     fullWidth
                     type="number"
@@ -1115,34 +1136,39 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                     InputProps={{
                       startAdornment: <InputAdornment position="start">¥</InputAdornment>,
                     }}
-                    helperText="時給・交通費・各種手当を含めた総支給額を入力してください"
-                    sx={{ mb: 2 }}
+                    size="small"
                   />
                 </Box>
               )}
 
 
-              {/* 色選択（コンパクト版） */}
-              <Box sx={{ mb: 1.5 }}>
+              {/* 色選択 */}
+              <Box sx={{ mb: 1 }}>
                 <Typography variant="subtitle2" sx={{ mb: 0.5, fontSize: '0.85rem' }}>
                   {t('calendar.event.pickColor', '色を選択')}
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'space-between', maxWidth: '100%', overflowX: 'auto' }}>
-                  {APP_COLOR_PALETTE.map(option => (
+                <Box sx={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(6, 1fr)', 
+                  gap: 0.75, 
+                  maxWidth: '100%' 
+                }}>
+                  {APP_COLOR_PALETTE.slice(0, 6).map(option => (
                     <Box
                       key={option.key}
                       sx={{
-                        width: 24,
-                        height: 24,
+                        width: '100%',
+                        aspectRatio: '1',
+                        maxWidth: 32,
                         borderRadius: '50%',
                         backgroundColor: option.color,
                         cursor: 'pointer',
-                        border: formData.color === option.color ? '2px solid' : '1px solid',
+                        border: formData.color === option.color ? '2.5px solid' : '2px solid',
                         borderColor: formData.color === option.color ? 'primary.main' : 'divider',
                         boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                         '&:hover': { transform: 'scale(1.1)' },
                         transition: 'all 0.2s ease',
-                        flexShrink: 0,
+                        justifySelf: 'center',
                       }}
                       onClick={() => setFormData(prev => ({ ...prev, color: option.color }))}
                       title={option.label}
@@ -1151,63 +1177,91 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 </Box>
               </Box>
 
-              {/* 日付・時間（コンパクト版） */}
+              {/* 日付・時間 */}
               <Box sx={{ mb: 1 }}>
-                <FormControlLabel
-                  control={<Switch checked={formData.isAllDay} onChange={(e) => setFormData(prev => ({ ...prev, isAllDay: e.target.checked }))} size="small" />}
-                  label={<Typography variant="body2">{t('calendar.event.allDay', '終日')}</Typography>}
-                  sx={{ mb: 0.25 }}
-                />
-                <Grid container spacing={1} sx={{ mb: 0.5 }}>
-                  <Grid item xs={7}>
+                <Grid container spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
+                  <Grid item xs={6}>
                     <TextField
                       fullWidth
                       type="date"
-                      label={t('calendar.event.startDate', '開始日')}
+                      label={t('calendar.event.date', '日付')}
                       value={formData.date}
                       onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
                       InputLabelProps={{ shrink: true }}
-                      size="small"
+                      inputProps={{
+                        style: {
+                          colorScheme: 'light',
+                        }
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          minHeight: '48px',
+                        },
+                        '& input[type="date"]::-webkit-calendar-picker-indicator': {
+                          opacity: 0.7,
+                        },
+                        '& input[type="date"]': {
+                          fontSize: '1rem',
+                          padding: '12px 14px',
+                          '&::-webkit-datetime-edit-year-field': {
+                            display: 'none',
+                          },
+                          '&::-webkit-datetime-edit-text[aria-label="/"]': {
+                            display: 'none',
+                          }
+                        }
+                      }}
                     />
                   </Grid>
-                  <Grid item xs={5}>
-                    <TextField
-                      fullWidth
-                      type="time"
-                      label={t('calendar.event.startTime', '開始時間')}
-                      value={formData.startTime}
-                      onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                      InputLabelProps={{ shrink: true }}
-                      size="small"
-                      disabled={formData.isAllDay}
-                    />
-                  </Grid>
-                </Grid>
-                <Grid container spacing={1}>
-                  <Grid item xs={7}>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      label={t('calendar.event.endDate', '終了日')}
-                      value={formData.endDate || formData.date}
-                      onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
-                      InputLabelProps={{ shrink: true }}
-                      size="small"
-                    />
-                  </Grid>
-                  <Grid item xs={5}>
-                    <TextField
-                      fullWidth
-                      type="time"
-                      label={t('calendar.event.endTime', '終了時間')}
-                      value={formData.endTime}
-                      onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                      InputLabelProps={{ shrink: true }}
-                      size="small"
-                      disabled={formData.isAllDay}
+                  <Grid item xs={6}>
+                    <FormControlLabel
+                      control={<Switch checked={formData.isAllDay} onChange={(e) => setFormData(prev => ({ ...prev, isAllDay: e.target.checked }))} size="small" />}
+                      label={<Typography variant="body2" sx={{ fontSize: '0.85rem' }}>{t('calendar.event.allDay', '終日')}</Typography>}
                     />
                   </Grid>
                 </Grid>
+                {!formData.isAllDay && (
+                  <Grid container spacing={1.5}>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        type="time"
+                        label={t('calendar.event.startTime', '開始時間')}
+                        value={formData.startTime}
+                        onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                        InputLabelProps={{ shrink: true }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            minHeight: '48px',
+                          },
+                          '& input[type="time"]': {
+                            fontSize: '1rem',
+                            padding: '12px 14px',
+                          }
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        type="time"
+                        label={t('calendar.event.endTime', '終了時間')}
+                        value={formData.endTime}
+                        onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                        InputLabelProps={{ shrink: true }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            minHeight: '48px',
+                          },
+                          '& input[type="time"]': {
+                            fontSize: '1rem',
+                            padding: '12px 14px',
+                          }
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                )}
               </Box>
 
 
@@ -1284,38 +1338,54 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 </Box>
               )}
 
-              {/* シフト用繰り返し設定（コンパクト版） */}
-              {(formData.workplaceId || isOneTime) && !isOneTime && (
+              {/* 通知・メモ設定 */}
+              {(formData.workplaceId || isOneTime) && (
                 <Box sx={{ mb: 1 }}>
-                  <Grid container spacing={1} alignItems="center">
-                    <Grid item xs={6}>
+                  <Grid container spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
+                    {!isOneTime && (
+                      <Grid item xs={6}>
+                        <FormControl fullWidth size="small">
+                          <InputLabel>{t('calendar.event.repeat', '繰り返し')}</InputLabel>
+                          <Select
+                            value={formData.repeatFrequency}
+                            onChange={(e) => setFormData(prev => ({ ...prev, repeatFrequency: e.target.value as RepeatFrequency }))}
+                            label={t('calendar.event.repeat', '繰り返し')}
+                            size="small"
+                          >
+                            <MenuItem value="none">{t('common.none', 'なし')}</MenuItem>
+                            <MenuItem value="weekly">{t('calendar.event.weekly', '毎週')}</MenuItem>
+                            <MenuItem value="monthly">{t('calendar.event.monthly', '毎月')}</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    )}
+                    <Grid item xs={isOneTime ? 12 : 6}>
                       <FormControl fullWidth size="small">
-                        <InputLabel>{t('calendar.event.repeat', '繰り返し')}</InputLabel>
+                        <InputLabel>{t('calendar.event.notification', '通知')}</InputLabel>
                         <Select
-                          value={formData.repeatFrequency}
-                          onChange={(e) => setFormData(prev => ({ ...prev, repeatFrequency: e.target.value as RepeatFrequency }))}
-                          label={t('calendar.event.repeat', '繰り返し')}
+                          value={formData.notification}
+                          onChange={(e) => setFormData(prev => ({ ...prev, notification: e.target.value as NotificationTime }))}
+                          label={t('calendar.event.notification', '通知')}
                           size="small"
                         >
                           <MenuItem value="none">{t('common.none', 'なし')}</MenuItem>
-                          <MenuItem value="weekly">{t('calendar.event.weekly', '毎週')}</MenuItem>
-                          <MenuItem value="monthly">{t('calendar.event.monthly', '毎月')}</MenuItem>
+                          <MenuItem value="5">5分前</MenuItem>
+                          <MenuItem value="15">15分前</MenuItem>
+                          <MenuItem value="30">30分前</MenuItem>
+                          <MenuItem value="60">1時間前</MenuItem>
+                          <MenuItem value="1440">1日前</MenuItem>
                         </Select>
                       </FormControl>
                     </Grid>
-                    <Grid item xs={6}></Grid>
                   </Grid>
                   
                   {/* メモ入力 */}
                   <TextField
                     fullWidth
-                    multiline
-                    rows={1}
                     label={t('calendar.event.memo', 'メモ')}
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder={t('calendar.event.memo.placeholder', 'シフトに関するメモや注意事項')}
-                    sx={{ mt: 0.5 }}
+                    placeholder={isOneTime ? '備考があれば記入' : 'シフトに関するメモや注意事項'}
                     size="small"
                   />
                 </Box>
@@ -1331,7 +1401,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
             flexDirection: 'column', 
             justifyContent: 'flex-start',
             height: '100%',
-            gap: 2
+            gap: 1.25
           }}>
             {/* タイトル入力 */}
             <TextField
@@ -1378,8 +1448,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
           <Box sx={{ 
             display: 'flex', 
             flexDirection: 'column',
-            gap: 1.5,
-            mt: 2
+            gap: 1,
+            mt: 1
           }}>
             {/* 日付・時間（コンパクト版） */}
             <FormControlLabel
@@ -1402,7 +1472,29 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                   value={formData.date}
                   onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
                   InputLabelProps={{ shrink: true }}
-                  size="small"
+                  inputProps={{
+                    style: {
+                      colorScheme: 'light',
+                    }
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      minHeight: '48px',
+                    },
+                    '& input[type="date"]::-webkit-calendar-picker-indicator': {
+                      opacity: 0.7,
+                    },
+                    '& input[type="date"]': {
+                      fontSize: '1rem',
+                      padding: '12px 14px',
+                      '&::-webkit-datetime-edit-year-field': {
+                        display: 'none',
+                      },
+                      '&::-webkit-datetime-edit-text[aria-label="/"]': {
+                        display: 'none',
+                      }
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={5}>
@@ -1428,7 +1520,29 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                   value={formData.endDate || formData.date}
                   onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
                   InputLabelProps={{ shrink: true }}
-                  size="small"
+                  inputProps={{
+                    style: {
+                      colorScheme: 'light',
+                    }
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      minHeight: '48px',
+                    },
+                    '& input[type="date"]::-webkit-calendar-picker-indicator': {
+                      opacity: 0.7,
+                    },
+                    '& input[type="date"]': {
+                      fontSize: '1rem',
+                      padding: '12px 14px',
+                      '&::-webkit-datetime-edit-year-field': {
+                        display: 'none',
+                      },
+                      '&::-webkit-datetime-edit-text[aria-label="/"]': {
+                        display: 'none',
+                      }
+                    }
+                  }}
                 />
               </Grid>
               <Grid item xs={5}>
@@ -1439,8 +1553,16 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                   value={formData.endTime}
                   onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
                   InputLabelProps={{ shrink: true }}
-                  size="small"
                   disabled={formData.isAllDay}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      minHeight: '48px',
+                    },
+                    '& input[type="time"]': {
+                      fontSize: '1rem',
+                      padding: '12px 14px',
+                    }
+                  }}
                 />
               </Grid>
             </Grid>
@@ -1503,7 +1625,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         pt: 2.5,
         pb: 'calc(20px + env(safe-area-inset-bottom, 0px))',
         display: 'flex',
-        justifyContent: editingEvent ? 'space-between' : 'center',
+        justifyContent: 'space-between',
         alignItems: 'center',
         gap: 2,
         minHeight: '80px',
@@ -1512,76 +1634,42 @@ export const EventDialog: React.FC<EventDialogProps> = ({
         backgroundColor: 'background.paper',
         zIndex: 1000
       }}>
-        {editingEvent ? (
-          // 編集モード: 削除と保存のみ
-          <>
-            <Button 
-              onClick={handleDelete} 
-              color="error"
-              variant="outlined"
-              sx={{ 
-                flex: 1,
-                borderRadius: 2,
-                fontWeight: 600,
-                py: 1
-              }}
-            >
-              {t('common.delete', '削除')}
-            </Button>
-            
-            {canSave() && (
-              <Button 
-                onClick={handleSave} 
-                variant="contained"
-                sx={{ 
-                  flex: 1,
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  py: 1
-                }}
-              >
-                {t('common.save', '保存')}
-              </Button>
-            )}
-          </>
-        ) : (
-          // 新規作成モード: キャンセルと保存のみ
-          <>
-            <Button 
-              onClick={closeEventDialog}
-              variant="outlined"
-              sx={{ 
-                flex: 1,
-                borderRadius: 2,
-                fontWeight: 600,
-                borderColor: 'grey.400',
-                color: 'text.secondary',
-                py: 1,
-                '&:hover': {
-                  borderColor: 'grey.600',
-                  backgroundColor: 'grey.50'
-                }
-              }}
-            >
-              {t('common.cancel', 'キャンセル')}
-            </Button>
-            
-            {canSave() && (
-              <Button 
-                onClick={handleSave} 
-                variant="contained"
-                sx={{ 
-                  flex: 1,
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  py: 1
-                }}
-              >
-                {t('common.save', '保存')}
-              </Button>
-            )}
-          </>
-        )}
+        {/* 常に削除と保存ボタンを表示 */}
+        <Button 
+          onClick={editingEvent ? handleDelete : closeEventDialog} 
+          color={editingEvent ? "error" : "inherit"}
+          variant="outlined"
+          sx={{ 
+            flex: 1,
+            borderRadius: 2,
+            fontWeight: 600,
+            py: 1,
+            ...(editingEvent ? {} : {
+              borderColor: 'grey.400',
+              color: 'text.secondary',
+              '&:hover': {
+                borderColor: 'grey.600',
+                backgroundColor: 'grey.50'
+              }
+            })
+          }}
+        >
+          {editingEvent ? t('common.delete', '削除') : t('common.cancel', 'キャンセル')}
+        </Button>
+        
+        <Button 
+          onClick={handleSave} 
+          variant="contained"
+          disabled={!canSave()}
+          sx={{ 
+            flex: 1,
+            borderRadius: 2,
+            fontWeight: 600,
+            py: 1
+          }}
+        >
+          {t('common.save', '保存')}
+        </Button>
       </DialogActions>
 
       {/* クイックシフト登録ダイアログ */}

@@ -467,12 +467,8 @@ export const WorkplaceManager: React.FC = () => {
       newErrors.defaultHourlyRate = '時給を入力してください';
     }
 
-    if (
-      !formData.cutoffDay ||
-      formData.cutoffDay < 1 ||
-      formData.cutoffDay > 31
-    ) {
-      newErrors.cutoffDay = '締日を入力してください（1-31）';
+    if (!formData.cutoffDay) {
+      newErrors.cutoffDay = '締日を選択してください';
     }
 
     if (
@@ -951,26 +947,32 @@ export const WorkplaceManager: React.FC = () => {
               </FormControl>
 
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2.5 }}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="締日"
-                  value={formData.cutoffDay}
-                  onChange={e =>
-                    setFormData(prev => ({
-                      ...prev,
-                      cutoffDay: e.target.value ? parseInt(e.target.value) : '' as any,
-                    }))
-                  }
-                  error={Boolean(errors.cutoffDay)}
-                  helperText={errors.cutoffDay}
-                  placeholder="31"
-                  InputProps={{
-                    endAdornment: <Typography variant="body2" sx={{ color: 'text.secondary', ml: 1 }}>日</Typography>,
-                  }}
-                  inputProps={{ min: 1, max: 31, step: 1 }}
-                  size="small"
-                />
+                <FormControl fullWidth size="small">
+                  <InputLabel error={Boolean(errors.cutoffDay)}>締日</InputLabel>
+                  <Select
+                    value={formData.cutoffDay}
+                    onChange={e =>
+                      setFormData(prev => ({
+                        ...prev,
+                        cutoffDay: e.target.value as number,
+                      }))
+                    }
+                    label="締日"
+                    error={Boolean(errors.cutoffDay)}
+                  >
+                    {[...Array(31)].map((_, i) => (
+                      <MenuItem key={i + 1} value={i + 1}>
+                        {i + 1}日
+                      </MenuItem>
+                    ))}
+                    <MenuItem value={31}>月末</MenuItem>
+                  </Select>
+                  {errors.cutoffDay && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.75 }}>
+                      {errors.cutoffDay}
+                    </Typography>
+                  )}
+                </FormControl>
 
                 <TextField
                   fullWidth

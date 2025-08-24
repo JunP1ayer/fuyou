@@ -74,6 +74,7 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [showPeriodSelector, setShowPeriodSelector] = useState(false);
 
   // 共有オプション（Googleの哲学: デフォルトは安全・最小選択）
   const [sharePeriod, setSharePeriod] = useState<'custom' | 'all'>('custom');
@@ -357,16 +358,8 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
                 <Button
                   variant="contained"
                   data-testid="generate-share-code-button"
-                  onClick={async () => {
-                    if (!customStart || !customEnd) {
-                      setAlert({ type: 'error', message: '開始日と終了日を入力してください' });
-                      return;
-                    }
-                    const code = generateShareCode('custom', { hideWorkplace, shareContent, range: { start: customStart, end: customEnd } });
-                    try {
-                      await navigator.clipboard.writeText(code);
-                      setAlert({ type: 'success', message: 'シェアコードをコピーしました' });
-                    } catch {}
+                  onClick={() => {
+                    setShowPeriodSelector(true);
                   }}
                   sx={{
                     bgcolor: '#bae6fd',
@@ -382,36 +375,6 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
                 </Button>
               </Box>
 
-              {/* 期間指定UI */}
-              <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 1, mb: 2 }}>
-                <Typography variant="body2" sx={{ mb: 1.5, textAlign: 'center', fontWeight: 600 }}>
-                  📅 期間指定
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <TextField
-                      type="date"
-                      label="開始日"
-                      value={customStart}
-                      onChange={(e) => setCustomStart(e.target.value)}
-                      fullWidth
-                      size="small"
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      type="date"
-                      label="終了日"
-                      value={customEnd}
-                      onChange={(e) => setCustomEnd(e.target.value)}
-                      fullWidth
-                      size="small"
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
 
               {/* 高度な設定 */}
               <Accordion sx={{ boxShadow: 'none', border: '1px solid #e2e8f0' }}>
@@ -686,6 +649,94 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
         </CardContent>
       </Card>
 
+
+      {/* 期間選択ダイアログ */}
+      <Dialog
+        open={showPeriodSelector}
+        onClose={() => setShowPeriodSelector(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ textAlign: 'center' }}>
+          📅 期間を選択
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ py: 2 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <TextField
+                  type="date"
+                  label="開始日"
+                  value={customStart}
+                  onChange={(e) => setCustomStart(e.target.value)}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  type="date"
+                  label="終了日"
+                  value={customEnd}
+                  onChange={(e) => setCustomEnd(e.target.value)}
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+            </Grid>
+            
+            {/* 共有設定 */}
+            <Box sx={{ mt: 3, p: 2, bgcolor: '#f8fafc', borderRadius: 1 }}>
+              <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
+                共有設定
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <FormControlLabel
+                    control={
+                      <Switch 
+                        checked={shareContent === 'shifts-only'} 
+                        onChange={(_, checked) => setShareContent(checked ? 'shifts-only' : 'all-events')}
+                        size="small"
+                      />
+                    }
+                    label="シフトのみ"
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <FormControlLabel
+                    control={<Switch checked={hideWorkplace} onChange={(_, v) => setHideWorkplace(v)} size="small" />}
+                    label="職場名を隠す"
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowPeriodSelector(false)}>
+            キャンセル
+          </Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              if (!customStart || !customEnd) {
+                setAlert({ type: 'error', message: '開始日と終了日を入力してください' });
+                return;
+              }
+              const code = generateShareCode('custom', { hideWorkplace, shareContent, range: { start: customStart, end: customEnd } });
+              try {
+                await navigator.clipboard.writeText(code);
+                setAlert({ type: 'success', message: 'シェアコードをコピーしました' });
+              } catch {}
+              setShowPeriodSelector(false);
+            }}
+            disabled={!customStart || !customEnd}
+          >
+            共有コード生成
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* シェアコード表示ダイアログ */}
       <Dialog
