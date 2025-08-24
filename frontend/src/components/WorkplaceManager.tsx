@@ -547,14 +547,14 @@ export const WorkplaceManager: React.FC = () => {
       shift => shift.workplaceName === workplace.name
     );
 
+    let confirmMessage = `「${workplace.name}」を削除してもよろしいですか？`;
+    
     if (relatedShifts.length > 0) {
-      if (
-        !window.confirm(
-          `${workplace.name}には${relatedShifts.length}件のシフトが登録されています。削除しますか？`
-        )
-      ) {
-        return;
-      }
+      confirmMessage = `「${workplace.name}」には${relatedShifts.length}件のシフトが登録されています。\n削除すると、これらのシフトも削除されます。\n本当に削除しますか？`;
+    }
+
+    if (!window.confirm(confirmMessage)) {
+      return;
     }
 
     deleteWorkplace(workplaceId);
@@ -577,87 +577,69 @@ export const WorkplaceManager: React.FC = () => {
 
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', p: 2 }}>
-      {/* ヘッダー */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Box
+
+      {workplaces.length === 0 && (
+        <Box sx={{ mt: 3, textAlign: 'center' }}>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<Add />}
+            onClick={handleAddClick}
             sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              mb: 2,
+              background:
+                'linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%)',
+              '&:hover': {
+                background:
+                  'linear-gradient(135deg, #81d4fa 0%, #b3e5fc 100%)',
+              },
+              borderRadius: 3,
+              px: 4,
+              py: 1.5,
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              boxShadow: '0 8px 24px rgba(179, 229, 252, 0.4)',
             }}
           >
-            <Business sx={{ color: 'primary.main', fontSize: 40, mb: 1 }} />
-            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-              バイト先管理
-            </Typography>
-          </Box>
+            バイト先を登録
+          </Button>
+        </Box>
+      )}
 
-          {workplaces.length === 0 && (
-            <Box sx={{ mt: 3, textAlign: 'center' }}>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<Add />}
-                onClick={handleAddClick}
-                sx={{
-                  background:
-                    'linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%)',
-                  '&:hover': {
-                    background:
-                      'linear-gradient(135deg, #81d4fa 0%, #b3e5fc 100%)',
-                  },
-                  borderRadius: 3,
-                  px: 4,
-                  py: 1.5,
-                  fontSize: '1.1rem',
-                  fontWeight: 600,
-                  boxShadow: '0 8px 24px rgba(179, 229, 252, 0.4)',
-                }}
-              >
-                バイト先を登録
-              </Button>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
+      {/* バイト先登録ボタン */}
+      {workplaces.length > 0 && (
+        <Box sx={{ mb: 3, textAlign: 'center' }}>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<Add />}
+            onClick={handleAddClick}
+            sx={{
+              background:
+                'linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%)',
+              '&:hover': {
+                background:
+                  'linear-gradient(135deg, #81d4fa 0%, #b3e5fc 100%)',
+              },
+              borderRadius: 3,
+              px: 4,
+              py: 1.5,
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              boxShadow: '0 8px 24px rgba(179, 229, 252, 0.4)',
+            }}
+          >
+            バイト先を登録
+          </Button>
+        </Box>
+      )}
 
       {/* バイト先一覧 */}
       {workplaces.length > 0 && (
         <Card>
           <CardContent>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 2,
-              }}
-            >
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                登録済みバイト先 ({workplaces.length}件)
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<Add />}
-                onClick={handleAddClick}
-                sx={{
-                  background:
-                    'linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%)',
-                  '&:hover': {
-                    background:
-                      'linear-gradient(135deg, #81d4fa 0%, #b3e5fc 100%)',
-                  },
-                  borderRadius: 3,
-                  fontWeight: 600,
-                  boxShadow: '0 4px 12px rgba(179, 229, 252, 0.3)',
-                }}
-              >
-                バイト先を登録
-              </Button>
-            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+              登録済みバイト先 ({workplaces.length}件)
+            </Typography>
 
             <List>
               {workplaces.map((workplace, index) => {
@@ -672,120 +654,26 @@ export const WorkplaceManager: React.FC = () => {
                     >
                       <ListItem
                         sx={{
-                          border: '1px solid',
-                          borderColor: 'divider',
+                          border: '2px solid',
+                          borderColor: workplace.color,
                           borderRadius: 2,
                           mb: 2,
+                          backgroundColor: workplace.color + '10',
                           '&:hover': {
-                            backgroundColor: 'action.hover',
+                            backgroundColor: workplace.color + '20',
+                            borderColor: workplace.color,
+                            boxShadow: `0 2px 8px ${workplace.color}40`,
                           },
                         }}
                       >
-                        <ListItemAvatar>
-                          <Avatar
-                            sx={{
-                              backgroundColor: workplace.color,
-                              width: 48,
-                              height: 48,
-                            }}
-                          >
-                            <Business />
-                          </Avatar>
-                        </ListItemAvatar>
-
                         <ListItemText
                           primary={
-                            <Typography 
-                              variant="h6" 
-                              sx={{ 
-                                fontWeight: 600,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 1,
-                              }}
-                              component="div"
+                            <Typography
+                              variant="h6"
+                              sx={{ fontWeight: 600, color: 'text.primary' }}
                             >
                               {workplace.name}
-                              {stats.shiftCount > 0 && (
-                                <Chip
-                                  label={`${stats.shiftCount}件`}
-                                  size="small"
-                                  color="primary"
-                                />
-                              )}
                             </Typography>
-                          }
-                          secondary={
-                            <div style={{ marginTop: 8 }}>
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 16,
-                                  marginBottom: 8,
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 4,
-                                  }}
-                                >
-                                  <AttachMoney
-                                    sx={{
-                                      fontSize: 16,
-                                      color: 'text.secondary',
-                                    }}
-                                  />
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    component="span"
-                                  >
-                                    時給 {formatCurrency(workplace.defaultHourlyRate)}
-                                  </Typography>
-                                </div>
-
-                                {stats.totalEarnings > 0 && (
-                                  <div
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 4,
-                                    }}
-                                  >
-                                    <Schedule
-                                      sx={{
-                                        fontSize: 16,
-                                        color: 'success.main',
-                                      }}
-                                    />
-                                    <Typography
-                                      variant="body2"
-                                      component="span"
-                                      sx={{
-                                        color: 'success.main',
-                                        fontWeight: 600,
-                                      }}
-                                    >
-                                      総収入 {formatCurrency(stats.totalEarnings)}
-                                    </Typography>
-                                  </div>
-                                )}
-                              </div>
-
-                              {workplace.description && (
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                  component="span"
-                                  sx={{ fontSize: '0.8rem' }}
-                                >
-                                  {workplace.description}
-                                </Typography>
-                              )}
-                            </div>
                           }
                         />
 

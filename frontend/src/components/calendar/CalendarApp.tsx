@@ -8,6 +8,7 @@ import { CalendarGrid } from './CalendarGrid';
 import { EventDialog } from './EventDialog';
 import { DayEventsView } from './DayEventsView';
 import { DayViewDialog } from './DayViewDialog';
+import { DateEventTypeSelector } from './DateEventTypeSelector';
 import { QuickActionMenu } from './QuickActionMenu';
 import { NewBottomNavigation, type NewTabValue } from './NewBottomNavigation';
 import { ShiftImageAnalyzer } from '../ShiftImageAnalyzer';
@@ -37,6 +38,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   const [dayEventsOpen, setDayEventsOpen] = useState(false);
   const [dayViewOpen, setDayViewOpen] = useState(false);
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
+  const [eventTypeSelectorOpen, setEventTypeSelectorOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [gpt5AnalyzerOpen, setGpt5AnalyzerOpen] = useState(false);
@@ -81,11 +83,28 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
     }
   };
 
+  // イベントタイプ選択からシフト追加
+  const handleSelectShiftType = () => {
+    setEventTypeSelectorOpen(false);
+    if (selectedDate) {
+      openEventDialog(selectedDate, 'shift');
+    }
+  };
+
+  // イベントタイプ選択から個人予定追加
+  const handleSelectPersonalType = () => {
+    setEventTypeSelectorOpen(false);
+    if (selectedDate) {
+      openEventDialog(selectedDate, 'personal');
+    }
+  };
+
   // 予定追加処理（DayViewから）
   const handleAddEventFromDayView = () => {
     setDayViewOpen(false);
     if (selectedDate) {
-      openEventDialog(selectedDate, 'shift');
+      // DayViewからの追加時もタイプ選択ダイアログを表示
+      setEventTypeSelectorOpen(true);
     }
   };
 
@@ -355,6 +374,15 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
         onClose={() => setDayViewOpen(false)}
         onEditEvent={handleEditEventFromDayView}
         onCreateEvent={handleAddEventFromDayView}
+      />
+
+      {/* イベントタイプ選択ダイアログ */}
+      <DateEventTypeSelector
+        open={eventTypeSelectorOpen}
+        selectedDate={selectedDate}
+        onClose={() => setEventTypeSelectorOpen(false)}
+        onSelectShift={handleSelectShiftType}
+        onSelectPersonal={handleSelectPersonalType}
       />
 
       {/* クイックシフト登録ダイアログ */}

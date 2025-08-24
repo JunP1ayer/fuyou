@@ -384,26 +384,30 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
                   </Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{ p: 1.5 }}>
-                  <Grid container spacing={1}>
-                    <Grid item xs={12} sm={6}>
-                      <FormControlLabel
-                        control={
-                          <Switch 
-                            checked={shareContent === 'shifts-only'} 
-                            onChange={(_, checked) => setShareContent(checked ? 'shifts-only' : 'all-events')}
-                            size="small"
-                          />
-                        }
-                        label="シフトのみ"
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <FormControlLabel
-                        control={<Switch checked={hideWorkplace} onChange={(_, v) => setHideWorkplace(v)} size="small" />}
-                        label="職場名を隠す"
-                      />
-                    </Grid>
-                  </Grid>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 3,
+                    flexWrap: 'wrap'
+                  }}>
+                    <FormControlLabel
+                      control={
+                        <Switch 
+                          checked={shareContent === 'shifts-only'} 
+                          onChange={(_, checked) => setShareContent(checked ? 'shifts-only' : 'all-events')}
+                          size="small"
+                        />
+                      }
+                      label="シフトのみ"
+                      sx={{ margin: 0 }}
+                    />
+                    <FormControlLabel
+                      control={<Switch checked={hideWorkplace} onChange={(_, v) => setHideWorkplace(v)} size="small" />}
+                      label="職場名を隠す"
+                      sx={{ margin: 0 }}
+                    />
+                  </Box>
                 </AccordionDetails>
               </Accordion>
             </>
