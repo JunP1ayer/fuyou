@@ -356,48 +356,16 @@ export const MobileSalaryView: React.FC = () => {
     };
   }, [dependencyLimit.limit, yearEarningsJPY]); */
 
-  // 扶養状況ベースの表示内容計算（支給月ベース）
+  // 扶養状況ベースの表示内容計算（シンプル版：扶養額÷12）
   const displayInfo = useMemo(() => {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // 1-12
-    
-    // 実際の支給月を考慮した残り支給回数を計算
-    // 月末締め・翌月25日支給の場合を想定
-    let remainingPaymentMonths = 0;
-    
-    // 現在の日付で、今月に支給される分があるかチェック
-    const today = now.getDate();
-    const defaultSchedule = DEFAULT_PAYMENT_SCHEDULE;
-    
-    // 今月の支給日が過ぎているかチェック
-    const thisMonthPaymentPassed = today > defaultSchedule.paymentDay;
-    
-    if (thisMonthPaymentPassed) {
-      // 今月の支給日が過ぎている場合、来月から12月まで
-      for (let month = currentMonth + 1; month <= 12; month++) {
-        remainingPaymentMonths++;
-      }
-    } else {
-      // 今月の支給日がまだの場合、今月から12月まで
-      for (let month = currentMonth; month <= 12; month++) {
-        remainingPaymentMonths++;
-      }
-    }
-    
-    // 最低でも1ヶ月は残っているとする（12月の場合のフォールバック）
-    if (remainingPaymentMonths === 0) {
-      remainingPaymentMonths = 1;
-    }
-    
     // combinedLimitJPYが設定されていればそれを使用、なければdependencyLimit.limitを使用
     const actualLimit = dependencyStatus.combinedLimitJPY || dependencyLimit.limit;
     
-    // 支給月ベースでの残額計算
+    // シンプルに年間限度額を12で割った月間目安（千の位以下切り捨て）
+    const monthlyDependencyLimit = Math.floor(actualLimit / 12 / 1000) * 1000;
+    
+    // 残額計算
     const remainingAmount = Math.max(0, actualLimit - yearEarningsJPY);
-    const monthlyDependencyLimit = remainingPaymentMonths > 0 
-      ? Math.floor(remainingAmount / remainingPaymentMonths) 
-      : Math.floor(actualLimit / 12); // フォールバック
     
     const yearlyProgress = Math.min(100, Math.round((yearEarningsJPY / actualLimit) * 100));
     
@@ -406,7 +374,6 @@ export const MobileSalaryView: React.FC = () => {
       yearlyProgress,
       monthlyProgressRatio: monthEstJPY / monthlyDependencyLimit,
       yearlyProgressRatio: yearEarningsJPY / actualLimit,
-      remainingMonths: remainingPaymentMonths,
       remainingAmount,
       actualLimit
     };
