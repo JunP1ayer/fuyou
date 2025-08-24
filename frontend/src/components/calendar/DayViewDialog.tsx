@@ -40,13 +40,19 @@ export const DayViewDialog: React.FC<DayViewDialogProps> = ({
 }) => {
   const { events } = useCalendarStore();
 
-  // その日の予定を取得してソート
+  // その日の予定を取得してソート（時間の早い順）
   const dayEvents = selectedDate 
     ? events
         .filter(event => event.date === selectedDate)
         .sort((a, b) => {
-          const timeA = a.startTime || '00:00';
-          const timeB = b.startTime || '00:00';
+          // 終日の予定を最初に表示
+          if (a.isAllDay && !b.isAllDay) return -1;
+          if (!a.isAllDay && b.isAllDay) return 1;
+          if (a.isAllDay && b.isAllDay) return 0;
+          
+          // 時間指定の予定は開始時間順
+          const timeA = a.startTime || '23:59'; // startTimeがない場合は最後に
+          const timeB = b.startTime || '23:59';
           return timeA.localeCompare(timeB);
         })
     : [];
@@ -87,14 +93,41 @@ export const DayViewDialog: React.FC<DayViewDialogProps> = ({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
+      sx={{
+        '& .MuiDialog-container': {
+          alignItems: 'flex-end',
+        },
+      }}
       PaperProps={{
         sx: {
-          borderRadius: 2,
-          maxHeight: '80vh',
+          borderRadius: '16px 16px 0 0',
+          maxHeight: '85vh',
+          margin: 0,
+          marginBottom: 0,
+          width: '100%',
+          transform: open ? 'translateY(0)' : 'translateY(100%)',
+          transition: 'transform 0.3s ease-out',
         }
+      }}
+      TransitionProps={{
+        timeout: 300,
       }}
     >
       <DialogContent sx={{ p: 0 }}>
+        {/* ハンドルバー */}
+        <Box sx={{ 
+          display: 'flex',
+          justifyContent: 'center',
+          py: 1,
+        }}>
+          <Box sx={{
+            width: 40,
+            height: 4,
+            backgroundColor: 'grey.300',
+            borderRadius: 2,
+          }} />
+        </Box>
+
         {/* ヘッダー */}
         <Box sx={{ 
           px: 2, 

@@ -301,6 +301,15 @@ export default function MonthCalendar({
                   monthBorders.right = false;
                 }
                 
+                // その日の予定があるかチェック
+                const hasEvents = convertedEvents.some(event => {
+                  const eventStart = event.start;
+                  const eventEnd = event.end;
+                  return isSameDay(day, eventStart) || 
+                         isSameDay(day, eventEnd) ||
+                         (day >= eventStart && day <= eventEnd);
+                });
+
                 return (
                   <Box
                     key={format(day, "yyyy-MM-dd")}
@@ -333,8 +342,8 @@ export default function MonthCalendar({
                       transition: 'background-color 0.2s ease',
                     }}
                   >
-                    {/* 細いグリッド線（従来のグリッド線）- 全セル */}
-                    {(
+                    {/* 細いグリッド線（従来のグリッド線）- 予定がない日は表示しない */}
+                    {!hasEvents && (
                       <>
                         <Box sx={{
                           position: 'absolute',
@@ -453,46 +462,45 @@ export default function MonthCalendar({
                 left: 0,
                 right: 0,
                 top: '24px',
-                px: 1,
                 zIndex: 2,
               }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                   {weekSegments[wi]?.rows.map((row, ri) => (
                     <Box key={ri} sx={{ 
                       display: 'grid', 
                       gridTemplateColumns: 'repeat(7, 1fr)',
-                      gap: '4px',
+                      gap: 0,
                     }}>
                       {row.map((s) => (
                         <Box
                           key={s.ev.id}
                           onClick={() => handleEventClick(s.ev.originalEvent)}
                           sx={{
-                            height: '20px',
-                            fontSize: '11px',
-                            lineHeight: '20px',
-                            fontWeight: 500,
-                            px: 2,
+                            height: '18px',
+                            fontSize: '10px',
+                            lineHeight: '18px',
+                            fontWeight: 600,
+                            px: 1,
                             color: 'white',
                             backgroundColor: s.ev.color || theme.palette.primary.main,
-                            borderRadius: '10px',
-                            borderTopLeftRadius: s.continueLeft ? 0 : '10px',
-                            borderBottomLeftRadius: s.continueLeft ? 0 : '10px',
-                            borderTopRightRadius: s.continueRight ? 0 : '10px',
-                            borderBottomRightRadius: s.continueRight ? 0 : '10px',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                            borderRadius: s.span === 1 ? '3px' : 0,
+                            borderTopLeftRadius: s.continueLeft ? 0 : '3px',
+                            borderBottomLeftRadius: s.continueLeft ? 0 : '3px',
+                            borderTopRightRadius: s.continueRight ? 0 : '3px',
+                            borderBottomRightRadius: s.continueRight ? 0 : '3px',
                             cursor: 'pointer',
                             gridColumn: `${s.colStart} / span ${s.span}`,
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap',
-                            textShadow: '0 1px 1px rgba(0,0,0,0.35)',
+                            textShadow: '0 1px 1px rgba(0,0,0,0.4)',
                             '&:hover': {
                               opacity: 0.8,
                             },
                             transition: 'opacity 0.2s ease',
+                            margin: 0,
                           }}
-                          title={`${s.ev.title} (${format(s.ev.start, "M/d")}–${format(s.ev.end, "M/d")})`}
+                          title={s.ev.title}
                         >
                           {s.ev.title}
                         </Box>
@@ -503,9 +511,11 @@ export default function MonthCalendar({
                   {/* +more */}
                   {weekSegments[wi]?.more > 0 && (
                     <Typography sx={{
-                      fontSize: '11px',
+                      fontSize: '9px',
                       color: 'text.secondary',
-                      px: 2,
+                      px: 1,
+                      height: '12px',
+                      lineHeight: '12px',
                     }}>
                       +{weekSegments[wi].more} more
                     </Typography>
