@@ -42,6 +42,9 @@
   "settings.export": "Export Data",
   "settings.import": "Import Data",
   "settings.reset": "Reset App",
+  "settings.weekStart": "Week start",
+  "settings.weekStart.sunday": "Sunday start (International)",
+  "settings.weekStart.monday": "Monday start (EU/Japan)",
 
   "dashboard.title": "Dashboard",
   "dashboard.welcomeMessage": "Welcome to your job manager",

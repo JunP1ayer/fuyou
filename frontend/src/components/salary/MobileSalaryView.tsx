@@ -458,28 +458,10 @@ export const MobileSalaryView: React.FC = () => {
         <CardContent sx={{ p: 0 }}>
           {tabValue === 'month' ? (
             <>
-              {/* プログレスバー */}
-              <Box sx={{ 
-                height: 8, 
-                backgroundColor: 'grey.100',
-                position: 'relative'
-              }}>
-                <Box sx={{
-                  height: '100%',
-                  width: `${Math.min(displayInfo.monthlyProgressRatio * 100, 100)}%`,
-                  backgroundColor: displayInfo.monthlyProgressRatio > 0.9 
-                    ? 'error.main' 
-                    : displayInfo.monthlyProgressRatio > 0.8 
-                    ? 'warning.main' 
-                    : 'success.main',
-                  transition: 'width 0.3s ease'
-                }} />
-              </Box>
-              
               {/* メイン情報 */}
               <Box sx={{ p: 3, textAlign: 'center' }}>
                 <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 1 }}>
-                  {t('salary.monthly.status', '今月の収入状況')}
+                  {t('salary.monthly.status', '今月の収入')}
                 </Typography>
                 
                 {/* 円形進捗表示 */}
@@ -571,7 +553,7 @@ export const MobileSalaryView: React.FC = () => {
                 }}>
                   <Box sx={{ textAlign: 'left' }}>
                     <Typography variant="caption" color="text.secondary">
-                      {t('salary.monthly.income', '今月の収入')}
+                      {t('salary.monthly.income', '収入')}
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       {formatMoney(monthEstJPY)}
@@ -597,28 +579,10 @@ export const MobileSalaryView: React.FC = () => {
             </>
           ) : (
             <>
-              {/* プログレスバー */}
-              <Box sx={{ 
-                height: 8, 
-                backgroundColor: 'grey.100',
-                position: 'relative'
-              }}>
-                <Box sx={{
-                  height: '100%',
-                  width: `${Math.min(displayInfo.yearlyProgressRatio * 100, 100)}%`,
-                  backgroundColor: displayInfo.yearlyProgressRatio > 0.9 
-                    ? 'error.main' 
-                    : displayInfo.yearlyProgressRatio > 0.7 
-                    ? 'warning.main' 
-                    : 'success.main',
-                  transition: 'width 0.3s ease'
-                }} />
-              </Box>
-              
               {/* メイン情報 */}
               <Box sx={{ p: 3, textAlign: 'center' }}>
                 <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 1 }}>
-                  {t('salary.yearly.status', '年間収入状況')}
+                  {t('salary.yearly.status', '年間収入')}
                 </Typography>
                 
                 {/* 円形進捗表示 */}
@@ -710,7 +674,7 @@ export const MobileSalaryView: React.FC = () => {
                 }}>
                   <Box sx={{ textAlign: 'left' }}>
                     <Typography variant="caption" color="text.secondary">
-                      {t('salary.yearly.income', '年間収入')}
+                      {t('salary.yearly.income', '収入')}
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       {formatMoney(yearEarningsJPY)}

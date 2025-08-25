@@ -1,6 +1,6 @@
 // メインカレンダーアプリコンポーネント
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Card, Slide, IconButton, useTheme } from '@mui/material';
 import { Close } from '@mui/icons-material';
 import { CalendarHeader } from './CalendarHeader';
@@ -34,6 +34,9 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   const { importFromShifts, openEventDialog, openEditDialog } = useCalendarStore();
   const { shifts } = useUnifiedStore();
   
+  // CalendarGridのrefを作成
+  const calendarGridRef = useRef<{ scrollToToday: () => void } | null>(null);
+  
   const [currentTab, setCurrentTab] = useState<NewTabValue>('shift');
   const [dayEventsOpen, setDayEventsOpen] = useState(false);
   const [dayViewOpen, setDayViewOpen] = useState(false);
@@ -64,6 +67,10 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   // タブ切り替え処理（シンプル版）
   const handleTabChange = (tab: NewTabValue) => {
     setCurrentTab(tab);
+    // タブ切り替え時に設定画面を閉じる
+    if (settingsOpen) {
+      setSettingsOpen(false);
+    }
   };
 
   // 日付クリック時の処理（予定がある場合は日別予定画面、ない場合はシフト登録画面）
@@ -173,6 +180,13 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
     setShiftSubmissionOpen(true);
   };
 
+  // 今日に戻る処理
+  const handleScrollToToday = () => {
+    if (calendarGridRef.current) {
+      calendarGridRef.current.scrollToToday();
+    }
+  };
+
   // クイックシフト登録を開く
   const handleOpenQuickShift = () => {
     setQuickMenuOpen(false);
@@ -263,7 +277,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
                   );
                 case 'shift':
                 default:
-                  return <CalendarGrid onDateClick={handleDateClick} />;
+                  return <CalendarGrid ref={calendarGridRef} onDateClick={handleDateClick} />;
               }
             })()}
           </Box>
@@ -305,7 +319,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
             height: '100vh',
             backgroundColor: 'background.paper',
             boxShadow: theme.shadows[16],
-            zIndex: 1300,
+            zIndex: 1299,
             overflow: 'auto',
           }}
         >
@@ -426,6 +440,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
           currentTab={currentTab}
           onTabChange={handleTabChange}
           onAIClick={handleAISubmission}
+          onScrollToToday={handleScrollToToday}
         />
       </Box>
 

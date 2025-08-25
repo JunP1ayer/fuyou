@@ -902,10 +902,6 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 </Button>
               </Box>
               
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 3, fontSize: '0.9rem', lineHeight: 1.4, textAlign: 'center' }}>
-                定期：毎回同じ職場でのシフト<br />
-                単発：一度きりのお仕事
-              </Typography>
             </Box>
           )}
 
@@ -1043,10 +1039,6 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                 </Button>
               </Box>
               
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontSize: '0.9rem', lineHeight: 1.4, textAlign: 'center' }}>
-                定期：毎回同じ職場でのシフト<br />
-                単発：一度きりのお仕事
-              </Typography>
             </Box>
           )}
 

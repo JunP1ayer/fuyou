@@ -92,6 +92,7 @@ interface UIState {
   selectedDate: string;
   calendarView: 'month' | 'week' | 'day';
   compactMode: boolean;
+  weekStartsOn: 0 | 1; // 0: Sunday, 1: Monday
 }
 
 // 🏪 統合ストア型定義
@@ -145,6 +146,7 @@ interface UnifiedStore {
   setSelectedDate: (date: string) => void;
   setCalendarView: (view: UIState['calendarView']) => void;
   toggleCompactMode: () => void;
+  setWeekStartsOn: (weekStartsOn: 0 | 1) => void;
 
   // === Utility Actions ===
   reset: () => void;
@@ -183,6 +185,7 @@ const initialState = {
     selectedDate: new Date().toISOString().split('T')[0] as string,
     calendarView: 'month' as const,
     compactMode: false,
+    weekStartsOn: 1 as const, // Default to Monday start (Japanese standard)
   },
 };
 
@@ -551,6 +554,12 @@ export const useUnifiedStore = create<UnifiedStore>()(
           });
         },
 
+        setWeekStartsOn: (weekStartsOn) => {
+          set((state) => {
+            state.ui.weekStartsOn = weekStartsOn;
+          });
+        },
+
         // === Utility Actions ===
         reset: () => {
           set(() => ({ ...initialState }));
@@ -603,6 +612,7 @@ export const useUnifiedStore = create<UnifiedStore>()(
             selectedDate: state.ui.selectedDate,
             calendarView: state.ui.calendarView,
             compactMode: state.ui.compactMode,
+            weekStartsOn: state.ui.weekStartsOn,
           },
         }),
       }

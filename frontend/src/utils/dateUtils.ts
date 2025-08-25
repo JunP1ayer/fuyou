@@ -45,11 +45,11 @@ export const formatLocalizedDate = (date: Date, patternJa = 'M月d日', patternD
 /**
  * 月間カレンダー用の日付配列を生成
  */
-export const generateCalendarDays = (year: number, month: number): Date[] => {
+export const generateCalendarDays = (year: number, month: number, weekStartsOn: 0 | 1 = 0): Date[] => {
   const firstDayOfMonth = new Date(year, month, 1);
   const lastDayOfMonth = endOfMonth(firstDayOfMonth);
-  const startDate = startOfWeek(firstDayOfMonth, { weekStartsOn: 0 }); // 日曜始まり
-  const endDate = endOfWeek(lastDayOfMonth, { weekStartsOn: 0 });
+  const startDate = startOfWeek(firstDayOfMonth, { weekStartsOn });
+  const endDate = endOfWeek(lastDayOfMonth, { weekStartsOn });
 
   return eachDayOfInterval({ start: startDate, end: endDate });
 };
@@ -149,13 +149,25 @@ export const navigateMonth = (
 };
 
 /**
- * 週の日本語名を取得
+ * 週の曜日名を取得（開始曜日に応じて配列を調整）
  */
-export const getWeekDayNames = (): string[] => {
+export const getWeekDayNames = (weekStartsOn: 0 | 1 = 0): string[] => {
   const { language } = useI18nStore.getState();
-  const base = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  if (language === 'ja') return ['日', '月', '火', '水', '木', '金', '土'];
-  if (language === 'de') return ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  
+  let base: string[];
+  if (language === 'ja') {
+    base = ['日', '月', '火', '水', '木', '金', '土'];
+  } else if (language === 'de') {
+    base = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  } else {
+    base = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  }
+  
+  // 月曜始まりの場合は配列を回転
+  if (weekStartsOn === 1) {
+    return [...base.slice(1), base[0]];
+  }
+  
   return base;
 };
 

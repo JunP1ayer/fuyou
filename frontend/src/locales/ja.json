@@ -42,6 +42,9 @@
   "settings.export": "データエクスポート",
   "settings.import": "データインポート",
   "settings.reset": "アプリリセット",
+  "settings.weekStart": "週の開始日",
+  "settings.weekStart.sunday": "日曜始まり（国際標準）",
+  "settings.weekStart.monday": "月曜始まり（日本標準）",
 
   "dashboard.title": "ダッシュボード",
   "dashboard.welcomeMessage": "バイト管理システムへようこそ",

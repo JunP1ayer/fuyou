@@ -399,7 +399,12 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
                           size="small"
                         />
                       }
-                      label="シフトのみ"
+                      label={
+                        <Box>
+                          <div>シフトのみ共有</div>
+                          <div style={{ fontSize: '0.8em', color: '#666' }}>(個人予定＝非共有)</div>
+                        </Box>
+                      }
                       sx={{ margin: 0 }}
                     />
                     <FormControlLabel
@@ -688,33 +693,6 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
                 />
               </Grid>
             </Grid>
-            
-            {/* 共有設定 */}
-            <Box sx={{ mt: 3, p: 2, bgcolor: '#f8fafc', borderRadius: 1 }}>
-              <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
-                共有設定
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <FormControlLabel
-                    control={
-                      <Switch 
-                        checked={shareContent === 'shifts-only'} 
-                        onChange={(_, checked) => setShareContent(checked ? 'shifts-only' : 'all-events')}
-                        size="small"
-                      />
-                    }
-                    label="シフトのみ"
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <FormControlLabel
-                    control={<Switch checked={hideWorkplace} onChange={(_, v) => setHideWorkplace(v)} size="small" />}
-                    label="職場名を隠す"
-                  />
-                </Grid>
-              </Grid>
-            </Box>
           </Box>
         </DialogContent>
         <DialogActions>
