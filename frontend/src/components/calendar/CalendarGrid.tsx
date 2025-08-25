@@ -265,19 +265,31 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const currentMonthRef = useRef<HTMLDivElement | null>(null);
 
-  // 設定から表示モードを読み込み（スマホは常に縦スクロール）
+  // 設定から表示モードを読み込み
   useEffect(() => {
-    if (isMobile) {
-      // スマホは常に縦スクロール
-      setViewMode('vertical');
-      localStorage.setItem('calendarViewMode', 'vertical');
+    const savedMode = localStorage.getItem('calendarViewMode') as 'vertical' | 'horizontal';
+    if (savedMode) {
+      setViewMode(savedMode);
     } else {
-      // PCは設定を読み込み、デフォルトは横
-      const savedMode = localStorage.getItem('calendarViewMode') as 'vertical' | 'horizontal';
-      setViewMode(savedMode || 'horizontal');
-      if (!savedMode) localStorage.setItem('calendarViewMode', 'horizontal');
+      // デフォルト設定：スマホは縦、PCは横
+      const defaultMode = isMobile ? 'vertical' : 'horizontal';
+      setViewMode(defaultMode);
+      localStorage.setItem('calendarViewMode', defaultMode);
     }
   }, [isMobile]);
+
+  // 設定変更をリアルタイムで反映
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedMode = localStorage.getItem('calendarViewMode') as 'vertical' | 'horizontal';
+      if (savedMode && savedMode !== viewMode) {
+        setViewMode(savedMode);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [viewMode]);
 
   // 日付クリック処理
   const handleDateClick = (date: Date) => {
@@ -509,10 +521,12 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
 
       {/* カレンダー本体 */}
       <Box sx={{ 
-        flex: isMobile ? 'none' : 1,
+        flex: 1,
         display: 'flex', 
         flexDirection: 'column',
-        height: isMobile ? 'auto' : 'calc(100% - 36px)', // 曜日ヘッダー分を差し引く（PC版は36px）
+        height: viewMode === 'horizontal' && isMobile 
+          ? 'calc(100vh - 200px)' // 横モード時は画面いっぱいに
+          : isMobile ? 'auto' : 'calc(100% - 36px)', // 曜日ヘッダー分を差し引く（PC版は36px）
         minHeight: 0,
         px: 0, // 全ての余白を削除
         py: 0, // 全ての余白を削除
@@ -584,7 +598,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                 flexDirection: 'column',
                 mb: 0, // 月間の余白を完全削除
                 pb: 0, // 月の下パディングを削除
-                flex: (isMobile && viewMode === 'vertical') ? 'none' : 1,
+                flex: viewMode === 'vertical' ? 'none' : 1,
                 minHeight: 0,
                 // 月境界線は削除（日付セル間で処理）
               }}
@@ -612,9 +626,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
 
               {limitedWeeks.map((week, weekIndex) => (
                 <Box key={weekIndex} sx={{ 
-                  flex: isMobile ? 'none' : 1,
-                  height: isMobile ? '80px' : `calc(100% / ${limitedWeeks.length})`,
-                  minHeight: isMobile ? '80px' : 0,
+                  flex: 1,
+                  height: `calc(100% / ${limitedWeeks.length})`,
+                  minHeight: viewMode === 'horizontal' && isMobile ? '70px' : isMobile ? '80px' : 0,
                   m: 0, // 週の余白を削除
                   p: 0, // 週のパディングを削除
                   // 月境界線を削除してシームレスに
@@ -651,7 +665,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                     const isCurrentMonth = isSameMonth(day, month);
                     const isTodayDate = isToday(day);
                     const dayOfWeek = day.getDay();
-                    const dimOutsideMonth = !isMobile; // スマホは当月以外も薄くしない
+                    const dimOutsideMonth = viewMode === 'horizontal'; // 横スワイプモードでは当月以外を薄く
                     const showMonth = false; // モバイルのセル左上の月テキストを非表示
                     
                     // 2次元配列での月境界線判定
@@ -670,8 +684,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                       right: false,
                     };
                     
-                    // 当月セルのみ処理（月境界線は前月・翌月セルにも表示）
-                    if (sameMonth(day, month)) {
+                    // 縦スクロールモードでのみ月境界線を計算
+                    if (viewMode === 'vertical' && sameMonth(day, month)) {
                       // 各方向の隣接セルをチェック
                       const hasUp = r > 0;
                       const hasDown = r < limitedWeeks.length - 1;
@@ -703,8 +717,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                       monthBorders.right = !rightIsCurrent && c < 6; // 右に当月セルがなく、かつカレンダーの右端ではない
                     }
                     
-                    // 月境界線は前月・翌月セルにも表示する
-                    if (!sameMonth(day, month)) {
+                    // 縦スクロールモードでのみ前月・翌月セルにも月境界線を表示
+                    if (viewMode === 'vertical' && !sameMonth(day, month)) {
                       const currentWeek = limitedWeeks[r];
                       const weekHasFirstDay = currentWeek.some(d => sameMonth(d, month) && d.getDate() === 1);
                       const weekHasLastDay = currentWeek.some(d => sameMonth(d, month) && d.getDate() === new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate());
@@ -746,7 +760,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                             border: 'none', // CSS Gridの境界線を無効化
                             overflow: 'visible', // はみ出しを許可
                             backgroundColor: !isCurrentMonth && dimOutsideMonth 
-                              ? { xs: alpha(theme.palette.background.paper, 0.8), md: alpha(theme.palette.action.disabledBackground, 0.02) }
+                              ? alpha(theme.palette.action.disabledBackground, 0.05)
                               : alpha(theme.palette.background.paper, 0.8), // 半透明にして背景月数字が見えるように
                             outline: isTodayDate ? `2px solid ${alpha(theme.palette.primary.main, 0.6)}` : 'none',
                             outlineOffset: '-1px',
@@ -759,8 +773,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                           }}
                           onClick={() => handleDateClick(day)}
                         >
-                          {/* 月境界線：全セルに1pxの黒線で月を囲む */}
-                          {monthBorders.top && (
+                          {/* 月境界線：縦スクロールモードのみ表示 */}
+                          {viewMode === 'vertical' && monthBorders.top && (
                             <Box sx={{
                               position: 'absolute',
                               top: 0,
@@ -773,7 +787,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                               transform: 'translateY(-0.5px)',
                             }} />
                           )}
-                          {monthBorders.bottom && (
+                          {viewMode === 'vertical' && monthBorders.bottom && (
                             <Box sx={{
                               position: 'absolute',
                               bottom: 0,
@@ -786,7 +800,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                               transform: 'translateY(0.5px)',
                             }} />
                           )}
-                          {monthBorders.left && (
+                          {viewMode === 'vertical' && monthBorders.left && (
                             <Box sx={{
                               position: 'absolute',
                               left: 0,
@@ -799,7 +813,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                               transform: 'translateX(-0.5px)',
                             }} />
                           )}
-                          {monthBorders.right && (
+                          {viewMode === 'vertical' && monthBorders.right && (
                             <Box sx={{
                               position: 'absolute',
                               right: 0,
@@ -868,7 +882,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                                 fontSize: { xs: '16px', md: '14px' },
                                 color:
                                   !isCurrentMonth && dimOutsideMonth
-                                    ? { xs: 'text.primary', md: alpha(theme.palette.text.disabled, 0.2) }
+                                    ? alpha(theme.palette.text.disabled, 0.3)
                                     : dayOfWeek === 0
                                       ? 'error.main'
                                       : dayOfWeek === 6
@@ -898,7 +912,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({ onDateClick }) => {
                           </Box>
 
                           {/* イベント表示 */}
-                          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'stretch', opacity: !isCurrentMonth && dimOutsideMonth ? 0.2 : 1, px: 0 }}>
+                          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'stretch', opacity: !isCurrentMonth && dimOutsideMonth ? 0.3 : 1, px: 0 }}>
                             {/* PC版は最大5件、モバイル版は最大3件表示 */}
                             {/* まず連続帯を表示（1つだけ代表表示）*/}
                             {spanBands.length > 0 && (

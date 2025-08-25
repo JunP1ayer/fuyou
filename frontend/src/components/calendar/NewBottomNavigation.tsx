@@ -26,12 +26,14 @@ interface NewBottomNavigationProps {
   currentTab: NewTabValue;
   onTabChange: (tab: NewTabValue) => void;
   onAIClick: () => void;
+  onScrollToToday?: () => void;
 }
 
 export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
   currentTab,
   onTabChange,
   onAIClick,
+  onScrollToToday,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -40,6 +42,16 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: NewTabValue) => {
     onTabChange(newValue);
+  };
+
+  const handleCalendarClick = () => {
+    if (currentTab === 'shift' && onScrollToToday) {
+      // 既にカレンダータブの場合は今日に戻る
+      onScrollToToday();
+    } else {
+      // カレンダータブに切り替え
+      onTabChange('shift');
+    }
   };
 
   const handleAIClick = () => {
@@ -90,7 +102,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
             backgroundColor: 'action.hover',
           },
         }}
-        onClick={() => onTabChange('shift')}
+        onClick={handleCalendarClick}
         onTouchStart={() => {}}
       >
         <CalendarMonth />
