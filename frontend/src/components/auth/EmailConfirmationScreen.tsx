@@ -124,7 +124,8 @@ export const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = (
               </Typography>
               
               <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                アカウントを有効化するため、確認メールを送信しました
+                アカウントを有効化するため、確認メールを送信しました<br/>
+                確認メール内のリンクをクリックしてください。
               </Typography>
             </Box>
 
