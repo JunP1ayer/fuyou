@@ -16,7 +16,7 @@ interface CalendarHeaderProps {
 export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { headerMonth, navigateMonth, viewMode } = useCalendarStore();
+  const { headerMonth, navigateMonth, viewMode, goToToday } = useCalendarStore();
   const { t, language } = useI18n();
   
   // 縦スクロールモードの状態を取得（表示のみ）
@@ -40,6 +40,13 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick 
     } else {
       // 全ての友達を表示する
       setVisibleFriends(friends.map(f => f.id));
+    }
+  };
+
+  // カレンダータイトルタップで今日に戻る（横スクロールモード時のみ）
+  const handleTitleClick = () => {
+    if (isMobile && !verticalScrollMode) {
+      goToToday();
     }
   };
 
@@ -78,6 +85,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick 
       {/* 中央：年月表示（背景の月数字と連動） */}
       <Typography
         variant="h6"
+        onClick={handleTitleClick}
         sx={{
           fontWeight: 700,
           fontSize: { xs: '24px', md: '18px' },
@@ -86,6 +94,11 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick 
           textAlign: 'center',
           color: 'text.primary',
           lineHeight: 1.2,
+          cursor: (isMobile && !verticalScrollMode) ? 'pointer' : 'default',
+          '&:hover': (isMobile && !verticalScrollMode) ? {
+            color: 'primary.main',
+            transition: 'color 0.2s ease'
+          } : {},
         }}
       >
         {headerMonth.toLocaleDateString(language === 'en' ? 'en-US' : language === 'de' ? 'de-DE' : language === 'da' ? 'da-DK' : language === 'fi' ? 'fi-FI' : language === 'no' ? 'nb-NO' : 'ja-JP', { year: 'numeric', month: 'numeric' })}

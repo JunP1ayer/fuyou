@@ -87,11 +87,10 @@ export const AuthCallback: React.FC = () => {
             <Alert severity="success" sx={{ mb: 3, textAlign: 'left' }}>
               <Stack spacing={1}>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  🎉 アカウントの有効化が完了しました！
+                  🎉 メール認証完了！
                 </Typography>
                 <Typography variant="body2">
-                  扶養管理カレンダーをご利用いただくために、<br/>
-                  アプリに戻ってログインしてください。
+                  <strong>アプリに戻って、メール確認完了ボタンを押してログインしましょう！</strong>
                 </Typography>
               </Stack>
             </Alert>
@@ -99,19 +98,19 @@ export const AuthCallback: React.FC = () => {
             {/* 次のステップ案内 */}
             <Box sx={{ 
               mb: 3, 
-              p: 2, 
-              bgcolor: 'grey.50', 
-              borderRadius: 2, 
-              border: '1px solid', 
-              borderColor: 'grey.200' 
+              p: 3, 
+              bgcolor: 'primary.light', 
+              borderRadius: 3, 
+              border: '2px solid', 
+              borderColor: 'primary.main' 
             }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontWeight: 600 }}>
-                📱 次のステップ
+              <Typography variant="h6" color="primary.dark" sx={{ mb: 1, fontWeight: 700 }}>
+                📱 重要な次のステップ
               </Typography>
-              <Typography variant="body2" color="text.primary">
-                1. アプリ（タブ）に戻る<br/>
-                2. 登録時のメールアドレス・パスワードでログイン<br/>
-                3. 扶養管理機能をお楽しみください！
+              <Typography variant="body1" color="text.primary" sx={{ fontWeight: 500, lineHeight: 1.8 }}>
+                <strong>1. アプリ（元のタブ）に戻る</strong><br/>
+                <strong>2. 大きな円形の「メール確認完了」ボタンをクリック</strong><br/>
+                <strong>3. 自動ログイン完了！</strong>
               </Typography>
             </Box>
 
@@ -131,23 +130,32 @@ export const AuthCallback: React.FC = () => {
               size="large"
               startIcon={<ArrowBack />}
               sx={{
-                py: 1.5,
-                fontSize: '1rem',
-                fontWeight: 600,
-                background: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)',
+                py: 2,
+                px: 4,
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                borderRadius: 3,
+                background: 'linear-gradient(135deg, #1976d2, #42a5f5)',
+                boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #66bb6a 0%, #4caf50 100%)',
+                  background: 'linear-gradient(135deg, #1565c0, #2196f3)',
+                  boxShadow: '0 6px 16px rgba(25, 118, 210, 0.4)',
+                  transform: 'translateY(-2px)',
                 },
+                transition: 'all 0.3s ease',
               }}
             >
-              今すぐアプリに戻る
+              🚀 今すぐアプリに戻ってログイン！
             </Button>
 
             {/* 補足情報 */}
             <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'grey.200' }}>
+              <Typography variant="body2" color="warning.dark" sx={{ lineHeight: 1.6, fontWeight: 500, mb: 2 }}>
+                ⚠️ このタブは閉じても大丈夫です<br/>
+                必ずアプリのタブに戻って「メール確認完了」ボタンを押してください
+              </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.5 }}>
-                💡 ブックマークに追加していただくと、次回から素早くアクセスできます。<br/>
-                ご利用ありがとうございます！
+                💡 扶養管理カレンダーでお金の管理を始めましょう！
               </Typography>
             </Box>
           </CardContent>

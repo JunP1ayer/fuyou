@@ -45,6 +45,7 @@ interface CalendarStore {
   setSelectedDate: (date: string | null) => void;
   setSelectedTab: (tab: BottomNavTab) => void;
   navigateMonth: (direction: 'prev' | 'next') => void;
+  goToToday: () => void;
   
   // Actions - ダイアログ制御
   openEventDialog: (date?: string, eventTypeOrEvent?: EventType | CalendarEvent) => void;
@@ -153,6 +154,14 @@ export const useCalendarStore = create<CalendarStore>()(
           const newMonth = new Date(current);
           newMonth.setMonth(current.getMonth() + (direction === 'prev' ? -1 : 1));
           return { currentMonth: newMonth, headerMonth: newMonth };
+        });
+      },
+
+      goToToday: () => {
+        const today = new Date();
+        set({ 
+          currentMonth: today, 
+          headerMonth: today 
         });
       },
       

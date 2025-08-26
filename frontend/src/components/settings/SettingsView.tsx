@@ -296,43 +296,68 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       <Dialog
         open={logoutDialogOpen}
         onClose={() => setLogoutDialogOpen(false)}
-        maxWidth="sm"
+        maxWidth="xs"
         fullWidth
+        PaperProps={{
+          sx: {
+            mx: 2,
+            borderRadius: 3,
+            minHeight: 280,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center'
+          }
+        }}
       >
-        <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-            <ExitToApp color="error" />
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+        <DialogTitle sx={{ pb: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            <ExitToApp sx={{ fontSize: 48, color: 'error.main' }} />
+            <Typography variant="h5" sx={{ fontWeight: 700, textAlign: 'center' }}>
               ログアウト確認
             </Typography>
           </Box>
         </DialogTitle>
-        <DialogContent sx={{ textAlign: 'center' }}>
-          <Typography variant="body1" sx={{ mb: 2 }}>
+        <DialogContent sx={{ textAlign: 'center', px: 3, py: 2 }}>
+          <Typography variant="body1" sx={{ mb: 2, fontWeight: 500, whiteSpace: 'nowrap' }}>
             本当にログアウトしますか？
           </Typography>
-          <Alert severity="info" sx={{ textAlign: 'center' }}>
-            ログアウト後も、データにアクセスできます。
+          <Alert severity="info" sx={{ textAlign: 'center', borderRadius: 2 }}>
+            <Typography variant="body2">
+              ログアウト後も<br />再ログイン可能
+            </Typography>
           </Alert>
         </DialogContent>
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button
-            onClick={() => setLogoutDialogOpen(false)}
-            variant="outlined"
-            disabled={loggingOut}
-            sx={{ flex: 1 }}
-          >
-            キャンセル
-          </Button>
+        <DialogActions sx={{ p: 3, pt: 1, flexDirection: 'column', gap: 1.5 }}>
           <Button
             onClick={handleLogout}
             variant="contained"
             color="error"
+            fullWidth
+            size="large"
             disabled={loggingOut}
-            startIcon={loggingOut ? <CircularProgress size={16} /> : <ExitToApp />}
-            sx={{ flex: 1 }}
+            startIcon={loggingOut ? <CircularProgress size={20} /> : <ExitToApp />}
+            sx={{ 
+              py: 1.5,
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              borderRadius: 2
+            }}
           >
             {loggingOut ? 'ログアウト中...' : 'ログアウト'}
+          </Button>
+          <Button
+            onClick={() => setLogoutDialogOpen(false)}
+            variant="outlined"
+            fullWidth
+            size="large"
+            disabled={loggingOut}
+            sx={{ 
+              py: 1.5,
+              fontSize: '1rem',
+              borderRadius: 2
+            }}
+          >
+            キャンセル
           </Button>
         </DialogActions>
       </Dialog>

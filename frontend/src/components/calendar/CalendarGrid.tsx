@@ -266,19 +266,25 @@ export const CalendarGrid = React.forwardRef<
     events, 
     openEventDialog,
     setHeaderMonth,
+    goToToday,
   } = useUnifiedCalendar();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const currentMonthRef = useRef<HTMLDivElement | null>(null);
 
   // 今日の日付に戻る関数
   const scrollToToday = useCallback(() => {
-    if (currentMonthRef.current) {
-      currentMonthRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    }
-  }, []);
+    // まず今日の月に変更
+    goToToday();
+    // 少し待ってからスクロール（月変更後にスクロール）
+    setTimeout(() => {
+      if (currentMonthRef.current) {
+        currentMonthRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }
+    }, 100);
+  }, [goToToday]);
 
   // 外部から呼び出し可能にする
   useImperativeHandle(ref, () => ({

@@ -36,6 +36,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { LanguageDropdown } from '../common/LanguageDropdown';
 import type { LoginCredentials, SignupCredentials, AuthError } from '../../types/auth';
+import simpleSupabase from '../../lib/simpleSupabase';
 
 interface AuthFormProps {
   defaultTab?: 'login' | 'signup';
@@ -69,7 +70,7 @@ const textFieldSx = {
 };
 
 export const AuthForm: React.FC<AuthFormProps> = ({
-  defaultTab = 'login',
+  defaultTab = 'signup',
   onClose
 }) => {
   const theme = useTheme();
@@ -130,6 +131,27 @@ export const AuthForm: React.FC<AuthFormProps> = ({
     setError(null);
 
     try {
+      // 1. 既存ユーザーチェック
+      console.log('📝 AuthForm: Checking if user already exists...');
+      const { data: existingUserData, error: checkError } = await simpleSupabase
+        .rpc('check_existing_user_by_email', { p_email: signupForm.email });
+
+      if (checkError) {
+        console.error('📝 AuthForm: Error checking existing user:', checkError);
+      } else if (existingUserData && existingUserData[0]?.user_exists) {
+        // 既存ユーザーが見つかった場合
+        console.log('📝 AuthForm: Existing user found, switching to login tab');
+        setError('このメールアドレスは既に登録済みです。ログインをお試しください。');
+        
+        // 3秒後にログインタブに切り替え
+        setTimeout(() => {
+          setCurrentTab('login');
+          setError(null);
+        }, 3000);
+        return;
+      }
+
+      // 2. 新規ユーザーの場合は通常の登録処理
       console.log('📝 AuthForm: Starting signup process...');
       await signup(signupForm);
       console.log('📝 AuthForm: Signup completed, closing dialog...');
