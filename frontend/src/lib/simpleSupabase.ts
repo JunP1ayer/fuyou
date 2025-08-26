@@ -13,7 +13,7 @@ export const simpleSupabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false, // コールバックURL問題を回避
+    detectSessionInUrl: true, // メール確認後の自動ログインを有効化
     storageKey: 'simple-fuyou-auth',
   },
 });

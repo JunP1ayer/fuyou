@@ -147,8 +147,10 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       
       // メール確認が必要かどうかを返す
       // Supabaseはメール確認が必要な場合、data.user.email_confirmed_at がnullになる
-      const needsEmailConfirmation = !data.user?.email_confirmed_at;
+      // また、sessionがnullの場合もメール確認が必要
+      const needsEmailConfirmation = !data.user?.email_confirmed_at || !data.session;
       console.log('🔐 Email confirmed at:', data.user?.email_confirmed_at);
+      console.log('🔐 Has session:', !!data.session);
       console.log('🔐 Needs email confirmation:', needsEmailConfirmation);
       
       return { needsEmailConfirmation };

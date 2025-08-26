@@ -48,10 +48,15 @@ export const SimpleAuthForm: React.FC = () => {
         await login(formData.email, formData.password);
       } else {
         const result = await signup(formData.email, formData.password, formData.name);
+        console.log('🔐 Signup result:', result);
+        
         // サインアップ成功時はメール確認画面を表示
         if (result.needsEmailConfirmation) {
+          console.log('📧 Email confirmation required - showing confirmation screen');
           setRegisteredEmail(formData.email);
           setShowEmailConfirmation(true);
+        } else {
+          console.log('✅ No email confirmation required - user logged in automatically');
         }
       }
     } catch (error: any) {
