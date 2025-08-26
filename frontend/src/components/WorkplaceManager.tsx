@@ -579,25 +579,27 @@ export const WorkplaceManager: React.FC = () => {
     <Box sx={{ maxWidth: 800, mx: 'auto', p: 2 }}>
 
       {workplaces.length === 0 && (
-        <Box sx={{ mt: 3, textAlign: 'center' }}>
+        <Box sx={{ 
+          height: '50vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
           <Button
             variant="contained"
             size="large"
             startIcon={<Add />}
             onClick={handleAddClick}
             sx={{
-              background:
-                'linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%)',
-              '&:hover': {
-                background:
-                  'linear-gradient(135deg, #81d4fa 0%, #b3e5fc 100%)',
-              },
+              background: 'linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%)',
+              '&:hover': { background: 'linear-gradient(135deg, #81d4fa 0%, #b3e5fc 100%)' },
               borderRadius: 3,
               px: 4,
               py: 1.5,
               fontSize: '1.1rem',
               fontWeight: 600,
               boxShadow: '0 8px 24px rgba(179, 229, 252, 0.4)',
+              whiteSpace: 'nowrap',
             }}
           >
             バイト先を登録
@@ -614,18 +616,15 @@ export const WorkplaceManager: React.FC = () => {
             startIcon={<Add />}
             onClick={handleAddClick}
             sx={{
-              background:
-                'linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%)',
-              '&:hover': {
-                background:
-                  'linear-gradient(135deg, #81d4fa 0%, #b3e5fc 100%)',
-              },
+              background: 'linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%)',
+              '&:hover': { background: 'linear-gradient(135deg, #81d4fa 0%, #b3e5fc 100%)' },
               borderRadius: 3,
               px: 4,
               py: 1.5,
               fontSize: '1.1rem',
               fontWeight: 600,
               boxShadow: '0 8px 24px rgba(179, 229, 252, 0.4)',
+              whiteSpace: 'nowrap',
             }}
           >
             バイト先を登録

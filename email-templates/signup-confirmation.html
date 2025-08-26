@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扶養管理カレンダー - アカウント確認</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f5f7fa;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #b3e5fc 0%, #81d4fa 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            color: #ffffff;
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .welcome-message {
+            font-size: 18px;
+            color: #333333;
+            margin-bottom: 25px;
+            line-height: 1.8;
+        }
+        
+        .highlight {
+            color: #1976d2;
+            font-weight: 600;
+        }
+        
+        .verification-section {
+            background-color: #f8f9ff;
+            border: 2px solid #e3f2fd;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .verification-section h2 {
+            color: #1976d2;
+            font-size: 20px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .verification-section p {
+            margin-bottom: 25px;
+            color: #555555;
+            font-size: 16px;
+        }
+        
+        .confirm-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(76,175,80,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .confirm-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76,175,80,0.4);
+        }
+        
+        .steps {
+            margin: 30px 0;
+            background-color: #fafafa;
+            border-radius: 8px;
+            padding: 25px;
+        }
+        
+        .steps h3 {
+            color: #333333;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .steps ol {
+            padding-left: 20px;
+        }
+        
+        .steps li {
+            margin-bottom: 12px;
+            color: #555555;
+            font-size: 15px;
+        }
+        
+        .info-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 6px;
+        }
+        
+        .info-box p {
+            margin: 0;
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .footer p {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .footer .company {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .link-fallback {
+            background-color: #f1f3f4;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            word-break: break-all;
+        }
+        
+        .link-fallback p {
+            margin: 0;
+            font-size: 13px;
+            color: #666666;
+        }
+        
+        .link-fallback code {
+            color: #1976d2;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .verification-section {
+                padding: 25px 20px;
+            }
+            
+            .confirm-button {
+                padding: 14px 28px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <div class="header">
+            <h1>📊 扶養管理カレンダー</h1>
+            <p>学生のための収入管理アプリ</p>
+        </div>
+        
+        <!-- メインコンテンツ -->
+        <div class="content">
+            <div class="welcome-message">
+                こんにちは！<br>
+                <span class="highlight">扶養管理カレンダー</span>にご登録いただき、ありがとうございます。
+            </div>
+            
+            <!-- 確認セクション -->
+            <div class="verification-section">
+                <h2>🔐 アカウントを確認してください</h2>
+                <p>
+                    アカウントの有効化のため、下記のボタンをクリックしてメールアドレスの確認を完了してください。
+                </p>
+                
+                <a href="{{ .ConfirmationURL }}" class="confirm-button">
+                    ✅ アカウントを確認
+                </a>
+            </div>
+            
+            <!-- 手順説明 -->
+            <div class="steps">
+                <h3>📝 確認手順</h3>
+                <ol>
+                    <li>上記の「アカウントを確認」ボタンをクリック</li>
+                    <li>ブラウザでアプリのログイン画面が開きます</li>
+                    <li>登録したメールアドレスとパスワードでログイン</li>
+                    <li>扶養管理機能をお使いいただけます</li>
+                </ol>
+            </div>
+            
+            <!-- 重要な情報 -->
+            <div class="info-box">
+                <p>
+                    <strong>⏰ 重要：</strong>このメールは24時間以内に確認を完了してください。<br>
+                    期限が過ぎた場合は、アプリから再度確認メールをリクエストしてください。
+                </p>
+            </div>
+            
+            <!-- リンクが動作しない場合 -->
+            <div class="link-fallback">
+                <p><strong>ボタンがクリックできない場合：</strong></p>
+                <p>以下のURLをコピーしてブラウザのアドレスバーに貼り付けてください：</p>
+                <code>{{ .ConfirmationURL }}</code>
+            </div>
+            
+            <div style="margin-top: 30px; color: #666666; font-size: 15px;">
+                <p>
+                    扶養管理カレンダーは、学生アルバイトの方が<strong>扶養控除の範囲内</strong>で安心して働けるよう、
+                    収入管理とシフト最適化をサポートします。
+                </p>
+                <br>
+                <p>
+                    <strong>主な機能：</strong><br>
+                    📈 リアルタイム収入トラッキング<br>
+                    📅 シフト管理とカレンダー連携<br>
+                    🎯 扶養限度額アラート<br>
+                    📊 月間・年間収入予測<br>
+                    🔍 複数バイト先の一元管理
+                </p>
+            </div>
+        </div>
+        
+        <!-- フッター -->
+        <div class="footer">
+            <p class="company">扶養管理カレンダー</p>
+            <p>
+                このメールに心当たりがない場合は、このメールを削除してください。<br>
+                アカウント作成は行われていません。
+            </p>
+            <p style="font-size: 12px; color: #999999;">
+                このメールは自動送信されています。返信はできません。
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -19,12 +19,16 @@ import {
 import { useSimpleAuth } from '../../contexts/SimpleAuthContext';
 import { evaluatePasswordStrength } from '../../lib/passwordStrength';
 import simpleSupabase from '../../lib/simpleSupabase';
+import { EmailConfirmationScreen } from './EmailConfirmationScreen';
 
 export const SimpleAuthForm: React.FC = () => {
   const { login, signup, loading } = useSimpleAuth();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
 
   // フォーム状態
   const [formData, setFormData] = useState({
@@ -43,12 +47,43 @@ export const SimpleAuthForm: React.FC = () => {
       if (mode === 'login') {
         await login(formData.email, formData.password);
       } else {
-        await signup(formData.email, formData.password, formData.name);
+        const result = await signup(formData.email, formData.password, formData.name);
+        // サインアップ成功時はメール確認画面を表示
+        if (result.needsEmailConfirmation) {
+          setRegisteredEmail(formData.email);
+          setShowEmailConfirmation(true);
+        }
       }
     } catch (error: any) {
-      setError(error.message || '認証に失敗しました');
+      const errorMessage = error.message || '認証に失敗しました';
+      setError(errorMessage);
+      
+      // 既に登録済みの場合の処理
+      if (mode === 'signup' && errorMessage.includes('既に登録済み')) {
+        setIsAlreadyRegistered(true);
+        // 3秒後にログインモードに自動切替
+        setTimeout(() => {
+          setMode('login');
+          setIsAlreadyRegistered(false);
+          setError(null);
+        }, 3000);
+      }
     }
   };
+
+  // メール確認画面を表示
+  if (showEmailConfirmation) {
+    return (
+      <EmailConfirmationScreen
+        email={registeredEmail}
+        onBackToAuth={() => {
+          setShowEmailConfirmation(false);
+          setMode('login');
+          setFormData({ email: registeredEmail, password: '', name: '' });
+        }}
+      />
+    );
+  }
 
   return (
     <Box
@@ -99,8 +134,16 @@ export const SimpleAuthForm: React.FC = () => {
 
           {/* エラー表示 */}
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert 
+              severity={isAlreadyRegistered ? "warning" : "error"} 
+              sx={{ mb: 2 }}
+            >
               {error}
+              {isAlreadyRegistered && (
+                <Box sx={{ mt: 1, fontSize: '0.875rem', color: 'warning.main' }}>
+                  📱 3秒後にログイン画面に切り替えます...
+                </Box>
+              )}
             </Alert>
           )}
 

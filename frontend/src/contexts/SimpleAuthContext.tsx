@@ -13,7 +13,7 @@ interface SimpleAuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  signup: (email: string, password: string, name: string) => Promise<{ needsEmailConfirmation: boolean }>;
   logout: () => Promise<void>;
 }
 
@@ -142,6 +142,16 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       }
 
       console.log('🔐 Signup success:', data.user?.email);
+      console.log('🔐 User data:', data.user);
+      console.log('🔐 Session data:', data.session);
+      
+      // メール確認が必要かどうかを返す
+      // Supabaseはメール確認が必要な場合、data.user.email_confirmed_at がnullになる
+      const needsEmailConfirmation = !data.user?.email_confirmed_at;
+      console.log('🔐 Email confirmed at:', data.user?.email_confirmed_at);
+      console.log('🔐 Needs email confirmation:', needsEmailConfirmation);
+      
+      return { needsEmailConfirmation };
     } catch (error) {
       console.error('🔐 Signup failed:', error);
       throw error instanceof Error ? error : new Error(toFriendlyAuthMessage(error));

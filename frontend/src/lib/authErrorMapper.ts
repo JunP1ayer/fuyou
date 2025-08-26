@@ -14,6 +14,11 @@ export function toFriendlyAuthMessage(error: unknown): string {
     return 'リンクの有効期限が切れているか無効です。もう一度お試しください。';
   }
 
+  // 既に登録済み
+  if (msg.includes('user already') || msg.includes('already registered') || msg.includes('already exists')) {
+    return 'このメールアドレスは既に登録済みです。ログインするか、パスワードリセットをお試しください。';
+  }
+
   // 不正な資格情報
   if (msg.includes('invalid login') || msg.includes('invalid credentials') || msg.includes('invalid email or password')) {
     return 'メールアドレスまたはパスワードが正しくありません。';

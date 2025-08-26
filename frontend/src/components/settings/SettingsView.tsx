@@ -21,6 +21,15 @@ import {
   FormControl,
   Select,
   MenuItem,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  CircularProgress,
+  ListItemButton,
+  Chip,
 } from '@mui/material';
 import {
   Palette,
@@ -31,6 +40,9 @@ import {
   ViewWeek,
   CalendarToday,
   CalendarViewWeek,
+  Logout,
+  Person,
+  ExitToApp,
 } from '@mui/icons-material';
 import toast from 'react-hot-toast';
 
@@ -38,6 +50,7 @@ import { useShiftStore } from '@store/shiftStore';
 import useI18nStore, { SupportedLanguage, SupportedCountry } from '@/store/i18nStore';
 import { useI18n } from '@/hooks/useI18n';
 import { useUnifiedStore } from '@/store/unifiedStore';
+import { useSimpleAuth } from '@/contexts/SimpleAuthContext';
 import type { ThemeMode } from '@/types/index';
 
 interface SettingsViewProps {
@@ -71,8 +84,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const { shifts, workplaces } = useShiftStore();
   const { language, country, setLanguage, setCountry } = useI18nStore();
   const { ui: { weekStartsOn }, setWeekStartsOn } = useUnifiedStore();
+  const { user, logout, loading } = useSimpleAuth();
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState(0);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   
   // カレンダー表示モード設定
   const [calendarViewMode, setCalendarViewMode] = useState<'vertical' | 'horizontal'>(() => {
@@ -115,21 +131,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     toast.success(newValue === 1 ? '月曜始まりに変更' : '日曜始まりに変更');
   };
 
+  // ログアウト処理
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logout();
+      setLogoutDialogOpen(false);
+      toast.success('ログアウトしました');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      toast.error('ログアウトに失敗しました');
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
 
   return (
-    <Box sx={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      {/* ヘッダー（コンパクト化） */}
-      <Box sx={{ p: 2, pb: 1 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          ⚙️ 設定
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          アプリの設定とデータ管理
-        </Typography>
-      </Box>
+    <Box sx={{ 
+      height: '100vh', 
+      overflow: 'hidden', 
+      display: 'flex', 
+      flexDirection: 'column',
+      touchAction: 'none', // タッチによるスクロールを無効化
+      userSelect: 'none', // テキスト選択を無効化
+      WebkitTouchCallout: 'none', // タッチによるコールアウトを無効化
+    }}>
+
 
       {/* タブナビゲーション */}
-      <Card sx={{ mx: 2, mb: 2 }}>
+      <Card sx={{ mx: 2, mb: 2, mt: 2 }}>
         <Tabs
           value={activeTab}
           onChange={(_, newValue) => setActiveTab(newValue)}
@@ -140,7 +171,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </Card>
 
       {/* タブコンテンツ */}
-      <Box sx={{ flex: 1, overflow: 'auto', px: 2 }}>
+      <Box sx={{ 
+        flex: 1, 
+        overflow: 'auto', 
+        px: 2,
+        touchAction: 'pan-y', // 縦スクロールのみ許可
+      }}>
         
         {/* 基本設定タブ */}
         <TabPanel value={activeTab} index={0}>
@@ -227,13 +263,79 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </FormControl>
                   </Box>
                 </ListItem>
+                <ListItem>
+                  <ListItemButton
+                    onClick={() => setLogoutDialogOpen(true)}
+                    sx={{
+                      borderRadius: 2,
+                      '&:hover': {
+                        backgroundColor: 'error.lighter',
+                      },
+                    }}
+                  >
+                    <ListItemIcon>
+                      <ExitToApp color="error" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="ログアウト"
+                      secondary="アカウントからログアウトします"
+                      primaryTypographyProps={{
+                        sx: { color: 'error.main' }
+                      }}
+                    />
+                  </ListItemButton>
+                </ListItem>
               </List>
             </CardContent>
           </Card>
         </TabPanel>
 
-
       </Box>
+
+      {/* ログアウト確認ダイアログ */}
+      <Dialog
+        open={logoutDialogOpen}
+        onClose={() => setLogoutDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+            <ExitToApp color="error" />
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              ログアウト確認
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: 'center' }}>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            本当にログアウトしますか？
+          </Typography>
+          <Alert severity="info" sx={{ textAlign: 'center' }}>
+            ログアウト後も、データにアクセスできます。
+          </Alert>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            onClick={() => setLogoutDialogOpen(false)}
+            variant="outlined"
+            disabled={loggingOut}
+            sx={{ flex: 1 }}
+          >
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleLogout}
+            variant="contained"
+            color="error"
+            disabled={loggingOut}
+            startIcon={loggingOut ? <CircularProgress size={16} /> : <ExitToApp />}
+            sx={{ flex: 1 }}
+          >
+            {loggingOut ? 'ログアウト中...' : 'ログアウト'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
     </Box>
   );
