@@ -2,15 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   Button,
   Alert,
   CircularProgress,
   Fade,
   Stack,
-  Divider,
 } from '@mui/material';
 import {
   Mail,
@@ -24,16 +21,19 @@ import simpleSupabase from '../../lib/simpleSupabase';
 interface EmailConfirmationScreenProps {
   email: string;
   onBackToAuth: () => void;
+  isExistingUser?: boolean;
 }
 
 export const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = ({
   email,
   onBackToAuth,
+  isExistingUser = false,
 }) => {
   const [resending, setResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
   const [checkingEmail, setCheckingEmail] = useState(false);
+  const [showTroubleshooting, setShowTroubleshooting] = useState(false);
 
   // 60秒カウントダウン
   useEffect(() => {
@@ -88,103 +88,160 @@ export const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = (
       sx={{
         minHeight: '100vh',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+        flexDirection: 'column',
         px: 2,
+        py: 2,
       }}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
       >
-        <Card sx={{ maxWidth: 480, width: '100%', borderRadius: 3, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
-          <CardContent sx={{ p: 4, textAlign: 'center' }}>
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', textAlign: 'center', py: 4, alignItems: 'center' }}>
+          {/* 上部セクション: アイコンとタイトル */}
+          <Box sx={{ mb: 3 }}>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Mail 
+                sx={{ 
+                  fontSize: 20, 
+                  color: 'primary.main', 
+                  mb: 2,
+                  filter: 'drop-shadow(0 4px 8px rgba(25,118,210,0.3))'
+                }} 
+              />
+            </motion.div>
             
-            {/* アイコンとタイトル */}
-            <Box sx={{ mb: 3 }}>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <Mail 
-                  sx={{ 
-                    fontSize: 64, 
-                    color: 'primary.main', 
-                    mb: 2,
-                    filter: 'drop-shadow(0 4px 8px rgba(25,118,210,0.3))'
-                  }} 
-                />
-              </motion.div>
-              
-              <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mb: 2 }}>
-                メールを確認してください アカウントを有効化するため、確認メールを送信しました 確認メール内のリンクをクリックしてください。
-              </Typography>
-            </Box>
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontWeight: 700, 
+                color: isExistingUser ? 'warning.main' : 'primary.main', 
+                mb: 2,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' }
+              }}
+            >
+              {isExistingUser ? 'ログイン確認' : 'メールを確認してください'}
+            </Typography>
+          </Box>
 
-            {/* 送信先メールアドレス表示 */}
+          {/* 送信先メールアドレス表示 - 上部に移動 */}
+          <Box sx={{ mb: 4 }}>
             <Box sx={{ 
-              mb: 3, 
-              p: 2, 
-              bgcolor: 'grey.50', 
-              borderRadius: 2, 
-              border: '1px solid', 
-              borderColor: 'grey.200' 
+              p: 3, 
+              bgcolor: isExistingUser ? 'warning.light' : 'grey.50', 
+              borderRadius: 3, 
+              border: '2px solid', 
+              borderColor: isExistingUser ? 'warning.main' : 'primary.light',
+              width: '100%',
+              maxWidth: 350,
+              textAlign: 'center'
             }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                送信先
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+              {isExistingUser ? '過去ログイン済み' : '送信先'}
+            </Typography>
+            <Typography variant="body1" sx={{ fontWeight: 500, color: 'text.primary', fontSize: '0.9rem', wordBreak: 'break-all' }}>
+              {email}
+            </Typography>
+            {isExistingUser && (
+              <Typography variant="body2" color="warning.dark" sx={{ mt: 1, fontWeight: 500 }}>
+                このメールアドレスは過去にログイン済みです
               </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                {email}
-              </Typography>
-            </Box>
-
-
-            {/* メッセージ表示 */}
-            {resendMessage && (
-              <Fade in={true}>
-                <Alert 
-                  severity={resendMessage.includes('失敗') ? 'error' : 'success'} 
-                  sx={{ mb: 2, textAlign: 'left' }}
-                >
-                  {resendMessage}
-                </Alert>
-              </Fade>
             )}
+            </Box>
+          </Box>
 
-            {/* アクションボタン */}
-            <Stack spacing={2}>
-              <Button
-                onClick={checkEmailConfirmation}
-                variant="contained"
-                size="large"
-                disabled={checkingEmail}
-                startIcon={checkingEmail ? <CircularProgress size={20} color="inherit" /> : <CheckCircle />}
-                sx={{
-                  py: 1.5,
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  background: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #66bb6a 0%, #4caf50 100%)',
-                  },
-                }}
+          {/* 中央セクション: メール確認完了ボタン */}
+          <Box sx={{ 
+            flex: '1 1 auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            mb: 4
+          }}>
+
+          {/* メッセージ表示 */}
+          {resendMessage && (
+            <Fade in={true}>
+              <Alert 
+                severity={resendMessage.includes('失敗') ? 'error' : 'success'} 
+                sx={{ mb: 3, textAlign: 'left' }}
               >
-                確認完了をチェック
-              </Button>
+                {resendMessage}
+              </Alert>
+            </Fade>
+          )}
 
-              <Button
+          {/* メール確認完了ボタン - 大きな円で表示 */}
+          <Button
+            onClick={checkEmailConfirmation}
+            variant="contained"
+            disabled={checkingEmail}
+            sx={{
+              width: 200,
+              height: 200,
+              borderRadius: '50%',
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              background: 'linear-gradient(135deg, #1976d2, #42a5f5)',
+              color: 'white',
+              boxShadow: '0 8px 24px rgba(25, 118, 210, 0.4)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+              '&:hover': {
+                background: 'linear-gradient(135deg, #1565c0, #2196f3)',
+                boxShadow: '0 12px 32px rgba(25, 118, 210, 0.5)',
+                transform: 'scale(1.05)',
+              },
+              '&:disabled': {
+                background: '#f5f5f5',
+                color: '#bdbdbd',
+                boxShadow: 'none',
+              },
+              transition: 'all 0.3s ease',
+            }}
+          >
+            {checkingEmail ? (
+              <CircularProgress size={40} color="inherit" />
+            ) : (
+              <>
+                <CheckCircle sx={{ fontSize: 48 }} />
+                <Typography variant="body1" sx={{ fontWeight: 700, fontSize: '1rem' }}>
+                  メール確認完了
+                </Typography>
+              </>
+            )}
+          </Button>
+          </Box>
+
+          {/* 下部セクション: 小さなリンク */}
+          <Stack spacing={2} alignItems="center">
+            <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1.5, alignItems: 'center' }}>
+              <Typography
+                component="button"
                 onClick={handleResendEmail}
-                variant="outlined"
-                size="large"
                 disabled={resending || countdown > 0}
-                startIcon={resending ? <CircularProgress size={20} color="inherit" /> : <Refresh />}
                 sx={{
-                  py: 1.5,
-                  fontSize: '1rem',
-                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  color: (resending || countdown > 0) ? 'text.disabled' : 'primary.main',
+                  background: 'none',
+                  border: 'none',
+                  cursor: (resending || countdown > 0) ? 'not-allowed' : 'pointer',
+                  textDecoration: 'underline',
+                  fontWeight: 400,
+                  '&:hover': (resending || countdown > 0) ? {} : {
+                    color: 'primary.dark',
+                  }
                 }}
               >
                 {countdown > 0 
@@ -193,34 +250,73 @@ export const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = (
                     ? '送信中...'
                     : '確認メールを再送'
                 }
-              </Button>
+              </Typography>
 
-              <Divider sx={{ my: 1 }} />
-
-              <Button
+              <Typography
+                component="button"
                 onClick={onBackToAuth}
-                variant="text"
-                size="large"
-                startIcon={<ArrowBack />}
                 sx={{
-                  py: 1,
-                  fontSize: '0.9rem',
+                  fontSize: '0.875rem',
                   color: 'text.secondary',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  fontWeight: 400,
+                  '&:hover': {
+                    color: 'text.primary',
+                  }
                 }}
               >
                 ログイン画面に戻る
-              </Button>
-            </Stack>
-
-            {/* 補足情報 */}
-            <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'grey.200' }}>
-              <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.5 }}>
-                確認メールが届かない場合は、迷惑メールフォルダをご確認いただくか、<br/>
-                メールアドレスが正しいかご確認の上、再送をお試しください。
               </Typography>
             </Box>
-          </CardContent>
-        </Card>
+
+            {/* トラブルシューティング */}
+            <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'grey.200' }}>
+              <Typography
+                component="button"
+                onClick={() => setShowTroubleshooting(!showTroubleshooting)}
+                sx={{
+                  fontSize: '0.875rem',
+                  color: 'text.secondary',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  fontWeight: 400,
+                  '&:hover': {
+                    color: 'text.primary',
+                  }
+                }}
+              >
+                確認メールが届かない場合 {showTroubleshooting ? '▲' : '▼'}
+              </Typography>
+
+              {showTroubleshooting && (
+                <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                  <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                    以下をご確認ください：
+                  </Typography>
+                  <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
+                    <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+                      迷惑メールフォルダをご確認ください
+                    </Typography>
+                    <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+                      メールアドレスが正しく入力されているか確認
+                    </Typography>
+                    <Typography component="li" variant="body2" sx={{ mb: 0.5 }}>
+                      上記の「確認メールを再送」をお試しください
+                    </Typography>
+                    <Typography component="li" variant="body2">
+                      数分待ってから再度お試しください
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          </Stack>
+        </Box>
       </motion.div>
     </Box>
   );

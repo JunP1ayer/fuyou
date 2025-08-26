@@ -45,7 +45,7 @@ export const AuthCallback: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)',
+        background: '#ffffff',
         px: 2,
       }}
     >

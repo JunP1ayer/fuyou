@@ -16,6 +16,11 @@ export const simpleSupabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true, // メール確認後の自動ログインを有効化
     storageKey: 'simple-fuyou-auth',
   },
+  global: {
+    headers: {
+      'x-my-custom-header': 'fuyou-app',
+    }
+  }
 });
 
 // デバッグ用

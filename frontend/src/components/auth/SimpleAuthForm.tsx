@@ -140,13 +140,13 @@ export const SimpleAuthForm: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+        background: '#ffffff',
         px: 2,
       }}
     >
       <Card sx={{ maxWidth: 400, width: '100%' }}>
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" align="center" sx={{ mb: 3, fontWeight: 600 }}>
+          <Typography variant="h4" align="center" sx={{ mb: 3, fontWeight: 600, whiteSpace: 'nowrap' }}>
             扶養管理カレンダー
           </Typography>
 

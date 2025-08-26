@@ -165,6 +165,8 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       console.log('🔐 email_confirmed_at:', data.user?.email_confirmed_at);
       console.log('🔐 Session exists:', !!data.session);
       console.log('🔐 User confirmed:', data.user?.email_confirmed_at !== null);
+      console.log('🔐 confirmation_sent_at:', data.user?.confirmation_sent_at);
+      console.log('🔐 emailRedirectTo:', `${window.location.origin}/auth/callback`);
       
       // メール確認が必要かどうかを判定
       // Supabaseでは通常、新規ユーザーはemail_confirmed_atがnullでsessionもnullになる

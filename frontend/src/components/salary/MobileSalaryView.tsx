@@ -739,25 +739,27 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
         税金上限を再設定
       </Button>
 
-      {/* 銀行連携（今後のアップデート） */}
-      <Card sx={{ mb: 3, bgcolor: 'grey.50' }}>
-        <CardContent sx={{ textAlign: 'center', py: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
-            <AccountBalance sx={{ mr: 1, color: 'text.secondary' }} />
-            <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-              銀行連携
+      {/* 銀行連携（今後のアップデート） - 非表示 */}
+      {false && (
+        <Card sx={{ mb: 3, bgcolor: 'grey.50' }}>
+          <CardContent sx={{ textAlign: 'center', py: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+              <AccountBalance sx={{ mr: 1, color: 'text.secondary' }} />
+              <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                銀行連携
+              </Typography>
+            </Box>
+            
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              自動でデータ取得・分析
             </Typography>
-          </Box>
-          
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            自動でデータ取得・分析
-          </Typography>
-          
-          <Typography variant="caption" color="text.disabled">
-            今後のアップデートでお楽しみに！
-          </Typography>
-        </CardContent>
-      </Card>
+            
+            <Typography variant="caption" color="text.disabled">
+              今後のアップデートでお楽しみに！
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
 
 
       {/* 2025年税金チェック ダイアログ */}
@@ -1368,31 +1370,33 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
         </DialogActions>
       </Dialog>
 
-      {/* 銀行連携ダイアログ */}
-      <Dialog 
-        open={bankingDashboardOpen} 
-        onClose={() => setBankingDashboardOpen(false)}
-        maxWidth="xl"
-        fullWidth
-        PaperProps={{ sx: { height: '90vh' } }}
-      >
-        <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <AccountBalance color="primary" />
-            <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
-              {t('bank.dashboard.title', '銀行連携ダッシュボード')}
-            </Typography>
-          </Box>
-        </DialogTitle>
-        <DialogContent sx={{ p: 0 }}>
-          <BankingDashboard />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setBankingDashboardOpen(false)}>
-            {t('common.close', '閉じる')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* 銀行連携ダイアログ - 非表示 */}
+      {false && (
+        <Dialog 
+          open={bankingDashboardOpen} 
+          onClose={() => setBankingDashboardOpen(false)}
+          maxWidth="xl"
+          fullWidth
+          PaperProps={{ sx: { height: '90vh' } }}
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AccountBalance color="primary" />
+              <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
+                {t('bank.dashboard.title', '銀行連携ダッシュボード')}
+              </Typography>
+            </Box>
+          </DialogTitle>
+          <DialogContent sx={{ p: 0 }}>
+            <BankingDashboard />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setBankingDashboardOpen(false)}>
+              {t('common.close', '閉じる')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
 
       {/* スナックバー */}
       <Snackbar

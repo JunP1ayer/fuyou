@@ -203,6 +203,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
               mb: 0.5,
               color: '#1a1a1a',
               letterSpacing: '-0.01em',
+              whiteSpace: 'nowrap',
             }}
           >
 {t('app.name', '扶養管理カレンダー')}
