@@ -41,6 +41,7 @@ export const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = (
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [countdown]);
 
   // メール確認の再送
