@@ -141,17 +141,26 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         throw new Error(toFriendlyAuthMessage(error));
       }
 
-      console.log('🔐 Signup success:', data.user?.email);
-      console.log('🔐 User data:', data.user);
-      console.log('🔐 Session data:', data.session);
+      console.log('🔐 ===== SIGNUP DEBUG =====');
+      console.log('🔐 Signup success for email:', data.user?.email);
+      console.log('🔐 User object:', JSON.stringify(data.user, null, 2));
+      console.log('🔐 Session object:', JSON.stringify(data.session, null, 2));
+      console.log('🔐 email_confirmed_at:', data.user?.email_confirmed_at);
+      console.log('🔐 Session exists:', !!data.session);
+      console.log('🔐 User confirmed:', data.user?.email_confirmed_at !== null);
       
-      // メール確認が必要かどうかを返す
-      // Supabaseはメール確認が必要な場合、data.user.email_confirmed_at がnullになる
-      // また、sessionがnullの場合もメール確認が必要
-      const needsEmailConfirmation = !data.user?.email_confirmed_at || !data.session;
-      console.log('🔐 Email confirmed at:', data.user?.email_confirmed_at);
-      console.log('🔐 Has session:', !!data.session);
-      console.log('🔐 Needs email confirmation:', needsEmailConfirmation);
+      // メール確認が必要かどうかを判定
+      // Supabaseでは通常、新規ユーザーはemail_confirmed_atがnullでsessionもnullになる
+      
+      // 一時的テスト: 常にメール確認画面を表示
+      const needsEmailConfirmation = true; // TEMPORARY FOR TESTING
+      
+      // 本来のロジック（コメントアウト）
+      // const needsEmailConfirmation = !data.user?.email_confirmed_at;
+      
+      console.log('🔐 Final decision - needs email confirmation:', needsEmailConfirmation);
+      console.log('🔐 ⚠️ TEMPORARY: Always showing email confirmation for testing');
+      console.log('🔐 ===== END DEBUG =====');
       
       return { needsEmailConfirmation };
     } catch (error) {
