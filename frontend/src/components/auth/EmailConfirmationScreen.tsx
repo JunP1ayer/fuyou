@@ -145,19 +145,6 @@ export const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = (
               </Typography>
             </Box>
 
-            {/* 手順説明 */}
-            <Alert severity="info" sx={{ mb: 3, textAlign: 'left' }}>
-              <Stack spacing={1}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  📩 次の手順で確認を完了してください：
-                </Typography>
-                <Typography variant="body2" component="div">
-                  1. メールボックス（受信トレイ）を確認<br/>
-                  2. 「扶養管理カレンダー - アカウント確認」の件名のメールを開く<br/>
-                  3. メール内の「アカウントを確認」ボタンをクリック
-                </Typography>
-              </Stack>
-            </Alert>
 
             {/* メッセージ表示 */}
             {resendMessage && (
