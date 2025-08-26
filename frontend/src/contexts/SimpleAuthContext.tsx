@@ -12,6 +12,10 @@ interface User {
 interface SimpleAuthContextType {
   user: User | null;
   loading: boolean;
+  showEmailConfirmation: boolean;
+  registeredEmail: string;
+  setShowEmailConfirmation: (show: boolean) => void;
+  setRegisteredEmail: (email: string) => void;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<{ needsEmailConfirmation: boolean }>;
   logout: () => Promise<void>;
@@ -22,6 +26,8 @@ const SimpleAuthContext = createContext<SimpleAuthContextType | undefined>(undef
 export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const lastAuthEventRef = useRef<{ key: string; ts: number } | null>(null);
 
   // 初期化
@@ -197,7 +203,17 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   };
 
   return (
-    <SimpleAuthContext.Provider value={{ user, loading, login, signup, logout }}>
+    <SimpleAuthContext.Provider value={{ 
+      user, 
+      loading, 
+      showEmailConfirmation, 
+      registeredEmail, 
+      setShowEmailConfirmation, 
+      setRegisteredEmail,
+      login, 
+      signup, 
+      logout 
+    }}>
       {children}
     </SimpleAuthContext.Provider>
   );

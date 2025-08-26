@@ -22,13 +22,32 @@ import simpleSupabase from '../../lib/simpleSupabase';
 import { EmailConfirmationScreen } from './EmailConfirmationScreen';
 
 export const SimpleAuthForm: React.FC = () => {
-  const { login, signup, loading } = useSimpleAuth();
+  const { 
+    login, 
+    signup, 
+    loading, 
+    showEmailConfirmation, 
+    registeredEmail, 
+    setShowEmailConfirmation, 
+    setRegisteredEmail 
+  } = useSimpleAuth();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
-  const [registeredEmail, setRegisteredEmail] = useState('');
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
+
+  // 状態変化の追跡
+  React.useEffect(() => {
+    console.log('🔍 showEmailConfirmation changed:', showEmailConfirmation);
+    console.log('🔍 registeredEmail changed:', registeredEmail);
+  }, [showEmailConfirmation, registeredEmail]);
+
+  React.useEffect(() => {
+    console.log('🔍 SimpleAuthForm component mounted/remounted');
+    return () => {
+      console.log('🔍 SimpleAuthForm component unmounting');
+    };
+  }, []);
 
   // フォーム状態
   const [formData, setFormData] = useState({

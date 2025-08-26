@@ -9,7 +9,7 @@ interface SimpleAppContentProps {
 }
 
 export const SimpleAppContent: React.FC<SimpleAppContentProps> = ({ children }) => {
-  const { user, loading } = useSimpleAuth();
+  const { user, loading, showEmailConfirmation } = useSimpleAuth();
 
   // ローディング中
   if (loading) {
@@ -33,7 +33,8 @@ export const SimpleAppContent: React.FC<SimpleAppContentProps> = ({ children }) 
   }
 
   // 未認証の場合、認証フォームを表示
-  if (!user) {
+  // メール確認中の場合も認証フォームを表示（状態はコンテキストで管理）
+  if (!user || showEmailConfirmation) {
     return <SimpleAuthForm />;
   }
 

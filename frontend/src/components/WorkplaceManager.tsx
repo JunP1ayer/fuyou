@@ -594,7 +594,7 @@ export const WorkplaceManager: React.FC = () => {
               バイト先の登録を始めよう！
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 320, mx: 'auto', lineHeight: 1.6 }}>
-              登録してバイト先管理や給料を自動計算<br />できるようにしよう！
+              登録してバイト先管理や給料を<br />自動計算できるようにしよう！
             </Typography>
           </Box>
           <Button
