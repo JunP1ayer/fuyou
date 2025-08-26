@@ -60,8 +60,8 @@ export const SettingsScreen: React.FC = () => {
 
   // 言語/地域切り替え
   const handleCountryChange = () => {
-    // 簡易的な切り替え（日本⇔アメリカ）
-    const newCountry = country === 'JP' ? 'US' : 'JP';
+    // 簡易的な切り替え（日本⇔イギリス）
+    const newCountry = country === 'JP' ? 'UK' : 'JP';
     setCountry(newCountry);
   };
 
@@ -85,7 +85,7 @@ export const SettingsScreen: React.FC = () => {
       id: 'language',
       icon: Language,
       title: '地域設定',
-      description: `現在: ${country === 'JP' ? '日本' : 'アメリカ'}`,
+      description: `現在: ${country === 'JP' ? '日本' : 'イギリス'}`,
       action: handleCountryChange,
     },
     {

@@ -65,7 +65,7 @@ export const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = (
   };
 
   // メール確認状況をチェック
-  const checkEmailConfirmation = async () => {
+  const checkEmailConfirmation = async (): Promise<void> => {
     setCheckingEmail(true);
     try {
       const { data } = await simpleSupabase.auth.getUser();
