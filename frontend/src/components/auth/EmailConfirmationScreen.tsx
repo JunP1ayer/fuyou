@@ -119,13 +119,8 @@ export const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = (
                 />
               </motion.div>
               
-              <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}>
-                メールを確認してください
-              </Typography>
-              
-              <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                アカウントを有効化するため、確認メールを送信しました<br/>
-                確認メール内のリンクをクリックしてください。
+              <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', mb: 2 }}>
+                メールを確認してください アカウントを有効化するため、確認メールを送信しました 確認メール内のリンクをクリックしてください。
               </Typography>
             </Box>
 
