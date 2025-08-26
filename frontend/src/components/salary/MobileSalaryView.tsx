@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Typography, IconButton, Card, CardContent, Button, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Tabs, Tab, Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, RadioGroup, Radio, Alert, Tooltip, TextField, InputAdornment, Snackbar } from '@mui/material';
-import { ChevronLeft, ChevronRight, ExpandLess, ExpandMore, AccountBalance, Star, Info } from '@mui/icons-material';
+import { Box, Typography, IconButton, Card, CardContent, Button, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Tabs, Tab, Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, RadioGroup, Radio, Alert, Tooltip, TextField, InputAdornment, Snackbar, LinearProgress } from '@mui/material';
+import { ChevronLeft, ChevronRight, ExpandLess, ExpandMore, AccountBalance, Star, Info, CheckCircle, Warning, Settings } from '@mui/icons-material';
 // import { InfiniteCalendar } from '../calendar/InfiniteCalendar';
 // import { useNavigate } from 'react-router-dom';
 import { useSimpleShiftStore } from '../../store/simpleShiftStore';
@@ -12,6 +12,8 @@ import { useI18n } from '@/hooks/useI18n';
 import { BankingDashboard } from '../banking/BankingDashboard';
 import { taxAndInsuranceZeroCap, Answers as ComboAnswers } from '@/lib/taxInsuranceZero';
 import { getPaymentMonth, DEFAULT_PAYMENT_SCHEDULE } from '@/utils/salaryCalculation';
+import { useUserProfileStore, getUserProfileStatus } from '../../store/userProfileStore';
+import { FuyouCheckDialog } from '../FuyouCheckDialog';
 
 interface MobileSalaryViewProps {
   showFirstTimeResults?: boolean;
@@ -25,6 +27,15 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
   const { events } = useCalendarStore();
   const { language, country } = useI18nStore();
   const { t } = useI18n();
+  
+  // 新しい扶養チェックストア
+  const { 
+    fuyouCheckResult, 
+    hasCompletedFuyouCheck, 
+    hasViewedSalaryTab, 
+    markSalaryTabViewed, 
+    showFuyouCheck 
+  } = useUserProfileStore();
   const currency = ((): string => {
     switch (country) {
       case 'UK': return 'GBP';
@@ -47,6 +58,9 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
     }).format(Math.floor(amount));
   const [tabValue, setTabValue] = useState<'month' | 'year'>('month');
   const [monthOffset, setMonthOffset] = useState(0);
+  
+  // 新しい扶養チェックダイアログの状態
+  const [fuyouCheckOpen, setFuyouCheckOpen] = useState(false);
   
   // 扶養状況の初回設定チェック（ログイン後すぐに表示）
   const [dependencySetupOpen, setDependencySetupOpen] = useState(() => {
@@ -124,15 +138,18 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
     return raw ? JSON.parse(raw) : true;
   });
 
-  // 給料タブが初めてクリックされたときに結果を表示
+  // 給料タブ初回表示処理
   React.useEffect(() => {
-    if (showFirstTimeResults) {
-      const hasShownResults = localStorage.getItem('hasShownSalaryResults');
-      const hasCompletedDependency = localStorage.getItem('dependencyStatus');
+    // 初回給料タブ表示の処理
+    if (!hasViewedSalaryTab) {
+      markSalaryTabViewed();
       
-      // 扶養設定が完了していて、まだ結果を表示していない場合
-      if (hasCompletedDependency && !hasShownResults) {
-        setFirstTimeResultsOpen(true);
+      // 扶養チェックが完了していない場合はダイアログ表示
+      if (!hasCompletedFuyouCheck) {
+        setFuyouCheckOpen(true);
+      }
+    }
+  }, [hasViewedSalaryTab, hasCompletedFuyouCheck, markSalaryTabViewed]);
       }
     }
   }, [showFirstTimeResults]);
@@ -453,6 +470,79 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
         <Tab value="month" label={t('salary.tab.month', '月')} sx={{ fontSize: { xs: 12, sm: 14 } }} />
         <Tab value="year" label={t('salary.tab.year', '年')} sx={{ fontSize: { xs: 12, sm: 14 } }} />
       </Tabs>
+
+      {/* 新しい扶養チェック結果表示 */}
+      {hasCompletedFuyouCheck && fuyouCheckResult && (
+        <Card sx={{ mb: 2, background: `linear-gradient(135deg, ${
+          fuyouCheckResult.riskLevel === 'safe' ? '#e8f5e8' : 
+          fuyouCheckResult.riskLevel === 'warning' ? '#fff3e0' : '#ffebee'
+        }, ${
+          fuyouCheckResult.riskLevel === 'safe' ? '#f1f8e9' : 
+          fuyouCheckResult.riskLevel === 'warning' ? '#fce4ec' : '#ffcdd2'
+        })` }}>
+          <CardContent sx={{ py: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {fuyouCheckResult.riskLevel === 'safe' && <CheckCircle sx={{ color: 'success.main' }} />}
+                {fuyouCheckResult.riskLevel === 'warning' && <Warning sx={{ color: 'warning.main' }} />}
+                {fuyouCheckResult.riskLevel === 'danger' && <Warning sx={{ color: 'error.main' }} />}
+                
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  扶養チェック結果
+                </Typography>
+              </Box>
+              
+              <Button
+                size="small"
+                startIcon={<Settings />}
+                onClick={() => setFuyouCheckOpen(true)}
+                sx={{ fontSize: '0.8rem' }}
+              >
+                再設定
+              </Button>
+            </Box>
+            
+            <Box sx={{ display: 'flex', justify: 'space-between', mb: 2 }}>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  あと稼げる金額
+                </Typography>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: fuyouCheckResult.riskLevel === 'safe' ? 'success.main' : fuyouCheckResult.riskLevel === 'warning' ? 'warning.main' : 'error.main' }}>
+                  ¥{fuyouCheckResult.remainingAmount.toLocaleString()}
+                </Typography>
+              </Box>
+              
+              <Box sx={{ textAlign: 'right' }}>
+                <Typography variant="body2" color="text.secondary">
+                  扶養限度額
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {fuyouCheckResult.selectedLimit}万円
+                </Typography>
+              </Box>
+            </Box>
+            
+            <LinearProgress
+              variant="determinate"
+              value={Math.min((fuyouCheckResult.currentYearEarnings / (fuyouCheckResult.selectedLimit * 10000)) * 100, 100)}
+              sx={{
+                height: 6,
+                borderRadius: 3,
+                bgcolor: 'grey.200',
+                '& .MuiLinearProgress-bar': {
+                  bgcolor: fuyouCheckResult.riskLevel === 'safe' ? 'success.main' : 
+                          fuyouCheckResult.riskLevel === 'warning' ? 'warning.main' : 'error.main',
+                },
+              }}
+            />
+            
+            <Typography variant="body2" sx={{ mt: 1, textAlign: 'center', color: 'text.secondary' }}>
+              {(fuyouCheckResult.currentYearEarnings / 10000).toFixed(0)}万円 / {fuyouCheckResult.selectedLimit}万円 使用
+              ({((fuyouCheckResult.currentYearEarnings / (fuyouCheckResult.selectedLimit * 10000)) * 100).toFixed(0)}%)
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 旧ミニヘッダー（年月+矢印）は削除 */}
 
@@ -1492,6 +1582,13 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
           </Box>
         </DialogContent>
       </Dialog>
+
+      {/* 新しい扶養チェックダイアログ */}
+      <FuyouCheckDialog
+        open={fuyouCheckOpen}
+        onClose={() => setFuyouCheckOpen(false)}
+        isFirstTime={false}
+      />
 
     </Box>
   );

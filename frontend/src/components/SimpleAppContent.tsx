@@ -1,8 +1,10 @@
 // 🏠 シンプル認証対応のメインコンテンツ
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSimpleAuth } from '../contexts/SimpleAuthContext';
 import { SimpleAuthForm } from './auth/SimpleAuthForm';
 import { Box, CircularProgress, Typography } from '@mui/material';
+import { useUserProfileStore } from '../store/userProfileStore';
+import { FuyouCheckDialog } from './FuyouCheckDialog';
 
 interface SimpleAppContentProps {
   children: React.ReactNode;
@@ -10,6 +12,20 @@ interface SimpleAppContentProps {
 
 export const SimpleAppContent: React.FC<SimpleAppContentProps> = ({ children }) => {
   const { user, loading, showEmailConfirmation } = useSimpleAuth();
+  const { isFirstLogin, showFuyouCheckDialog } = useUserProfileStore();
+  const [firstLoginFuyouCheckOpen, setFirstLoginFuyouCheckOpen] = useState(false);
+
+  // 初回ログイン時の扶養チェック表示
+  useEffect(() => {
+    if (user && isFirstLogin && !showEmailConfirmation) {
+      // ログイン完了後、少し待ってから扶養チェックを表示
+      const timer = setTimeout(() => {
+        setFirstLoginFuyouCheckOpen(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [user, isFirstLogin, showEmailConfirmation]);
 
   // ローディング中
   if (loading) {
@@ -39,5 +55,16 @@ export const SimpleAppContent: React.FC<SimpleAppContentProps> = ({ children }) 
   }
 
   // 認証済みの場合、メインコンテンツを表示
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      
+      {/* 初回ログイン時の扶養チェックダイアログ */}
+      <FuyouCheckDialog
+        open={firstLoginFuyouCheckOpen}
+        onClose={() => setFirstLoginFuyouCheckOpen(false)}
+        isFirstTime={true}
+      />
+    </>
+  );
 };
