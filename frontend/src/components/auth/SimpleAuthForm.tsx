@@ -43,23 +43,38 @@ export const SimpleAuthForm: React.FC = () => {
     e.preventDefault();
     setError(null);
 
+    console.log('🔐 ===== FORM SUBMISSION START =====');
+    console.log('🔐 Mode:', mode);
+    console.log('🔐 Email:', formData.email);
+    console.log('🔐 showEmailConfirmation state before:', showEmailConfirmation);
+
     try {
       if (mode === 'login') {
+        console.log('🔐 Executing login...');
         await login(formData.email, formData.password);
+        console.log('🔐 Login completed');
       } else {
+        console.log('🔐 Executing signup...');
         const result = await signup(formData.email, formData.password, formData.name);
-        console.log('🔐 Signup result:', result);
+        console.log('🔐 ===== SIGNUP RESULT =====');
+        console.log('🔐 Signup result:', JSON.stringify(result, null, 2));
+        console.log('🔐 needsEmailConfirmation:', result.needsEmailConfirmation);
         
         // サインアップ成功時はメール確認画面を表示
         if (result.needsEmailConfirmation) {
-          console.log('📧 Email confirmation required - showing confirmation screen');
+          console.log('📧 SHOULD SHOW EMAIL CONFIRMATION - setting states...');
           setRegisteredEmail(formData.email);
           setShowEmailConfirmation(true);
+          console.log('📧 States set - registeredEmail:', formData.email);
+          console.log('📧 States set - showEmailConfirmation: true');
         } else {
           console.log('✅ No email confirmation required - user logged in automatically');
         }
+        console.log('🔐 ===== SIGNUP FLOW COMPLETE =====');
       }
     } catch (error: any) {
+      console.log('🔐 ===== ERROR OCCURRED =====');
+      console.log('🔐 Error:', error);
       const errorMessage = error.message || '認証に失敗しました';
       setError(errorMessage);
       
@@ -77,17 +92,26 @@ export const SimpleAuthForm: React.FC = () => {
   };
 
   // メール確認画面を表示
+  console.log('🔐 ===== RENDER CHECK =====');
+  console.log('🔐 showEmailConfirmation:', showEmailConfirmation);
+  console.log('🔐 registeredEmail:', registeredEmail);
+  console.log('🔐 Should show EmailConfirmationScreen?', showEmailConfirmation);
+  
   if (showEmailConfirmation) {
+    console.log('📧 RENDERING EmailConfirmationScreen with email:', registeredEmail);
     return (
       <EmailConfirmationScreen
         email={registeredEmail}
         onBackToAuth={() => {
+          console.log('📧 Back to auth clicked');
           setShowEmailConfirmation(false);
           setMode('login');
           setFormData({ email: registeredEmail, password: '', name: '' });
         }}
       />
     );
+  } else {
+    console.log('🔐 RENDERING login/signup form');
   }
 
   return (

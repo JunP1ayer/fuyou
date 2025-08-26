@@ -582,9 +582,21 @@ export const WorkplaceManager: React.FC = () => {
         <Box sx={{ 
           height: '50vh',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          textAlign: 'center',
+          px: 3
         }}>
+          <Box sx={{ mb: 4 }}>
+            <Business sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: 'text.primary', whiteSpace: 'nowrap' }}>
+              バイト先の登録を始めよう！
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 320, mx: 'auto', lineHeight: 1.6 }}>
+              登録してバイト先管理や給料を自動計算<br />できるようにしよう！
+            </Typography>
+          </Box>
           <Button
             variant="contained"
             size="large"
@@ -610,6 +622,9 @@ export const WorkplaceManager: React.FC = () => {
       {/* バイト先登録ボタン */}
       {workplaces.length > 0 && (
         <Box sx={{ mb: 3, textAlign: 'center' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 400, mx: 'auto' }}>
+            💡 複数のバイト先を登録すると、シフトごとに自動で収入計算・扶養管理ができます
+          </Typography>
           <Button
             variant="contained"
             size="large"
@@ -627,7 +642,7 @@ export const WorkplaceManager: React.FC = () => {
               whiteSpace: 'nowrap',
             }}
           >
-            バイト先を登録
+            バイト先を追加
           </Button>
         </Box>
       )}
@@ -658,6 +673,8 @@ export const WorkplaceManager: React.FC = () => {
                           borderRadius: 2,
                           mb: 2,
                           backgroundColor: workplace.color + '10',
+                          py: 2,
+                          alignItems: 'flex-start',
                           '&:hover': {
                             backgroundColor: workplace.color + '20',
                             borderColor: workplace.color,
@@ -665,32 +682,108 @@ export const WorkplaceManager: React.FC = () => {
                           },
                         }}
                       >
+                        <ListItemAvatar>
+                          <Avatar
+                            sx={{
+                              backgroundColor: workplace.color,
+                              color: 'white',
+                              fontWeight: 600,
+                              fontSize: '0.9rem'
+                            }}
+                          >
+                            {workplace.name[0]}
+                          </Avatar>
+                        </ListItemAvatar>
                         <ListItemText
                           primary={
                             <Typography
                               variant="h6"
-                              sx={{ fontWeight: 600, color: 'text.primary' }}
+                              sx={{ fontWeight: 600, color: 'text.primary', mb: 0.5 }}
                             >
                               {workplace.name}
                             </Typography>
                           }
+                          secondary={
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Chip
+                                  icon={<AttachMoney />}
+                                  label={`¥${workplace.defaultHourlyRate?.toLocaleString() || '未設定'}/時`}
+                                  size="small"
+                                  color="primary"
+                                  variant="outlined"
+                                />
+                                {workplace.transportationFee && (
+                                  <Chip
+                                    icon={<DirectionsCar />}
+                                    label={`交通費 ¥${workplace.transportationFee}`}
+                                    size="small"
+                                    color="secondary"
+                                    variant="outlined"
+                                  />
+                                )}
+                              </Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                                <Typography variant="caption" color="text.secondary">
+                                  締日: {(workplace as any).cutoffDay || workplace.paymentDate || '未設定'}日
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  |
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  支給日: {(workplace as any).paymentDay || workplace.paymentDate || '未設定'}日
+                                </Typography>
+                              </Box>
+                              {stats.shiftCount > 0 && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                                  <Chip
+                                    icon={<Schedule />}
+                                    label={`${stats.shiftCount}件のシフト`}
+                                    size="small"
+                                    color="success"
+                                    variant="outlined"
+                                  />
+                                  <Chip
+                                    icon={<MonetizationOn />}
+                                    label={`総収入 ¥${stats.totalEarnings.toLocaleString()}`}
+                                    size="small"
+                                    color="success"
+                                    variant="filled"
+                                  />
+                                </Box>
+                              )}
+                            </Box>
+                          }
                         />
 
-                        <ListItemSecondaryAction>
-                          <IconButton
-                            edge="end"
-                            onClick={() => handleEditClick(workplace.id)}
-                            sx={{ mr: 1 }}
-                          >
-                            <Edit />
-                          </IconButton>
-                          <IconButton
-                            edge="end"
-                            color="error"
-                            onClick={() => handleDelete(workplace.id)}
-                          >
-                            <Delete />
-                          </IconButton>
+                        <ListItemSecondaryAction sx={{ top: '50%', transform: 'translateY(-50%)' }}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleEditClick(workplace.id)}
+                              sx={{ 
+                                bgcolor: 'primary.lighter',
+                                '&:hover': { bgcolor: 'primary.light' },
+                                border: '1px solid',
+                                borderColor: 'primary.main'
+                              }}
+                            >
+                              <Edit fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleDelete(workplace.id)}
+                              sx={{ 
+                                bgcolor: 'error.lighter',
+                                '&:hover': { bgcolor: 'error.light' },
+                                border: '1px solid',
+                                borderColor: 'error.main'
+                              }}
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          </Box>
                         </ListItemSecondaryAction>
                       </ListItem>
                     </motion.div>

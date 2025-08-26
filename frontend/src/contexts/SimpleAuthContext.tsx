@@ -62,7 +62,17 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       lastAuthEventRef.current = { key, ts: now };
 
       // ログ出力（デバッグ用）
-      console.log('🔐 Auth state change:', event, session?.user?.email || 'none');
+      console.log('🔐 ===== AUTH STATE CHANGE =====');
+      console.log('🔐 Event:', event);
+      console.log('🔐 User email:', session?.user?.email || 'none');
+      console.log('🔐 User confirmed:', session?.user?.email_confirmed_at || 'not confirmed');
+      console.log('🔐 ================================');
+
+      // TEMPORARY: サインアップ直後のSIGNED_INイベントを無視してメール確認を優先
+      if (event === 'SIGNED_IN' && session?.user && !session.user.email_confirmed_at) {
+        console.log('⚠️ IGNORING SIGNED_IN for unconfirmed user - keeping email confirmation flow');
+        return;
+      }
 
       if (session?.user) {
         // 同一ユーザーであれば不要な再設定を避ける
@@ -152,7 +162,12 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       
       // メール確認が必要かどうかを判定
       // Supabaseでは通常、新規ユーザーはemail_confirmed_atがnullでsessionもnullになる
-      const needsEmailConfirmation = !data.user?.email_confirmed_at;
+      
+      // TEMPORARY FIX: 常にメール確認が必要とする
+      const needsEmailConfirmation = true;
+      
+      // 本来のロジック（一時的にコメントアウト）
+      // const needsEmailConfirmation = !data.user?.email_confirmed_at;
       
       console.log('🔐 Final decision - needs email confirmation:', needsEmailConfirmation);
       console.log('🔐 ===== END DEBUG =====');
