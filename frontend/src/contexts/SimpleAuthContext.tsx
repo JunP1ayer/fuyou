@@ -133,6 +133,7 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
         password,
         options: {
           data: { name: name.trim() },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
@@ -151,15 +152,9 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       
       // メール確認が必要かどうかを判定
       // Supabaseでは通常、新規ユーザーはemail_confirmed_atがnullでsessionもnullになる
-      
-      // 一時的テスト: 常にメール確認画面を表示
-      const needsEmailConfirmation = true; // TEMPORARY FOR TESTING
-      
-      // 本来のロジック（コメントアウト）
-      // const needsEmailConfirmation = !data.user?.email_confirmed_at;
+      const needsEmailConfirmation = !data.user?.email_confirmed_at;
       
       console.log('🔐 Final decision - needs email confirmation:', needsEmailConfirmation);
-      console.log('🔐 ⚠️ TEMPORARY: Always showing email confirmation for testing');
       console.log('🔐 ===== END DEBUG =====');
       
       return { needsEmailConfirmation };

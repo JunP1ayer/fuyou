@@ -50,6 +50,7 @@ import { preloadCountryRules } from './lib/rules/provider';
 import { ToastDemo } from './components/Toast/ToastDemo';
 import { CalendarApp } from './components/calendar/CalendarApp';
 import { GPT5Assistant } from './components/GPT5Assistant';
+import { AuthCallback } from './components/auth/AuthCallback';
 
 const theme = responsiveFontSizes(createTheme({
   palette: {
@@ -180,6 +181,7 @@ const App: React.FC = () => {
                     <Route path="/wizard/result" element={<WizardResult />} />
                     <Route path="/submit" element={<GPTShiftSubmitter />} />
                     <Route path="/legal" element={<LegalPage />} />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
                   </Routes>
                 </Box>
               </Container>
