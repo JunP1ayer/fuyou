@@ -156,9 +156,6 @@ export const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = (
                   2. 「扶養管理カレンダー - アカウント確認」の件名のメールを開く<br/>
                   3. メール内の「アカウントを確認」ボタンをクリック
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  ※メールが見つからない場合は、迷惑メールフォルダもご確認ください
-                </Typography>
               </Stack>
             </Alert>
 
