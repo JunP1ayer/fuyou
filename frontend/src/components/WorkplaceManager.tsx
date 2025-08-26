@@ -902,47 +902,25 @@ export const WorkplaceManager: React.FC = () => {
                   <Palette sx={{ mr: 0.5, fontSize: 16 }} />
                   カラー選択
                 </Typography>
-                <Box sx={{ 
-                  display: 'flex',
-                  gap: 1,
-                  flexWrap: 'wrap',
-                  justifyContent: 'flex-start'
-                }}>
+                <Box sx={{ display: 'flex', gap: 0.3, justifyContent: 'space-between', maxWidth: '100%', overflowX: 'auto' }}>
                   {defaultColors.map((color, index) => (
                     <Box
                       key={color}
                       onClick={() => setFormData(prev => ({ ...prev, color }))}
                       sx={{
-                        width: 24,
-                        height: 24,
-                        backgroundColor: color,
+                        width: 20,
+                        height: 20,
                         borderRadius: '50%',
+                        backgroundColor: color,
                         cursor: 'pointer',
                         border: formData.color === color ? '2px solid' : '1px solid',
                         borderColor: formData.color === color ? 'primary.main' : 'divider',
-                        boxShadow: formData.color === color ? '0 2px 8px rgba(0,0,0,0.3)' : '0 1px 4px rgba(0,0,0,0.2)',
-                        position: 'relative',
-                        '&:hover': { 
-                          transform: 'scale(1.2)',
-                          boxShadow: '0 2px 12px rgba(0,0,0,0.3)'
-                        },
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                        '&:hover': { transform: 'scale(1.1)' },
                         transition: 'all 0.2s ease',
+                        flexShrink: 0,
                       }}
-                    >
-                      {formData.color === color && (
-                        <Box sx={{
-                          position: 'absolute',
-                          top: '50%',
-                          left: '50%',
-                          transform: 'translate(-50%, -50%)',
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          backgroundColor: 'white',
-                          boxShadow: '0 1px 4px rgba(0,0,0,0.3)'
-                        }} />
-                      )}
-                    </Box>
+                    />
                   ))}
                 </Box>
               </Box>

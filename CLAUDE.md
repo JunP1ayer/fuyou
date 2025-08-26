@@ -19,6 +19,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **PWA機能**: Service Worker対応、オフライン機能
 - **多言語対応**: 6言語（日/英/独/仏/伊/西）
 - **認証**: 複数システム対応（SimpleAuth + Supabase + Demo）
+- **Capacitor**: ネイティブモバイルアプリ対応（Android/iOS）
+- **テスト**: Vitest + Testing Library
 
 ### バックエンド  
 - **Node.js** + **Express** + **TypeScript**
@@ -51,6 +53,9 @@ cd backend && npm run dev
 
 # Vercel サーバーレス版
 vercel dev
+
+# 静的ファイルサーバー (HTML版テスト用)
+npx serve . --port 8000
 ```
 
 ### ビルド・品質チェック
@@ -59,12 +64,15 @@ vercel dev
 cd frontend && npm run build
 cd frontend && npm run typecheck
 cd frontend && npm run lint
+cd frontend && npm run lint:fix
 
 # バックエンド
 cd backend && npm run build
 cd backend && npm run lint
+cd backend && npm run lint:fix
+cd backend && npm run format:check
 
-# サーバーレス版
+# サーバーレス版 (静的なので不要)
 npm run build
 ```
 
@@ -73,6 +81,13 @@ npm run build
 # バックエンドテスト
 cd backend && npm run test
 cd backend && npm run test:watch
+
+# フロントエンドテスト
+cd frontend && npm run test
+cd frontend && npm run test:watch
+
+# 多言語チェック
+cd frontend && npm run i18n:check
 
 # データベース接続テスト
 cd backend && npm run test:db
@@ -96,6 +111,21 @@ vercel dev
 
 # 本番デプロイ
 vercel --prod
+```
+
+### モバイルアプリ開発 (Capacitor)
+```bash
+# フロントエンドビルド
+cd frontend && npm run build
+
+# Capacitorアプリ同期
+cd frontend && npx cap sync
+
+# Androidアプリ開発
+cd frontend && npx cap open android
+
+# iOSアプリ開発
+cd frontend && npx cap open ios
 ```
 
 ## 🏗️ アーキテクチャ概要
@@ -122,19 +152,27 @@ vercel --prod
 
 ### プロジェクト全体構成
 ```
-fuyou/
+fuyou-1/
 ├── 📁 サーバーレス版（メイン）
 │   ├── package.json                   # サーバーレス版設定
 │   ├── vercel.json                    # Vercel デプロイ設定
+│   ├── fuyou-interactive-v6.html      # シフトボード風UX版
+│   ├── fuyou-serverless-v5.html       # AI搭載サーバーレス版
 │   └── api/                           # Vercel Functions
 │       ├── openai-vision.js           # OpenAI Vision API統合
+│       ├── gpt5-shift-analyzer.js     # GPT-5シフト分析
 │       └── demo/login.js              # Demo認証API
 ├── 📁 React フロントエンド (frontend/)
-│   ├── package.json                   # フロントエンド依存関係 (Vite 6.0)
+│   ├── package.json                   # フロントエンド依存関係 (Vite 6.0.1)
+│   ├── capacitor.config.ts            # Capacitorモバイル設定
+│   ├── android/                       # Androidアプリビルド
+│   ├── ios/                           # iOSアプリビルド
 │   └── src/
 │       ├── store/unifiedStore.ts      # Zustand統合ストア
 │       ├── hooks/useUnifiedCalendar.ts # カレンダー統合フック
-│       └── components/calendar/       # 統合カレンダーUI
+│       ├── components/calendar/       # 統合カレンダーUI
+│       ├── components/WorkplaceManager.tsx # 職場管理
+│       └── locales/                   # 多言語ファイル (6言語)
 ├── 📁 Node.js バックエンド (backend/)
 ├── 📁 Python最適化サービス (optimization_service/)
 └── 📁 データベース (database/)
@@ -148,23 +186,37 @@ fuyou/
 backend/src/
 ├── app.ts                    # Express アプリケーション設定
 ├── routes/                   # API エンドポイント
-│   ├── shifts.ts            # シフト管理 (Phase 1)
+│   ├── shifts.ts            # シフト管理
 │   ├── csv.ts               # CSV処理
-│   ├── ocr.ts               # OCR処理 (Phase 2)
+│   ├── ocr.ts               # OCR処理
+│   ├── fileOcr.ts           # ファイルOCR処理
+│   ├── intelligentOCR.ts    # AI統合OCR
+│   ├── gpt5ShiftAnalyzer.ts # GPT-5シフト分析
 │   ├── demo.ts              # デモ認証
-│   └── calculations.ts      # 扶養計算
+│   ├── auth.ts              # 認証システム
+│   ├── calculations.ts      # 扶養計算
+│   ├── userProfile.ts       # ユーザープロファイル
+│   ├── jobSources.ts        # 職場管理
+│   └── alerts.ts            # アラート機能
 ├── services/                 # ビジネスロジック
 │   ├── shiftService.ts      # シフト CRUD操作
 │   ├── csvParserService.ts  # CSV解析
 │   ├── ocrService.ts        # OCR処理 (Google Vision API)
-│   └── enhancedCalculationService.ts  # 2025年制度対応計算
+│   ├── intelligentOCRService.ts  # AI統合OCR
+│   ├── aiFileAnalysisService.ts  # AI画像解析
+│   ├── enhancedCalculationService.ts  # 2025年制度対応計算
+│   └── userProfileService.ts # ユーザー管理
 ├── middleware/
 │   ├── validation.ts        # バリデーション + 認証
 │   ├── uploadMiddleware.ts  # ファイルアップロード処理
 │   └── errorHandler.ts      # エラーハンドリング
-└── types/
-    ├── api.ts               # API型定義 (Zod スキーマ)
-    └── ocr.ts               # OCR専用型定義
+├── types/
+│   ├── api.ts               # API型定義 (Zod スキーマ)
+│   ├── ocr.ts               # OCR専用型定義
+│   └── optimization.ts      # 最適化型定義
+└── utils/
+    ├── logger.ts            # Winston構造化ログ
+    └── supabase.ts          # Supabaseクライント設定
 ```
 
 ### フロントエンド主要ファイル
@@ -286,20 +338,21 @@ optimization_service/
 - **レート制限**: OCR機能等で適切な制限実装
 - **バージョニング**: `/api/v1/`形式での将来対応
 
-## 🛠️ WSL2開発環境対応
+## 🛠️ WSL2 & Windows開発環境対応
 
-### Vite開発サーバー問題（解決済み）
+### Vite開発サーバー設定
 - **現状**: Vite 6.0.1で安定動作確認済み
 - **設定**: `--host 0.0.0.0 --port 4001`でWSL2内部アクセス対応
-- **過去の対策**: バージョンアップにより回避策スクリプト不要に
+- **アクセス**: `http://localhost:4001` または WSL2内部IP
+- **推奨**: 管理者権限でのPowerShell実行
 
-### npm権限問題
-- **問題**: WSL2でnpm installに管理者権限が必要
-- **対策**: 既存workaroundスクリプトの活用
-- **推奨**: PowerShell管理者権限での実行
+### 環境固有の注意点
+- **パス区切り文字**: Windows形式 (`\`) で統一済み
+- **ファイルアクセス**: WSL2とWindows間のファイルシステム統合
+- **ポート競合**: フロントエンド(4001), バックエンド(3001), 最適化(8000)で分離
 
 ### API接続設定
-- **WSL2 IP**: `172.26.93.180:3001` (動的IP対応)
+- **WSL2 IP**: 動的IP対応（環境により変動）
 - **認証**: UUID形式のデモトークン
 - **テスト**: `demo.html` での接続確認
 
@@ -307,8 +360,16 @@ optimization_service/
 
 ### 品質保証
 - **pre-commit hooks**: Prettier, ESLint, TypeScript チェック
-- **Git commits**: Conventional Commits 形式
-- **型チェック**: 必ず `npm run typecheck:frontend` 実行
+- **Git commits**: Conventional Commits 形式（feat:, fix:, docs: など）
+- **型チェック**: フロントエンド `npm run typecheck`, バックエンド `npm run build`
+- **Lint**: 修正前に必ず `npm run lint:fix` 実行
+
+### Git ワークフロー
+- **メインブランチ**: `main`
+- **コミットメッセージ**: 絵文字付きConventional Commits（例: `feat: 🚀 新機能追加`）
+- **最近の重要なコミット**:
+  - `ce58444`: UI/UX最終調整＆設定画面最適化
+  - `15ab07f`: モバイルアプリ化＆横スクロールカレンダー完全対応
 
 ### セキュリティ
 - **機密情報**: .env, API keys はコミット禁止
@@ -357,3 +418,41 @@ optimization_service/
 - **API**: JWT・Rate Limiting・入力検証
 - **データベース**: RLS・UUID・パラメータ化クエリ
 - **ファイル処理**: MIME検証・サイズ制限・ウイルススキャン準備
+
+## 🛠️ トラブルシューティング
+
+### よくある問題と解決法
+```bash
+# Vite開発サーバーが起動しない場合
+cd frontend && rm -rf node_modules && npm install
+
+# TypeScriptエラーが多発する場合
+cd frontend && npm run typecheck
+cd backend && npm run build
+
+# データベース接続エラー
+cd backend && npm run test:db
+
+# 環境変数が認識されない
+# .envファイルの存在確認とSupabase設定確認
+```
+
+### 開発環境リセット
+```bash
+# 完全リセット（慎重に実行）
+git clean -fdx
+npm install
+cd frontend && npm install
+cd ../backend && npm install
+cd ../optimization_service && pip install -r requirements.txt
+```
+
+### ログ確認
+```bash
+# バックエンドログ確認
+cd backend && ls logs/
+cd backend && tail -f logs/combined.log
+
+# フロントエンド開発ツール
+# ブラウザのDevToolsでConsole、Network、Applicationタブを活用
+```

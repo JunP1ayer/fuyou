@@ -389,22 +389,23 @@ export const QuickShiftDialog: React.FC<QuickShiftDialogProps> = ({
 
               <Grid item xs={12}>
                 <Typography variant="body2" sx={{ mb: 1 }}>色</Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', gap: 0.3, justifyContent: 'space-between', maxWidth: '100%', overflowX: 'auto' }}>
                   {colorOptions.map((color) => (
                     <Box
                       key={color}
                       onClick={() => setFormData(prev => ({ ...prev, color }))}
                       sx={{
-                        width: 32,
-                        height: 32,
+                        width: 20,
+                        height: 20,
                         borderRadius: '50%',
                         backgroundColor: color,
                         cursor: 'pointer',
-                        border: formData.color === color ? '3px solid' : '1px solid',
+                        border: formData.color === color ? '2px solid' : '1px solid',
                         borderColor: formData.color === color ? 'primary.main' : 'divider',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                         '&:hover': { transform: 'scale(1.1)' },
                         transition: 'all 0.2s ease',
+                        flexShrink: 0,
                       }}
                     />
                   ))}

@@ -83,6 +83,7 @@ const App: React.FC = () => {
   const location = useLocation();
   const [currentTab, setCurrentTab] = useState<TabValue>('shift');
   const [jobHubView, setJobHubView] = useState<'hub' | 'workplace' | 'ai' | 'friends'>('hub');
+  const [hasSalaryTabBeenClicked, setHasSalaryTabBeenClicked] = useState(false);
   const { shiftsCount, totalEarnings, incrementShifts, addEarnings } =
     useTestStore();
   const { shifts, getTotalEarnings } = useSimpleShiftStore();
@@ -96,6 +97,10 @@ const App: React.FC = () => {
   // タブ切り替え時にルートパスに戻る
   const handleTabChange = (tab: TabValue) => {
     setCurrentTab(tab);
+    // 給料タブが初めてクリックされたことを記録
+    if (tab === 'salary' && !hasSalaryTabBeenClicked) {
+      setHasSalaryTabBeenClicked(true);
+    }
     // バイト管理のサブビューをリセット（submitタブ以外）
     if (tab !== 'submit') {
       setJobHubView('hub');
@@ -116,7 +121,9 @@ const App: React.FC = () => {
           }}
         />;
       case 'salary':
-        return <MobileSalaryView />;
+        return <MobileSalaryView 
+          showFirstTimeResults={hasSalaryTabBeenClicked && currentTab === 'salary'}
+        />;
       case 'submit':
         // 統合バイト管理（タブ切り替えで両機能を提供）
         return <JobManagementHub />;

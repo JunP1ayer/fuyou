@@ -770,7 +770,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
             onClick={() => { setTabValue(0); setEventType('shift'); }}
             sx={{
               flex: 1,
-              py: 1,
+              py: 0.5,
               px: 1,
               borderBottom: tabValue === 0 ? '3px solid #38bdf8' : '3px solid transparent',
               cursor: 'pointer',
@@ -783,7 +783,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
               }
             }}
           >
-            <Work sx={{ fontSize: 20, color: tabValue === 0 ? '#38bdf8' : '#94a3b8', mb: 0.5 }} />
+            <Work sx={{ fontSize: 18, color: tabValue === 0 ? '#38bdf8' : '#94a3b8', mb: 0.25 }} />
             <Typography 
               variant="body2" 
               sx={{ 
@@ -799,7 +799,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
             onClick={() => { setTabValue(1); setEventType('personal'); }}
             sx={{
               flex: 1,
-              py: 1,
+              py: 0.5,
               px: 1,
               borderBottom: tabValue === 1 ? '3px solid #38bdf8' : '3px solid transparent',
               cursor: 'pointer',
@@ -812,7 +812,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
               }
             }}
           >
-            <CalendarToday sx={{ fontSize: 20, color: tabValue === 1 ? '#38bdf8' : '#94a3b8', mb: 0.5 }} />
+            <CalendarToday sx={{ fontSize: 18, color: tabValue === 1 ? '#38bdf8' : '#94a3b8', mb: 0.25 }} />
             <Typography 
               variant="body2" 
               sx={{ 
@@ -1135,32 +1135,26 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
 
               {/* 色選択 */}
-              <Box sx={{ mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ mb: 0.5, fontSize: '0.85rem' }}>
+              <Box sx={{ mb: 0.5 }}>
+                <Typography variant="subtitle2" sx={{ mb: 0.5, fontSize: '0.8rem' }}>
                   {t('calendar.event.pickColor', '色を選択')}
                 </Typography>
-                <Box sx={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(6, 1fr)', 
-                  gap: 0.75, 
-                  maxWidth: '100%' 
-                }}>
-                  {APP_COLOR_PALETTE.slice(0, 6).map(option => (
+                <Box sx={{ display: 'flex', gap: 0.3, justifyContent: 'space-between', maxWidth: '100%', overflowX: 'auto' }}>
+                  {APP_COLOR_PALETTE.map(option => (
                     <Box
                       key={option.key}
                       sx={{
-                        width: '100%',
-                        aspectRatio: '1',
-                        maxWidth: 32,
+                        width: 20,
+                        height: 20,
                         borderRadius: '50%',
                         backgroundColor: option.color,
                         cursor: 'pointer',
-                        border: formData.color === option.color ? '2.5px solid' : '2px solid',
+                        border: formData.color === option.color ? '2px solid' : '1px solid',
                         borderColor: formData.color === option.color ? 'primary.main' : 'divider',
                         boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                         '&:hover': { transform: 'scale(1.1)' },
                         transition: 'all 0.2s ease',
-                        justifySelf: 'center',
+                        flexShrink: 0,
                       }}
                       onClick={() => setFormData(prev => ({ ...prev, color: option.color }))}
                       title={option.label}
@@ -1170,8 +1164,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
               </Box>
 
               {/* 日付・時間 */}
-              <Box sx={{ mb: 1 }}>
-                <Grid container spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
+              <Box sx={{ mb: 0.5 }}>
+                <Grid container spacing={1} alignItems="center" sx={{ mb: 0.25 }}>
                   <Grid item xs={6}>
                     <TextField
                       fullWidth
@@ -1187,14 +1181,14 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                       }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
-                          minHeight: '48px',
+                          minHeight: '40px',
                         },
                         '& input[type="date"]::-webkit-calendar-picker-indicator': {
                           opacity: 0.7,
                         },
                         '& input[type="date"]': {
-                          fontSize: '1rem',
-                          padding: '12px 14px',
+                          fontSize: '0.9rem',
+                          padding: '8px 10px',
                           '&::-webkit-datetime-edit-year-field': {
                             display: 'none',
                           },
@@ -1213,7 +1207,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                   </Grid>
                 </Grid>
                 {!formData.isAllDay && (
-                  <Grid container spacing={1.5}>
+                  <Grid container spacing={1}>
                     <Grid item xs={6}>
                       <TextField
                         fullWidth
@@ -1224,11 +1218,11 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                         InputLabelProps={{ shrink: true }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            minHeight: '48px',
+                            minHeight: '40px',
                           },
                           '& input[type="time"]': {
-                            fontSize: '1rem',
-                            padding: '12px 14px',
+                            fontSize: '0.9rem',
+                            padding: '8px 10px',
                           }
                         }}
                       />
@@ -1243,11 +1237,11 @@ export const EventDialog: React.FC<EventDialogProps> = ({
                         InputLabelProps={{ shrink: true }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
-                            minHeight: '48px',
+                            minHeight: '40px',
                           },
                           '& input[type="time"]': {
-                            fontSize: '1rem',
-                            padding: '12px 14px',
+                            fontSize: '0.9rem',
+                            padding: '8px 10px',
                           }
                         }}
                       />
@@ -1332,8 +1326,8 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
               {/* 通知・メモ設定 */}
               {(formData.workplaceId || isOneTime) && (
-                <Box sx={{ mb: 1 }}>
-                  <Grid container spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
+                <Box sx={{ mb: 0.5 }}>
+                  <Grid container spacing={1} alignItems="center" sx={{ mb: 0.25 }}>
                     {!isOneTime && (
                       <Grid item xs={6}>
                         <FormControl fullWidth size="small">
@@ -1393,7 +1387,7 @@ export const EventDialog: React.FC<EventDialogProps> = ({
             flexDirection: 'column', 
             justifyContent: 'flex-start',
             height: '100%',
-            gap: 1.25
+            gap: 0.8
           }}>
             {/* タイトル入力 */}
             <TextField
@@ -1406,16 +1400,16 @@ export const EventDialog: React.FC<EventDialogProps> = ({
 
             {/* 色選択（コンパクト版） */}
             <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontSize: '0.85rem' }}>
+              <Typography variant="subtitle2" sx={{ mb: 0.5, fontSize: '0.8rem' }}>
                 {t('calendar.event.pickColor', '色を選択')}
               </Typography>
-              <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'space-between', maxWidth: '100%', overflowX: 'auto' }}>
+              <Box sx={{ display: 'flex', gap: 0.3, justifyContent: 'space-between', maxWidth: '100%', overflowX: 'auto' }}>
                 {APP_COLOR_PALETTE.map(option => (
                   <Box
                     key={option.key}
                     sx={{
-                      width: 24,
-                      height: 24,
+                      width: 20,
+                      height: 20,
                       borderRadius: '50%',
                       backgroundColor: option.color,
                       cursor: 'pointer',
