@@ -25,6 +25,7 @@ export const SimpleAppContent: React.FC<SimpleAppContentProps> = ({ children }) 
       
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [user, isFirstLogin, showEmailConfirmation]);
 
   // ローディング中
