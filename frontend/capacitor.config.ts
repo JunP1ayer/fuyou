@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.fuyou.management',
-  appName: '扶養チェック - バイト収入管理',
+  appName: '扶養カレンダー',
   webDir: 'dist',
   bundledWebRuntime: false,
   server: {
