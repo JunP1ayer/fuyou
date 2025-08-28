@@ -18,8 +18,10 @@ import { MobileSalaryView } from '../salary/MobileSalaryView';
 import { JobManagementHub } from '../JobManagementHub';
 import { QuickShiftDialog } from './QuickShiftDialog';
 import { GPT5ShiftSubmissionFlow } from '../GPT5ShiftSubmissionFlow';
+import { FriendFeatureIntroDialog } from './FriendFeatureIntroDialog';
 import { useCalendarStore } from '../../store/calendarStore';
 import { useUnifiedStore } from '../../store/unifiedStore';
+import { useFriendStore } from '../../store/friendStore';
 import type { CalendarEvent } from '../../types/calendar';
 import type { ThemeMode } from '../../types';
 
@@ -33,6 +35,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   const theme = useTheme();
   const { importFromShifts, openEventDialog, openEditDialog } = useCalendarStore();
   const { shifts } = useUnifiedStore();
+  const { friends, shouldShowFriendFeatureIntro, markFriendFeatureIntroAsShown } = useFriendStore();
   
   // CalendarGridのrefを作成
   const calendarGridRef = useRef<{ scrollToToday: () => void } | null>(null);
@@ -47,6 +50,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   const [gpt5AnalyzerOpen, setGpt5AnalyzerOpen] = useState(false);
   const [quickShiftDialogOpen, setQuickShiftDialogOpen] = useState(false);
   const [shiftSubmissionOpen, setShiftSubmissionOpen] = useState(false);
+  const [friendFeatureIntroOpen, setFriendFeatureIntroOpen] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('themeMode') as ThemeMode;
     return saved || 'light';
@@ -63,6 +67,14 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
       }
     }
   }, [shifts, importFromShifts]);
+
+  // 友達機能説明の表示チェック
+  useEffect(() => {
+    // カレンダータブが選択されている時のみチェック
+    if (currentTab === 'shift' && shouldShowFriendFeatureIntro()) {
+      setFriendFeatureIntroOpen(true);
+    }
+  }, [currentTab, shouldShowFriendFeatureIntro]);
 
   // タブ切り替え処理（シンプル版）
   const handleTabChange = (tab: NewTabValue) => {
@@ -185,6 +197,12 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
     if (calendarGridRef.current) {
       calendarGridRef.current.scrollToToday();
     }
+  };
+
+  // 友達機能説明ダイアログを閉じる
+  const handleCloseFriendFeatureIntro = () => {
+    setFriendFeatureIntroOpen(false);
+    markFriendFeatureIntroAsShown();
   };
 
   // クイックシフト登録を開く
@@ -424,6 +442,13 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
           <GPT5ShiftSubmissionFlow onClose={() => setShiftSubmissionOpen(false)} />
         </Box>
       )}
+
+      {/* 友達機能紹介ダイアログ */}
+      <FriendFeatureIntroDialog
+        open={friendFeatureIntroOpen}
+        onClose={handleCloseFriendFeatureIntro}
+        friendCount={friends.length}
+      />
 
       {/* 新しいボトムナビゲーション */}
       <Box

@@ -52,16 +52,25 @@ const corsOptions = {
       'http://localhost:4001',
       'http://localhost:4002',
       'http://localhost:4004',
+      'http://localhost:4009',
+      'http://localhost:4010',
+      'http://localhost:4011',
       'http://172.26.93.180:4001',
       'http://172.26.93.180:4002',
       'http://172.26.93.180:4004',
+      'http://172.26.93.180:4009',
+      'http://172.26.93.180:4010',
+      'http://172.26.93.180:4011',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:5173',
       'http://127.0.0.1:3002',
       'http://127.0.0.1:3003',
       'http://127.0.0.1:4001',
       'http://127.0.0.1:4002',
-      'http://127.0.0.1:4004'
+      'http://127.0.0.1:4004',
+      'http://127.0.0.1:4009',
+      'http://127.0.0.1:4010',
+      'http://127.0.0.1:4011'
     ];
 
     // Additional origins from env (comma-separated)

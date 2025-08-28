@@ -326,7 +326,7 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
 
       {/* メインコンテンツカード */}
       <Card sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <CardContent sx={{ p: 3, flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <CardContent sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
           
           {/* 共有タブ */}
           {activeTab === 0 && (
@@ -441,7 +441,7 @@ export const FriendSharingHub: React.FC<FriendSharingHubProps> = ({
                       <Typography variant="body2" sx={{ mb: 0.5, fontSize: '0.85rem' }}>
                         カラー
                       </Typography>
-                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'nowrap', justifyContent: 'space-between' }}>
                         {colorPalette.map(color => (
                           <Box
                             key={color}

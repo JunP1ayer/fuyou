@@ -188,6 +188,7 @@ export const authService = {
             name: credentials.name.trim(),
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
+          // デバッグ: メール送信確認
         },
       });
 

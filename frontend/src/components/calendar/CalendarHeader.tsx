@@ -106,38 +106,38 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick 
 
       {/* 右側：友達表示切り替え・設定・次月 */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-        {/* 友達表示オンオフスイッチ（設定の左側に配置） */}
-        <Tooltip title={showingFriends ? '友達のシフトを非表示にする' : `友達のシフトも表示する (${friends.length}人)`}>
-          <Switch
-            checked={showingFriends}
-            onChange={handleFriendsToggle}
-            size="small"
-            color="primary"
-            disabled={!hasFriends}
-            sx={{ 
-              opacity: hasFriends ? 1 : 0.5,
-              '& .MuiSwitch-switchBase': { 
-                padding: '6px',
-                '&.Mui-checked': {
-                  color: 'primary.main',
-                  '& + .MuiSwitch-track': {
-                    backgroundColor: 'primary.main',
-                    opacity: 0.5,
+        {/* 友達表示オンオフスイッチ（友達がいる時のみ表示） */}
+        {hasFriends && (
+          <Tooltip title={showingFriends ? '友達のシフトを非表示にする' : `友達のシフトも表示する (${friends.length}人)`}>
+            <Switch
+              checked={showingFriends}
+              onChange={handleFriendsToggle}
+              size="small"
+              color="primary"
+              sx={{ 
+                '& .MuiSwitch-switchBase': { 
+                  padding: '6px',
+                  '&.Mui-checked': {
+                    color: 'primary.main',
+                    '& + .MuiSwitch-track': {
+                      backgroundColor: 'primary.main',
+                      opacity: 0.5,
+                    },
                   },
                 },
-              },
-              '& .MuiSwitch-track': {
-                borderRadius: 10,
-                width: 28,
-                height: 16,
-              },
-              '& .MuiSwitch-thumb': {
-                width: 12,
-                height: 12,
-              },
-            }}
-          />
-        </Tooltip>
+                '& .MuiSwitch-track': {
+                  borderRadius: 10,
+                  width: 28,
+                  height: 16,
+                },
+                '& .MuiSwitch-thumb': {
+                  width: 12,
+                  height: 12,
+                },
+              }}
+            />
+          </Tooltip>
+        )}
         
         <IconButton 
           aria-label={t('calendar.nav.settings', '設定')}

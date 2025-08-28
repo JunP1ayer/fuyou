@@ -304,6 +304,17 @@ export const CalendarGrid = React.forwardRef<
     }
   }, [isMobile]);
 
+  // デバイス変更時の自動調整
+  useEffect(() => {
+    const savedMode = localStorage.getItem('calendarViewMode') as 'vertical' | 'horizontal';
+    if (!savedMode) {
+      // 保存されていない場合のみデバイスに応じて自動設定
+      const defaultMode = isMobile ? 'vertical' : 'horizontal';
+      setViewMode(defaultMode);
+      localStorage.setItem('calendarViewMode', defaultMode);
+    }
+  }, [isMobile]);
+
   // 設定変更をリアルタイムで反映
   useEffect(() => {
     const handleStorageChange = () => {

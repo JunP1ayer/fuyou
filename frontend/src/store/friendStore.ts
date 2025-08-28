@@ -8,6 +8,11 @@ interface FriendState {
   schedules: Record<string, IFriendSchedule | undefined>; // friendId → schedule
   visibleFriendIds: string[];
 
+  // Feature introduction
+  hasShownFriendFeatureIntro: boolean;
+  shouldShowFriendFeatureIntro: () => boolean;
+  markFriendFeatureIntroAsShown: () => void;
+
   // Friend management
   addFriend: (friend: IFriend) => void;
   removeFriend: (id: string) => void;
@@ -40,6 +45,17 @@ export const useFriendStore = create<FriendState>()(
       friends: [],
       schedules: {},
       visibleFriendIds: [],
+      hasShownFriendFeatureIntro: false,
+
+      // Feature introduction
+      shouldShowFriendFeatureIntro: () => {
+        const { friends, hasShownFriendFeatureIntro } = get();
+        return friends.length > 0 && !hasShownFriendFeatureIntro;
+      },
+
+      markFriendFeatureIntroAsShown: () => {
+        set({ hasShownFriendFeatureIntro: true });
+      },
 
       // Friend management
       addFriend: (friend: IFriend) => {

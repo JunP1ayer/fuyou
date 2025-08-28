@@ -14,10 +14,16 @@ interface SimpleAuthContextType {
   loading: boolean;
   showEmailConfirmation: boolean;
   registeredEmail: string;
+  showExistingUserConfirm: boolean;
+  existingUserEmail: string;
+  existingUserPassword: string;
   setShowEmailConfirmation: (show: boolean) => void;
   setRegisteredEmail: (email: string) => void;
+  setShowExistingUserConfirm: (show: boolean) => void;
+  setExistingUserEmail: (email: string) => void;
+  setExistingUserPassword: (password: string) => void;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<{ needsEmailConfirmation: boolean }>;
+  signup: (email: string, password: string, name: string) => Promise<{ needsEmailConfirmation: boolean; isExistingUser?: boolean }>;
   logout: () => Promise<void>;
 }
 
@@ -28,6 +34,9 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [showExistingUserConfirm, setShowExistingUserConfirm] = useState(false);
+  const [existingUserEmail, setExistingUserEmail] = useState('');
+  const [existingUserPassword, setExistingUserPassword] = useState('');
   const lastAuthEventRef = useRef<{ key: string; ts: number } | null>(null);
 
   // 初期化
@@ -83,7 +92,11 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       if (session?.user) {
         // 同一ユーザーであれば不要な再設定を避ける
         setUser((prev) => {
-          if (prev && prev.id === session.user!.id) return prev;
+          if (prev && prev.id === session.user!.id) {
+            console.log('🔐 Same user - skipping update');
+            return prev;
+          }
+          console.log('🔐 Setting new user:', session.user!.email);
           return {
             id: session.user!.id,
             email: session.user!.email!,
@@ -91,7 +104,10 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
           };
         });
       } else {
-        if (user !== null) setUser(null);
+        if (user !== null) {
+          console.log('🔐 Clearing user');
+          setUser(null);
+        }
       }
     });
 
@@ -167,20 +183,21 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       console.log('🔐 User confirmed:', data.user?.email_confirmed_at !== null);
       console.log('🔐 confirmation_sent_at:', data.user?.confirmation_sent_at);
       console.log('🔐 emailRedirectTo:', `${window.location.origin}/auth/callback`);
+      console.log('🔐 identities length:', data.user?.identities?.length || 0);
       
-      // メール確認が必要かどうかを判定
-      // Supabaseでは通常、新規ユーザーはemail_confirmed_atがnullでsessionもnullになる
+      // 既存ユーザーかどうかを判定
+      // identitiesが空配列の場合、既存ユーザーで確認メールは送信されない
+      const isExistingUser = data.user?.identities?.length === 0;
+      const needsEmailConfirmation = !isExistingUser && !data.user?.email_confirmed_at;
       
-      // TEMPORARY FIX: 常にメール確認が必要とする
-      const needsEmailConfirmation = true;
-      
-      // 本来のロジック（一時的にコメントアウト）
-      // const needsEmailConfirmation = !data.user?.email_confirmed_at;
-      
+      console.log('🔐 isExistingUser:', isExistingUser);
       console.log('🔐 Final decision - needs email confirmation:', needsEmailConfirmation);
       console.log('🔐 ===== END DEBUG =====');
       
-      return { needsEmailConfirmation };
+      return { 
+        needsEmailConfirmation,
+        isExistingUser 
+      };
     } catch (error) {
       console.error('🔐 Signup failed:', error);
       throw error instanceof Error ? error : new Error(toFriendlyAuthMessage(error));
@@ -209,9 +226,15 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       user, 
       loading, 
       showEmailConfirmation, 
-      registeredEmail, 
+      registeredEmail,
+      showExistingUserConfirm,
+      existingUserEmail,
+      existingUserPassword,
       setShowEmailConfirmation, 
       setRegisteredEmail,
+      setShowExistingUserConfirm,
+      setExistingUserEmail,
+      setExistingUserPassword,
       login, 
       signup, 
       logout 

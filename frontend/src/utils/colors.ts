@@ -8,11 +8,10 @@ export interface ColorOption {
 export const APP_COLOR_PALETTE: ColorOption[] = [
   { key: 'yellow', label: 'イエロー', color: '#FFF3C4' },
   { key: 'orange', label: 'オレンジ', color: '#FFE0B2' },
-  { key: 'red', label: 'レッド', color: '#FFCDD2' },
   { key: 'pink', label: 'ピンク', color: '#F8BBD9' },
   { key: 'purple', label: 'パープル', color: '#E1BEE7' },
   { key: 'blue', label: 'ブルー', color: '#BBDEFB' },
-  { key: 'cyan', label: 'シアン', color: '#B3E5FC' },
+  { key: 'lightblue', label: 'ライトブルー', color: '#B3E5FC' },
   { key: 'green', label: 'グリーン', color: '#C8E6C9' },
 ];
 

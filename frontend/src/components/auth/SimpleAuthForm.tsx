@@ -27,20 +27,36 @@ export const SimpleAuthForm: React.FC = () => {
     signup, 
     loading, 
     showEmailConfirmation, 
-    registeredEmail, 
+    registeredEmail,
+    showExistingUserConfirm,
+    existingUserEmail,
+    existingUserPassword,
     setShowEmailConfirmation, 
-    setRegisteredEmail 
+    setRegisteredEmail,
+    setShowExistingUserConfirm,
+    setExistingUserEmail,
+    setExistingUserPassword
   } = useSimpleAuth();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
+  const [switchingToLogin, setSwitchingToLogin] = useState(false);
+  const [autoLoggingIn, setAutoLoggingIn] = useState(false);
 
   // 状態変化の追跡
   React.useEffect(() => {
     console.log('🔍 showEmailConfirmation changed:', showEmailConfirmation);
     console.log('🔍 registeredEmail changed:', registeredEmail);
   }, [showEmailConfirmation, registeredEmail]);
+
+  // 状態変化の追跡
+  React.useEffect(() => {
+    console.log('🚀 autoLoggingIn changed:', autoLoggingIn);
+    console.log('🚀 isAlreadyRegistered changed:', isAlreadyRegistered);
+    console.log('🚀 showExistingUserConfirm changed:', showExistingUserConfirm);
+    console.log('🚀 error:', error);
+  }, [autoLoggingIn, isAlreadyRegistered, showExistingUserConfirm, error]);
 
   React.useEffect(() => {
     console.log('🔍 SimpleAuthForm component mounted/remounted');
@@ -57,6 +73,62 @@ export const SimpleAuthForm: React.FC = () => {
   });
 
   const strength = evaluatePasswordStrength(formData.password);
+
+  // 自動ログインを実行する関数
+  const executeAutoLogin = async () => {
+    console.log('🔐 ===== EXECUTE AUTO LOGIN START =====');
+    console.log('🔐 existingUserEmail:', `"${existingUserEmail}"`);
+    console.log('🔐 existingUserPassword:', existingUserPassword ? `"***" (length: ${existingUserPassword.length})` : 'EMPTY');
+    console.log('🔐 showExistingUserConfirm before:', showExistingUserConfirm);
+    
+    setShowExistingUserConfirm(false);
+    setAutoLoggingIn(true);
+    setError('自動ログインを開始しています...');
+    
+    try {
+      console.log('🔐 Attempting auto login for existing user');
+      console.log('🔐 Using email:', `"${existingUserEmail}"`);
+      console.log('🔐 Using password:', existingUserPassword ? 'HAS PASSWORD' : 'NO PASSWORD');
+      
+      await login(existingUserEmail, existingUserPassword);
+      console.log('✅ Auto login successful');
+      
+      // ログイン成功時はすべての状態をリセット
+      setError(null);
+      setIsAlreadyRegistered(false);
+      setAutoLoggingIn(false);
+      setExistingUserEmail('');  // 既存ユーザー情報もクリア
+      setExistingUserPassword('');  // 既存ユーザーパスワードもクリア
+      
+      // フォームデータもクリア（セキュリティ向上）
+      setFormData({ email: '', password: '', name: '' });
+      
+      console.log('🚀 Auto login complete - user should be redirected to main app');
+    } catch (loginError: any) {
+      console.log('❌ Auto login failed:', loginError);
+      console.log('❌ Error message:', loginError.message);
+      // ログイン失敗時は通常のログイン画面に切り替え
+      setShowExistingUserConfirm(false);
+      setMode('login');
+      setAutoLoggingIn(false);
+      setError('パスワードが正しくありません。ログイン画面でやり直してください。');
+      setIsAlreadyRegistered(false);
+      // フォームに既存のメールアドレスを設定
+      setFormData(prev => ({ ...prev, email: existingUserEmail, password: '', name: '' }));
+    }
+    
+    console.log('🔐 ===== EXECUTE AUTO LOGIN END =====');
+  };
+
+  // 既存ユーザー確認をキャンセルする関数
+  const cancelAutoLogin = () => {
+    console.log('🚀 cancelAutoLogin called');
+    setShowExistingUserConfirm(false);
+    setMode('login');
+    setError(null);
+    // フォームに既存のメールアドレスを設定（UX改善）
+    setFormData(prev => ({ ...prev, email: existingUserEmail, password: '', name: '' }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,9 +150,23 @@ export const SimpleAuthForm: React.FC = () => {
         console.log('🔐 ===== SIGNUP RESULT =====');
         console.log('🔐 Signup result:', JSON.stringify(result, null, 2));
         console.log('🔐 needsEmailConfirmation:', result.needsEmailConfirmation);
+        console.log('🔐 isExistingUser:', result.isExistingUser);
         
-        // サインアップ成功時はメール確認画面を表示
-        if (result.needsEmailConfirmation) {
+        if (result.isExistingUser) {
+          // 既存ユーザーの場合 - 確認画面を表示
+          console.log('⚠️ Existing user detected - showing confirmation');
+          console.log('🔐 About to set showExistingUserConfirm to true');
+          console.log('🔐 formData.email to save:', `"${formData.email}"`);
+          console.log('🔐 formData.password to save:', formData.password ? '***' : 'EMPTY');
+          setShowExistingUserConfirm(true);
+          setExistingUserEmail(formData.email);  // メールアドレスも保存
+          setExistingUserPassword(formData.password);  // パスワードも保存
+          setError(null);  // エラー表示をクリア
+          console.log('🔐 showExistingUserConfirm should now be true');
+          console.log('🔐 existingUserEmail set to:', `"${formData.email}"`);
+          console.log('🔐 existingUserPassword saved:', formData.password ? 'YES' : 'NO');
+        } else if (result.needsEmailConfirmation) {
+          // 新規ユーザーでメール確認が必要
           console.log('📧 SHOULD SHOW EMAIL CONFIRMATION - setting states...');
           setRegisteredEmail(formData.email);
           setShowEmailConfirmation(true);
@@ -113,8 +199,8 @@ export const SimpleAuthForm: React.FC = () => {
   // メール確認画面を表示
   console.log('🔐 ===== RENDER CHECK =====');
   console.log('🔐 showEmailConfirmation:', showEmailConfirmation);
+  console.log('🔐 showExistingUserConfirm:', showExistingUserConfirm);
   console.log('🔐 registeredEmail:', registeredEmail);
-  console.log('🔐 Should show EmailConfirmationScreen?', showEmailConfirmation);
   
   if (showEmailConfirmation) {
     console.log('📧 RENDERING EmailConfirmationScreen with email:', registeredEmail);
@@ -129,9 +215,113 @@ export const SimpleAuthForm: React.FC = () => {
         }}
       />
     );
-  } else {
-    console.log('🔐 RENDERING login/signup form');
   }
+
+  // 既存ユーザー確認画面を表示
+  if (showExistingUserConfirm) {
+    console.log('👤 RENDERING ExistingUserConfirmation with email:', existingUserEmail);
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#ffffff',
+          px: 2,
+        }}
+      >
+        <Card sx={{ maxWidth: 450, width: '100%' }}>
+          <CardContent sx={{ p: 4, textAlign: 'center' }}>
+            {/* アイコン */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h1" sx={{ fontSize: '4rem', mb: 1 }}>
+                👤
+              </Typography>
+            </Box>
+
+            {/* タイトル */}
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
+              既存アカウントを検出
+            </Typography>
+
+            {/* 説明 */}
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+              <strong>{existingUserEmail}</strong>
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+              は既に登録済みです
+            </Typography>
+
+
+            {/* ボタン */}
+            <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={() => {
+                  console.log('🔵 Auto login button clicked!');
+                  executeAutoLogin();
+                }}
+                disabled={autoLoggingIn}
+                sx={{
+                  py: 1.5,
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  background: '#e3f2fd',
+                  color: '#1976d2',
+                  boxShadow: 'none',
+                  '&:hover': {
+                    background: '#bbdefb',
+                    boxShadow: 'none',
+                  },
+                  '&:disabled': {
+                    background: '#f5f5f5',
+                    color: '#9e9e9e',
+                  }
+                }}
+              >
+                {autoLoggingIn ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={18} color="inherit" />
+                    ログイン中...
+                  </Box>
+                ) : (
+                  'ログイン開始'
+                )}
+              </Button>
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={cancelAutoLogin}
+                sx={{ 
+                  py: 1.5,
+                  fontWeight: 600,
+                  borderColor: '#6c757d',
+                  color: '#6c757d',
+                  '&:hover': {
+                    borderColor: '#5a6268',
+                    background: '#f8f9fa'
+                  }
+                }}
+              >
+                キャンセル
+              </Button>
+            </Box>
+
+            {/* エラー表示（自動ログイン中のみ） */}
+            {autoLoggingIn && error && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                {error}
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
+  console.log('🔐 RENDERING login/signup form');
 
   return (
     <Box
@@ -180,18 +370,46 @@ export const SimpleAuthForm: React.FC = () => {
             </Button>
           </Box>
 
-          {/* エラー表示 */}
-          {error && (
+          {/* デバッグ用アラート */}
+          {(autoLoggingIn || isAlreadyRegistered) && (
+            <Alert severity="warning" sx={{ mb: 1 }}>
+              DEBUG: autoLoggingIn={autoLoggingIn ? 'true' : 'false'}, isAlreadyRegistered={isAlreadyRegistered ? 'true' : 'false'}
+            </Alert>
+          )}
+
+          {/* 既存ユーザー通知（自動ログイン中） */}
+          {autoLoggingIn && (
+            <Alert 
+              severity="info" 
+              sx={{ mb: 2, bgcolor: 'primary.light', borderLeft: '4px solid', borderColor: 'primary.main' }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <span style={{ fontSize: '1.2rem' }}>✅</span>
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                  このメールアドレスは既に登録済みです
+                </Typography>
+              </Box>
+              <Box sx={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                mt: 1
+              }}>
+                <CircularProgress size={18} color="primary" />
+                <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 500 }}>
+                  🚀 自動ログイン中...お待ちください
+                </Typography>
+              </Box>
+            </Alert>
+          )}
+
+          {/* 通常のエラー表示 */}
+          {error && !autoLoggingIn && (
             <Alert 
               severity={isAlreadyRegistered ? "warning" : "error"} 
               sx={{ mb: 2 }}
             >
               {error}
-              {isAlreadyRegistered && (
-                <Box sx={{ mt: 1, fontSize: '0.875rem', color: 'warning.main' }}>
-                  📱 3秒後にログイン画面に切り替えます...
-                </Box>
-              )}
             </Alert>
           )}
 
@@ -256,14 +474,14 @@ export const SimpleAuthForm: React.FC = () => {
               fullWidth
               variant="contained"
               size="large"
-              disabled={loading}
+              disabled={loading || autoLoggingIn}
               sx={{
                 py: 1.5,
                 fontSize: '1.1rem',
                 fontWeight: 600,
               }}
             >
-              {loading ? (
+              {loading || autoLoggingIn ? (
                 <CircularProgress size={24} color="inherit" />
               ) : (
                 mode === 'login' ? 'ログイン' : 'アカウント作成'

@@ -8,36 +8,138 @@ import {
   Button,
   Alert,
   Stack,
+  CircularProgress,
 } from '@mui/material';
 import {
   CheckCircle,
   ArrowBack,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import supabase from '../../lib/supabaseClient';
 
 export const AuthCallback: React.FC = () => {
   const [countdown, setCountdown] = useState(5);
+  const [authStatus, setAuthStatus] = useState<'processing' | 'success' | 'error'>('processing');
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // 5秒後に自動でログイン画面にリダイレクト
+  // メール認証完了後の自動ログイン処理
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          // ログイン画面にリダイレクト
-          window.location.href = '/';
-          return 0;
+    const handleAuthCallback = async () => {
+      try {
+        // URLのハッシュから認証情報を取得
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Auth callback error:', error);
+          setAuthStatus('error');
+          setErrorMessage(error.message);
+          return;
         }
-        return prev - 1;
-      });
-    }, 1000);
 
-    return () => clearInterval(timer);
+        if (data.session) {
+          // 認証成功 - ログイン状態になっている
+          setAuthStatus('success');
+          
+          // 3秒後にアプリのメイン画面にリダイレクト
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 3000);
+        } else {
+          setAuthStatus('error');
+          setErrorMessage('認証セッションの取得に失敗しました');
+        }
+      } catch (error) {
+        console.error('Auth callback processing error:', error);
+        setAuthStatus('error');
+        setErrorMessage('認証処理中にエラーが発生しました');
+      }
+    };
+
+    handleAuthCallback();
   }, []);
+
+  // カウントダウン処理（成功時のみ）
+  useEffect(() => {
+    if (authStatus === 'success') {
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            window.location.href = '/';
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+    return undefined;
+  }, [authStatus]);
 
   const handleBackToApp = () => {
     window.location.href = '/';
   };
 
+  // 処理中の表示
+  if (authStatus === 'processing') {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#ffffff',
+          px: 2,
+        }}
+      >
+        <Card sx={{ maxWidth: 480, width: '100%', borderRadius: 3, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+          <CardContent sx={{ p: 4, textAlign: 'center' }}>
+            <CircularProgress size={60} sx={{ mb: 3, color: 'primary.main' }} />
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
+              認証処理中...
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              メール認証を確認しています
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
+  // エラーの表示
+  if (authStatus === 'error') {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#ffffff',
+          px: 2,
+        }}
+      >
+        <Card sx={{ maxWidth: 480, width: '100%', borderRadius: 3, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+          <CardContent sx={{ p: 4, textAlign: 'center' }}>
+            <Alert severity="error" sx={{ mb: 3 }}>
+              認証エラー: {errorMessage}
+            </Alert>
+            <Button
+              onClick={handleBackToApp}
+              variant="contained"
+              startIcon={<ArrowBack />}
+            >
+              アプリに戻る
+            </Button>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
+  // 成功時の表示
   return (
     <Box
       sx={{
@@ -75,11 +177,11 @@ export const AuthCallback: React.FC = () => {
               </motion.div>
               
               <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.main', mb: 1 }}>
-                ✅ 認証完了！
+                ✅ ログイン完了！
               </Typography>
               
               <Typography variant="h6" color="text.primary" sx={{ lineHeight: 1.6, fontWeight: 600 }}>
-                メール確認が完了しました
+                メール認証が完了し、自動ログインしました
               </Typography>
             </Box>
 
@@ -87,37 +189,18 @@ export const AuthCallback: React.FC = () => {
             <Alert severity="success" sx={{ mb: 3, textAlign: 'left' }}>
               <Stack spacing={1}>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  🎉 メール認証完了！
+                  🎉 認証・ログイン完了！
                 </Typography>
                 <Typography variant="body2">
-                  <strong>アプリに戻って、メール確認完了ボタンを押してログインしましょう！</strong>
+                  自動的にアプリのメイン画面に移動します
                 </Typography>
               </Stack>
             </Alert>
 
-            {/* 次のステップ案内 */}
-            <Box sx={{ 
-              mb: 3, 
-              p: 3, 
-              bgcolor: 'primary.light', 
-              borderRadius: 3, 
-              border: '2px solid', 
-              borderColor: 'primary.main' 
-            }}>
-              <Typography variant="h6" color="primary.dark" sx={{ mb: 1, fontWeight: 700 }}>
-                📱 重要な次のステップ
-              </Typography>
-              <Typography variant="body1" color="text.primary" sx={{ fontWeight: 500, lineHeight: 1.8 }}>
-                <strong>1. アプリ（元のタブ）に戻る</strong><br/>
-                <strong>2. 大きな円形の「メール確認完了」ボタンをクリック</strong><br/>
-                <strong>3. 自動ログイン完了！</strong>
-              </Typography>
-            </Box>
-
             {/* 自動リダイレクト案内 */}
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
               {countdown > 0 ? (
-                `${countdown}秒後に自動でアプリに戻ります...`
+                `${countdown}秒後に自動でアプリに移動します...`
               ) : (
                 'アプリに移動しています...'
               )}
@@ -145,19 +228,8 @@ export const AuthCallback: React.FC = () => {
                 transition: 'all 0.3s ease',
               }}
             >
-              🚀 今すぐアプリに戻ってログイン！
+              🚀 今すぐアプリを開始！
             </Button>
-
-            {/* 補足情報 */}
-            <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'grey.200' }}>
-              <Typography variant="body2" color="warning.dark" sx={{ lineHeight: 1.6, fontWeight: 500, mb: 2 }}>
-                ⚠️ このタブは閉じても大丈夫です<br/>
-                必ずアプリのタブに戻って「メール確認完了」ボタンを押してください
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.5 }}>
-                💡 扶養カレンダーでお金の管理を始めましょう！
-              </Typography>
-            </Box>
           </CardContent>
         </Card>
       </motion.div>

@@ -15,6 +15,17 @@ export const SimpleAppContent: React.FC<SimpleAppContentProps> = ({ children }) 
   // const { isFirstLogin, showFuyouCheckDialog } = useUserProfileStore();
   // const [firstLoginFuyouCheckOpen, setFirstLoginFuyouCheckOpen] = useState(false);
 
+  // デバッグログ: 認証状態の変化を追跡
+  React.useEffect(() => {
+    console.log('🏠 SimpleAppContent - Auth state changed:', {
+      hasUser: !!user,
+      userEmail: user?.email,
+      loading,
+      showEmailConfirmation,
+      timestamp: new Date().toISOString()
+    });
+  }, [user, loading, showEmailConfirmation]);
+
   // 初回ログイン時の扶養チェック表示は無効化（給料タブで行う）
   // useEffect(() => {
   //   if (user && isFirstLogin && !showEmailConfirmation) {

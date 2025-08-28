@@ -994,7 +994,7 @@ export const WorkplaceManager: React.FC = () => {
                   <Palette sx={{ mr: 0.5, fontSize: 16 }} />
                   カラー選択
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 0.3, justifyContent: 'space-between', maxWidth: '100%', overflowX: 'auto' }}>
+                <Box sx={{ display: 'flex', gap: 0.3, justifyContent: 'space-between', maxWidth: '100%', overflowX: 'auto', pb: 0.5 }}>
                   {defaultColors.map((color, index) => (
                     <Box
                       key={color}
@@ -1018,21 +1018,23 @@ export const WorkplaceManager: React.FC = () => {
               </Box>
 
               {/* メモ */}
-              <TextField
-                fullWidth
-                multiline
-                rows={1.5}
-                label="メモ"
-                value={formData.description}
-                onChange={e =>
-                  setFormData(prev => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-                placeholder="例: 土日のみ、駅前店舗など"
-                size="small"
-              />
+              <Box sx={{ mt: 1 }}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={1.5}
+                  label="メモ"
+                  value={formData.description}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  placeholder="例: 土日のみ、駅前店舗など"
+                  size="small"
+                />
+              </Box>
             </Box>
 
             {/* 高度な設定 - 折りたたみ式 */}
@@ -1125,10 +1127,10 @@ export const WorkplaceManager: React.FC = () => {
                                   fullWidth
                                   label="時給"
                                   type="number"
-                                  value={rate.rate}
+                                  value={rate.rate || ''}
                                   onChange={e => {
                                     const newRates = [...(formData.timeBasedRates || [])];
-                                    newRates[index] = { ...rate, rate: parseInt(e.target.value) || 0 };
+                                    newRates[index] = { ...rate, rate: e.target.value ? parseInt(e.target.value) : '' as any };
                                     setFormData(prev => ({ ...prev, timeBasedRates: newRates }));
                                   }}
                                   size="small"
@@ -1168,7 +1170,7 @@ export const WorkplaceManager: React.FC = () => {
                               name: '',
                               startTime: '22:00',
                               endTime: '05:00',
-                              rate: 0,
+                              rate: '' as any,
                             };
                             setFormData(prev => ({
                               ...prev,
@@ -1286,150 +1288,157 @@ export const WorkplaceManager: React.FC = () => {
                           }}
                         />
 
-                        {/* 自動休憩ルール設定 */}
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                            自動休憩ルール
-                          </Typography>
-                          
-                          {/* 4時間超 */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Switch 
-                              checked={formData.breakAuto4hEnabled}
-                              onChange={(e) => setFormData(prev => ({ ...prev, breakAuto4hEnabled: e.target.checked }))}
-                              size="small"
-                            />
-                            <TextField
-                              type="number"
-                              label="4時間超"
-                              value={formData.breakRules.over4h || ''}
-                              onChange={e => setFormData(prev => ({ 
-                                ...prev, 
-                                breakRules: { 
-                                  ...prev.breakRules, 
-                                  over4h: e.target.value ? parseInt(e.target.value) : 0 
-                                }
-                              }))}
-                              size="small"
-                              disabled={!formData.breakAuto4hEnabled}
-                              inputProps={{ min: 0, step: 5 }}
-                              InputProps={{
-                                endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
-                              }}
-                              sx={{ minWidth: 100 }}
-                            />
-                          </Box>
-
-                          {/* 6時間超 */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Switch 
-                              checked={formData.breakAuto6hEnabled}
-                              onChange={(e) => setFormData(prev => ({ ...prev, breakAuto6hEnabled: e.target.checked }))}
-                              size="small"
-                            />
-                            <TextField
-                              type="number"
-                              label="6時間超"
-                              value={formData.breakRules.over6h || ''}
-                              onChange={e => setFormData(prev => ({ 
-                                ...prev, 
-                                breakRules: { 
-                                  ...prev.breakRules, 
-                                  over6h: e.target.value ? parseInt(e.target.value) : 0 
-                                }
-                              }))}
-                              size="small"
-                              disabled={!formData.breakAuto6hEnabled}
-                              inputProps={{ min: 0, step: 5 }}
-                              InputProps={{
-                                endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
-                              }}
-                              sx={{ minWidth: 100 }}
-                            />
-                          </Box>
-
-                          {/* 8時間超 */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Switch 
-                              checked={formData.breakAuto8hEnabled}
-                              onChange={(e) => setFormData(prev => ({ ...prev, breakAuto8hEnabled: e.target.checked }))}
-                              size="small"
-                            />
-                            <TextField
-                              type="number"
-                              label="8時間超"
-                              value={formData.breakRules.over8h || ''}
-                              onChange={e => setFormData(prev => ({ 
-                                ...prev, 
-                                breakRules: { 
-                                  ...prev.breakRules, 
-                                  over8h: e.target.value ? parseInt(e.target.value) : 0 
-                                }
-                              }))}
-                              size="small"
-                              disabled={!formData.breakAuto8hEnabled}
-                              inputProps={{ min: 0, step: 5 }}
-                              InputProps={{
-                                endAdornment: <span style={{ marginLeft: 4, color: 'text.secondary' }}>分</span>,
-                              }}
-                              sx={{ minWidth: 100 }}
-                            />
-                          </Box>
-                        </Box>
-                        
-                        {/* ルール追加ボタン */}
-                        <Button
-                          startIcon={<AddCircle />}
-                          onClick={() => {
-                            const newRule = { hours: 4, breakMinutes: 45 };
-                            setFormData(prev => ({
-                              ...prev,
-                              customBreakRules: [...(prev.customBreakRules || []), newRule],
-                            }));
-                          }}
-                          variant="outlined"
-                          sx={{ alignSelf: 'flex-start' }}
-                        >
-                          休憩ルールを追加
-                        </Button>
-                        
-                        {/* 休憩ルール一覧（追加後に表示） */}
-                        {(formData.customBreakRules || []).length > 0 && (
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                        {/* 高度な休憩ルール設定 */}
+                        <Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                             <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                              設定済み休憩ルール
+                              高度な休憩ルール
                             </Typography>
-                            {(formData.customBreakRules || []).map((rule, index) => (
-                              <Box
-                                key={index}
-                                sx={{ 
-                                  p: 1.5,
-                                  border: '1px solid',
-                                  borderColor: 'divider',
-                                  borderRadius: 1,
-                                  bgcolor: 'grey.50',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between'
-                                }}
-                              >
-                                <Typography variant="body2">
-                                  {rule.hours}時間以上 → {rule.breakMinutes}分休憩
-                                </Typography>
-                                <IconButton
-                                  onClick={() => {
-                                    const newRules = (formData.customBreakRules || []).filter((_, i) => i !== index);
-                                    setFormData(prev => ({ ...prev, customBreakRules: newRules }));
-                                  }}
+                            <FormControlLabel
+                              control={
+                                <Switch 
+                                  checked={!!formData.breakAuto4hEnabled || !!formData.breakAuto6hEnabled || !!formData.breakAuto8hEnabled || (formData.customBreakRules || []).length > 0}
+                                  onChange={(e) => setFormData(prev => ({ 
+                                    ...prev, 
+                                    breakAuto4hEnabled: e.target.checked,
+                                    breakAuto6hEnabled: e.target.checked,
+                                    breakAuto8hEnabled: e.target.checked,
+                                    customBreakRules: e.target.checked ? prev.customBreakRules : []
+                                  }))}
                                   size="small"
-                                  color="error"
-                                >
-                                  <Delete />
-                                </IconButton>
-                              </Box>
-                            ))}
+                                />
+                              }
+                              label={
+                                <Typography variant="caption" sx={{ fontSize: '0.7rem', fontWeight: 600, color: (formData.breakAuto4hEnabled || formData.breakAuto6hEnabled || formData.breakAuto8hEnabled || (formData.customBreakRules || []).length > 0) ? 'primary.main' : 'text.secondary' }}>
+                                  {(formData.breakAuto4hEnabled || formData.breakAuto6hEnabled || formData.breakAuto8hEnabled || (formData.customBreakRules || []).length > 0) ? 'ON' : 'OFF'}
+                                </Typography>
+                              }
+                            />
                           </Box>
+                        {((formData.breakAuto4hEnabled || formData.breakAuto6hEnabled || formData.breakAuto8hEnabled || (formData.customBreakRules || []).length > 0)) && (
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          
+                          {/* カスタム休憩ルール一覧 */}
+                          {(formData.customBreakRules || []).length > 0 && (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                              {(formData.customBreakRules || []).map((rule, index) => (
+                                <Box
+                                  key={index}
+                                  sx={{ 
+                                    p: 2,
+                                    border: '1px solid',
+                                    borderColor: 'primary.light',
+                                    borderRadius: 2,
+                                    bgcolor: 'primary.lighter',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between'
+                                  }}
+                                >
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1 }}>
+                                    <TextField
+                                      type="number"
+                                      value={rule.hours || ''}
+                                      onChange={e => {
+                                        const newRules = [...(formData.customBreakRules || [])];
+                                        newRules[index] = { ...rule, hours: e.target.value ? parseInt(e.target.value) : 0 };
+                                        setFormData(prev => ({ ...prev, customBreakRules: newRules }));
+                                      }}
+                                      size="small"
+                                      inputProps={{ min: 1, step: 1 }}
+                                      sx={{ width: '70px' }}
+                                      placeholder={rule.placeholder?.hours?.toString() || ['4', '6', '8'][index % 3]}
+                                      InputProps={{
+                                        endAdornment: <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', whiteSpace: 'nowrap', ml: -1 }}>時間超</Typography>
+                                      }}
+                                    />
+                                    <TextField
+                                      type="number"
+                                      value={rule.breakMinutes || ''}
+                                      onChange={e => {
+                                        const newRules = [...(formData.customBreakRules || [])];
+                                        newRules[index] = { ...rule, breakMinutes: e.target.value ? parseInt(e.target.value) : 0 };
+                                        setFormData(prev => ({ ...prev, customBreakRules: newRules }));
+                                      }}
+                                      size="small"
+                                      inputProps={{ min: 0, step: 5 }}
+                                      sx={{ width: '70px' }}
+                                      placeholder={rule.placeholder?.breakMinutes?.toString() || ['15', '45', '60'][index % 3]}
+                                      InputProps={{
+                                        endAdornment: <Typography variant="caption" sx={{ fontSize: '0.6rem', color: 'text.secondary', whiteSpace: 'nowrap', ml: -1 }}>分休憩</Typography>
+                                      }}
+                                    />
+                                  </Box>
+                                  <IconButton
+                                    onClick={() => {
+                                      const newRules = (formData.customBreakRules || []).filter((_, i) => i !== index);
+                                      setFormData(prev => ({ ...prev, customBreakRules: newRules }));
+                                    }}
+                                    size="small"
+                                    color="error"
+                                  >
+                                    <RemoveCircle />
+                                  </IconButton>
+                                </Box>
+                              ))}
+                            </Box>
+                          )}
+                          
+                          {/* ルール追加ボタン */}
+                          <Button
+                            startIcon={<AddCircle />}
+                            onClick={() => {
+                              const currentRules = formData.customBreakRules || [];
+                              const ruleCount = currentRules.length;
+                              const ruleTemplates = [
+                                { hours: 4, breakMinutes: 15 },
+                                { hours: 6, breakMinutes: 45 },
+                                { hours: 8, breakMinutes: 60 }
+                              ];
+                              const template = ruleTemplates[ruleCount % 3];
+                              const newRule = { hours: 0, breakMinutes: 0 };
+                              setFormData(prev => ({
+                                ...prev,
+                                customBreakRules: [...(prev.customBreakRules || []), { ...newRule, placeholder: template }],
+                              }));
+                            }}
+                            variant="outlined"
+                            sx={{ 
+                              alignSelf: 'flex-start',
+                              borderStyle: 'dashed',
+                              borderColor: 'primary.main',
+                              color: 'primary.main',
+                              '&:hover': {
+                                bgcolor: 'primary.lighter',
+                                borderColor: 'primary.dark'
+                              }
+                            }}
+                          >
+                            休憩ルールを追加
+                          </Button>
+
+                          {(formData.customBreakRules || []).length === 0 && (
+                            <Box sx={{ 
+                              p: 3, 
+                              textAlign: 'left', 
+                              border: '2px dashed', 
+                              borderColor: 'grey.300',
+                              borderRadius: 2,
+                              bgcolor: 'grey.50'
+                            }}>
+                              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                例: 6時間超で45分休憩、8時間超で60分休憩と設定した場合
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                • 8時間働く → 60分休憩のみ適用（最も長いルールのみ）<br />
+                                • 7時間働く → 45分休憩が適用<br />
+                                • 5時間働く → 休憩なし
+                              </Typography>
+                            </Box>
+                          )}
+                        </Box>
                         )}
+                        </Box>
                       </Box>
                       )}
                   </Box>

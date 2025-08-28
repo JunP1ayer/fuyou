@@ -18,7 +18,7 @@ class AuthService {
         email: data.email,
         password: data.password,
         options: {
-          emailRedirectTo: undefined, // Disable email confirmation for demo
+          emailRedirectTo: `${process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? 'https://fuyou-sigma.vercel.app' : 'http://localhost:4001')}/auth/callback`,
           data: {
             full_name: data.fullName,
             is_student: data.isStudent,
