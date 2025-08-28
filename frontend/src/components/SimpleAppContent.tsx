@@ -1,10 +1,10 @@
 // 🏠 シンプル認証対応のメインコンテンツ
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useSimpleAuth } from '../contexts/SimpleAuthContext';
 import { SimpleAuthForm } from './auth/SimpleAuthForm';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import { useUserProfileStore } from '../store/userProfileStore';
-import { FuyouCheckDialog } from './FuyouCheckDialog';
+// import { useUserProfileStore } from '../store/userProfileStore';
+// import { FuyouCheckDialog } from './FuyouCheckDialog';
 
 interface SimpleAppContentProps {
   children: React.ReactNode;
@@ -12,21 +12,21 @@ interface SimpleAppContentProps {
 
 export const SimpleAppContent: React.FC<SimpleAppContentProps> = ({ children }) => {
   const { user, loading, showEmailConfirmation } = useSimpleAuth();
-  const { isFirstLogin, showFuyouCheckDialog } = useUserProfileStore();
-  const [firstLoginFuyouCheckOpen, setFirstLoginFuyouCheckOpen] = useState(false);
+  // const { isFirstLogin, showFuyouCheckDialog } = useUserProfileStore();
+  // const [firstLoginFuyouCheckOpen, setFirstLoginFuyouCheckOpen] = useState(false);
 
-  // 初回ログイン時の扶養チェック表示
-  useEffect(() => {
-    if (user && isFirstLogin && !showEmailConfirmation) {
-      // ログイン完了後、少し待ってから扶養チェックを表示
-      const timer = setTimeout(() => {
-        setFirstLoginFuyouCheckOpen(true);
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [user, isFirstLogin, showEmailConfirmation]);
+  // 初回ログイン時の扶養チェック表示は無効化（給料タブで行う）
+  // useEffect(() => {
+  //   if (user && isFirstLogin && !showEmailConfirmation) {
+  //     // ログイン完了後、少し待ってから扶養チェックを表示
+  //     const timer = setTimeout(() => {
+  //       setFirstLoginFuyouCheckOpen(true);
+  //     }, 1000);
+  //     
+  //     return () => clearTimeout(timer);
+  //   }
+  //   return undefined;
+  // }, [user, isFirstLogin, showEmailConfirmation]);
 
   // ローディング中
   if (loading) {
@@ -60,12 +60,12 @@ export const SimpleAppContent: React.FC<SimpleAppContentProps> = ({ children }) 
     <>
       {children}
       
-      {/* 初回ログイン時の扶養チェックダイアログ */}
-      <FuyouCheckDialog
+      {/* 初回ログイン時の扶養チェックダイアログは無効化（給料タブで行う） */}
+      {/* <FuyouCheckDialog
         open={firstLoginFuyouCheckOpen}
         onClose={() => setFirstLoginFuyouCheckOpen(false)}
         isFirstTime={true}
-      />
+      /> */}
     </>
   );
 };
