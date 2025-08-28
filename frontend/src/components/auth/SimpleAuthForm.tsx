@@ -170,6 +170,7 @@ export const SimpleAuthForm: React.FC = () => {
           console.log('📧 SHOULD SHOW EMAIL CONFIRMATION - setting states...');
           setRegisteredEmail(formData.email);
           setShowEmailConfirmation(true);
+          setError('確認メールを送信しました。メールボックスをご確認ください。');
           console.log('📧 States set - registeredEmail:', formData.email);
           console.log('📧 States set - showEmailConfirmation: true');
         } else {

@@ -188,7 +188,14 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       // 既存ユーザーかどうかを判定
       // identitiesが空配列の場合、既存ユーザーで確認メールは送信されない
       const isExistingUser = data.user?.identities?.length === 0;
-      const needsEmailConfirmation = !isExistingUser && !data.user?.email_confirmed_at;
+      
+      // メール確認が必要かどうかの判定を強化
+      // 1. 既存ユーザーでない場合
+      // 2. メール確認がまだ完了していない場合
+      // 3. セッションが作成されていない場合（メール確認待ち）
+      const needsEmailConfirmation = !isExistingUser && 
+                                   !data.user?.email_confirmed_at &&
+                                   !data.session;
       
       console.log('🔐 isExistingUser:', isExistingUser);
       console.log('🔐 Final decision - needs email confirmation:', needsEmailConfirmation);
