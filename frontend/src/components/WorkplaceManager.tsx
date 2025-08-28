@@ -143,6 +143,10 @@ interface WorkplaceFormData {
   customBreakRules?: {
     hours: number;
     breakMinutes: number;
+    placeholder?: {
+      hours: number;
+      breakMinutes: number;
+    };
   }[];
   customBreakRulesEnabled?: boolean;
   incomePreviewEnabled?: boolean;
