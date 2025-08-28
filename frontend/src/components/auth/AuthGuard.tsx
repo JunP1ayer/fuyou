@@ -62,7 +62,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
             whiteSpace: 'nowrap',
           }}
         >
-          {t('app.name', '扶養管理カレンダー')}
+          {t('app.name', '扶養カレンダー')}
         </Typography>
       </motion.div>
 

@@ -155,7 +155,7 @@ export const AuthCallback: React.FC = () => {
                 必ずアプリのタブに戻って「メール確認完了」ボタンを押してください
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.5 }}>
-                💡 扶養管理カレンダーでお金の管理を始めましょう！
+                💡 扶養カレンダーでお金の管理を始めましょう！
               </Typography>
             </Box>
           </CardContent>

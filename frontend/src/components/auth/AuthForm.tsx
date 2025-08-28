@@ -228,7 +228,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
               whiteSpace: 'nowrap',
             }}
           >
-{t('app.name', '扶養管理カレンダー')}
+{t('app.name', '扶養カレンダー')}
           </Typography>
         </Box>
 

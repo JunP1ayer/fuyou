@@ -147,7 +147,7 @@ export const SimpleAuthForm: React.FC = () => {
       <Card sx={{ maxWidth: 400, width: '100%' }}>
         <CardContent sx={{ p: 4 }}>
           <Typography variant="h4" align="center" sx={{ mb: 3, fontWeight: 600, whiteSpace: 'nowrap' }}>
-            扶養管理カレンダー
+            扶養カレンダー
           </Typography>
 
           {/* モード切替 */}
