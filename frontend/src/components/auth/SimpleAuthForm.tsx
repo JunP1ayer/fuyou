@@ -202,8 +202,12 @@ export const SimpleAuthForm: React.FC = () => {
   console.log('🔐 showEmailConfirmation:', showEmailConfirmation);
   console.log('🔐 showExistingUserConfirm:', showExistingUserConfirm);
   console.log('🔐 registeredEmail:', registeredEmail);
+  console.log('🔐 Current mode:', mode);
+  console.log('🔐 Loading:', loading);
+  console.log('🔐 Error:', error);
   
-  if (showEmailConfirmation) {
+  // デバッグ: 強制的にメール確認画面を表示するテスト用コード（一時的）
+  if (showEmailConfirmation && registeredEmail) {
     console.log('📧 RENDERING EmailConfirmationScreen with email:', registeredEmail);
     return (
       <EmailConfirmationScreen
@@ -513,6 +517,40 @@ export const SimpleAuthForm: React.FC = () => {
                 </Button>
               </Box>
             )}
+
+            {/* デバッグ用テストボタン */}
+            <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #eee' }}>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                デバッグ用テスト
+              </Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => {
+                  console.log('🧪 Manual test: Setting email confirmation screen');
+                  setRegisteredEmail('test@example.com');
+                  setShowEmailConfirmation(true);
+                }}
+                sx={{ mr: 1 }}
+              >
+                メール確認画面テスト
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => {
+                  console.log('🔍 Current state:', {
+                    showEmailConfirmation,
+                    registeredEmail,
+                    showExistingUserConfirm,
+                    mode,
+                    loading
+                  });
+                }}
+              >
+                状態確認
+              </Button>
+            </Box>
           </Box>
         </CardContent>
       </Card>

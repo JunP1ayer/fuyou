@@ -34,6 +34,15 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+
+  // デバッグ: 状態変化を追跡
+  React.useEffect(() => {
+    console.log('🔍 AuthContext: showEmailConfirmation changed to:', showEmailConfirmation);
+  }, [showEmailConfirmation]);
+
+  React.useEffect(() => {
+    console.log('🔍 AuthContext: registeredEmail changed to:', registeredEmail);
+  }, [registeredEmail]);
   const [showExistingUserConfirm, setShowExistingUserConfirm] = useState(false);
   const [existingUserEmail, setExistingUserEmail] = useState('');
   const [existingUserPassword, setExistingUserPassword] = useState('');
