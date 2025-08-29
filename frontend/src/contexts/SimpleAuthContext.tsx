@@ -181,13 +181,10 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       if (error) {
         console.error('🔐 Signup error:', error);
         
-        // メール送信エラーの場合でも、ユーザーが作成されていれば確認画面を表示
-        if (error.message?.includes('Error sending confirmation email') && data.user) {
-          console.log('🔐 User created but email sending failed - showing confirmation screen anyway');
-          return { 
-            needsEmailConfirmation: true,
-            isExistingUser: false 
-          };
+        // メール送信エラーを適切に処理
+        if (error.message?.includes('Error sending confirmation email')) {
+          // エラーメッセージを分かりやすく変換
+          throw new Error('メール送信に失敗しました。しばらく待ってから再度お試しください。Supabaseの無料プランをご利用の場合、3時間あたり4通までの制限があります。');
         }
         
         throw new Error(toFriendlyAuthMessage(error));
@@ -208,11 +205,21 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       // identitiesが空配列の場合、既存ユーザーで確認メールは送信されない
       const isExistingUser = data.user?.identities?.length === 0;
       
+      // 開発環境でのメール確認スキップ（環境変数で制御）
+      const skipEmailVerification = import.meta.env.VITE_SKIP_EMAIL_VERIFICATION === 'true' && 
+                                   import.meta.env.VITE_APP_ENV === 'development';
+      
+      if (skipEmailVerification) {
+        console.warn('⚠️ DEVELOPMENT MODE: Email verification is skipped. DO NOT use in production!');
+      }
+      
       // メール確認が必要かどうかの判定を強化
       // 1. 既存ユーザーでない場合
       // 2. メール確認がまだ完了していない場合
       // 3. セッションが作成されていない場合（メール確認待ち）
-      const needsEmailConfirmation = !isExistingUser && 
+      // 4. 開発環境でスキップ設定がない場合
+      const needsEmailConfirmation = !skipEmailVerification &&
+                                   !isExistingUser && 
                                    !data.user?.email_confirmed_at &&
                                    !data.session;
       
