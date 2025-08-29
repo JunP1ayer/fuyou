@@ -28,17 +28,16 @@ export class NaturalLanguageOCRService {
       const apiKey = process.env.OPENAI_API_KEY;
       console.log(`OpenAI API Key status: ${apiKey ? 'SET' : 'NOT_SET'}`);
       
-      // 一時的にコメントアウト
-      // if (apiKey && apiKey !== 'YOUR_OPENAI_API_KEY_HERE') {
-      //   this.openai = new OpenAI({
-      //     apiKey: apiKey,
-      //   });
-      //   this.fallbackMode = false;
-      //   console.log('OpenAI API initialized successfully');
-      // } else {
+      if (apiKey && apiKey !== 'YOUR_OPENAI_API_KEY_HERE') {
+        this.openai = new OpenAI({
+          apiKey: apiKey,
+        });
+        this.fallbackMode = false;
+        console.log('OpenAI API initialized successfully');
+      } else {
         this.fallbackMode = true;
         console.log('OpenAI API key not configured, using fallback mode');
-      // }
+      }
     } catch (error) {
       console.error('Failed to initialize OpenAI:', error);
       this.fallbackMode = true;
@@ -84,6 +83,7 @@ export class NaturalLanguageOCRService {
 
     try {
       const model = process.env.OPENAI_GPT_MODEL || 'gpt-5';
+      console.log(`🤖 NaturalLanguageOCR using GPT model: ${model}`);
       console.log(`Calling OpenAI API with ${model}...`);
       const response = await this.openai!.chat.completions.create({
         model,

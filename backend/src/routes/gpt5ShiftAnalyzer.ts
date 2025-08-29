@@ -46,6 +46,7 @@ router.post('/', validateSchema(gpt5AnalysisSchema), asyncHandler(async (req, re
     const client = new OpenAI({ apiKey });
     // 既定を gpt-5 に。必要に応じて OPENAI_GPT_MODEL で上書き可（例: gpt-5.1）
     const model = process.env.OPENAI_GPT_MODEL || 'gpt-5';
+    console.log(`🤖 Using GPT model: ${model}`);
 
     const systemPrompt = `あなたはプロのシフト表解析AIです。画像からシフト情報を正確に抽出し、厳格に次のJSONのみを返してください（説明やコードフェンスは禁止）：
 

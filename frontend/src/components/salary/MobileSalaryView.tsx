@@ -501,7 +501,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                           r={52}
                           fill="none"
                           stroke="#e0e0e0"
-                          strokeWidth={16}
+                          strokeWidth={8}
                         />
                         {/* 進捗円 */}
                         <circle
@@ -516,7 +516,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                               ? '#ed6c02' 
                               : '#2e7d32'
                           }
-                          strokeWidth={16}
+                          strokeWidth={8}
                           strokeLinecap="round"
                           strokeDasharray={`${2 * Math.PI * 52}`}
                           strokeDashoffset={displayInfo.monthlyProgressRatio > 1 ? 0 : `${2 * Math.PI * 52 * (1 - displayInfo.monthlyProgressRatio)}`}
@@ -533,7 +533,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                           r={52}
                           fill="none"
                           stroke="#e0e0e0"
-                          strokeWidth={16}
+                          strokeWidth={8}
                         />
                       </svg>
                     )}
@@ -551,7 +551,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                     }}>
                       <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Typography variant="h2" sx={{ 
-                          fontWeight: 800,
+                          fontWeight: 600,
                           fontSize: { xs: '3rem', sm: '3.5rem' },
                           color: displayInfo.monthlyProgressRatio > 1
                             ? 'error.main'
@@ -632,7 +632,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                           r={52}
                           fill="none"
                           stroke="#e0e0e0"
-                          strokeWidth={16}
+                          strokeWidth={8}
                         />
                         {/* 進捗円 */}
                         <circle
@@ -647,7 +647,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                               ? '#ed6c02' 
                               : '#2e7d32'
                           }
-                          strokeWidth={16}
+                          strokeWidth={8}
                           strokeLinecap="round"
                           strokeDasharray={`${2 * Math.PI * 52}`}
                           strokeDashoffset={displayInfo.yearlyProgressRatio > 1 ? 0 : `${2 * Math.PI * 52 * (1 - displayInfo.yearlyProgressRatio)}`}
@@ -664,7 +664,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                           r={52}
                           fill="none"
                           stroke="#e0e0e0"
-                          strokeWidth={16}
+                          strokeWidth={8}
                         />
                       </svg>
                     )}
@@ -682,7 +682,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                     }}>
                       <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Typography variant="h2" sx={{ 
-                          fontWeight: 800,
+                          fontWeight: 600,
                           fontSize: { xs: '3rem', sm: '3.5rem' },
                           color: displayInfo.yearlyProgressRatio > 1
                             ? 'error.main'

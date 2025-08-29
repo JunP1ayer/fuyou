@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 // Load environment variables from .env file
+// Use process.cwd() to get the backend directory when running npm run dev
 const envPath = path.join(process.cwd(), '.env');
 dotenv.config({ path: envPath });
 
