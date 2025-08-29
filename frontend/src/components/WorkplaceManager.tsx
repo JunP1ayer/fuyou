@@ -580,7 +580,7 @@ export const WorkplaceManager: React.FC = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', p: 2 }}>
+    <Box sx={{ width: '100%', px: 0.25, py: 2 }}>
 
       {workplaces.length === 0 && (
         <Box sx={{ 
@@ -650,13 +650,13 @@ export const WorkplaceManager: React.FC = () => {
 
       {/* バイト先一覧 */}
       {workplaces.length > 0 && (
-        <Card>
-          <CardContent>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+        <Card sx={{ width: '100%', mx: 0 }}>
+          <CardContent sx={{ px: 1, py: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, whiteSpace: 'nowrap', textAlign: 'center' }}>
               登録済みバイト先 ({workplaces.length}件)
             </Typography>
 
-            <List>
+            <List sx={{ width: '100%', p: 0 }}>
               {workplaces.map((workplace, index) => {
                 const stats = getWorkplaceStats(workplace.name);
 
@@ -669,12 +669,14 @@ export const WorkplaceManager: React.FC = () => {
                     >
                       <ListItem
                         sx={{
+                          width: '100%',
                           border: '2px solid',
                           borderColor: workplace.color,
                           borderRadius: 2,
                           mb: 2,
                           backgroundColor: workplace.color + '10',
                           py: 2,
+                          px: 1,
                           alignItems: 'flex-start',
                           '&:hover': {
                             backgroundColor: workplace.color + '20',

@@ -302,16 +302,18 @@ export const SimpleAuthForm: React.FC = () => {
         console.log('🔐 isExistingUser:', result.isExistingUser);
         
         if (result.isExistingUser) {
-          // 既存ユーザーの場合 - 確認画面を表示
+          // 既存ユーザーの場合 - 確認画面を表示（メソッド選択画面をスキップ）
           console.log('⚠️ Existing user detected - showing confirmation');
           console.log('🔐 About to set showExistingUserConfirm to true');
           console.log('🔐 formData.email to save:', `"${formData.email}"`);
           console.log('🔐 formData.password to save:', formData.password ? '***' : 'EMPTY');
+          setShowMethodSelection(false);  // メソッド選択画面を無効化
           setShowExistingUserConfirm(true);
           setExistingUserEmail(formData.email);  // メールアドレスも保存
           setExistingUserPassword(formData.password);  // パスワードも保存
           setError(null);  // エラー表示をクリア
           console.log('🔐 showExistingUserConfirm should now be true');
+          console.log('🔐 showMethodSelection set to false');
           console.log('🔐 existingUserEmail set to:', `"${formData.email}"`);
           console.log('🔐 existingUserPassword saved:', formData.password ? 'YES' : 'NO');
         } else if (result.needsEmailConfirmation) {
@@ -523,19 +525,7 @@ export const SimpleAuthForm: React.FC = () => {
     );
   }
 
-  // 認証方法選択画面の表示
-  if (showMethodSelection) {
-    console.log('🎯 RENDERING AuthMethodSelection');
-    return (
-      <AuthMethodSelection
-        onGoogleLogin={handleSelectGoogleAuth}
-        onEmailAuth={handleSelectEmailAuth}
-        googleLoading={googleLoading}
-      />
-    );
-  }
-
-  // 既存ユーザー確認画面を表示
+  // 既存ユーザー確認画面を表示（最優先）
   if (showExistingUserConfirm) {
     console.log('👤 RENDERING ExistingUserConfirmation with email:', existingUserEmail);
     return (
@@ -645,6 +635,18 @@ export const SimpleAuthForm: React.FC = () => {
           </CardContent>
         </Card>
       </Box>
+    );
+  }
+
+  // 認証方法選択画面の表示
+  if (showMethodSelection) {
+    console.log('🎯 RENDERING AuthMethodSelection');
+    return (
+      <AuthMethodSelection
+        onGoogleLogin={handleSelectGoogleAuth}
+        onEmailAuth={handleSelectEmailAuth}
+        googleLoading={googleLoading}
+      />
     );
   }
 
