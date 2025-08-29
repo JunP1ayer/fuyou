@@ -201,7 +201,10 @@ export const SimpleAuthForm: React.FC = () => {
         console.log('🔐 OAuth redirect URL received:', data.url);
         console.log('🔐 Redirecting to Google OAuth...');
         
-        // ユーザーをGoogleの認証ページにリダイレクト
+        // リダイレクト前にユーザーに視覚的フィードバックを提供（エラーではなく情報として）
+        setError(null);
+        
+        // 即座にリダイレクト（ローディング状態は既に表示済み）
         window.location.href = data.url;
         
         // リダイレクト後はローディング状態を維持

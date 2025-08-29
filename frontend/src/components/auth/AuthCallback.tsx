@@ -47,13 +47,10 @@ export const AuthCallback: React.FC = () => {
         }
 
         if (data.session) {
-          // 認証成功 - 成功画面を表示してからリダイレクト
-          setAuthStatus('success');
-          
-          // 10秒後にアプリのメイン画面にリダイレクト
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 10000);
+          // 認証成功 - 即座にメイン画面にリダイレクト
+          console.log('✅ Authentication successful, redirecting to app...');
+          // replace を使用してブラウザ履歴を置き換える（戻るボタンでこのページに戻らないようにする）
+          window.location.replace('/');
         } else {
           setAuthStatus('error');
           setErrorMessage('認証セッションの取得に失敗しました');
@@ -99,7 +96,7 @@ export const AuthCallback: React.FC = () => {
               認証処理中...
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              メール認証を確認しています
+              認証処理を完了しています...
             </Typography>
           </CardContent>
         </Card>
