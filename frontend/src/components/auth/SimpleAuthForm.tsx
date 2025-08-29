@@ -83,9 +83,25 @@ export const SimpleAuthForm: React.FC = () => {
   // 認証方法選択のハンドラ
   const handleSelectGoogleAuth = () => {
     console.log('🔐 Selected Google authentication');
-    setSelectedAuthMethod('google');
-    setShowMethodSelection(false);
-    handleGoogleLogin();
+    
+    // ローカル開発時は即座にエラーメッセージ表示（UIを変更しない）
+    if (window.location.hostname === 'localhost') {
+      setError('ローカル開発時はGoogle認証は無効です。デモ認証をお使いください。');
+      return;
+    }
+    
+    // 状態を一括で更新してちらつきを完全に防ぐ
+    React.startTransition(() => {
+      setSelectedAuthMethod('google');
+      setGoogleLoading(true);
+      setShowMethodSelection(false);
+      setError(null); // エラーもクリア
+    });
+    
+    // Googleログインを実行（非同期）
+    setTimeout(async () => {
+      await handleGoogleLogin();
+    }, 0); // 次のTickで実行
   };
 
   const handleSelectEmailAuth = () => {
@@ -104,28 +120,63 @@ export const SimpleAuthForm: React.FC = () => {
   // Googleログイン処理
   const handleGoogleLogin = async () => {
     console.log('🔐 Google login attempt');
-    setGoogleLoading(true);
-    setError(null);
+    
+    // ローカル開発時はGoogle認証を無効化
+    if (window.location.hostname === 'localhost') {
+      console.log('🔐 Google login disabled in local development');
+      setError('ローカル開発時はGoogle認証は無効です。デモ認証をお使いください。');
+      setGoogleLoading(false);
+      setShowMethodSelection(true);
+      return;
+    }
     
     try {
+      console.log('🔐 Attempting OAuth with redirect URL:', `${window.location.origin}/auth/callback`);
+      
       const { data, error } = await simpleSupabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'select_account', // アカウント選択を強制表示
+            // hd: 'gmail.com', // 特定ドメインに制限する場合
+          },
         },
       });
 
       if (error) {
-        console.error('🔐 Google login error:', error);
-        setError('Googleログインに失敗しました。もう一度お試しください。');
+        console.error('🔐 Google OAuth error:', error);
+        setError(`Googleログインエラー: ${error.message}`);
+        setGoogleLoading(false);
+        setShowMethodSelection(true);
+        setSelectedAuthMethod(null);
+        return;
+      }
+
+      if (data?.url) {
+        console.log('🔐 OAuth redirect URL received:', data.url);
+        console.log('🔐 Redirecting to Google OAuth...');
+        
+        // ユーザーをGoogleの認証ページにリダイレクト
+        window.location.href = data.url;
+        
+        // リダイレクト後はローディング状態を維持
+        // (ページが変わるのでsetGoogleLoading(false)は不要)
+        
       } else {
-        console.log('🔐 Google login redirect initiated');
+        console.error('🔐 No redirect URL received from OAuth');
+        setError('Googleログインの設定に問題があります。');
+        setGoogleLoading(false);
+        setShowMethodSelection(true);
+        setSelectedAuthMethod(null);
       }
     } catch (error: any) {
       console.error('🔐 Google login failed:', error);
-      setError('Googleログインに失敗しました。もう一度お試しください。');
-    } finally {
+      setError(`認証エラー: ${error.message || '不明なエラーが発生しました'}`);
       setGoogleLoading(false);
+      setShowMethodSelection(true);
+      setSelectedAuthMethod(null);
     }
   };
 
@@ -261,7 +312,147 @@ export const SimpleAuthForm: React.FC = () => {
   console.log('🔐 Loading:', loading);
   console.log('🔐 Error:', error);
   
-  // デバッグ: 強制的にメール確認画面を表示するテスト用コード（一時的）
+  // Googleログイン処理中の表示（最優先）
+  if (selectedAuthMethod === 'google' && googleLoading) {
+    console.log('🔄 RENDERING Google Login Loading Screen');
+    
+    // ボディのスクロールを無効化
+    React.useEffect(() => {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+      };
+    }, []);
+    
+    return (
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#ffffff',
+          zIndex: 9999,
+          overflow: 'hidden !important', // スクロール禁止を強制
+          overflowX: 'hidden !important',
+          overflowY: 'hidden !important',
+          px: 2,
+        }}
+      >
+        <Card 
+          sx={{ 
+            maxWidth: 400, 
+            width: '100%', 
+            borderRadius: 3, 
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+            overflow: 'hidden', // カード内スクロールも禁止
+          }}
+        >
+          <CardContent sx={{ p: 4, textAlign: 'center' }}>
+            {/* Googleアイコン */}
+            <Box sx={{ mb: 3 }}>
+              <Google 
+                sx={{ 
+                  fontSize: 56, 
+                  color: '#4285F4', 
+                  mb: 1,
+                  filter: 'drop-shadow(0 2px 8px rgba(66, 133, 244, 0.3))' 
+                }} 
+              />
+            </Box>
+            
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontWeight: 600, 
+                mb: 1.5, 
+                color: '#3c4043',
+                fontSize: '1.3rem',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              Googleでログイン中
+            </Typography>
+            
+            <Typography 
+              variant="body1" 
+              color="text.secondary" 
+              sx={{ 
+                mb: 3, 
+                lineHeight: 1.4,
+                fontSize: '0.9rem',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              アカウント選択ページに移動中...
+            </Typography>
+
+            <CircularProgress 
+              size={32} 
+              sx={{ 
+                color: '#4285F4',
+                mb: 3
+              }} 
+            />
+
+            {/* エラー表示 */}
+            {error && (
+              <Alert 
+                severity="error" 
+                sx={{ 
+                  mt: 2, 
+                  mb: 2,
+                  textAlign: 'left',
+                  fontSize: '0.875rem',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {error}
+              </Alert>
+            )}
+            
+            {/* キャンセルボタン */}
+            <Button
+              onClick={handleBackToSelection}
+              variant="outlined"
+              size="small"
+              sx={{
+                px: 3,
+                py: 1,
+                borderColor: '#dadce0',
+                color: '#3c4043',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
+                '&:hover': {
+                  borderColor: '#d2d6da',
+                  background: '#f8f9fa',
+                },
+              }}
+            >
+              キャンセル
+            </Button>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
+  // メール確認画面を表示
   if (showEmailConfirmation && registeredEmail) {
     console.log('📧 RENDERING EmailConfirmationScreen with email:', registeredEmail);
     return (
@@ -291,14 +482,33 @@ export const SimpleAuthForm: React.FC = () => {
   // 既存ユーザー確認画面を表示
   if (showExistingUserConfirm) {
     console.log('👤 RENDERING ExistingUserConfirmation with email:', existingUserEmail);
+    
+    // ボディのスクロールを無効化
+    React.useEffect(() => {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+      };
+    }, []);
     return (
       <Box
         sx={{
-          minHeight: '100vh',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw',
+          height: '100vh',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           background: '#ffffff',
+          overflow: 'hidden !important', // スクロール禁止を強制
+          overflowX: 'hidden !important',
+          overflowY: 'hidden !important',
           px: 2,
         }}
       >
@@ -393,15 +603,30 @@ export const SimpleAuthForm: React.FC = () => {
   }
 
   console.log('🔐 RENDERING login/signup form');
+  
+  // メインフォームでもボディスクロールを無効化
+  React.useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, []);
 
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         background: '#ffffff',
+        overflow: 'hidden', // スクロール禁止
         px: 2,
       }}
     >
@@ -599,39 +824,6 @@ export const SimpleAuthForm: React.FC = () => {
               </Box>
             )}
 
-            {/* デバッグ用テストボタン */}
-            <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #eee' }}>
-              <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-                デバッグ用テスト
-              </Typography>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => {
-                  console.log('🧪 Manual test: Setting email confirmation screen');
-                  setRegisteredEmail('test@example.com');
-                  setShowEmailConfirmation(true);
-                }}
-                sx={{ mr: 1 }}
-              >
-                メール確認画面テスト
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => {
-                  console.log('🔍 Current state:', {
-                    showEmailConfirmation,
-                    registeredEmail,
-                    showExistingUserConfirm,
-                    mode,
-                    loading
-                  });
-                }}
-              >
-                状態確認
-              </Button>
-            </Box>
           </Box>
         </CardContent>
       </Card>

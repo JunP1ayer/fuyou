@@ -26,14 +26,33 @@ export const AuthMethodSelection: React.FC<AuthMethodSelectionProps> = ({
   onEmailAuth,
   googleLoading = false,
 }) => {
+  // ボディのスクロールを無効化
+  React.useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, []);
+
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+        background: '#ffffff',
+        overflow: 'hidden !important', // スクロール禁止を強制
+        overflowX: 'hidden !important',
+        overflowY: 'hidden !important',
         px: 2,
         py: 4,
       }}
@@ -73,7 +92,7 @@ export const AuthMethodSelection: React.FC<AuthMethodSelectionProps> = ({
               </Typography>
             </Box>
 
-            <Stack spacing={3}>
+            <Stack spacing={1.5}>
               {/* Googleログインボタン - 公式デザイン */}
               <motion.div
                 whileHover={{ scale: 1.02 }}
@@ -193,7 +212,7 @@ export const AuthMethodSelection: React.FC<AuthMethodSelectionProps> = ({
                     },
                   }}
                 >
-                  メールアドレスでログイン
+                  メアドでログイン
                 </Button>
               </motion.div>
             </Stack>

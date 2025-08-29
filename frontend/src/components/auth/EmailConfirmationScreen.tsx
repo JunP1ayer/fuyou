@@ -35,6 +35,16 @@ export const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = (
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [showTroubleshooting, setShowTroubleshooting] = useState(false);
 
+  // ボディのスクロールを無効化
+  React.useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, []);
+
   // 60秒カウントダウン
   useEffect(() => {
     if (countdown > 0) {
@@ -86,9 +96,19 @@ export const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = (
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
         display: 'flex',
         flexDirection: 'column',
+        background: '#ffffff',
+        overflow: 'hidden !important', // スクロール禁止を強制
+        overflowX: 'hidden !important',
+        overflowY: 'hidden !important',
         px: 2,
         py: 2,
       }}

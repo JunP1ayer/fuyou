@@ -18,9 +18,19 @@ import { motion } from 'framer-motion';
 import supabase from '../../lib/supabaseClient';
 
 export const AuthCallback: React.FC = () => {
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(10);
   const [authStatus, setAuthStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [errorMessage, setErrorMessage] = useState<string>('');
+
+  // ボディのスクロールを無効化
+  React.useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, []);
 
   // メール認証完了後の自動ログイン処理
   useEffect(() => {
@@ -37,13 +47,8 @@ export const AuthCallback: React.FC = () => {
         }
 
         if (data.session) {
-          // 認証成功 - ログイン状態になっている
-          setAuthStatus('success');
-          
-          // 3秒後にアプリのメイン画面にリダイレクト
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 3000);
+          // 認証成功 - 即座にアプリのメイン画面にリダイレクト（UI表示なし）
+          window.location.href = '/';
         } else {
           setAuthStatus('error');
           setErrorMessage('認証セッションの取得に失敗しました');
@@ -58,23 +63,7 @@ export const AuthCallback: React.FC = () => {
     handleAuthCallback();
   }, []);
 
-  // カウントダウン処理（成功時のみ）
-  useEffect(() => {
-    if (authStatus === 'success') {
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            window.location.href = '/';
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }
-    return undefined;
-  }, [authStatus]);
+  // カウントダウン処理は不要（即座にリダイレクトするため）
 
   const handleBackToApp = () => {
     window.location.href = '/';
@@ -85,7 +74,12 @@ export const AuthCallback: React.FC = () => {
     return (
       <Box
         sx={{
-          minHeight: '100vh',
+          position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflow: 'hidden', // スクロール禁止
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -113,7 +107,12 @@ export const AuthCallback: React.FC = () => {
     return (
       <Box
         sx={{
-          minHeight: '100vh',
+          position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflow: 'hidden', // スクロール禁止
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -143,7 +142,16 @@ export const AuthCallback: React.FC = () => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden !important', // スクロール禁止を強制
+        overflowX: 'hidden !important',
+        overflowY: 'hidden !important',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -166,18 +174,21 @@ export const AuthCallback: React.FC = () => {
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <CheckCircle 
+                {/* アイコンをシンプルなチェックマークに変更 */}
+                <Typography 
                   sx={{ 
-                    fontSize: 80, 
-                    color: 'success.main', 
+                    fontSize: '4rem',
+                    lineHeight: 1,
                     mb: 2,
-                    filter: 'drop-shadow(0 4px 8px rgba(76,175,80,0.3))'
-                  }} 
-                />
+                    color: '#666'
+                  }}
+                >
+                  ✓
+                </Typography>
               </motion.div>
               
-              <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.main', mb: 1 }}>
-                ✅ ログイン完了！
+              <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary', mb: 1 }}>
+                ログイン完了
               </Typography>
               
               <Typography variant="h6" color="text.primary" sx={{ lineHeight: 1.6, fontWeight: 600 }}>
@@ -185,20 +196,10 @@ export const AuthCallback: React.FC = () => {
               </Typography>
             </Box>
 
-            {/* 成功メッセージ */}
-            <Alert severity="success" sx={{ mb: 3, textAlign: 'left' }}>
-              <Stack spacing={1}>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  🎉 認証・ログイン完了！
-                </Typography>
-                <Typography variant="body2">
-                  自動的にアプリのメイン画面に移動します
-                </Typography>
-              </Stack>
-            </Alert>
+            {/* 成功メッセージ - シンプル化 */}
 
             {/* 自動リダイレクト案内 */}
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography variant="h6" color="text.primary" sx={{ mb: 3, fontWeight: 500 }}>
               {countdown > 0 ? (
                 `${countdown}秒後に自動でアプリに移動します...`
               ) : (
@@ -228,7 +229,7 @@ export const AuthCallback: React.FC = () => {
                 transition: 'all 0.3s ease',
               }}
             >
-              🚀 今すぐアプリを開始！
+              今すぐアプリを開始
             </Button>
           </CardContent>
         </Card>
