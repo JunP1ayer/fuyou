@@ -16,11 +16,13 @@ import {
   Visibility,
   VisibilityOff,
   Google,
+  ArrowBack,
 } from '@mui/icons-material';
 import { useSimpleAuth } from '../../contexts/SimpleAuthContext';
 import { evaluatePasswordStrength } from '../../lib/passwordStrength';
 import simpleSupabase from '../../lib/simpleSupabase';
 import { EmailConfirmationScreen } from './EmailConfirmationScreen';
+import { AuthMethodSelection } from './AuthMethodSelection';
 
 export const SimpleAuthForm: React.FC = () => {
   const { 
@@ -45,6 +47,8 @@ export const SimpleAuthForm: React.FC = () => {
   const [switchingToLogin, setSwitchingToLogin] = useState(false);
   const [autoLoggingIn, setAutoLoggingIn] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showMethodSelection, setShowMethodSelection] = useState(true);
+  const [selectedAuthMethod, setSelectedAuthMethod] = useState<'google' | 'email' | null>(null);
 
   // 状態変化の追跡
   React.useEffect(() => {
@@ -75,6 +79,27 @@ export const SimpleAuthForm: React.FC = () => {
   });
 
   const strength = evaluatePasswordStrength(formData.password);
+
+  // 認証方法選択のハンドラ
+  const handleSelectGoogleAuth = () => {
+    console.log('🔐 Selected Google authentication');
+    setSelectedAuthMethod('google');
+    setShowMethodSelection(false);
+    handleGoogleLogin();
+  };
+
+  const handleSelectEmailAuth = () => {
+    console.log('🔐 Selected Email authentication');
+    setSelectedAuthMethod('email');
+    setShowMethodSelection(false);
+  };
+
+  // メソッド選択に戻る
+  const handleBackToSelection = () => {
+    setShowMethodSelection(true);
+    setSelectedAuthMethod(null);
+    setError(null);
+  };
 
   // Googleログイン処理
   const handleGoogleLogin = async () => {
@@ -245,9 +270,20 @@ export const SimpleAuthForm: React.FC = () => {
         onBackToAuth={() => {
           console.log('📧 Back to auth clicked');
           setShowEmailConfirmation(false);
-          setMode('login');
-          setFormData({ email: registeredEmail, password: '', name: '' });
+          handleBackToSelection();
         }}
+      />
+    );
+  }
+
+  // 認証方法選択画面の表示
+  if (showMethodSelection) {
+    console.log('🎯 RENDERING AuthMethodSelection');
+    return (
+      <AuthMethodSelection
+        onGoogleLogin={handleSelectGoogleAuth}
+        onEmailAuth={handleSelectEmailAuth}
+        googleLoading={googleLoading}
       />
     );
   }
@@ -371,6 +407,20 @@ export const SimpleAuthForm: React.FC = () => {
     >
       <Card sx={{ maxWidth: 400, width: '100%' }}>
         <CardContent sx={{ p: 4 }}>
+          {/* 戻るボタン */}
+          {selectedAuthMethod === 'email' && (
+            <Box sx={{ mb: 2 }}>
+              <Button
+                startIcon={<ArrowBack />}
+                onClick={handleBackToSelection}
+                variant="text"
+                sx={{ color: 'text.secondary' }}
+              >
+                ログイン方法選択に戻る
+              </Button>
+            </Box>
+          )}
+
           <Typography variant="h4" align="center" sx={{ mb: 3, fontWeight: 600, whiteSpace: 'nowrap' }}>
             扶養カレンダー
           </Typography>
@@ -448,52 +498,6 @@ export const SimpleAuthForm: React.FC = () => {
             </Alert>
           )}
 
-          {/* Googleログインボタン */}
-          <Button
-            fullWidth
-            variant="outlined"
-            onClick={handleGoogleLogin}
-            disabled={googleLoading || loading}
-            startIcon={googleLoading ? <CircularProgress size={18} /> : <Google />}
-            sx={{
-              mb: 2,
-              borderColor: '#4285f4',
-              color: '#4285f4',
-              '&:hover': {
-                borderColor: '#3367d6',
-                bgcolor: '#f8f9ff',
-              },
-              '&:disabled': {
-                borderColor: '#ccc',
-                color: '#999',
-              },
-            }}
-          >
-            {googleLoading ? 'Googleでログイン中...' : 'Googleでログイン'}
-          </Button>
-
-          {/* 区切り線 */}
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            mb: 2,
-            '&::before': {
-              content: '""',
-              flex: 1,
-              height: '1px',
-              bgcolor: 'divider',
-            },
-            '&::after': {
-              content: '""',
-              flex: 1,
-              height: '1px',
-              bgcolor: 'divider',
-            },
-          }}>
-            <Typography variant="body2" color="text.secondary" sx={{ px: 2 }}>
-              または
-            </Typography>
-          </Box>
 
           {/* フォーム */}
           <Box component="form" onSubmit={handleSubmit}>
