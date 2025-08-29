@@ -187,9 +187,9 @@ export const AuthMethodSelection: React.FC<AuthMethodSelectionProps> = ({
                     py: 2,
                     fontSize: '1rem',
                     fontWeight: 600,
-                    background: 'linear-gradient(135deg, #1976d2, #42a5f5)',
+                    background: 'linear-gradient(135deg, #81d4fa, #b3e5fc)',
                     '&:hover': {
-                      background: 'linear-gradient(135deg, #1565c0, #2196f3)',
+                      background: 'linear-gradient(135deg, #4fc3f7, #81d4fa)',
                     },
                   }}
                 >
