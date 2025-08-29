@@ -1145,7 +1145,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
           {currentStep === 7 && (
             <Box sx={{ textAlign: 'center', py: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 600, fontSize: '1.1rem' }}>
-                あなたの「税金0 & 社保0」の同時上限
+                あなたの最適な扶養額
               </Typography>
               {(() => {
                 const a: ComboAnswers = {
@@ -1168,13 +1168,10 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                 return (
                   <>
                     <Box sx={{ p: 2.5, bgcolor: 'primary.lighter', borderRadius: 3, mb: 1.5 }}>
-                      <Typography variant="h3" color="primary.main" sx={{ fontWeight: 800, fontFamily: 'monospace', fontSize: { xs: '2rem', sm: '2.5rem' } }}>
+                      <Typography variant="h2" color="primary.main" sx={{ fontWeight: 800, fontFamily: 'monospace', fontSize: { xs: '3rem', sm: '4rem' } }}>
                         {hero !== null ? `¥${hero.toLocaleString()}` : '—'}
                       </Typography>
                     </Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, fontSize: '0.9rem' }}>
-                      税金ゼロと社会保険ゼロを同時に満たすための上限です。
-                    </Typography>
                     <Box sx={{ textAlign: 'left', mx: 'auto', maxWidth: 380, mb: 1 }}>
                       {combined.reasons.slice(0, 2).map((r, i) => (
                         <Typography key={i} variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.75rem' }}>
@@ -1182,12 +1179,12 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                         </Typography>
                       ))}
                       {dependencyStatus.hasThreeSiblings && (
-                        <Typography variant="caption" color="primary.main" sx={{ display: 'block', fontWeight: 600, mt: 0.5, fontSize: '0.8rem' }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.75rem' }}>
                           ・三人兄弟大学無償化の上限は123万円
                         </Typography>
                       )}
                     </Box>
-                    <Box sx={{ mt: 2 }}>
+                    <Box sx={{ mt: 4 }}>
                       <Button
                         variant="contained"
                         size="large"
@@ -1442,23 +1439,21 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
-          minHeight: '60vh'
+          justifyContent: 'flex-end',
+          minHeight: '95vh',
+          pb: 0.5
         }}>
           <Box sx={{ textAlign: 'center' }}>
             <Typography variant="h6" sx={{ mb: 1.5, fontWeight: 600, fontSize: '1.1rem' }}>
-              あなたの「税金0 & 社保0」の同時上限
+              あなたの最適な扶養額
             </Typography>
             
             <Box sx={{ p: 2.5, bgcolor: 'primary.lighter', borderRadius: 3, mb: 1.5 }}>
-              <Typography variant="h3" color="primary.main" sx={{ fontWeight: 800, fontFamily: 'monospace', fontSize: { xs: '2rem', sm: '2.5rem' } }}>
+              <Typography variant="h2" color="primary.main" sx={{ fontWeight: 800, fontFamily: 'monospace', fontSize: { xs: '3rem', sm: '4rem' } }}>
                 ¥{dependencyStatus.combinedLimitJPY ? dependencyStatus.combinedLimitJPY.toLocaleString() : '---'}
               </Typography>
             </Box>
             
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, fontSize: '0.9rem' }}>
-              税金ゼロと社会保険ゼロを同時に満たすための上限です。
-            </Typography>
             
             {dependencyStatus.hasThreeSiblings && (
               <Box sx={{ mb: 2, p: 1.5, bgcolor: 'success.lighter', borderRadius: 2 }}>
@@ -1478,6 +1473,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                 fontSize: '1.1rem', 
                 fontWeight: 600,
                 borderRadius: 3,
+                mt: 3,
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                 '&:hover': {
                   transform: 'scale(1.02)',
