@@ -1,8 +1,8 @@
 // メインカレンダーアプリコンポーネント
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Slide, IconButton, useTheme, Typography } from '@mui/material';
-import { Close, Settings } from '@mui/icons-material';
+import { Box, Slide, IconButton, useTheme, Typography, Button } from '@mui/material';
+import { Close, Settings, Business } from '@mui/icons-material';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
 import { EventDialog } from './EventDialog';
@@ -21,6 +21,7 @@ import { GPT5ShiftSubmissionFlow } from '../GPT5ShiftSubmissionFlow';
 import { FriendFeatureIntroDialog } from './FriendFeatureIntroDialog';
 import { useCalendarStore } from '../../store/calendarStore';
 import { useUnifiedStore } from '../../store/unifiedStore';
+import { useSimpleShiftStore } from '../../store/simpleShiftStore';
 import { useFriendStore } from '../../store/friendStore';
 import type { CalendarEvent } from '../../types/calendar';
 import type { ThemeMode } from '../../types';
@@ -35,6 +36,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   const theme = useTheme();
   const { importFromShifts, openEventDialog, openEditDialog } = useCalendarStore();
   const { shifts } = useUnifiedStore();
+  const { workplaces } = useSimpleShiftStore();
   const { friends, shouldShowFriendFeatureIntro, markFriendFeatureIntroAsShown } = useFriendStore();
   
   // CalendarGridのrefを作成
@@ -50,6 +52,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   const [gpt5AnalyzerOpen, setGpt5AnalyzerOpen] = useState(false);
   const [quickShiftDialogOpen, setQuickShiftDialogOpen] = useState(false);
   const [shiftSubmissionOpen, setShiftSubmissionOpen] = useState(false);
+  const [showWorkplaceRegisterPrompt, setShowWorkplaceRegisterPrompt] = useState(false);
   const [friendFeatureIntroOpen, setFriendFeatureIntroOpen] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('themeMode') as ThemeMode;
@@ -79,12 +82,15 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   // タブ切り替え処理（シンプル版）
   const handleTabChange = (tab: NewTabValue) => {
     setCurrentTab(tab);
-    // タブ切り替え時に設定画面とAIシフト提出フローを閉じる
+    // タブ切り替え時に設定画面、AIシフト提出フロー、登録促進画面を閉じる
     if (settingsOpen) {
       setSettingsOpen(false);
     }
     if (shiftSubmissionOpen) {
       setShiftSubmissionOpen(false);
+    }
+    if (showWorkplaceRegisterPrompt) {
+      setShowWorkplaceRegisterPrompt(false);
     }
   };
 
@@ -184,6 +190,12 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
     localStorage.setItem('themeMode', newTheme);
   };
 
+  // 登録促進画面から管理タブへ移動
+  const handleProceedToWorkplaceManagement = () => {
+    setShowWorkplaceRegisterPrompt(false);
+    setCurrentTab('workplace');
+  };
+
   // GPT-5 シフト解析を開く
   const handleOpenGPT5Analyzer = () => {
     setQuickMenuOpen(false);
@@ -192,6 +204,11 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
 
   // AIシフト提出画面を開く（プラスボタンから）
   const handleAISubmission = () => {
+    // バイト先が未登録の場合、登録促進画面を表示
+    if (workplaces.length === 0) {
+      setShowWorkplaceRegisterPrompt(true);
+      return;
+    }
     // GPT-5シフト提出フローを開く
     setShiftSubmissionOpen(true);
   };
@@ -276,6 +293,43 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
               return (
                 <Box sx={{ flex: 1, overflow: 'auto', p: 2, pb: 7 }}>
                   <GPT5ShiftSubmissionFlow onClose={() => setShiftSubmissionOpen(false)} />
+                </Box>
+              );
+            }
+            
+            // バイト先登録促進画面が開いている場合
+            if (showWorkplaceRegisterPrompt) {
+              return (
+                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, pb: 7 }}>
+                  <Box sx={{ textAlign: 'center', maxWidth: 400 }}>
+                    <Box sx={{ mb: 3 }}>
+                      <Business sx={{ fontSize: 80, color: 'primary.main', mb: 2 }} />
+                      <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
+                        まずは登録
+                      </Typography>
+                      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                        この機能を使うには、
+                        <br />
+                        まずはバイト先を登録しよう！
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                      <Button
+                        variant="contained"
+                        onClick={handleProceedToWorkplaceManagement}
+                        sx={{ 
+                          px: 4,
+                          py: 1.5,
+                          backgroundColor: 'primary.main',
+                          '&:hover': {
+                            backgroundColor: 'primary.dark'
+                          }
+                        }}
+                      >
+                        登録を開始
+                      </Button>
+                    </Box>
+                  </Box>
                 </Box>
               );
             }

@@ -288,12 +288,22 @@ export const GPT5ShiftSubmissionFlow: React.FC<GPT5ShiftSubmissionFlowProps> = (
 
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* シンプルヘッダー */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', mb: 3, py: 2 }}>
-        <Send sx={{ color: 'primary.main', fontSize: 32, mb: 1 }} />
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          シフト表を追加
+      {/* コンパクトヘッダー */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', mb: 2, py: 1 }}>
+        <Send sx={{ color: 'primary.main', fontSize: 20, mb: 0.5 }} />
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, fontSize: '1rem' }}>
+          シフト登録
         </Typography>
+        <Box 
+          sx={{ 
+            width: '100%', 
+            height: 1, 
+            backgroundColor: 'primary.main',
+            borderRadius: 0.5,
+            maxWidth: 200,
+            mx: 'auto'
+          }} 
+        />
       </Box>
 
 
@@ -312,10 +322,18 @@ export const GPT5ShiftSubmissionFlow: React.FC<GPT5ShiftSubmissionFlowProps> = (
           >
             <Card sx={{ height: 'fit-content' }}>
               <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', fontSize: '1.1rem' }}>
-                  <Info sx={{ mr: 1 }} />
-                  シフト表をアップロード
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                  <Typography variant="h6" sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    fontSize: '1.1rem',
+                    color: 'primary.main',
+                    fontWeight: 600
+                  }}>
+                    <Send sx={{ mr: 1, color: 'primary.main' }} />
+                    シフト表を提出
+                  </Typography>
+                </Box>
 
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
@@ -369,7 +387,7 @@ export const GPT5ShiftSubmissionFlow: React.FC<GPT5ShiftSubmissionFlowProps> = (
                           py: 1.5
                         }}
                       >
-                        シフト表ファイルを選択
+                        シフト表を選択
                         <input
                           type="file"
                           hidden
@@ -422,7 +440,7 @@ export const GPT5ShiftSubmissionFlow: React.FC<GPT5ShiftSubmissionFlowProps> = (
                       }
                     }}
                   >
-                    シフトを提出
+                    シフト表を提出
                   </Button>
                 </Box>
               </CardContent>
