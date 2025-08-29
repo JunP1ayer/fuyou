@@ -74,7 +74,7 @@ export const AuthMethodSelection: React.FC<AuthMethodSelectionProps> = ({
             </Box>
 
             <Stack spacing={3}>
-              {/* Googleログインボタン */}
+              {/* Googleログインボタン - 公式デザイン */}
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -84,27 +84,67 @@ export const AuthMethodSelection: React.FC<AuthMethodSelectionProps> = ({
                   variant="outlined"
                   onClick={onGoogleLogin}
                   disabled={googleLoading}
-                  startIcon={<Google />}
-                  endIcon={<ArrowForward />}
                   sx={{
                     py: 2,
-                    borderColor: '#4285f4',
-                    color: '#4285f4',
-                    borderWidth: 2,
-                    fontSize: '1rem',
-                    fontWeight: 600,
+                    px: 3,
+                    borderColor: '#dadce0',
+                    borderWidth: 1,
+                    bgcolor: '#ffffff',
+                    color: '#3c4043',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    fontFamily: 'Roboto, arial, sans-serif',
+                    textTransform: 'none',
+                    boxShadow: '0 1px 1px 0 rgba(0,0,0,0.1)',
                     '&:hover': {
-                      borderColor: '#3367d6',
-                      bgcolor: '#f8f9ff',
-                      borderWidth: 2,
+                      bgcolor: '#f8f9fa',
+                      borderColor: '#d2d6da',
+                      boxShadow: '0 1px 3px 0 rgba(0,0,0,0.15)',
+                    },
+                    '&:active': {
+                      bgcolor: '#e8eaed',
                     },
                     '&:disabled': {
-                      borderColor: '#ccc',
-                      color: '#999',
+                      bgcolor: '#f1f3f4',
+                      borderColor: '#dadce0',
+                      color: '#9aa0a6',
                     },
                   }}
                 >
-                  {googleLoading ? 'ログイン中...' : 'Googleでログイン'}
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2,
+                    width: '100%',
+                    justifyContent: 'center'
+                  }}>
+                    {/* Google G アイコン */}
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 18 18"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
+                        fill="#4285F4"
+                      />
+                      <path
+                        d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"
+                        fill="#34A853"
+                      />
+                      <path
+                        d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
+                        fill="#FBBC05"
+                      />
+                      <path
+                        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
+                        fill="#EA4335"
+                      />
+                    </svg>
+                    <span>{googleLoading ? 'ログイン中...' : 'Googleでログイン'}</span>
+                  </Box>
                 </Button>
               </motion.div>
 
@@ -156,13 +196,6 @@ export const AuthMethodSelection: React.FC<AuthMethodSelectionProps> = ({
               </motion.div>
             </Stack>
 
-            {/* 説明テキスト */}
-            <Box sx={{ mt: 4, p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                <strong>Googleログイン:</strong> 1クリックで簡単・安全<br />
-                <strong>メールログイン:</strong> 従来通りのメール認証
-              </Typography>
-            </Box>
           </CardContent>
         </Card>
       </motion.div>
