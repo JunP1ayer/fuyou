@@ -25,6 +25,24 @@ import { EmailConfirmationScreen } from './EmailConfirmationScreen';
 import { AuthMethodSelection } from './AuthMethodSelection';
 
 export const SimpleAuthForm: React.FC = () => {
+  let authContext;
+  try {
+    authContext = useSimpleAuth();
+  } catch (contextError) {
+    console.error('🔐 Auth context error:', contextError);
+    // コンテキストエラーの場合はエラー表示
+    return (
+      <Box sx={{ p: 4, textAlign: 'center' }}>
+        <Typography variant="h5" color="error" sx={{ mb: 2 }}>
+          認証システムエラー
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          認証コンテキストの初期化に失敗しました。ページを再読み込みしてください。
+        </Typography>
+      </Box>
+    );
+  }
+  
   const { 
     login, 
     signup, 
@@ -39,7 +57,7 @@ export const SimpleAuthForm: React.FC = () => {
     setShowExistingUserConfirm,
     setExistingUserEmail,
     setExistingUserPassword
-  } = useSimpleAuth();
+  } = authContext;
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,8 +124,14 @@ export const SimpleAuthForm: React.FC = () => {
 
   const handleSelectEmailAuth = () => {
     console.log('🔐 Selected Email authentication');
-    setSelectedAuthMethod('email');
-    setShowMethodSelection(false);
+    try {
+      setSelectedAuthMethod('email');
+      setShowMethodSelection(false);
+      setError(null); // エラーをクリア
+    } catch (error) {
+      console.error('🔐 Error selecting email auth:', error);
+      setError('メール認証選択中にエラーが発生しました。再度お試しください。');
+    }
   };
 
   // メソッド選択に戻る
@@ -287,7 +311,20 @@ export const SimpleAuthForm: React.FC = () => {
     } catch (error: any) {
       console.log('🔐 ===== ERROR OCCURRED =====');
       console.log('🔐 Error:', error);
-      const errorMessage = error.message || '認証に失敗しました';
+      console.log('🔐 Error type:', typeof error);
+      console.log('🔐 Error message:', error?.message);
+      console.log('🔐 Error stack:', error?.stack);
+      
+      let errorMessage = '予期しないエラーが発生しました。再度お試しください。';
+      
+      if (error && typeof error === 'object') {
+        if (error.message) {
+          errorMessage = error.message;
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        }
+      }
+      
       setError(errorMessage);
       
       // 既に登録済みの場合の処理

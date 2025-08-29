@@ -626,9 +626,6 @@ export const WorkplaceManager: React.FC = () => {
       {/* バイト先登録ボタン */}
       {workplaces.length > 0 && (
         <Box sx={{ mb: 3, textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 400, mx: 'auto' }}>
-            💡 複数のバイト先を登録すると、シフトごとに自動で収入計算・扶養管理ができます
-          </Typography>
           <Button
             variant="contained"
             size="large"
@@ -712,7 +709,7 @@ export const WorkplaceManager: React.FC = () => {
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                 <Chip
                                   icon={<AttachMoney />}
-                                  label={`¥${workplace.defaultHourlyRate?.toLocaleString() || '未設定'}/時`}
+                                  label={workplace.defaultHourlyRate ? `¥${workplace.defaultHourlyRate.toLocaleString()}/時` : '時給未設定'}
                                   size="small"
                                   color="primary"
                                   variant="outlined"
@@ -726,17 +723,6 @@ export const WorkplaceManager: React.FC = () => {
                                     variant="outlined"
                                   />
                                 )}
-                              </Box>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                                <Typography variant="caption" color="text.secondary">
-                                  締日: {(workplace as any).cutoffDay || workplace.paymentDate || '未設定'}日
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  |
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  支給日: {(workplace as any).paymentDay || workplace.paymentDate || '未設定'}日
-                                </Typography>
                               </Box>
                               {stats.shiftCount > 0 && (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
