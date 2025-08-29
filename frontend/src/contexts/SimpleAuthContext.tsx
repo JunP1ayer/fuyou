@@ -230,6 +230,16 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
     try {
       const { error } = await simpleSupabase.auth.signOut();
       if (error) throw new Error(toFriendlyAuthMessage(error));
+      
+      // ログアウト後の状態をリセット
+      console.log('🔐 Logout successful - resetting auth states');
+      setUser(null); // ユーザー状態を明示的にクリア
+      setShowEmailConfirmation(false);
+      setRegisteredEmail('');
+      setShowExistingUserConfirm(false);
+      setExistingUserEmail('');
+      setExistingUserPassword('');
+      
     } catch (error) {
       console.error('🔐 Logout error:', error);
     } finally {
