@@ -15,6 +15,7 @@ import {
 import {
   Visibility,
   VisibilityOff,
+  Google,
 } from '@mui/icons-material';
 import { useSimpleAuth } from '../../contexts/SimpleAuthContext';
 import { evaluatePasswordStrength } from '../../lib/passwordStrength';
@@ -43,6 +44,7 @@ export const SimpleAuthForm: React.FC = () => {
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
   const [switchingToLogin, setSwitchingToLogin] = useState(false);
   const [autoLoggingIn, setAutoLoggingIn] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   // 状態変化の追跡
   React.useEffect(() => {
@@ -73,6 +75,34 @@ export const SimpleAuthForm: React.FC = () => {
   });
 
   const strength = evaluatePasswordStrength(formData.password);
+
+  // Googleログイン処理
+  const handleGoogleLogin = async () => {
+    console.log('🔐 Google login attempt');
+    setGoogleLoading(true);
+    setError(null);
+    
+    try {
+      const { data, error } = await simpleSupabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        console.error('🔐 Google login error:', error);
+        setError('Googleログインに失敗しました。もう一度お試しください。');
+      } else {
+        console.log('🔐 Google login redirect initiated');
+      }
+    } catch (error: any) {
+      console.error('🔐 Google login failed:', error);
+      setError('Googleログインに失敗しました。もう一度お試しください。');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   // 自動ログインを実行する関数
   const executeAutoLogin = async () => {
@@ -417,6 +447,53 @@ export const SimpleAuthForm: React.FC = () => {
               {error}
             </Alert>
           )}
+
+          {/* Googleログインボタン */}
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={handleGoogleLogin}
+            disabled={googleLoading || loading}
+            startIcon={googleLoading ? <CircularProgress size={18} /> : <Google />}
+            sx={{
+              mb: 2,
+              borderColor: '#4285f4',
+              color: '#4285f4',
+              '&:hover': {
+                borderColor: '#3367d6',
+                bgcolor: '#f8f9ff',
+              },
+              '&:disabled': {
+                borderColor: '#ccc',
+                color: '#999',
+              },
+            }}
+          >
+            {googleLoading ? 'Googleでログイン中...' : 'Googleでログイン'}
+          </Button>
+
+          {/* 区切り線 */}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            mb: 2,
+            '&::before': {
+              content: '""',
+              flex: 1,
+              height: '1px',
+              bgcolor: 'divider',
+            },
+            '&::after': {
+              content: '""',
+              flex: 1,
+              height: '1px',
+              bgcolor: 'divider',
+            },
+          }}>
+            <Typography variant="body2" color="text.secondary" sx={{ px: 2 }}>
+              または
+            </Typography>
+          </Box>
 
           {/* フォーム */}
           <Box component="form" onSubmit={handleSubmit}>
