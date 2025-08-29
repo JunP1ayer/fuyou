@@ -180,6 +180,16 @@ export const SimpleAuthProvider: React.FC<{ children: ReactNode }> = ({ children
 
       if (error) {
         console.error('🔐 Signup error:', error);
+        
+        // メール送信エラーの場合でも、ユーザーが作成されていれば確認画面を表示
+        if (error.message?.includes('Error sending confirmation email') && data.user) {
+          console.log('🔐 User created but email sending failed - showing confirmation screen anyway');
+          return { 
+            needsEmailConfirmation: true,
+            isExistingUser: false 
+          };
+        }
+        
         throw new Error(toFriendlyAuthMessage(error));
       }
 
