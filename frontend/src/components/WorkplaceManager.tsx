@@ -705,49 +705,22 @@ export const WorkplaceManager: React.FC = () => {
                             </Typography>
                           }
                           secondary={
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              {stats.shiftCount > 0 && (
                                 <Chip
-                                  icon={<AttachMoney />}
-                                  label={workplace.defaultHourlyRate ? `¥${workplace.defaultHourlyRate.toLocaleString()}/時` : '時給未設定'}
+                                  icon={<Schedule />}
+                                  label={`${stats.shiftCount}件のシフト`}
                                   size="small"
-                                  color="primary"
+                                  color="success"
                                   variant="outlined"
                                 />
-                                {workplace.transportationFee && (
-                                  <Chip
-                                    icon={<DirectionsCar />}
-                                    label={`交通費 ¥${workplace.transportationFee}`}
-                                    size="small"
-                                    color="secondary"
-                                    variant="outlined"
-                                  />
-                                )}
-                              </Box>
-                              {stats.shiftCount > 0 && (
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                                  <Chip
-                                    icon={<Schedule />}
-                                    label={`${stats.shiftCount}件のシフト`}
-                                    size="small"
-                                    color="success"
-                                    variant="outlined"
-                                  />
-                                  <Chip
-                                    icon={<MonetizationOn />}
-                                    label={`総収入 ¥${stats.totalEarnings.toLocaleString()}`}
-                                    size="small"
-                                    color="success"
-                                    variant="filled"
-                                  />
-                                </Box>
                               )}
                             </Box>
                           }
                         />
 
-                        <ListItemSecondaryAction sx={{ top: '50%', transform: 'translateY(-50%)' }}>
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        <ListItemSecondaryAction>
+                          <Box sx={{ display: 'flex', gap: 1 }}>
                             <IconButton
                               size="small"
                               onClick={() => handleEditClick(workplace.id)}

@@ -98,6 +98,25 @@ export const SimpleAuthForm: React.FC = () => {
 
   const strength = evaluatePasswordStrength(formData.password);
 
+  // 全てのHooksをコンポーネントのトップレベルで定義（条件分岐の前に）
+  // スクロール無効化用useEffect
+  React.useEffect(() => {
+    const shouldDisableScroll = selectedAuthMethod === 'email' || showExistingUserConfirm || (!showMethodSelection && !selectedAuthMethod);
+    
+    if (shouldDisableScroll) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [selectedAuthMethod, showMethodSelection, showExistingUserConfirm]);
+
   // 認証方法選択のハンドラ
   const handleSelectGoogleAuth = () => {
     console.log('🔐 Selected Google authentication');
@@ -519,16 +538,6 @@ export const SimpleAuthForm: React.FC = () => {
   // 既存ユーザー確認画面を表示
   if (showExistingUserConfirm) {
     console.log('👤 RENDERING ExistingUserConfirmation with email:', existingUserEmail);
-    
-    // ボディのスクロールを無効化
-    React.useEffect(() => {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = '';
-        document.documentElement.style.overflow = '';
-      };
-    }, []);
     return (
       <Box
         sx={{
@@ -640,16 +649,6 @@ export const SimpleAuthForm: React.FC = () => {
   }
 
   console.log('🔐 RENDERING login/signup form');
-  
-  // メインフォームでもボディスクロールを無効化
-  React.useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    };
-  }, []);
 
   return (
     <Box

@@ -81,8 +81,8 @@ export const EmailConfirmationScreen: React.FC<EmailConfirmationScreenProps> = (
     try {
       const { data } = await simpleSupabase.auth.getUser();
       if (data.user && data.user.email_confirmed_at) {
-        // メール確認完了 - ログイン画面に戻る
-        onBackToAuth();
+        // メール確認完了 - 認証コールバック画面に移動
+        window.location.href = '/auth/callback';
         return;
       }
       setResendMessage('まだメール確認が完了していません。確認メール内のリンクをクリックしてください。');

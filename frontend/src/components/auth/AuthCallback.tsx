@@ -47,8 +47,13 @@ export const AuthCallback: React.FC = () => {
         }
 
         if (data.session) {
-          // 認証成功 - 即座にアプリのメイン画面にリダイレクト（UI表示なし）
-          window.location.href = '/';
+          // 認証成功 - 成功画面を表示してからリダイレクト
+          setAuthStatus('success');
+          
+          // 10秒後にアプリのメイン画面にリダイレクト
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 10000);
         } else {
           setAuthStatus('error');
           setErrorMessage('認証セッションの取得に失敗しました');
