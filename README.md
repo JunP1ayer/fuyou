@@ -1,5 +1,8 @@
 # 扶養プロ (Fuyou Pro) - 学生アルバイト向け扶養管理アプリ
 
+<!-- NOTE: 下記の OWNER/REPO をご自身の GitHub リポジトリに置き換えてください -->
+[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
+
 ## 📱 概要
 学生アルバイト向けの扶養控除管理システム。収入管理、シフト管理、AI-OCR機能を統合し、2025年の新扶養控除制度（123万円）にも対応。
 

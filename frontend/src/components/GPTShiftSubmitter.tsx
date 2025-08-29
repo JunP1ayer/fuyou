@@ -298,18 +298,25 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
                   variant="contained"
                   startIcon={<Upload />}
                   disabled={workplaces.length === 0}
-                  sx={{ px: { xs: 2.5, sm: 4 }, py: 1.25 }}
+                  sx={{ 
+                    px: { xs: 2.5, sm: 4 }, 
+                    py: 1.25,
+                    background: 'linear-gradient(135deg, #5ac8fa 0%, #0fb5f0 100%)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #6fd0fb 0%, #1cc0f2 100%)',
+                    },
+                  }}
                 >
                   画像/ファイルを選択
                   <input
                     type="file"
                     hidden
-                    accept="image/*,.png,.jpg,.jpeg,.webp,.pdf"
+                    accept="image/*,.png,.jpg,.jpeg"
                     onChange={e => setImageFile(e.target.files?.[0] || null)}
                   />
                 </Button>
                 <Typography variant="body2" color="text.secondary">
-                  PNG/JPG/JPEG/WebP/PDF をサポート
+                  PNG/JPG/JPEG の画像に対応
                 </Typography>
               </Box>
 
@@ -326,10 +333,10 @@ export const GPTShiftSubmitter: React.FC<GPTShiftSubmitterProps> = ({
                   px: { xs: 2.5, sm: 4 },
                   py: 1.25,
                   background:
-                    'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                    'linear-gradient(135deg, #5ac8fa 0%, #0fb5f0 100%)',
                   '&:hover': {
                     background:
-                      'linear-gradient(135deg, #38f9d7 0%, #43e97b 100%)',
+                      'linear-gradient(135deg, #6fd0fb 0%, #1cc0f2 100%)',
                   },
                   '&:disabled': {
                     background: 'rgba(0, 0, 0, 0.12)',

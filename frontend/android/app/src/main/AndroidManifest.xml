@@ -9,7 +9,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:networkSecurityConfig="@xml/network_security_config"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="false"
+        android:hardwareAccelerated="true"
+        android:largeHeap="false">
 
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation"
@@ -38,6 +41,17 @@
     </application>
 
     <!-- Permissions -->
-
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
+    <!-- Privacy-friendly permissions -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    
+    <!-- App Store metadata -->
+    <uses-feature 
+        android:name="android.hardware.touchscreen" 
+        android:required="false" />
+    <uses-feature 
+        android:name="android.hardware.wifi" 
+        android:required="false" />
 </manifest>

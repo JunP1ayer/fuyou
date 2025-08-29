@@ -133,7 +133,7 @@ export const GPT5ShiftSubmissionFlow: React.FC<GPT5ShiftSubmissionFlowProps> = (
       newErrors.workplace = 'バイト先を選択してください';
     }
     if (!workerName.trim()) {
-      newErrors.workerName = '作業者名を入力してください';
+      newErrors.workerName = 'あなたの名前を入力してください';
     }
     if (!selectedFile) {
       newErrors.file = 'シフト表ファイルを選択してください';
@@ -308,18 +308,6 @@ export const GPT5ShiftSubmissionFlow: React.FC<GPT5ShiftSubmissionFlowProps> = (
         </Box>
       </Box>
 
-      {/* コンパクトステッパー */}
-      <Card sx={{ mb: 2 }}>
-        <CardContent sx={{ py: 2 }}>
-          <Stepper activeStep={activeStep} sx={{ '& .MuiStepLabel-label': { fontSize: '0.875rem' } }}>
-            {STEPS.map((label, index) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-        </CardContent>
-      </Card>
 
       {/* メインコンテンツエリア - 残りの高さを使用 */}
       <Box sx={{ flex: 1, overflow: 'auto' }}>
@@ -338,7 +326,7 @@ export const GPT5ShiftSubmissionFlow: React.FC<GPT5ShiftSubmissionFlowProps> = (
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', fontSize: '1.1rem' }}>
                   <Info sx={{ mr: 1 }} />
-                  基本情報を入力してください
+                  シフト表をアップロード
                 </Typography>
 
                 <Grid container spacing={2}>
@@ -368,7 +356,7 @@ export const GPT5ShiftSubmissionFlow: React.FC<GPT5ShiftSubmissionFlowProps> = (
                     <TextField
                       fullWidth
                       size="small"
-                      label="作業者名"
+                      label="あなたの名前"
                       value={workerName}
                       onChange={(e) => setWorkerName(e.target.value)}
                       error={!!errors.workerName}

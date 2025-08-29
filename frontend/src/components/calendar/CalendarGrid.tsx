@@ -259,7 +259,7 @@ export const CalendarGrid = React.forwardRef<
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { t } = useI18n();
-  const [viewMode, setViewMode] = useState<'vertical' | 'horizontal'>('vertical');
+  const [viewMode, setViewMode] = useState<'vertical' | 'horizontal'>('horizontal');
   const { ui: { weekStartsOn } } = useUnifiedStore();
   const { 
     currentMonth, 
@@ -297,8 +297,8 @@ export const CalendarGrid = React.forwardRef<
     if (savedMode) {
       setViewMode(savedMode);
     } else {
-      // デフォルト設定：スマホは縦、PCは横
-      const defaultMode = isMobile ? 'vertical' : 'horizontal';
+      // デフォルト設定：全デバイスで横スクロール
+      const defaultMode = 'horizontal';
       setViewMode(defaultMode);
       localStorage.setItem('calendarViewMode', defaultMode);
     }
@@ -308,8 +308,8 @@ export const CalendarGrid = React.forwardRef<
   useEffect(() => {
     const savedMode = localStorage.getItem('calendarViewMode') as 'vertical' | 'horizontal';
     if (!savedMode) {
-      // 保存されていない場合のみデバイスに応じて自動設定
-      const defaultMode = isMobile ? 'vertical' : 'horizontal';
+      // 保存されていない場合は横スクロールをデフォルトに
+      const defaultMode = 'horizontal';
       setViewMode(defaultMode);
       localStorage.setItem('calendarViewMode', defaultMode);
     }
@@ -502,7 +502,7 @@ export const CalendarGrid = React.forwardRef<
 
   return (
     <Box ref={containerRef} sx={{ 
-      height: '100%', 
+      height: 'calc(100vh - 140px)', // ナビゲーション分を除いた高さ（ヘッダー44px + 広告48px + ボトムナビ48px）
       display: 'flex', 
       flexDirection: 'column',
       overflowY: isMobile ? 'auto' : 'hidden',
@@ -524,9 +524,6 @@ export const CalendarGrid = React.forwardRef<
         top: 0,
         zIndex: 100, // 月境界線より確実に上に表示
         backgroundColor: 'background.paper',
-        borderBottom: '2px solid',
-        borderColor: 'divider',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)', // 影を追加して浮いて見えるように
       }}>
         <Grid container spacing={0} sx={{ height: '100%' }}>
           {(weekStartsOn === 1 ? [1,2,3,4,5,6,0] : [0,1,2,3,4,5,6]).map((dow, index) => {
@@ -677,6 +674,8 @@ export const CalendarGrid = React.forwardRef<
                     width: '100%',
                     display: 'grid',
                     gridTemplateColumns: 'repeat(7, 1fr)',
+                    gridTemplateRows: '1fr',
+                    gap: 0,
                     // すべてのボーダーを無効化（セル個別の絶対配置のみ使用）
                     border: 'none',
                     '& > *': {
@@ -792,22 +791,20 @@ export const CalendarGrid = React.forwardRef<
                             height: '100%',
                             width: '100%',
                             cursor: 'pointer',
-                            // 境界線は絶対配置の擬似要素で描画
                             display: 'flex',
                             flexDirection: 'column',
-                            border: 'none', // CSS Gridの境界線を無効化
-                            overflow: 'visible', // はみ出しを許可
+                            border: 'none',
+                            position: 'relative',
+                            boxSizing: 'border-box',
                             backgroundColor: !isCurrentMonth && dimOutsideMonth 
                               ? alpha(theme.palette.action.disabledBackground, 0.05)
-                              : alpha(theme.palette.background.paper, 0.8), // 半透明にして背景月数字が見えるように
+                              : alpha(theme.palette.background.paper, 0.8),
                             outline: isTodayDate ? `2px solid ${alpha(theme.palette.primary.main, 0.6)}` : 'none',
                             outlineOffset: '-1px',
                             '&:hover': {
                               backgroundColor: alpha(theme.palette.primary.main, 0.08),
                             },
                             transition: 'background-color 0.2s ease',
-                            // 月境界の横線延長（疑似要素）
-                            position: 'relative',
                           }}
                           onClick={() => handleDateClick(day)}
                         >
@@ -911,13 +908,21 @@ export const CalendarGrid = React.forwardRef<
                             </>
                           )}
                           
-                          <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', position: 'relative', zIndex: 3, px: { xs: 0.5, md: 0.75 }, pt: { xs: 0.25, md: 0.5 } }}>
+                          <Box sx={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'flex-start', 
+                            position: 'relative', 
+                            zIndex: 3, 
+                            px: { xs: 0.75, md: 0.75 }, 
+                            pt: { xs: 0.5, md: 0.5 } 
+                          }}>
                             {/* 日付数字を左側に表示 */}
                             <Typography
                               variant="body2"
                               sx={{
                                 fontWeight: isTodayDate ? 700 : showMonth ? 600 : 500,
-                                fontSize: { xs: '17px', md: '15px' },
+                                fontSize: { xs: '16px', md: '15px' },
                                 color:
                                   !isCurrentMonth && dimOutsideMonth
                                     ? alpha(theme.palette.text.disabled, 0.3)
@@ -927,7 +932,6 @@ export const CalendarGrid = React.forwardRef<
                                         ? 'info.main'
                                         : 'text.primary',
                                 lineHeight: 1,
-                                mr: 'auto',
                               }}
                             >
                               {format(day, 'd')}
@@ -950,7 +954,16 @@ export const CalendarGrid = React.forwardRef<
                           </Box>
 
                           {/* イベント表示 */}
-                          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'stretch', opacity: !isCurrentMonth && dimOutsideMonth ? 0.3 : 1, px: 0 }}>
+                          <Box sx={{ 
+                            flex: 1, 
+                            overflow: 'hidden', 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'stretch', 
+                            opacity: !isCurrentMonth && dimOutsideMonth ? 0.3 : 1, 
+                            px: { xs: 0.5, md: 0.75 },
+                            pb: { xs: 0.25, md: 0.25 }
+                          }}>
                             {/* PC版は最大5件、モバイル版は最大3件表示 */}
                             {/* まず連続帯を表示（1つだけ代表表示）*/}
                             {spanBands.length > 0 && (

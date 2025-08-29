@@ -5,6 +5,7 @@ const config: CapacitorConfig = {
   appName: '扶養カレンダー',
   webDir: 'dist',
   bundledWebRuntime: false,
+  backgroundColor: '#1976d2',
   server: {
     androidScheme: 'https',
     allowNavigation: [
@@ -40,7 +41,16 @@ const config: CapacitorConfig = {
   },
   android: {
     allowMixedContent: true,
-    captureInput: true
+    captureInput: true,
+    buildOptions: {
+      keystorePath: undefined,
+      keystoreAlias: undefined,
+      minSdkVersion: 22,
+      compileSdkVersion: 34,
+      targetSdkVersion: 34,
+      releaseType: 'AAB'
+    },
+    flavor: 'main'
   }
 };
 

@@ -1,12 +1,18 @@
 {
   "name": "扶養管理カレンダー",
   "short_name": "扶養管理",
-  "description": "学生アルバイト向けの扶養控除管理システム",
+  "description": "学生アルバイト向けの扶養控除管理システム - シフト管理から税金計算まで完全サポート",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#5ac8fa",
   "icons": [
+    {
+      "src": "app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
     {
       "src": "vite.svg",
       "sizes": "any",
@@ -14,6 +20,34 @@
     }
   ],
   "orientation": "portrait-primary",
-  "categories": ["finance", "productivity", "utilities"],
-  "lang": "ja"
+  "categories": ["finance", "productivity", "utilities", "education"],
+  "lang": "ja",
+  "scope": "/",
+  "id": "fuyou-management-app",
+  "shortcuts": [
+    {
+      "name": "シフト追加",
+      "short_name": "シフト追加", 
+      "description": "新しいシフトを追加",
+      "url": "/?action=add-shift",
+      "icons": [
+        {
+          "src": "app-icon.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "給料確認",
+      "short_name": "給料確認",
+      "description": "今月の給料を確認",
+      "url": "/?tab=salary",
+      "icons": [
+        {
+          "src": "app-icon.svg", 
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
 }

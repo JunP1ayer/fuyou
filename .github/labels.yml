@@ -1,0 +1,68 @@
+# Label definitions for automatic sync
+# Run via workflow: .github/workflows/labels-sync.yml
+
+labels:
+  - name: frontend
+    color: 0e8a16
+    description: Frontend (React/Vite)
+
+  - name: backend
+    color: 1d76db
+    description: Backend (Express/TypeScript)
+
+  - name: api
+    color: 5319e7
+    description: Serverless API (Vercel)
+
+  - name: optimization
+    color: a2eeef
+    description: Python optimization service
+
+  - name: database
+    color: 0052cc
+    description: Database schema/migrations
+
+  - name: docs
+    color: 0075ca
+    description: Documentation changes
+
+  - name: ci
+    color: fbca04
+    description: CI/CD workflows
+
+  - name: config
+    color: c5def5
+    description: Config files and settings
+
+  - name: react
+    color: 61dafb
+    description: React components/hooks
+
+  - name: typescript
+    color: 3178c6
+    description: TypeScript types/build
+
+  - name: python
+    color: 3572A5
+    description: Python code changes
+
+  - name: bug
+    color: d73a4a
+    description: Bug fix
+
+  - name: enhancement
+    color: 84b6eb
+    description: Feature or improvement
+
+  - name: chore
+    color: dddddd
+    description: Maintenance tasks
+
+  - name: test
+    color: e4e669
+    description: Tests and coverage
+
+  - name: security
+    color: b60205
+    description: Security fixes or concerns
+

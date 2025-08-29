@@ -1,0 +1,14 @@
+# CODEOWNERS tells GitHub who reviews/approves changes by default.
+# 使い方: 下記の @OWNER をご自身/チームの GitHub ハンドルに置き換えてください。
+# 例: @junp1ayer や @org/frontend-team など。
+
+# デフォルト（全体）
+*       @OWNER
+
+# ディレクトリ別の担当者（必要に応じて設定）
+/frontend/              @OWNER_FE
+/backend/               @OWNER_BE
+/api/                   @OWNER_FE @OWNER_BE
+/optimization_service/  @OWNER_DS
+/database/              @OWNER_BE @OWNER_DB
+/docs/                  @OWNER_DOCS

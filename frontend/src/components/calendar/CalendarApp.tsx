@@ -1,8 +1,8 @@
 // メインカレンダーアプリコンポーネント
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Card, Slide, IconButton, useTheme } from '@mui/material';
-import { Close } from '@mui/icons-material';
+import { Box, Slide, IconButton, useTheme, Typography } from '@mui/material';
+import { Close, Settings } from '@mui/icons-material';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
 import { EventDialog } from './EventDialog';
@@ -187,8 +187,9 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
     setGpt5AnalyzerOpen(true);
   };
 
-  // AIシフト提出画面を開く
+  // AIシフト提出画面を開く（プラスボタンから）
   const handleAISubmission = () => {
+    // GPT-5シフト提出フローを開く
     setShiftSubmissionOpen(true);
   };
 
@@ -251,55 +252,47 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
         display: 'flex',
         flexDirection: 'column',
       }}>
-        <Card sx={{ 
-          flex: 1,
-          borderRadius: 0,
+        {/* カレンダーページ以外はヘッダーを非表示 */}
+        {currentTab === 'shift' && (
+          <Box sx={{ flexShrink: 0 }}>
+            <CalendarHeader onSettingsClick={handleSettingsToggle} />
+          </Box>
+        )}
+        
+        {/* メインコンテンツ - タブに応じて表示を切り替え */}
+        <Box sx={{ 
+          flex: 1, 
+          overflow: 'hidden',
+          p: 0,
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden',
         }}>
-          {/* カレンダーページ以外はヘッダーを非表示 */}
-          {currentTab === 'shift' && (
-            <Box sx={{ flexShrink: 0 }}>
-              <CalendarHeader onSettingsClick={handleSettingsToggle} />
-            </Box>
-          )}
-          
-          {/* メインコンテンツ - タブに応じて表示を切り替え */}
-          <Box sx={{ 
-            flex: 1, 
-            overflow: 'hidden',
-            p: 0,
-            display: 'flex',
-            flexDirection: 'column',
-          }}>
-            {(() => {
-              switch (currentTab) {
-                case 'salary':
-                  return (
-                    <Box sx={{ flex: 1, overflow: 'auto', p: 2, pb: 10 }}>
-                      <MobileSalaryView />
-                    </Box>
-                  );
-                case 'workplace':
-                  return (
-                    <Box sx={{ flex: 1, overflow: 'auto', p: 2, pb: 10 }}>
-                      <JobManagementHub />
-                    </Box>
-                  );
-                case 'share':
-                  return (
-                    <Box sx={{ flex: 1, overflow: 'auto', p: 2, pb: 10 }}>
-                      <FriendSharingHub onBack={() => setCurrentTab('shift')} />
-                    </Box>
-                  );
-                case 'shift':
-                default:
-                  return <CalendarGrid ref={calendarGridRef} onDateClick={handleDateClick} />;
-              }
-            })()}
-          </Box>
-        </Card>
+          {(() => {
+            switch (currentTab) {
+              case 'salary':
+                return (
+                  <Box sx={{ flex: 1, overflow: 'auto', p: 2, pb: 7 }}>
+                    <MobileSalaryView />
+                  </Box>
+                );
+              case 'workplace':
+                return (
+                  <Box sx={{ flex: 1, overflow: 'auto', p: 2, pb: 7 }}>
+                    <JobManagementHub />
+                  </Box>
+                );
+              case 'share':
+                return (
+                  <Box sx={{ flex: 1, overflow: 'auto', p: 2, pb: 7 }}>
+                    <FriendSharingHub onBack={() => setCurrentTab('shift')} />
+                  </Box>
+                );
+              case 'shift':
+              default:
+                return <CalendarGrid ref={calendarGridRef} onDateClick={handleDateClick} />;
+            }
+          })()}
+        </Box>
       </Box>
 
       {/* クイックアクションメニュー */}
@@ -346,10 +339,11 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
             sx={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              justifyContent: 'flex-start',
               p: 2,
               borderBottom: '1px solid',
               borderColor: 'divider',
+              gap: 7
             }}
           >
             <IconButton
@@ -363,6 +357,10 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
             >
               <Close />
             </IconButton>
+            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 600 }}>
+              <Settings />
+              基本
+            </Typography>
           </Box>
 
           {/* 設定画面内容 */}
@@ -450,7 +448,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
         friendCount={friends.length}
       />
 
-      {/* 新しいボトムナビゲーション */}
+      {/* 広告スペース + ボトムナビゲーション */}
       <Box
         sx={{
           position: 'fixed',
@@ -461,6 +459,30 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
           pointerEvents: 'auto',
         }}
       >
+        {/* 広告スペース（カレンダータブのみ表示） */}
+        {currentTab === 'shift' && (
+          <Box
+            sx={{
+              height: 48,
+              backgroundColor: 'rgba(0, 0, 0, 0.02)',
+              borderTop: '1px solid',
+              borderColor: 'divider',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              px: 2,
+              color: 'text.disabled',
+              fontSize: 11,
+            }}
+          >
+            {/* 広告表示エリア */}
+            <Box sx={{ textAlign: 'center', opacity: 0.5 }}>
+              AD SPACE
+            </Box>
+          </Box>
+        )}
+        
+        {/* ボトムナビゲーション */}
         <NewBottomNavigation
           currentTab={currentTab}
           onTabChange={handleTabChange}

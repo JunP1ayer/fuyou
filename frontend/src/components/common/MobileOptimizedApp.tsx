@@ -210,21 +210,9 @@ export const MobileOptimizedApp: React.FC<MobileOptimizedAppProps> = ({
         />
       )}
 
-      {/* ボトムナビゲーション（モバイルのみ） */}
-      {isMobile && (
-        <TouchFeedback
-          hapticType="selection"
-          pressScale={0.98}
-          rippleEffect={false}
-        >
-          <BottomNavigation
-            currentView={currentView}
-            onViewChange={(view) => {
-              triggerHapticFeedback('light');
-              onViewChange(view);
-            }}
-          />
-        </TouchFeedback>
+      {/* ボトムナビゲーション（モバイルのみ） - 無効化 */}
+      {false && isMobile && (
+        <Box>{/* Old BottomNavigation disabled */}</Box>
       )}
 
       {/* ローディングオーバーレイ */}

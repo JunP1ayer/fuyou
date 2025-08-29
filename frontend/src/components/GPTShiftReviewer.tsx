@@ -374,9 +374,9 @@ export const GPTShiftReviewer: React.FC<GPTShiftReviewerProps> = ({
           onClick={handleConfirmAllShifts}
           disabled={shifts.length === 0}
           sx={{
-            background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            background: 'linear-gradient(135deg, #5ac8fa 0%, #0fb5f0 100%)',
             '&:hover': {
-              background: 'linear-gradient(135deg, #38f9d7 0%, #43e97b 100%)',
+              background: 'linear-gradient(135deg, #6fd0fb 0%, #1cc0f2 100%)',
             },
             px: 4,
           }}

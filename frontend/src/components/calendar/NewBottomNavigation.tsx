@@ -3,9 +3,6 @@
 import React from 'react';
 import {
   Box,
-  BottomNavigation as MuiBottomNavigation,
-  BottomNavigationAction,
-  Fab,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -14,7 +11,7 @@ import {
   AttachMoney,
   Business,
   Share,
-  AutoAwesome,
+  Add,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useCalendarStore } from '../../store/calendarStore';
@@ -68,9 +65,9 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
         backgroundColor: 'background.paper',
         borderTop: '1px solid',
         borderColor: 'divider',
-        py: 1,
+        py: 0.5,
         px: 2,
-        minHeight: 60,
+        minHeight: 48,
         position: 'relative',
         pointerEvents: 'auto',
         touchAction: 'manipulation',
@@ -89,12 +86,12 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           color: currentTab === 'shift' ? 'primary.main' : 'text.secondary',
           flex: 1,
           borderRadius: 2,
-          py: 0.5,
+          py: 0.25,
           transition: 'all 0.2s ease',
           pointerEvents: 'auto',
           touchAction: 'manipulation',
           WebkitTapHighlightColor: 'transparent',
-          minHeight: 44,
+          minHeight: 36,
           '&:active': {
             backgroundColor: 'action.selected',
           },
@@ -106,8 +103,8 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
         onTouchStart={() => {}}
       >
         <CalendarMonth />
-          <Box sx={{ fontSize: 12, mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
-            {t('nav.calendar','カレンダー')}
+          <Box sx={{ fontSize: 10, mt: 0.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+            {t('nav.shift','シフト')}
           </Box>
       </Box>
 
@@ -124,12 +121,12 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           color: currentTab === 'salary' ? 'primary.main' : 'text.secondary',
           flex: 1,
           borderRadius: 2,
-          py: 0.5,
+          py: 0.25,
           transition: 'all 0.2s ease',
           pointerEvents: 'auto',
           touchAction: 'manipulation',
           WebkitTapHighlightColor: 'transparent',
-          minHeight: 44,
+          minHeight: 36,
           '&:active': {
             backgroundColor: 'action.selected',
           },
@@ -141,13 +138,57 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
         onTouchStart={() => {}}
       >
         <AttachMoney />
-          <Box sx={{ fontSize: 12, mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+          <Box sx={{ fontSize: 10, mt: 0.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
             {t('nav.salary','給料')}
           </Box>
       </Box>
 
+      {/* プラスボタン（中央） */}
+      <Box
+        component={motion.div}
+        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.05 }}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          flex: 0.8,
+          borderRadius: '50%',
+          position: 'relative',
+          minHeight: 36,
+          pointerEvents: 'auto',
+          touchAction: 'manipulation',
+          WebkitTapHighlightColor: 'transparent',
+        }}
+        onClick={handleAIClick}
+        onTouchStart={() => {}}
+      >
+        <Box
+          sx={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: 'none',
+            '&:hover': {
+              backgroundColor: 'rgba(33, 150, 243, 0.2)',
+            },
+            '&:active': {
+              backgroundColor: 'rgba(33, 150, 243, 0.3)',
+            },
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <Add sx={{ color: '#2196F3', fontSize: 18 }} />
+        </Box>
+      </Box>
 
-      {/* バイト先 */}
+      {/* バイト管理 */}
       <Box
         component={motion.div}
         whileTap={{ scale: 0.95 }}
@@ -160,12 +201,12 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           color: currentTab === 'workplace' ? 'primary.main' : 'text.secondary',
           flex: 1,
           borderRadius: 2,
-          py: 0.5,
+          py: 0.25,
           transition: 'all 0.2s ease',
           pointerEvents: 'auto',
           touchAction: 'manipulation',
           WebkitTapHighlightColor: 'transparent',
-          minHeight: 44,
+          minHeight: 36,
           '&:active': {
             backgroundColor: 'action.selected',
           },
@@ -177,8 +218,8 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
         onTouchStart={() => {}}
       >
         <Business />
-          <Box sx={{ fontSize: 12, mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
-            {t('nav.workplace','管理')}
+          <Box sx={{ fontSize: 10, mt: 0.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+            {t('nav.management','管理')}
           </Box>
       </Box>
 
@@ -195,12 +236,12 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           color: currentTab === 'share' ? 'primary.main' : 'text.secondary',
           flex: 1,
           borderRadius: 2,
-          py: 0.5,
+          py: 0.25,
           transition: 'all 0.2s ease',
           pointerEvents: 'auto',
           touchAction: 'manipulation',
           WebkitTapHighlightColor: 'transparent',
-          minHeight: 44,
+          minHeight: 36,
           '&:active': {
             backgroundColor: 'action.selected',
           },
@@ -212,7 +253,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
         onTouchStart={() => {}}
       >
         <Share />
-          <Box sx={{ fontSize: 12, mt: 0.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+          <Box sx={{ fontSize: 10, mt: 0.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
             {t('nav.share','共有')}
           </Box>
       </Box>

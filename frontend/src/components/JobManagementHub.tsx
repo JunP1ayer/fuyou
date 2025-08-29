@@ -69,7 +69,7 @@ export const JobManagementHub: React.FC<JobManagementHubProps> = () => {
         >
           <Tab
             icon={<Edit />}
-            label="バイト先管理"
+            label=""
             sx={{ minHeight: 40, fontWeight: 600 }}
           />
         </Tabs>

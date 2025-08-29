@@ -1,0 +1,48 @@
+# PR 自動ラベル付与設定（actions/labeler 用）
+# 参考: https://github.com/actions/labeler
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file: ['frontend/**']
+
+backend:
+  - changed-files:
+      - any-glob-to-any-file: ['backend/**']
+
+api:
+  - changed-files:
+      - any-glob-to-any-file: ['api/**']
+
+optimization:
+  - changed-files:
+      - any-glob-to-any-file: ['optimization_service/**']
+
+database:
+  - changed-files:
+      - any-glob-to-any-file: ['database/**']
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file: ['docs/**', 'README.md', 'AGENTS.md']
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: ['.github/workflows/**']
+
+config:
+  - changed-files:
+      - any-glob-to-any-file:
+          ['**/*.json', '**/*.yml', '**/*.yaml', '.env.example', 'frontend/.env.example', 'backend/.env.example', 'vercel.json']
+
+react:
+  - changed-files:
+      - any-glob-to-any-file: ['frontend/**']
+
+typescript:
+  - changed-files:
+      - any-glob-to-any-file: ['frontend/**', 'backend/**']
+
+python:
+  - changed-files:
+      - any-glob-to-any-file: ['optimization_service/**']
+

@@ -58,11 +58,11 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ onSettingsClick 
         alignItems: 'center',
         justifyContent: 'space-between',
         px: { xs: 1, md: 0.5 },
-        py: { xs: 0.75, md: 0.25 },
+        py: { xs: 0.5, md: 0.25 },
         borderBottom: '1px solid',
         borderColor: 'divider',
         backgroundColor: 'background.paper',
-        minHeight: { xs: 56, md: 40 }, // モバイルは大きめに
+        minHeight: { xs: 44, md: 40 }, // モバイルも小さく
       }}
     >
       {/* 左側：月切り替えボタン（縦スクロールモード時は非表示） */}

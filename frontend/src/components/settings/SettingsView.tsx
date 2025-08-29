@@ -159,16 +159,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }}>
 
 
-      {/* タブナビゲーション */}
-      <Card sx={{ mx: 2, mb: 2, mt: 2 }}>
-        <Tabs
-          value={activeTab}
-          onChange={(_, newValue) => setActiveTab(newValue)}
-          variant="fullWidth"
-        >
-          <Tab icon={<Settings />} label="基本" />
-        </Tabs>
-      </Card>
 
       {/* タブコンテンツ */}
       <Box sx={{ 
@@ -278,7 +268,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </ListItemIcon>
                     <ListItemText
                       primary="ログアウト"
-                      secondary="アカウントからログアウトします"
                       primaryTypographyProps={{
                         sx: { color: 'error.main' }
                       }}

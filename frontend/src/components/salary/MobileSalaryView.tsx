@@ -472,7 +472,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
           sx={{ borderRadius: 999 }}
         >
           {dependencyStatus.combinedLimitJPY
-            ? `ゼロ負担上限: ¥${Number(dependencyStatus.combinedLimitJPY).toLocaleString()}`
+            ? `最適な扶養額: ¥${Number(dependencyStatus.combinedLimitJPY).toLocaleString()}`
             : `税金上限: ${dependencyLimit.type}`}
         </Button>
       </Box>
@@ -483,8 +483,8 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
           {tabValue === 'month' ? (
             <>
               {/* メイン情報 */}
-              <Box sx={{ p: 3, textAlign: 'center' }}>
-                <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 1 }}>
+              <Box sx={{ p: 4, textAlign: 'center' }}>
+                <Typography variant="h5" color="text.secondary" sx={{ mb: 1.5, fontWeight: 700, fontSize: { xs: '1.5rem', sm: '1.7rem' } }}>
                   {t('salary.monthly.status', '今月の収入')}
                 </Typography>
                 
@@ -519,7 +519,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                           strokeWidth={16}
                           strokeLinecap="round"
                           strokeDasharray={`${2 * Math.PI * 52}`}
-                          strokeDashoffset={`${2 * Math.PI * 52 * (1 - Math.min(displayInfo.monthlyProgressRatio, 1))}`}
+                          strokeDashoffset={displayInfo.monthlyProgressRatio > 1 ? 0 : `${2 * Math.PI * 52 * (1 - displayInfo.monthlyProgressRatio)}`}
                           style={{
                             transition: 'stroke-dashoffset 0.5s ease-in-out'
                           }}
@@ -549,53 +549,63 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}>
-                      <Typography variant="h3" sx={{ 
-                        fontWeight: 800,
-                        color: displayInfo.monthlyProgressRatio > 0.9 
-                          ? 'error.main' 
-                          : displayInfo.monthlyProgressRatio > 0.8 
-                          ? 'warning.main' 
-                          : 'success.main'
-                      }}>
-                        {Math.round(displayInfo.monthlyProgressRatio * 100)}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
-                        %
-                      </Typography>
+                      <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Typography variant="h2" sx={{ 
+                          fontWeight: 800,
+                          fontSize: { xs: '3rem', sm: '3.5rem' },
+                          color: displayInfo.monthlyProgressRatio > 1
+                            ? 'error.main'
+                            : displayInfo.monthlyProgressRatio > 0.9 
+                            ? 'error.main' 
+                            : displayInfo.monthlyProgressRatio > 0.8 
+                            ? 'warning.main' 
+                            : 'success.main'
+                        }}>
+                          {Math.round(displayInfo.monthlyProgressRatio * 100)}
+                        </Typography>
+                        <Typography variant="caption" sx={{ 
+                          position: 'absolute',
+                          bottom: 4,
+                          right: -12,
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          color: displayInfo.monthlyProgressRatio > 1
+                            ? 'error.main'
+                            : displayInfo.monthlyProgressRatio > 0.9 
+                            ? 'error.main' 
+                            : displayInfo.monthlyProgressRatio > 0.8 
+                            ? 'warning.main' 
+                            : 'success.main'
+                        }}>
+                          %
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
                 </Box>
                 
                 <Box sx={{ 
                   display: 'flex', 
-                  justifyContent: 'space-between', 
+                  justifyContent: 'center', 
                   alignItems: 'center',
                   backgroundColor: 'grey.50',
                   borderRadius: 2,
                   p: 2,
                   mb: 2
                 }}>
-                  <Box sx={{ textAlign: 'left' }}>
-                    <Typography variant="caption" color="text.secondary">
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="caption" color="text.primary" sx={{ fontWeight: 500, fontSize: '0.6rem', display: 'block' }}>
                       {t('salary.monthly.income', '収入')}
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 800, fontSize: { xs: '1.4rem', sm: '1.6rem' } }}>
                       {formatMoney(monthEstJPY)}
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mx: 2 }}>
-                    /
-                  </Typography>
-                  <Box sx={{ textAlign: 'right' }}>
-                    <Typography variant="caption" color="text.secondary">
-                      {t('salary.limit', '月間目安')}
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                      {formatMoney(displayInfo.monthlyDependencyLimit)}
                     </Typography>
                   </Box>
                 </Box>
                 
+                <Typography variant="body2" color="text.secondary">
+                  {t('salary.limit', '月間目安')}: {formatMoney(displayInfo.monthlyDependencyLimit)}
+                </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {t('salary.workHours', '勤務時間')}: {hours}h{mins}m
                 </Typography>
@@ -604,8 +614,8 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
           ) : (
             <>
               {/* メイン情報 */}
-              <Box sx={{ p: 3, textAlign: 'center' }}>
-                <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 1 }}>
+              <Box sx={{ p: 4, textAlign: 'center' }}>
+                <Typography variant="h5" color="text.secondary" sx={{ mb: 1.5, fontWeight: 700, fontSize: { xs: '1.5rem', sm: '1.7rem' } }}>
                   {t('salary.yearly.status', '年間収入')}
                 </Typography>
                 
@@ -640,7 +650,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                           strokeWidth={16}
                           strokeLinecap="round"
                           strokeDasharray={`${2 * Math.PI * 52}`}
-                          strokeDashoffset={`${2 * Math.PI * 52 * (1 - Math.min(displayInfo.yearlyProgressRatio, 1))}`}
+                          strokeDashoffset={displayInfo.yearlyProgressRatio > 1 ? 0 : `${2 * Math.PI * 52 * (1 - displayInfo.yearlyProgressRatio)}`}
                           style={{
                             transition: 'stroke-dashoffset 0.5s ease-in-out'
                           }}
@@ -670,53 +680,63 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}>
-                      <Typography variant="h3" sx={{ 
-                        fontWeight: 800,
-                        color: displayInfo.yearlyProgressRatio > 0.9 
-                          ? 'error.main' 
-                          : displayInfo.yearlyProgressRatio > 0.7 
-                          ? 'warning.main' 
-                          : 'success.main'
-                      }}>
-                        {displayInfo.yearlyProgress}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
-                        %
-                      </Typography>
+                      <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Typography variant="h2" sx={{ 
+                          fontWeight: 800,
+                          fontSize: { xs: '3rem', sm: '3.5rem' },
+                          color: displayInfo.yearlyProgressRatio > 1
+                            ? 'error.main'
+                            : displayInfo.yearlyProgressRatio > 0.9 
+                            ? 'error.main' 
+                            : displayInfo.yearlyProgressRatio > 0.7 
+                            ? 'warning.main' 
+                            : 'success.main'
+                        }}>
+                          {Math.round(displayInfo.yearlyProgressRatio * 100)}
+                        </Typography>
+                        <Typography variant="caption" sx={{ 
+                          position: 'absolute',
+                          bottom: 4,
+                          right: -12,
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          color: displayInfo.yearlyProgressRatio > 1
+                            ? 'error.main'
+                            : displayInfo.yearlyProgressRatio > 0.9 
+                            ? 'error.main' 
+                            : displayInfo.yearlyProgressRatio > 0.7 
+                            ? 'warning.main' 
+                            : 'success.main'
+                        }}>
+                          %
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
                 </Box>
                 
                 <Box sx={{ 
                   display: 'flex', 
-                  justifyContent: 'space-between', 
+                  justifyContent: 'center', 
                   alignItems: 'center',
                   backgroundColor: 'grey.50',
                   borderRadius: 2,
                   p: 2,
                   mb: 2
                 }}>
-                  <Box sx={{ textAlign: 'left' }}>
-                    <Typography variant="caption" color="text.secondary">
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="caption" color="text.primary" sx={{ fontWeight: 500, fontSize: '0.6rem', display: 'block' }}>
                       {t('salary.yearly.income', '収入')}
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 800, fontSize: { xs: '1.4rem', sm: '1.6rem' } }}>
                       {formatMoney(yearEarningsJPY)}
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mx: 2 }}>
-                    /
-                  </Typography>
-                  <Box sx={{ textAlign: 'right' }}>
-                    <Typography variant="caption" color="text.secondary">
-                      {t('salary.limit', '扶養限度額')}
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                      {formatMoney(displayInfo.actualLimit)}
                     </Typography>
                   </Box>
                 </Box>
                 
+                <Typography variant="body2" color="text.secondary">
+                  {t('salary.limit', '扶養限度額')}: {formatMoney(displayInfo.actualLimit)}
+                </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {t('salary.workHours', '勤務時間')}: {Math.floor(yearHoursMin / 60)}h{Math.floor(yearHoursMin % 60)}m
                 </Typography>
@@ -739,27 +759,6 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
         税金上限を再設定
       </Button>
 
-      {/* 銀行連携（今後のアップデート） - 非表示 */}
-      {false && (
-        <Card sx={{ mb: 3, bgcolor: 'grey.50' }}>
-          <CardContent sx={{ textAlign: 'center', py: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
-              <AccountBalance sx={{ mr: 1, color: 'text.secondary' }} />
-              <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-                銀行連携
-              </Typography>
-            </Box>
-            
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              自動でデータ取得・分析
-            </Typography>
-            
-            <Typography variant="caption" color="text.disabled">
-              今後のアップデートでお楽しみに！
-            </Typography>
-          </CardContent>
-        </Card>
-      )}
 
 
       {/* 2025年税金チェック ダイアログ */}
