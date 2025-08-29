@@ -24,6 +24,7 @@ interface NewBottomNavigationProps {
   onTabChange: (tab: NewTabValue) => void;
   onAIClick: () => void;
   onScrollToToday?: () => void;
+  isAIFlowActive?: boolean;
 }
 
 export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
@@ -31,6 +32,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
   onTabChange,
   onAIClick,
   onScrollToToday,
+  isAIFlowActive = false,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -83,7 +85,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           flexDirection: 'column',
           alignItems: 'center',
           cursor: 'pointer',
-          color: currentTab === 'shift' ? 'primary.main' : 'text.secondary',
+          color: (currentTab === 'shift' && !isAIFlowActive) ? 'primary.main' : 'text.secondary',
           flex: 1,
           borderRadius: 2,
           py: 0.25,
@@ -118,7 +120,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           flexDirection: 'column',
           alignItems: 'center',
           cursor: 'pointer',
-          color: currentTab === 'salary' ? 'primary.main' : 'text.secondary',
+          color: (currentTab === 'salary' && !isAIFlowActive) ? 'primary.main' : 'text.secondary',
           flex: 1,
           borderRadius: 2,
           py: 0.25,
@@ -170,21 +172,21 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
             width: 32,
             height: 32,
             borderRadius: '50%',
-            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+            backgroundColor: isAIFlowActive ? 'rgba(33, 150, 243, 0.2)' : 'rgba(33, 150, 243, 0.1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: 'none',
             '&:hover': {
-              backgroundColor: 'rgba(33, 150, 243, 0.2)',
+              backgroundColor: isAIFlowActive ? 'rgba(33, 150, 243, 0.3)' : 'rgba(33, 150, 243, 0.2)',
             },
             '&:active': {
-              backgroundColor: 'rgba(33, 150, 243, 0.3)',
+              backgroundColor: isAIFlowActive ? 'rgba(33, 150, 243, 0.4)' : 'rgba(33, 150, 243, 0.3)',
             },
             transition: 'all 0.2s ease',
           }}
         >
-          <Add sx={{ color: '#2196F3', fontSize: 18 }} />
+          <Add sx={{ color: 'primary.main', fontSize: 18 }} />
         </Box>
       </Box>
 
@@ -198,7 +200,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           flexDirection: 'column',
           alignItems: 'center',
           cursor: 'pointer',
-          color: currentTab === 'workplace' ? 'primary.main' : 'text.secondary',
+          color: (currentTab === 'workplace' && !isAIFlowActive) ? 'primary.main' : 'text.secondary',
           flex: 1,
           borderRadius: 2,
           py: 0.25,
@@ -233,7 +235,7 @@ export const NewBottomNavigation: React.FC<NewBottomNavigationProps> = ({
           flexDirection: 'column',
           alignItems: 'center',
           cursor: 'pointer',
-          color: currentTab === 'share' ? 'primary.main' : 'text.secondary',
+          color: (currentTab === 'share' && !isAIFlowActive) ? 'primary.main' : 'text.secondary',
           flex: 1,
           borderRadius: 2,
           py: 0.25,

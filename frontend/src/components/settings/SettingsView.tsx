@@ -93,7 +93,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   // カレンダー表示モード設定
   const [calendarViewMode, setCalendarViewMode] = useState<'vertical' | 'horizontal'>(() => {
     const saved = localStorage.getItem('calendarViewMode') as 'vertical' | 'horizontal';
-    return saved || 'vertical';
+    return saved || 'horizontal';
   });
 
   // 通知設定

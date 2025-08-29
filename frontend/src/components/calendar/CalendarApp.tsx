@@ -79,9 +79,12 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
   // タブ切り替え処理（シンプル版）
   const handleTabChange = (tab: NewTabValue) => {
     setCurrentTab(tab);
-    // タブ切り替え時に設定画面を閉じる
+    // タブ切り替え時に設定画面とAIシフト提出フローを閉じる
     if (settingsOpen) {
       setSettingsOpen(false);
+    }
+    if (shiftSubmissionOpen) {
+      setShiftSubmissionOpen(false);
     }
   };
 
@@ -268,6 +271,15 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
           flexDirection: 'column',
         }}>
           {(() => {
+            // AIシフト提出フローが開いている場合
+            if (shiftSubmissionOpen) {
+              return (
+                <Box sx={{ flex: 1, overflow: 'auto', p: 2, pb: 7 }}>
+                  <GPT5ShiftSubmissionFlow onClose={() => setShiftSubmissionOpen(false)} />
+                </Box>
+              );
+            }
+            
             switch (currentTab) {
               case 'salary':
                 return (
@@ -422,24 +434,6 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
         onClose={() => setQuickShiftDialogOpen(false)}
       />
 
-      {/* AIシフト提出フロー */}
-      {shiftSubmissionOpen && (
-        <Box
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'background.default',
-            zIndex: 1400,
-            overflow: 'auto',
-            p: 2,
-          }}
-        >
-          <GPT5ShiftSubmissionFlow onClose={() => setShiftSubmissionOpen(false)} />
-        </Box>
-      )}
 
       {/* 友達機能紹介ダイアログ */}
       <FriendFeatureIntroDialog
@@ -459,8 +453,8 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
           pointerEvents: 'auto',
         }}
       >
-        {/* 広告スペース（カレンダータブのみ表示） */}
-        {currentTab === 'shift' && (
+        {/* 広告スペース（カレンダータブのみ表示、AIシフト提出フロー表示中は非表示） */}
+        {currentTab === 'shift' && !shiftSubmissionOpen && (
           <Box
             sx={{
               height: 48,
@@ -488,6 +482,7 @@ export const CalendarApp: React.FC<CalendarAppProps> = ({
           onTabChange={handleTabChange}
           onAIClick={handleAISubmission}
           onScrollToToday={handleScrollToToday}
+          isAIFlowActive={shiftSubmissionOpen}
         />
       </Box>
 

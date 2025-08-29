@@ -46,6 +46,7 @@ import {
   Person,
   Schedule,
   ArrowBack,
+  Send,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSimpleShiftStore } from '../store/simpleShiftStore';
@@ -286,26 +287,13 @@ export const GPT5ShiftSubmissionFlow: React.FC<GPT5ShiftSubmissionFlowProps> = (
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 2, height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* コンパクトヘッダー */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', mb: 2 }}>
-        {onClose && (
-          <IconButton 
-            onClick={onClose}
-            sx={{ position: 'absolute', left: 0 }}
-          >
-            <ArrowBack />
-          </IconButton>
-        )}
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AutoAwesome sx={{ mr: 1 }} />
-            AI シフト表提出
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            AI powered shift schedule analysis and calendar integration
-          </Typography>
-        </Box>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* シンプルヘッダー */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', mb: 3, py: 2 }}>
+        <Send sx={{ color: 'primary.main', fontSize: 32, mb: 1 }} />
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          シフト表を追加
+        </Typography>
       </Box>
 
 
@@ -373,8 +361,13 @@ export const GPT5ShiftSubmissionFlow: React.FC<GPT5ShiftSubmissionFlowProps> = (
                       <Button
                         component="label"
                         variant="contained"
+                        size="large"
                         startIcon={<Upload />}
-                        sx={{ mb: 1 }}
+                        sx={{ 
+                          mb: 1,
+                          px: 3,
+                          py: 1.5
+                        }}
                       >
                         シフト表ファイルを選択
                         <input
@@ -423,13 +416,13 @@ export const GPT5ShiftSubmissionFlow: React.FC<GPT5ShiftSubmissionFlowProps> = (
                     sx={{
                       px: 3,
                       py: 1.5,
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      backgroundColor: '#2196F3',
                       '&:hover': {
-                        background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+                        backgroundColor: '#1976D2',
                       }
                     }}
                   >
-                    AIで解析開始
+                    シフトを提出
                   </Button>
                 </Box>
               </CardContent>
