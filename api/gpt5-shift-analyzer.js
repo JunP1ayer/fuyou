@@ -27,6 +27,14 @@ export default async function handler(req, res) {
       });
     }
 
+    // Base64画像データの基本チェック
+    if (!image.startsWith('data:') && !image.match(/^[A-Za-z0-9+/=]+$/)) {
+      return res.status(400).json({
+        success: false,
+        error: '無効な画像データ形式です'
+      });
+    }
+
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return res.status(500).json({
@@ -89,7 +97,7 @@ export default async function handler(req, res) {
               {
                 type: 'image_url',
                 image_url: {
-                  url: image,
+                  url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`,
                   detail: 'high'
                 }
               }

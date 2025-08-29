@@ -83,7 +83,7 @@ router.post('/', validateSchema(gpt5AnalysisSchema), asyncHandler(async (req, re
           content: [
             { type: 'input_text', text: systemPrompt },
             { type: 'input_text', text: userText },
-            { type: 'input_image', image_url: image, detail: 'high' },
+            { type: 'input_image', image_url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`, detail: 'high' },
           ],
         },
       ],
