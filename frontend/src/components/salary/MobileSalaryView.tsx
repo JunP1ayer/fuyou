@@ -1479,8 +1479,7 @@ export const MobileSalaryView: React.FC<MobileSalaryViewProps> = ({ showFirstTim
                   transform: 'scale(1.02)',
                   boxShadow: '0 6px 20px rgba(0,0,0,0.2)',
                 },
-                transition: 'all 0.3s ease',
-                mt: 2
+                transition: 'all 0.3s ease'
               }}
             >
               給料管理を始める
