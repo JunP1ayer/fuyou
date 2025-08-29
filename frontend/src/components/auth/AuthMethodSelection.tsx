@@ -143,7 +143,9 @@ export const AuthMethodSelection: React.FC<AuthMethodSelectionProps> = ({
                         fill="#EA4335"
                       />
                     </svg>
-                    <span>{googleLoading ? 'ログイン中...' : 'Googleでログイン'}</span>
+                    <span style={{ whiteSpace: 'nowrap' }}>
+                      {googleLoading ? 'ログイン中...' : 'Googleでログイン'}
+                    </span>
                   </Box>
                 </Button>
               </motion.div>
